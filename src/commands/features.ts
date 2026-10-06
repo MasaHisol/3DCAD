@@ -251,7 +251,8 @@ class ExtrudeCommand extends FeatureCommand<ExtrudeFeature> {
         dist.el.style.display = v === "through" ? "none" : "";
       },
     );
-    p.toggles(
+    let dirTouched = this.editing;
+    const dirToggle = p.toggles(
       beh,
       "方向",
       [
@@ -260,18 +261,29 @@ class ExtrudeCommand extends FeatureCommand<ExtrudeFeature> {
         { value: "sym", icon: "dirSym", title: "対称" },
       ],
       f.extent === "symmetric" ? "sym" : f.flip ? "flip" : "default",
-      (v) =>
+      (v) => {
+        dirTouched = true;
         this.update((x) => {
           x.flip = v === "flip";
           if (v === "sym") x.extent = "symmetric";
           else if (x.extent === "symmetric") x.extent = "distance";
-        }),
+        });
+      },
     );
     const dist = p.expr(beh, "距離 A", this.expr(f.distance), "mm", (e) => this.setParam(this.feature.distance, e), f.distance);
     if (f.extent === "through") dist.el.style.display = "none";
     setTimeout(() => dist.input.focus(), 50);
     const out = p.section("出力");
-    p.toggles(out, "ブール演算", OPS, f.op, (v) => this.update((x) => (x.op = v as BoolOp)));
+    p.toggles(out, "ブール演算", OPS, f.op, (v) => {
+      this.update((x) => (x.op = v as BoolOp));
+      // sketches on model faces: cut into the material, add away from it (Inventor behaviour)
+      const sk = this.app.store.feature<SketchFeature>(this.feature.sketch);
+      if (!dirTouched && sk?.planeLabel === "面" && this.feature.extent !== "symmetric") {
+        const flip = v === "cut" || v === "intersect";
+        this.update((x) => (x.flip = flip));
+        dirToggle.set(flip ? "flip" : "default");
+      }
+    });
   }
 
   cancel() {
