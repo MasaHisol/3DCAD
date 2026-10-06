@@ -105,6 +105,23 @@ describe("geometry engine", () => {
     expect(eng2.massProps().volume).toBeCloseTo(Math.PI * (9 - 4) * 40, 1);
   }, 60000);
 
+  it("imports STL and moves bodies", async () => {
+    const eng = new GeometryEngine();
+    await eng.rebuild([{ id: "e", type: "extrude", plane: XY, regions: [rect(10, 10)], op: "new", from: 0, to: 10, through: false, flip: false }]);
+    const stl = new Uint8Array(await eng.exportFile("stl", "cube").arrayBuffer());
+    let bin = "";
+    stl.forEach((b) => (bin += String.fromCharCode(b)));
+    const eng2 = new GeometryEngine();
+    const r = await eng2.rebuild([
+      { id: "i", type: "import", format: "stl", data: btoa(bin) },
+      { id: "m", type: "move", transform: { rotate: { angle: 90, origin: [0, 0, 0], axis: [0, 0, 1] }, translate: [100, 0, 0] } },
+    ]);
+    expect(r.errors).toEqual({});
+    const mp = eng2.massProps();
+    expect(mp.bbox[0][0]).toBeCloseTo(90, 3);
+    expect(mp.bbox[1][0]).toBeCloseTo(100, 3);
+  }, 60000);
+
   it("reports a feature error but keeps building", async () => {
     const eng = new GeometryEngine();
     const r = await eng.rebuild([

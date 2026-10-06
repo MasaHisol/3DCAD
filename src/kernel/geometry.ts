@@ -456,8 +456,7 @@ async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<S
       if (f.format === "step") {
         shape = (await R.importSTEP(new Blob([f.data]))) as Shape;
       } else {
-        const bin = Uint8Array.from(atob(f.data), (c) => c.charCodeAt(0));
-        shape = (await R.importSTL(new Blob([bin]))) as Shape;
+        shape = importStl(Uint8Array.from(atob(f.data), (c) => c.charCodeAt(0)));
       }
       const solids = shape.solids?.length ? (shape.solids as Shape[]) : [shape];
       return { bodies: [...bodies, ...solids], tools };
@@ -615,6 +614,48 @@ export class GeometryEngine {
     });
   }
 
+}
+
+/**
+ * STL -> solid: read the triangles, sew them into shells, make a solid and
+ * merge coplanar facets. (replicad's importSTL assumes a single shell.)
+ */
+export function importStl(bytes: Uint8Array): Shape {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const oc = R.getOC() as any;
+  const name = `/stl_${Math.random().toString(36).slice(2)}.stl`;
+  oc.FS.writeFile(name, bytes);
+  try {
+    const reader = new oc.StlAPI_Reader();
+    const raw = new oc.TopoDS_Shape();
+    if (!reader.Read(raw, name)) throw new Error("STL を読み込めませんでした");
+    const sew = new oc.BRepBuilderAPI_Sewing(1e-6, true, true, true, false);
+    sew.Add(raw);
+    sew.Perform(new oc.Message_ProgressRange());
+    const sewed = sew.SewedShape();
+    const ms = new oc.BRepBuilderAPI_MakeSolid();
+    let shells = 0;
+    for (const sh of R.iterTopo(sewed, "shell")) {
+      ms.Add(oc.TopoDS.Shell(sh));
+      shells++;
+    }
+    if (!shells) throw new Error("STL から閉じたシェルを作成できませんでした");
+    let solid = ms.Solid();
+    try {
+      const up = new oc.ShapeUpgrade_UnifySameDomain(solid, true, true, false);
+      up.Build();
+      solid = up.Shape();
+    } catch {
+      /* keep facets */
+    }
+    return R.cast(solid) as Shape;
+  } finally {
+    try {
+      oc.FS.unlink(name);
+    } catch {
+      /* already gone */
+    }
+  }
 }
 
 /** Applies a column-major rigid 4x4 matrix to a shape (rotation + translation). */
