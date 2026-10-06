@@ -78,7 +78,7 @@
           ]
         }
       ],
-      "icon": "build/icon.png"
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,
@@ -91,7 +91,9 @@
       "installerLanguages": [
         "ja_JP"
       ],
-      "language": "1041"
+      "language": "1041",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
     },
     "portable": {
       "artifactName": "3DCAD-Studio-${version}-portable.${ext}"
@@ -106,7 +108,7 @@
         }
       ],
       "category": "public.app-category.graphics-design",
-      "icon": "build/icon.png",
+      "icon": "build/icon.icns",
       "artifactName": "3DCAD-Studio-${version}-mac.${ext}"
     },
     "linux": {
