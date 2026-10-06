@@ -34,6 +34,7 @@ export type RFeature =
     }
   | { id: string; type: "loft"; sections: { plane: PlaneDef; outer: LoopSeg[] }[]; ruled: boolean; op: BoolOp }
   | { id: string; type: "sweep"; plane: PlaneDef; regions: RRegion[]; path: PathSeg[]; op: BoolOp }
+  | { id: string; type: "pushpull"; face: FaceRef; distance: number }
   | { id: string; type: "fillet"; edges: EdgeRef[]; radius: number }
   | { id: string; type: "chamfer"; edges: EdgeRef[]; distance: number }
   | { id: string; type: "shell"; faces: FaceRef[]; thickness: number; outside?: boolean }

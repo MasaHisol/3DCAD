@@ -12,6 +12,7 @@ import type {
   FilletFeature,
   HoleFeature,
   LoftFeature,
+  PushPullFeature,
   SweepFeature,
   MirrorFeature,
   MoveFeature,
@@ -774,6 +775,67 @@ class ShellCommand extends TopoCommand<ShellFeature> {
   }
 }
 
+// ------------------------------------------------------------ press/pull ---
+
+class PushPullCommand extends FeatureCommand<PushPullFeature> {
+  readonly id = "pushpull";
+  private pick: ReturnType<PropertyPanel["picker"]>;
+  private dist: ReturnType<PropertyPanel["expr"]>;
+  private drag: { y: number; start: number } | null = null;
+
+  constructor(app: App, existing: PushPullFeature | null) {
+    super(app, existing, () => {
+      const id = uid("pp");
+      return { id, type: "pushpull", name: app.store.nextFeatureName("pushpull"), face: null, distance: app.store.addParam(app.store.doc, "5", "mm", id) };
+    });
+    this.openPanel(this.editing ? `プレス/プル: ${this.feature.name}` : "プレス/プル", "pushpull", true);
+    const sec = this.panel.section("面");
+    this.pick = this.panel.picker(sec, "面", "pushpull", () => {});
+    this.pick.setActive(true);
+    this.pick.setCount(this.feature.face ? 1 : 0, this.feature.face ? "平面" : "平面を選択");
+    this.dist = this.panel.expr(sec, "距離", this.expr(this.feature.distance), "mm", (e) => this.setParam(this.feature.distance, e), this.feature.distance);
+    this.panel.note(sec, "正の値で押し出し (追加)、負の値で押し込み (除去)。面を選んだ後、ビュー上で上下にドラッグしても変更できます。");
+    app.vp.pickKinds = new Set(["face"]);
+    app.vp.pickFilter = (p) => app.pickBodies[p.body]?.faces[p.index]?.type === "PLANE";
+    this.handler = {
+      cursor: "pointer",
+      onPointerMove: (e, vp) => {
+        if (this.drag) {
+          const v = this.drag.start + (this.drag.y - e.clientY) * vp.pixelSize * (e.shiftKey ? 0.1 : 1);
+          const t = formatNumber(Math.round(v * 10) / 10, 2);
+          this.dist.set(t);
+          this.setParam(this.feature.distance, t);
+          return;
+        }
+        vp.setHover(vp.pick(e));
+      },
+      onPointerDown: (e, vp) => {
+        if (e.button !== 0) return;
+        const p = vp.pick(e);
+        if (p && !this.sameFace(p)) {
+          const r = app.faceRef(p);
+          if (!r) return;
+          this.update((f) => (f.face = r));
+          this.pick.setCount(1, "平面");
+          vp.setSelection([p]);
+        }
+        if (this.feature.face) this.drag = { y: e.clientY, start: Number(app.values().get(this.feature.distance) ?? 0) };
+      },
+      onPointerUp: () => (this.drag = null),
+    };
+    app.status("押し出す/押し込む平面をクリック (選択後ドラッグで距離を変更)");
+  }
+
+  private sameFace(p: Pick): boolean {
+    const f = this.app.pickBodies[p.body]?.faces[p.index];
+    return !!f && !!this.feature.face && dist3(f.center, this.feature.face.center) < 1e-6;
+  }
+
+  captureBefore() {
+    return this.featureId;
+  }
+}
+
 // ---------------------------------------------------------------- hole ---
 
 class HoleCommand extends FeatureCommand<HoleFeature> {
@@ -1346,6 +1408,7 @@ export function buildCommands(app: App): CommandRegistry {
     revolve: { id: "revolve", label: "回転", icon: "revolve" },
     loft: { id: "loft", label: "ロフト", icon: "loft" },
     sweep: { id: "sweep", label: "スイープ", icon: "sweep" },
+    pushpull: { id: "pushpull", label: "プレス/プル", icon: "pushpull" },
     fillet: { id: "fillet", label: "フィレット", icon: "fillet" },
     chamfer: { id: "chamfer", label: "面取り", icon: "chamfer" },
     shell: { id: "shell", label: "シェル", icon: "shell" },
@@ -1371,6 +1434,8 @@ export function buildCommands(app: App): CommandRegistry {
         return new RevolveCommand(app, f as RevolveFeature | null);
       case "loft":
         return new LoftCommand(app, f as LoftFeature | null);
+      case "pushpull":
+        return new PushPullCommand(app, f as PushPullFeature | null);
       case "sweep":
         return new SweepCommand(app, f as SweepFeature | null);
       case "fillet":
@@ -1402,7 +1467,7 @@ export function buildCommands(app: App): CommandRegistry {
     return null;
   };
   const needsProfile = new Set(["extrude", "revolve", "loft", "sweep"]);
-  const needsBody = new Set(["fillet", "chamfer", "shell", "hole", "move"]);
+  const needsBody = new Set(["fillet", "chamfer", "shell", "hole", "move", "pushpull"]);
   return {
     get: (id) => info[id],
     run: (id) => {

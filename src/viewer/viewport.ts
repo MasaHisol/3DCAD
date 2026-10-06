@@ -15,6 +15,16 @@ export interface Pick {
   key?: string;
 }
 
+export type NavPreset = "inventor" | "fusion" | "solidworks" | "creo" | "onshape";
+
+export const NAV_PRESETS: { id: NavPreset; label: string; help: string }[] = [
+  { id: "inventor", label: "Inventor", help: "中ボタン: 画面移動 / Shift+中ボタン: オービット" },
+  { id: "fusion", label: "Fusion 360", help: "中ボタン: 画面移動 / Shift+中ボタン: オービット" },
+  { id: "solidworks", label: "SOLIDWORKS", help: "中ボタン: 回転 / Ctrl+中ボタン: 画面移動 / Shift+中ボタン: ズーム" },
+  { id: "creo", label: "Creo", help: "中ボタン: 回転 / Shift+中ボタン: 画面移動 / Ctrl+中ボタン: ズーム" },
+  { id: "onshape", label: "Onshape", help: "右ドラッグ: 回転 / 中ボタン・Ctrl+右ドラッグ: 画面移動" },
+];
+
 export type VisualStyle = "shadedEdges" | "shaded" | "wireframe" | "hiddenEdges";
 
 export interface ViewState {
@@ -102,7 +112,10 @@ export class Viewport {
   private raycaster = new THREE.Raycaster();
   private needsRender = true;
   private anim: { from: ViewState; to: ViewState; t0: number; dur: number } | null = null;
-  private drag: { mode: "orbit" | "pan" | "zoom"; x: number; y: number; pivot: THREE.Vector3; button: number } | null = null;
+  private drag: { mode: "orbit" | "pan" | "zoom"; x: number; y: number; pivot: THREE.Vector3; button: number; moved: boolean } | null = null;
+  /** Mouse mapping familiar from other CAD systems. */
+  navPreset: NavPreset = "inventor";
+  invertWheel = false;
   private keysDown = new Set<string>();
   private resizeObs: ResizeObserver;
 
@@ -703,14 +716,19 @@ export class Viewport {
     const panKey = this.keysDown.has("F2");
     const zoomKey = this.keysDown.has("F3");
     let mode: "orbit" | "pan" | "zoom" | null = null;
-    if (e.button === 1) mode = e.shiftKey ? "orbit" : "pan";
+    const p = this.navPreset;
+    if (e.button === 1) {
+      if (p === "solidworks") mode = e.ctrlKey ? "pan" : e.shiftKey ? "zoom" : "orbit";
+      else if (p === "creo") mode = e.shiftKey ? "pan" : e.ctrlKey ? "zoom" : "orbit";
+      else mode = e.shiftKey ? "orbit" : "pan"; // Inventor / Fusion 360 / Onshape
+    } else if (e.button === 2 && p === "onshape") mode = e.ctrlKey ? "pan" : "orbit";
     else if (e.button === 0 && (orbitKey || e.altKey || this.navMode === "orbit")) mode = "orbit";
     else if (e.button === 0 && (panKey || this.navMode === "pan")) mode = "pan";
     else if (e.button === 0 && (zoomKey || this.navMode === "zoom")) mode = "zoom";
     else if (e.button === 2 && e.shiftKey) mode = "orbit";
     if (mode) {
       const pivot = mode === "orbit" ? (this.surfacePoint(e) ?? this.view.target.clone()) : this.view.target.clone();
-      this.drag = { mode, x: e.clientX, y: e.clientY, pivot, button: e.button };
+      this.drag = { mode, x: e.clientX, y: e.clientY, pivot, button: e.button, moved: false };
       this.renderer.domElement.style.cursor = mode === "orbit" ? "grabbing" : mode === "pan" ? "move" : "ns-resize";
       this.anim = null;
       return;
@@ -721,6 +739,8 @@ export class Viewport {
   private onPointerMove(e: PointerEvent) {
     if (this.drag) {
       const dx = e.clientX - this.drag.x, dy = e.clientY - this.drag.y;
+      if (!this.drag.moved && Math.abs(dx) + Math.abs(dy) < 3) return;
+      this.drag.moved = true;
       this.drag.x = e.clientX;
       this.drag.y = e.clientY;
       if (this.drag.mode === "orbit") this.orbit(dx, dy, this.drag.pivot);
@@ -735,8 +755,11 @@ export class Viewport {
 
   private onPointerUp(e: PointerEvent) {
     if (this.drag) {
+      const d = this.drag;
       this.drag = null;
       this.renderer.domElement.style.cursor = this.tool?.cursor ?? "";
+      // a right click without dragging still opens the menu (Onshape style)
+      if (!d.moved && d.button === 2) this.tool?.onContextMenu?.(e, this);
       return;
     }
     if (e.button === 2) {
@@ -748,7 +771,7 @@ export class Viewport {
   private onWheel(e: WheelEvent) {
     e.preventDefault();
     this.anim = null;
-    const f = Math.exp((e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY) * 0.0012);
+    const f = Math.exp((e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY) * 0.0012 * (this.invertWheel ? -1 : 1));
     this.zoomBy(f, e);
   }
 

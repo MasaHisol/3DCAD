@@ -103,6 +103,33 @@ npm run app        # デスクトップ アプリとして起動
 | `Ctrl+Shift+R` / `O` / `M` | 矩形状 / 円形状パターン / ミラー | `PageUp` | 注視 |
 | `P` / `C` / `V` / `G` | 配置 / 拘束 / 自由移動 / 自由回転 (アセンブリ) | `M` | 測定 |
 
+## 他の CAD から取り入れた長所
+
+| 由来 | 機能 |
+| --- | --- |
+| Fusion 360 | 画面下の**タイムライン** (フィーチャ履歴をアイコンで表示、マーカーのドラッグでロールバック、ダブルクリックで編集) |
+| Fusion 360 / SOLIDWORKS | **コマンド検索** (`Ctrl+K`。日本語・英語名どちらでも検索可: `fillet` → フィレット) |
+| Fusion 360 / SketchUp | **プレス/プル** (`Q`): 平面を選んでドラッグまたは数値で押し出し / 押し込みするダイレクト編集 |
+| SOLIDWORKS (デザイン テーブル) | パラメータ表を **CSV (Excel)** で書き出し・読み込みして寸法を一括変更 |
+| SOLIDWORKS / Creo / Onshape / Fusion | **マウス操作プリセット** (オプション): 普段使いの CAD と同じボタン割り当てで回転・画面移動・ズーム |
+| Inventor | リボン、モデル ブラウザ、マーキング メニュー、ViewCube、パーツの終わり、iProperties など全体の操作体系 |
+
+## ファイル互換性
+
+| 形式 | 読込 | 書出 | 主な相手先 |
+| --- | :-: | :-: | --- |
+| STEP (.stp/.step, AP214) | ✓ | ✓ | Inventor / SOLIDWORKS / Fusion 360 / CATIA / Creo / NX / Onshape / FreeCAD (形状 = B-rep ソリッド。アセンブリは部品名付き) |
+| DXF (R12) | ✓ (スケッチとして) | ✓ (スケッチ / 図面) | AutoCAD / Jw_cad / DraftSight / LibreCAD — 線分・円・円弧・ポリライン (バルジ付き) |
+| STL | ✓ | ✓ | 3D プリンタ、スキャナ |
+| 3MF | | ✓ | Bambu Studio / PrusaSlicer / Cura / Windows 3D ビューアー |
+| OBJ | ✓ | ✓ | Blender / Rhino / メッシュ系ツール |
+| GLB (glTF) | | ✓ | Web・AR・プレゼン |
+| PLY | | ✓ | 点群 / メッシュ ツール |
+| CSV | ✓ | ✓ | Excel (パラメータ = デザイン テーブル) |
+| SVG / PDF (印刷) | | ✓ | 図面 |
+
+メッシュ形式 (STL / OBJ) の読み込みは三角形を縫合してソリッド化します (編集はできますが面は多面体になります)。
+
 ## Inventor との互換性について
 
 | データ | 対応 |

@@ -406,6 +406,20 @@ async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<S
       tools.set(f.id, { shape: tool, op: f.op });
       return { bodies: applyOp(bodies, tool, f.op), tools };
     }
+    case "pushpull": {
+      const { perBody, updated } = resolveFaces(bodies, [f.face], diag);
+      entry.refs = { faces: updated };
+      const [[bi, faces]] = [...perBody.entries()];
+      const face = faces[0];
+      if (String(face.geomType) !== "PLANE") throw new Error("プレス/プルは平面にのみ使用できます");
+      if (Math.abs(f.distance) < 1e-9) return { bodies, tools };
+      const n = normalize(tuple(face.normalAt(face.center)));
+      const tool = R.basicFaceExtrusion(face, new R.Vector(scale(n, f.distance))) as unknown as Shape;
+      const out = bodies.slice();
+      out[bi] = f.distance > 0 ? bodies[bi].fuse(tool) : bodies[bi].cut(tool);
+      if (isEmpty(out[bi])) throw new Error("ボディが消失しました");
+      return { bodies: out, tools };
+    }
     case "fillet":
     case "chamfer": {
       const { perBody, updated } = resolveEdges(bodies, f.edges, diag);

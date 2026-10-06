@@ -185,6 +185,13 @@ export interface SweepFeature extends FeatureBase {
   op: BoolOp;
 }
 
+/** Direct edit: offset a planar face along its normal (Press/Pull). */
+export interface PushPullFeature extends FeatureBase {
+  type: "pushpull";
+  face: FaceRef | null;
+  distance: string;
+}
+
 export interface FilletFeature extends FeatureBase {
   type: "fillet";
   edges: EdgeRef[];
@@ -287,6 +294,7 @@ export type Feature =
   | RevolveFeature
   | LoftFeature
   | SweepFeature
+  | PushPullFeature
   | FilletFeature
   | ChamferFeature
   | ShellFeature

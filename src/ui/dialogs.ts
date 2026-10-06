@@ -3,7 +3,8 @@ import { MATERIALS } from "../core/document";
 import { evaluate, formatNumber, references } from "../core/expr";
 import { createsCycle, evaluateParams, PARAM_NAME_RE } from "../core/params";
 import type { ParamUnit, Vec3 } from "../core/types";
-import { download, h, iconEl, modal, toast } from "./dom";
+import { download, h, iconEl, modal, pickFile, toast } from "./dom";
+import { csvToParams, paramsToCsv, svgToDxf } from "../io/formats";
 
 // ------------------------------------------------------------ parameters ---
 
@@ -120,7 +121,32 @@ export function openParameters(app: App) {
           iconEl("plus"),
           "ユーザ パラメータを追加",
         ),
-        h("span", { class: "muted" }, "式には他のパラメータ名・四則演算・関数 (sin, cos, sqrt …)・単位 (mm, cm, in, deg) が使えます"),
+        h("button", { class: "btn", title: "パラメータ表を CSV (Excel) に書き出します", onClick: () => download(`${app.store.doc.name}_パラメータ.csv`, paramsToCsv(app.store.doc.params), "text/csv") }, iconEl("export"), "CSV 書き出し"),
+        h(
+          "button",
+          {
+            class: "btn",
+            title: "Excel などで編集した CSV (名前, 式) を読み込み、同名パラメータの式を更新します (デザイン テーブル)",
+            onClick: async () => {
+              const f = await pickFile(".csv,.txt");
+              if (!f) return;
+              const rows = csvToParams(await f.text());
+              let updated = 0, added = 0;
+              app.store.mutate("CSV からパラメータを読み込み", (d) => {
+                for (const r of rows) {
+                  const p = d.params.find((x) => x.name === r.name);
+                  if (p) p.expr !== r.expr && ((p.expr = r.expr), updated++);
+                  else if (PARAM_NAME_RE.test(r.name)) d.params.push({ name: r.name, expr: r.expr, unit: "mm", kind: "user" }), added++;
+                }
+              });
+              toast(`パラメータを更新しました (変更 ${updated} / 追加 ${added})`, "ok");
+              render();
+            },
+          },
+          iconEl("import"),
+          "CSV 読み込み",
+        ),
+        h("span", { class: "muted" }, "式には他のパラメータ名・四則演算・関数・単位 (mm, cm, in, deg) が使えます"),
       ),
     );
   };
@@ -237,6 +263,8 @@ export function openShortcuts() {
       ["Ctrl+Shift+K", "面取り"],
       ["Ctrl+Shift+R / O / M", "矩形状 / 円形状パターン / ミラー"],
       ["M", "測定"],
+      ["Q", "プレス/プル"],
+      ["Ctrl+K", "コマンドを検索"],
       ["Enter / Esc", "OK / キャンセル"],
     ]),
     sec("スケッチ", [
@@ -286,6 +314,14 @@ export async function openDrawing(app: App) {
     width: 1180,
     buttons: [
       { label: "SVG を書き出し", onClick: () => (exportSvg(), false) },
+      {
+        label: "DXF を書き出し",
+        onClick: () => {
+          const svg = holder.querySelector("svg");
+          if (svg) download(`${asm ? app.asm.doc.name : app.store.doc.name}.dxf`, svgToDxf(svg as SVGSVGElement, 297), "application/dxf");
+          return false;
+        },
+      },
       { label: "印刷 / PDF", onClick: () => (printSheet(), false) },
       { label: "閉じる", primary: true },
     ],

@@ -8,6 +8,7 @@ export const FEATURE_ICONS: Record<string, string> = {
   revolve: "revolve",
   loft: "loft",
   sweep: "sweep",
+  pushpull: "pushpull",
   fillet: "fillet",
   chamfer: "chamfer",
   shell: "shell",

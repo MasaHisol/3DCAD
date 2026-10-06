@@ -157,6 +157,20 @@ export class Ribbon {
     this.tip.classList.remove("show");
   }
 
+  /** Every command of the visible tabs (for the command search). */
+  allCommands(): (RibbonButton & { tab: string })[] {
+    const out: (RibbonButton & { tab: string })[] = [];
+    for (const t of this.tabs) {
+      if (t.visible && !t.visible()) continue;
+      for (const p of t.panels)
+        for (const it of p.items) {
+          const btns = "stack" in it ? it.stack : "custom" in it ? [] : [it];
+          for (const b of btns) if (!b.enabled || b.enabled()) out.push({ ...b, tab: `${t.label} › ${p.title}` });
+        }
+    }
+    return out;
+  }
+
   /** Update enabled / active state of every visible button. */
   refresh() {
     for (const { def, el } of this.buttons) {

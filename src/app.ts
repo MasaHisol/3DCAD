@@ -9,7 +9,7 @@ import type { BodyMesh, RebuildResult } from "./kernel/protocol";
 import type { Command } from "./commands/command";
 import { buildCommands, type CommandRegistry } from "./commands/features";
 import { ModelBrowser } from "./ui/browser";
-import { closeMenus, confirmDialog, contextMenu, download, h, iconEl, markingMenu, pickFile, promptDialog, toast, type MenuItem } from "./ui/dom";
+import { closeMenus, confirmDialog, contextMenu, download, h, iconEl, markingMenu, modal, pickFile, promptDialog, toast, type MenuItem } from "./ui/dom";
 import { icon } from "./ui/icons";
 import { Ribbon } from "./ui/ribbon";
 import { buildRibbonTabs } from "./ui/ribbonTabs";
@@ -19,6 +19,10 @@ import { ViewCube } from "./viewer/viewcube";
 import { samePick, Viewport, type Pick, type ToolHandler, type VisualStyle } from "./viewer/viewport";
 import { openDrawing, openIProperties, openParameters, openShortcuts } from "./ui/dialogs";
 import { sampleAssembly, sampleDocument } from "./samples";
+import { exportMeshes, objToStl, parseDxf, sketchToDxf, type MeshFormat } from "./io/formats";
+import { NAV_PRESETS, type NavPreset } from "./viewer/viewport";
+import { Timeline } from "./ui/timeline";
+import { openCommandSearch } from "./ui/commandSearch";
 import { AssemblyEnv } from "./assembly/env";
 import { newAssembly, type AssemblyDocument } from "./assembly/types";
 
@@ -45,6 +49,7 @@ export class App {
   asm!: AssemblyEnv;
   private asmBanner!: HTMLElement;
   mode: "model" | "sketch" = "model";
+  timeline!: Timeline;
   sketchEditor: SketchEditor | null = null;
   command: Command | null = null;
   lastCommand: string | null = null;
@@ -97,6 +102,8 @@ export class App {
       h(
         "div",
         { class: "tb-right" },
+        h("button", { class: "tb-search", title: "コマンドを検索 (Ctrl+K)", onClick: () => openCommandSearch(this) }, iconEl("search"), h("span", {}, "コマンドを検索"), h("kbd", {}, "Ctrl+K")),
+        h("button", { class: "icon-btn", title: "オプション (マウス操作・表示)", onClick: () => this.openSettings() }, iconEl("settings")),
         h("button", { class: "icon-btn", title: "キーボード ショートカット", onClick: () => openShortcuts() }, iconEl("keyboard")),
         h("button", { class: "icon-btn", title: "テーマ切り替え", onClick: () => this.toggleTheme() }, iconEl("theme")),
         h("button", { class: "icon-btn", title: "ヘルプ", onClick: () => openShortcuts() }, iconEl("help")),
@@ -152,6 +159,8 @@ export class App {
     main.appendChild(vpEl);
 
     this.vp = new Viewport(vpEl);
+    this.loadSettings();
+    this.timeline = new Timeline(vpEl, this);
     this.cube = new ViewCube(this.vp, vpEl, () => this.homeView());
     this.vp.onViewChange = () => {
       this.cube.render();
@@ -959,7 +968,7 @@ export class App {
     this.store.mutate("パーツの終わりを移動", (d) => (d.endOfPart = Math.max(0, Math.min(d.features.length, i))));
   }
 
-  private featureContextMenu(id: string, x: number, y: number) {
+  featureContextMenu(id: string, x: number, y: number) {
     if (id === "__eop") {
       contextMenu(x, y, [{ label: "パーツの終わりを最後に移動", icon: "endOfPart", action: () => this.moveEndOfPart(this.store.doc.features.length) }]);
       return;
@@ -992,6 +1001,7 @@ export class App {
         icon: f.visible === false ? "eye" : "eyeOff",
         action: () => this.store.mutate("表示切替", (d) => ((d.features.find((x) => x.id === id) as SketchFeature).visible = f.visible === false)),
       });
+    if (f.type === "sketch") items.push({ label: "DXF に書き出し", icon: "export", action: () => this.exportSketchDxf(id) });
     if (f.type === "sketch" && (f as SketchFeature).plane)
       items.push({ label: "スケッチ平面を注視", icon: "lookAt", action: () => this.vp.lookAtPlane((f as SketchFeature).plane) });
     items.push(
@@ -1022,10 +1032,9 @@ export class App {
       { label: "保存", icon: "save", shortcut: "Ctrl+S", action: () => this.save() },
       { label: "名前を付けて保存…", icon: "saveAs", shortcut: "Ctrl+Shift+S", action: () => this.save(true) },
       { separator: true, label: "" },
-      { label: "インポート (STEP / STL)…", icon: "import", action: () => this.importFile() },
-      { label: "エクスポート: STEP (AP214)", icon: "export", action: () => this.exportFile("step") },
-      { label: "エクスポート: STL", icon: "export", action: () => this.exportFile("stl") },
-      { label: "エクスポート: 画像 (PNG)", icon: "screenshot", action: () => this.screenshot() },
+      { label: "インポート (STEP / STL / OBJ / DXF)…", icon: "import", action: () => this.importFile() },
+      { label: "エクスポート…", icon: "export", action: () => this.exportMenu(r.left + 240, r.bottom + 2) },
+      { label: "オプション…", icon: "settings", action: () => this.openSettings() },
       { separator: true, label: "" },
       { label: "図面を作成…", icon: "drawing", action: () => openDrawing(this) },
       { label: "iProperties…", icon: "iprops", action: () => openIProperties(this) },
@@ -1071,12 +1080,12 @@ export class App {
   }
 
   async openFile() {
-    const f = await pickFile(".3dcp,.3dca,.json,.step,.stp,.stl");
+    const f = await pickFile(".3dcp,.3dca,.json,.step,.stp,.stl,.obj,.dxf");
     if (f) this.openOrImport(f);
   }
 
   async importFile() {
-    const f = await pickFile(".step,.stp,.stl");
+    const f = await pickFile(".step,.stp,.stl,.obj,.dxf");
     if (f) this.openOrImport(f);
   }
 
@@ -1101,10 +1110,12 @@ export class App {
         const id = uid("pt");
         this.asm.store.mutate("配置", (d) => d.parts.push({ id, name: f.name.replace(/\.[^.]+$/, ""), kind: "step", step, fileName: f.name }));
         await this.asm.placeInstance(id);
-      } else if (ext === "step" || ext === "stp" || ext === "stl") {
+      } else if (ext === "dxf") {
+        this.importDxf(f.name, await f.text());
+      } else if (ext === "step" || ext === "stp" || ext === "stl" || ext === "obj") {
         let data: string;
-        if (ext === "stl") {
-          const bytes = new Uint8Array(await f.arrayBuffer());
+        if (ext === "stl" || ext === "obj") {
+          const bytes = ext === "obj" ? objToStl(await f.text()) : new Uint8Array(await f.arrayBuffer());
           let bin = "";
           for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
           data = btoa(bin);
@@ -1114,7 +1125,7 @@ export class App {
             id: uid("im"),
             type: "import",
             name: f.name.replace(/\.[^.]+$/, ""),
-            format: ext === "stl" ? "stl" : "step",
+            format: ext === "stl" || ext === "obj" ? "stl" : "step",
             fileName: f.name,
             data,
           }),
@@ -1190,6 +1201,149 @@ export class App {
     } catch (e) {
       toast(`エクスポートに失敗しました: ${(e as Error).message}`, "error");
     }
+  }
+
+  /** DXF (AutoCAD etc.) -> new sketch on the XY plane, fully editable. */
+  importDxf(name: string, text: string) {
+    if (this.env === "assembly") {
+      toast("DXF はパーツ環境でスケッチとして読み込みます", "info");
+      return;
+    }
+    const { entities, skipped } = parseDxf(text);
+    if (!entities.some((e) => e.type !== "point")) {
+      toast("DXF に読み込める図形 (線分・円・円弧・ポリライン) がありません", "warn");
+      return;
+    }
+    if (this.sketchEditor) this.exitSketch(true);
+    const id = uid("sk");
+    this.store.mutate("DXF を読み込み", (d) =>
+      this.store.insertFeature(d, {
+        id,
+        type: "sketch",
+        name: name.replace(/\.[^.]+$/, ""),
+        plane: ORIGIN_PLANES.XY,
+        planeLabel: "XY 平面",
+        entities: [{ id: "origin", type: "point", x: 0, y: 0, fixed: true, ref: true }, ...entities],
+        constraints: [],
+        dimensions: [],
+      }),
+    );
+    const sk = Object.entries(skipped).map(([k, v]) => `${k}×${v}`).join(", ");
+    toast(`${name} をスケッチとして読み込みました${sk ? ` (未対応: ${sk})` : ""} — 押し出しで立体化できます`, "ok", 6000);
+    this.firstFit = true;
+    this.vp.setStandardView([0, 0, 1], true);
+  }
+
+  exportSketchDxf(id: string) {
+    const sk = this.store.feature<SketchFeature>(id);
+    if (!sk) return;
+    download(`${sk.name}.dxf`, sketchToDxf(sk), "application/dxf");
+    toast(`${sk.name}.dxf を書き出しました (AutoCAD 等で開けます)`, "ok");
+  }
+
+  async exportMesh(format: MeshFormat) {
+    let bodies: Parameters<typeof exportMeshes>[1];
+    let name: string;
+    if (this.env === "assembly") {
+      name = this.asm.doc.name;
+      bodies = this.asm.bodyMap.map((m, i) => {
+        const c = this.asm.doc.components.find((x) => x.id === m.comp)!;
+        return { mesh: this.asm.parts.get(c.partId)!.bodies[m.local], matrix: new THREE.Matrix4().fromArray(c.matrix), color: this.asm.partColor(c.partId), name: `${c.name}_${i}` };
+      });
+    } else {
+      name = this.store.doc.name;
+      bodies = this.bodies.map((b, i) => ({ mesh: b, color: this.store.doc.material.color, name: `${name}_${i + 1}` }));
+    }
+    if (!bodies.length) {
+      toast("エクスポートするソリッドがありません", "warn");
+      return;
+    }
+    try {
+      download(`${name}.${format}`, await exportMeshes(format, bodies));
+      toast(`${name}.${format} をエクスポートしました`, "ok");
+    } catch (e) {
+      toast(`エクスポートに失敗しました: ${(e as Error).message}`, "error");
+    }
+  }
+
+  /** Format chooser (used by the ribbon / file menu). */
+  exportMenu(x: number, y: number) {
+    contextMenu(x, y, [
+      { label: "STEP (AP214) — Inventor / SOLIDWORKS / Fusion / CATIA / Creo", icon: "export", action: () => this.exportFile("step") },
+      { label: "STL — 3D プリンタ", icon: "export", action: () => this.exportFile("stl") },
+      { label: "3MF — 3D プリンタ (Bambu / Prusa / Cura)", icon: "export", action: () => this.exportMesh("3mf") },
+      { label: "OBJ — Blender / Rhino / 汎用メッシュ", icon: "export", action: () => this.exportMesh("obj") },
+      { label: "GLB (glTF) — Web / AR / プレゼン", icon: "export", action: () => this.exportMesh("glb") },
+      { label: "PLY — 点群 / メッシュ", icon: "export", action: () => this.exportMesh("ply") },
+      { separator: true, label: "" },
+      { label: "DXF (スケッチ) — AutoCAD / Jw_cad", icon: "drawing", disabled: !this.dxfTarget(), action: () => this.exportSketchDxf(this.dxfTarget()!) },
+      { label: "画像 (PNG)", icon: "screenshot", action: () => this.screenshot() },
+    ]);
+  }
+
+  /** Sketch to export as DXF: the one being edited or selected in the browser. */
+  dxfTarget(): string | null {
+    if (this.sketchEditor) return this.sketchEditor.sketchId;
+    const sel = [...this.browserSelection].find((id) => this.store.feature(id)?.type === "sketch");
+    return sel ?? null;
+  }
+
+  // ------------------------------------------------------------ settings ---
+
+  private loadSettings() {
+    try {
+      const s = JSON.parse(localStorage.getItem("3dcad.settings") ?? "{}") as { nav?: NavPreset; invertWheel?: boolean };
+      if (s.nav && NAV_PRESETS.some((p) => p.id === s.nav)) this.vp.navPreset = s.nav;
+      this.vp.invertWheel = !!s.invertWheel;
+    } catch {
+      /* defaults */
+    }
+  }
+
+  private saveSettings() {
+    try {
+      localStorage.setItem("3dcad.settings", JSON.stringify({ nav: this.vp.navPreset, invertWheel: this.vp.invertWheel }));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  openSettings() {
+    const sel = h("select", { class: "field-input" });
+    for (const p of NAV_PRESETS) sel.appendChild(h("option", { value: p.id, selected: p.id === this.vp.navPreset }, p.label));
+    const help = h("p", { class: "muted" });
+    const upd = () => (help.textContent = NAV_PRESETS.find((p) => p.id === sel.value)!.help + "。ホイール: ズーム、Alt+左ドラッグ: オービット (共通)");
+    sel.addEventListener("change", upd);
+    upd();
+    const wheel = h("input", { type: "checkbox", checked: this.vp.invertWheel });
+    const body = h(
+      "div",
+      { class: "settings" },
+      h("h3", {}, "マウス操作"),
+      h("label", { class: "field" }, h("span", { class: "field-label" }, "操作プリセット"), h("span", { class: "field-ctl" }, sel)),
+      help,
+      h("label", { class: "field check" }, wheel, h("span", {}, "ホイールのズーム方向を反転")),
+      h("p", { class: "muted" }, "普段お使いの CAD に合わせて選ぶと、同じ感覚で画面を操作できます。"),
+    );
+    modal({
+      title: "オプション",
+      icon: "settings",
+      width: 520,
+      body,
+      buttons: [
+        {
+          label: "OK",
+          primary: true,
+          onClick: () => {
+            this.vp.navPreset = sel.value as NavPreset;
+            this.vp.invertWheel = wheel.checked;
+            this.saveSettings();
+            toast(`マウス操作: ${NAV_PRESETS.find((p) => p.id === sel.value)!.label} 方式`, "ok", 2000);
+          },
+        },
+        { label: "キャンセル" },
+      ],
+    });
   }
 
   screenshot() {
@@ -1285,6 +1439,7 @@ export class App {
         if (kl === "z") return void (e.preventDefault(), this.redo());
         if (kl === "s") return void (e.preventDefault(), this.save(true));
       }
+      if (ctrl && kl === "k") return void (e.preventDefault(), openCommandSearch(this));
       if (ctrl && kl === "z") return void (e.preventDefault(), this.undo());
       if (ctrl && kl === "y") return void (e.preventDefault(), this.redo());
       if (ctrl && kl === "s") return void (e.preventDefault(), this.save());
@@ -1345,7 +1500,7 @@ export class App {
         if (k.toLowerCase() === "s" && !e.shiftKey) return void this.exitSketch(true);
         return;
       }
-      const map: Record<string, string> = { s: "sketch", e: "extrude", r: "revolve", h: "hole", f: "fillet", m: "measure" };
+      const map: Record<string, string> = { s: "sketch", e: "extrude", r: "revolve", h: "hole", f: "fillet", m: "measure", q: "pushpull" };
       const cmd = map[k.toLowerCase()];
       if (cmd && !this.command) this.commands.run(cmd);
       if (k === "Enter" && this.command) {
@@ -1381,6 +1536,7 @@ export class App {
     (document.getElementById("qat-redo") as HTMLButtonElement | null)?.toggleAttribute("disabled", !st.canRedo());
     this.browser.render();
     this.ribbon.refresh();
+    this.timeline?.render();
   }
 
   private syncMaterial() {

@@ -200,6 +200,9 @@ function resolveFeature(
       if (!pathSk) throw new Error("パスのスケッチが見つかりません");
       return { id: f.id, type: "sweep", plane: sk.plane, regions: regionsOf(st, f.profiles, f.profilePts), path: sketchPath(pathSk), op: f.op };
     }
+    case "pushpull":
+      if (!f.face) throw new Error("面を選択してください");
+      return { id: f.id, type: "pushpull", face: f.face, distance: num(f, f.distance, "距離") };
     case "fillet":
       if (!f.edges.length) throw new Error("エッジが選択されていません");
       return { id: f.id, type: "fillet", edges: f.edges, radius: num(f, f.radius, "半径") };

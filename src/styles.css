@@ -1131,6 +1131,7 @@ kbd {
 }
 .st-coord {
   min-width: 220px;
+  white-space: nowrap;
 }
 .st-dof.ok {
   color: var(--ok);
@@ -1151,6 +1152,7 @@ kbd {
   position: fixed;
   z-index: 900;
   min-width: 220px;
+  white-space: nowrap;
   padding: 4px;
   background: var(--surface);
   border: 1px solid var(--border-strong);
@@ -1667,4 +1669,195 @@ kbd {
   white-space: pre-wrap;
   font-size: 11px;
   color: var(--text-3);
+}
+
+/* ------------------------------------------------------ title search --- */
+.tb-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  min-width: 220px;
+  white-space: nowrap;
+  padding: 0 6px 0 8px;
+  margin-right: 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(231, 235, 240, 0.75);
+  font-size: 12px;
+}
+.tb-search span {
+  flex: 1;
+  text-align: left;
+}
+.tb-search:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.tb-search .ico {
+  width: 16px;
+  height: 16px;
+}
+.tb-search kbd {
+  background: transparent;
+  color: rgba(231, 235, 240, 0.6);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ---------------------------------------------------- command search --- */
+.cmd-search-back {
+  position: fixed;
+  inset: 0;
+  z-index: 960;
+  background: rgba(15, 23, 42, 0.25);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 12vh;
+  animation: fade 0.1s;
+}
+.cmd-search {
+  width: min(620px, calc(100vw - 32px));
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: pop 0.12s ease-out;
+}
+.cmd-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border);
+}
+.cmd-input {
+  flex: 1;
+  height: 48px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+}
+.cmd-list {
+  max-height: 50vh;
+  overflow: auto;
+  padding: 6px;
+}
+.cmd-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  text-align: left;
+}
+.cmd-item.on {
+  background: var(--accent-2);
+}
+.cmd-label {
+  flex: 1;
+  font-weight: 500;
+}
+.cmd-where {
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.cmd-empty {
+  padding: 16px;
+  color: var(--text-3);
+  text-align: center;
+}
+
+/* ----------------------------------------------------------- timeline --- */
+.timeline {
+  position: absolute;
+  left: 104px;
+  right: 190px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  z-index: 4;
+}
+.timeline.collapsed {
+  right: auto;
+}
+.timeline.collapsed .tl-track,
+.timeline.collapsed > .icon-btn:not(.tl-toggle) {
+  display: none;
+}
+.tl-track {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  min-height: 30px;
+}
+.tl-chip {
+  flex: none;
+  width: 30px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+}
+.tl-chip .ico {
+  width: 20px;
+  height: 20px;
+}
+.tl-chip:hover {
+  background: var(--hover);
+  border-color: var(--border);
+}
+.tl-chip.selected {
+  background: var(--accent-2);
+  border-color: var(--accent);
+}
+.tl-chip.rolled {
+  opacity: 0.35;
+}
+.tl-chip.suppressed {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+.tl-chip.error {
+  border-color: var(--err);
+  background: #fdecec;
+}
+.tl-chip.drop {
+  box-shadow: inset -3px 0 0 var(--err);
+}
+.tl-eop {
+  flex: none;
+  width: 6px;
+  height: 28px;
+  border-radius: 3px;
+  background: var(--err);
+  cursor: grab;
+}
+.flip-x {
+  transform: scaleX(-1);
+}
+.settings h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+.settings .field {
+  margin-bottom: 8px;
 }

@@ -70,6 +70,7 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
               stack: [
                 cmd("chamfer", "面取り", "chamfer", "Ctrl+Shift+K", "選択したエッジを面取りします。", "small"),
                 cmd("shell", "シェル", "shell", undefined, "選択した面を除去して肉厚一定の中空形状にします。", "small"),
+                cmd("pushpull", "プレス/プル", "pushpull", "Q", "平面を押し出し / 押し込みしてダイレクトに形状を変更します (Fusion 360 / SketchUp 方式)。", "small"),
                 cmd("move", "ボディを移動", "move", undefined, "ソリッド ボディを移動・回転します。", "small"),
               ],
             },
@@ -179,7 +180,16 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
           items: [
             { id: "import", label: "インポート", icon: "import", tip: "STEP / STL を読み込んでベース フィーチャにします (Inventor から STEP で書き出したデータを利用できます)。", action: () => app.importFile() },
             { id: "export-step", label: "STEP 書き出し", icon: "export", tip: "STEP AP214 で書き出します。Inventor で開くことができます。", action: () => app.exportFile("step") },
-            { id: "export-stl", label: "STL 書き出し", icon: "export", size: "large", tip: "3D プリント用の STL を書き出します。", action: () => app.exportFile("stl") },
+            {
+              id: "export-more",
+              label: "その他の形式",
+              icon: "export",
+              tip: "STL / 3MF / OBJ / GLB / PLY / DXF に書き出します。",
+              action: () => {
+                const b = document.querySelector('[data-cmd="export-more"]')!.getBoundingClientRect();
+                app.exportMenu(b.left, b.bottom + 2);
+              },
+            },
           ],
         },
         {

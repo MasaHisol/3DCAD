@@ -135,3 +135,15 @@ describe("geometry engine", () => {
     expect(eng.massProps().volume).toBeCloseTo(125 - 36, 3);
   }, 60000);
 });
+
+describe("press/pull", () => {
+  it("pulls and pushes a planar face", async () => {
+    const eng = new GeometryEngine();
+    const base: RFeature = { id: "e", type: "extrude", plane: XY, regions: [rect(10, 10)], op: "new", from: 0, to: 10, through: false, flip: false };
+    await eng.rebuild([base, { id: "p", type: "pushpull", face: { center: [5, 5, 10], normal: [0, 0, 1] }, distance: 5 }]);
+    expect(eng.massProps().volume).toBeCloseTo(1500, 3);
+    const r = await eng.rebuild([base, { id: "p", type: "pushpull", face: { center: [10, 5, 5], normal: [1, 0, 0] }, distance: -4 }]);
+    expect(r.errors).toEqual({});
+    expect(eng.massProps().volume).toBeCloseTo(600, 3);
+  }, 60000);
+});
