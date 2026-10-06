@@ -71,10 +71,18 @@ export interface Transform {
   translate?: Vec3;
 }
 
+export interface AxisInfo {
+  origin: Vec3;
+  dir: Vec3;
+  radius: number;
+}
+
 export interface FaceInfo {
   center: Vec3;
   normal: Vec3;
   type: string;
+  /** Cylindrical faces: their axis. */
+  axis?: AxisInfo;
   /** For planar faces: a frame to sketch on. */
   plane?: PlaneDef;
 }
@@ -85,6 +93,8 @@ export interface EdgeInfo {
   b: Vec3;
   type: string;
   length: number;
+  /** Circular edges: centre, plane normal and radius. */
+  axis?: AxisInfo;
 }
 
 export interface BodyMesh {
@@ -138,12 +148,29 @@ export interface ProjectionView {
   bounds: [number, number, number, number];
 }
 
+/** A placed instance of a part (column-major 4x4 rigid transform). */
+export interface Placement {
+  key: string;
+  matrix: number[];
+  name: string;
+}
+
+export interface Interference {
+  a: number;
+  b: number;
+  volume: number;
+}
+
+/** `key` selects a geometry engine: "main" for the edited part, otherwise an assembly part id. */
 export type WorkerRequest =
   | { kind: "init" }
-  | { kind: "rebuild"; features: RFeature[]; captureBefore?: string }
-  | { kind: "export"; format: "step" | "stl"; name: string }
-  | { kind: "massProps" }
-  | { kind: "measure"; a: PickRef; b?: PickRef }
-  | { kind: "projection"; views: { name: string; dir: Vec3; xAxis: Vec3 }[] };
+  | { kind: "rebuild"; features: RFeature[]; captureBefore?: string; key?: string }
+  | { kind: "export"; format: "step" | "stl"; name: string; key?: string }
+  | { kind: "massProps"; key?: string }
+  | { kind: "measure"; a: PickRef; b?: PickRef; key?: string }
+  | { kind: "projection"; views: { name: string; dir: Vec3; xAxis: Vec3 }[]; key?: string; placements?: Placement[] }
+  | { kind: "exportAssembly"; format: "step" | "stl"; placements: Placement[] }
+  | { kind: "interference"; placements: Placement[] }
+  | { kind: "dropEngine"; key: string };
 
 export type WorkerResponse = { id: number; ok: true; result: unknown } | { id: number; ok: false; error: string };

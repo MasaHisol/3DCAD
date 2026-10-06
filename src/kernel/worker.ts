@@ -3,18 +3,34 @@
 import opencascade from "replicad-opencascadejs";
 import wasmUrl from "replicad-opencascadejs/wasm?url";
 import { setOC } from "replicad";
-import { GeometryEngine } from "./geometry";
-import type { BodyMesh, WorkerRequest, WorkerResponse } from "./protocol";
+import { exportPlaced, GeometryEngine, interferences, placeShape } from "./geometry";
+import type { BodyMesh, Placement, WorkerRequest, WorkerResponse } from "./protocol";
 
-let engine: GeometryEngine | null = null;
+const engines = new Map<string, GeometryEngine>();
 let ready: Promise<void> | null = null;
+
+function engineFor(key = "main"): GeometryEngine {
+  let e = engines.get(key);
+  if (!e) {
+    e = new GeometryEngine();
+    engines.set(key, e);
+  }
+  return e;
+}
+
+function placed(ps: Placement[]) {
+  const out: { shape: ReturnType<typeof placeShape>; name: string; index: number }[] = [];
+  ps.forEach((p, index) => {
+    for (const b of engineFor(p.key).bodies) out.push({ shape: placeShape(b, p.matrix), name: p.name, index });
+  });
+  return out;
+}
 
 function init(): Promise<void> {
   if (!ready) {
     ready = (async () => {
       const OC = await (opencascade as unknown as (o: object) => Promise<unknown>)({ locateFile: () => wasmUrl });
       setOC(OC as never);
-      engine = new GeometryEngine();
     })();
   }
   return ready;
@@ -22,10 +38,22 @@ function init(): Promise<void> {
 
 async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: Transferable[] }> {
   await init();
-  const eng = engine!;
+  const eng = engineFor("key" in req ? req.key : undefined);
   switch (req.kind) {
     case "init":
       return { result: true, transfer: [] };
+    case "dropEngine":
+      engines.delete(req.key);
+      return { result: true, transfer: [] };
+    case "exportAssembly": {
+      const buf = await exportPlaced(placed(req.placements), req.format).arrayBuffer();
+      return { result: buf, transfer: [buf] };
+    }
+    case "interference": {
+      const shapes = placed(req.placements);
+      const hits = interferences(shapes.map((x) => x.shape)).map((h) => ({ a: shapes[h.a].index, b: shapes[h.b].index, volume: h.volume }));
+      return { result: hits.filter((h) => h.a !== h.b), transfer: [] };
+    }
     case "rebuild": {
       const res = await eng.rebuild(req.features, req.captureBefore);
       const transfer: Transferable[] = [];
@@ -43,7 +71,7 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
     case "measure":
       return { result: eng.measure(req.a, req.b), transfer: [] };
     case "projection":
-      return { result: eng.projection(req.views), transfer: [] };
+      return { result: req.placements ? eng.projection(req.views, placed(req.placements).map((x) => x.shape)) : eng.projection(req.views), transfer: [] };
   }
 }
 

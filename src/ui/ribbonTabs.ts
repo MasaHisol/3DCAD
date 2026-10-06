@@ -28,10 +28,13 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
   });
   const inSketch = () => app.mode === "sketch";
 
+  const isPart = () => app.env === "part";
   return [
+    app.asm.ribbonTab(),
     {
       id: "model",
       label: "3D モデル",
+      visible: isPart,
       panels: [
         {
           title: "スケッチ",
@@ -150,6 +153,7 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
     {
       id: "inspect",
       label: "検査",
+      visible: isPart,
       panels: [
         {
           title: "測定",
@@ -164,6 +168,7 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
     {
       id: "manage",
       label: "管理",
+      visible: isPart,
       panels: [
         {
           title: "パラメータ",

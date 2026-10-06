@@ -273,13 +273,14 @@ const VIEWS: { name: string; label: string; dir: Vec3; xAxis: Vec3 }[] = [
 const SCALES = [10, 5, 4, 2, 1, 1 / 2, 1 / 2.5, 1 / 5, 1 / 10, 1 / 20, 1 / 50, 1 / 100];
 
 export async function openDrawing(app: App) {
-  if (!app.bodies.length) {
+  const asm = app.env === "assembly";
+  if (asm ? !app.asm.doc.components.length : !app.bodies.length) {
     toast("図面を作成するソリッドがありません", "warn");
     return;
   }
   const holder = h("div", { class: "drawing-holder" }, h("div", { class: "spinner" }), " 投影ビューを計算中…");
   const m = modal({
-    title: `図面 — ${app.store.doc.name}`,
+    title: `図面 — ${asm ? app.asm.doc.name : app.store.doc.name}`,
     icon: "drawing",
     body: holder,
     width: 1180,
@@ -301,8 +302,11 @@ export async function openDrawing(app: App) {
     setTimeout(() => w.print(), 300);
   };
   try {
-    const views = await app.kernel.projection(VIEWS.map(({ name, dir, xAxis }) => ({ name, dir, xAxis })));
-    const doc = app.store.doc;
+    const specs = VIEWS.map(({ name, dir, xAxis }) => ({ name, dir, xAxis }));
+    const views = asm ? await app.kernel.projectionPlaced(specs, app.asm.placements()) : await app.kernel.projection(specs);
+    const doc = asm
+      ? { name: app.asm.doc.name, iprops: app.asm.doc.iprops, material: { name: "—", density: 0, color: "" } }
+      : app.store.doc;
     // A3 landscape sheet, third-angle projection (JIS)
     const W = 420, H = 297, margin = 10, tbH = 36;
     const get = (n: string) => views.find((v) => v.name === n)!;

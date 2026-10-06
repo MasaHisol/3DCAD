@@ -34,6 +34,8 @@ export interface ToolHandler {
 
 interface BodyView {
   data: BodyMesh;
+  /** Placement of the body (assembly components); identity when absent. */
+  matrix?: THREE.Matrix4;
   mesh: THREE.Mesh;
   back: THREE.Mesh;
   edges: THREE.LineSegments;
@@ -299,13 +301,43 @@ export class Viewport {
   // pick-set edges are only raycast, never drawn
   private pickEdgeMaterial = new THREE.LineBasicMaterial({ visible: false });
 
+  private colorMats = new Map<string, THREE.MeshStandardMaterial>();
+  bodyColors: (string | undefined)[] = [];
+  highlighted = new Set<number>();
+
+  private materialFor(bi: number): THREE.MeshStandardMaterial {
+    const color = this.bodyColors[bi];
+    const hl = this.highlighted.has(bi);
+    if (!color && !hl) return this.material;
+    const key = `${color ?? "base"}|${hl ? 1 : 0}`;
+    let m = this.colorMats.get(key);
+    if (!m) {
+      m = this.material.clone();
+      if (color) m.color.set(color);
+      if (hl) {
+        m.emissive.set("#1f6feb");
+        m.emissiveIntensity = 0.35;
+      }
+      m.clippingPlanes = this.material.clippingPlanes;
+      this.colorMats.set(key, m);
+    }
+    return m;
+  }
+
+  /** Tint whole bodies (e.g. the selected assembly component). */
+  setBodyHighlight(indices: Set<number>) {
+    this.highlighted = indices;
+    this.bodies.forEach((b, i) => (b.mesh.material = this.materialFor(i)));
+    this.invalidate();
+  }
+
   private buildView(data: BodyMesh, bi: number, forPick: boolean): BodyView {
     const geom = new THREE.BufferGeometry();
     geom.setAttribute("position", new THREE.BufferAttribute(data.positions, 3));
     geom.setAttribute("normal", new THREE.BufferAttribute(data.normals, 3));
     geom.setIndex(new THREE.BufferAttribute(data.indices, 1));
     geom.computeBoundingSphere();
-    const mesh = new THREE.Mesh(geom, forPick ? this.pickMaterial : this.material);
+    const mesh = new THREE.Mesh(geom, forPick ? this.pickMaterial : this.materialFor(bi));
     mesh.userData.body = bi;
     const back = new THREE.Mesh(geom, this.backMaterial);
     back.visible = !forPick && !!this.clipPlane;
@@ -341,13 +373,36 @@ export class Viewport {
     }
   }
 
-  setBodies(bodies: BodyMesh[], pickBodies?: BodyMesh[]) {
+  private placeView(v: BodyView, m?: THREE.Matrix4) {
+    v.matrix = m;
+    for (const o of [v.mesh, v.back, v.edges, v.hidden]) {
+      if (m) {
+        o.matrixAutoUpdate = false;
+        o.matrix.copy(m);
+        o.matrixWorldNeedsUpdate = true;
+      } else o.matrixAutoUpdate = true;
+    }
+  }
+
+  /** Move one body (fast path while dragging assembly components). */
+  setBodyMatrix(i: number, m: THREE.Matrix4) {
+    const v = this.bodies[i];
+    if (!v) return;
+    this.placeView(v, m.clone());
+    if (this.pickViews !== this.bodies && this.pickViews[i]) this.placeView(this.pickViews[i], m.clone());
+    this.refreshHighlights();
+  }
+
+  setBodies(bodies: BodyMesh[], pickBodies?: BodyMesh[], colors?: (string | undefined)[], matrices?: THREE.Matrix4[]) {
+    this.bodyColors = colors ?? [];
+    this.highlighted = new Set([...this.highlighted].filter((i) => i < bodies.length));
     const sharedPick = this.pickViews === this.bodies;
     this.disposeViews(this.bodies);
     if (!sharedPick) this.disposeViews(this.pickViews);
     this.model.clear();
     this.bodies = bodies.map((data, bi) => {
       const v = this.buildView(data, bi, false);
+      this.placeView(v, matrices?.[bi]);
       this.model.add(v.mesh, v.back, v.edges, v.hidden);
       return v;
     });
@@ -369,6 +424,15 @@ export class Viewport {
     this.invalidate();
   }
 
+  /** Bodies' visibility (hidden assembly components). */
+  setBodyVisible(i: number, on: boolean) {
+    const b = this.bodies[i];
+    if (!b) return;
+    b.mesh.visible = on && this.style !== "wireframe";
+    b.edges.visible = on && this.style !== "shaded";
+    this.invalidate();
+  }
+
   setStyle(s: VisualStyle) {
     this.style = s;
     this.applyStyle();
@@ -376,7 +440,6 @@ export class Viewport {
 
   private applyStyle() {
     for (const b of this.bodies) {
-      if (b.mesh.material === this.pickMaterial) continue;
       b.mesh.visible = this.style !== "wireframe";
       b.edges.visible = this.style !== "shaded";
       b.hidden.visible = this.style === "hiddenEdges" || this.style === "wireframe";
@@ -394,6 +457,7 @@ export class Viewport {
   private applyClip() {
     const planes = this.clipPlane ? [this.clipPlane] : [];
     this.material.clippingPlanes = planes;
+    for (const m of this.colorMats.values()) m.clippingPlanes = planes;
     this.backMaterial.clippingPlanes = planes;
     this.edgeMaterial.clippingPlanes = planes;
     this.hiddenMaterial.clippingPlanes = planes;
@@ -593,6 +657,7 @@ export class Viewport {
             color,
             transparent: true,
             opacity: isHover ? 0.35 : 0.45,
+            side: THREE.DoubleSide,
             depthWrite: false,
             polygonOffset: true,
             polygonOffsetFactor: -1,
@@ -600,12 +665,14 @@ export class Viewport {
             clippingPlanes: this.clipPlane ? [this.clipPlane] : [],
           }),
         );
+        this.applyBodyMatrix(m, p.body);
         group.add(m);
       } else if (p.kind === "edge") {
         const g = this.edgeGeometry(p.body, p.index);
         if (!g) continue;
         const l = new THREE.Line(g, new THREE.LineBasicMaterial({ color, linewidth: 2, depthTest: false }));
         l.renderOrder = 10;
+        this.applyBodyMatrix(l, p.body);
         group.add(l);
         // thick look: a few offset copies are not portable; draw end markers instead
       } else if (p.key) {
@@ -619,6 +686,13 @@ export class Viewport {
       }
     }
     this.invalidate();
+  }
+
+  private applyBodyMatrix(o: THREE.Object3D, bi: number) {
+    const m = this.pickViews[bi]?.matrix;
+    if (!m) return;
+    o.matrixAutoUpdate = false;
+    o.matrix.copy(m);
   }
 
   // ----------------------------------------------------------- navigation ---

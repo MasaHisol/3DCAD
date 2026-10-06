@@ -1,5 +1,6 @@
 import { newDocument, ORIGIN_PLANES } from "./core/document";
 import type { Parameter, PartDocument, SketchFeature } from "./core/types";
+import type { AssemblyDocument } from "./assembly/types";
 
 /**
  * A small parametric sample: a base plate with a boss, a bored hole and a
@@ -201,4 +202,59 @@ export function sampleDocument(): PartDocument {
   });
   doc.endOfPart = doc.features.length;
   return doc;
+}
+
+/** A stepped pin: head Ø26 × 6 on top of a Ø16 × 50 shaft, axis along Y. */
+export function samplePin(): PartDocument {
+  const doc = newDocument("ピン");
+  doc.iprops["パーツ番号"] = "PIN-016";
+  doc.iprops["説明"] = "段付きピン";
+  doc.material = { name: "鋼", density: 7.85, color: "#b9bec5" };
+  doc.params.push(
+    { name: "d0", expr: "26", unit: "mm", kind: "model", owner: "head" },
+    { name: "d1", expr: "6", unit: "mm", kind: "model", owner: "head" },
+    { name: "d2", expr: "16", unit: "mm", kind: "model", owner: "shaft" },
+    { name: "d3", expr: "50", unit: "mm", kind: "model", owner: "shaft" },
+    { name: "d4", expr: "1", unit: "mm", kind: "model", owner: "cf" },
+  );
+  doc.features.push(
+    { id: "head", type: "cylinder", name: "円柱1", plane: ORIGIN_PLANES.XZ, center: [0, 0], a: "d0", b: "0", c: "d1", op: "new" },
+    { id: "shaft", type: "cylinder", name: "円柱2", plane: { origin: [0, 0, 0], xDir: [1, 0, 0], normal: [0, -1, 0] }, center: [0, 0], a: "d2", b: "0", c: "d3", op: "join" },
+    { id: "cf", type: "chamfer", name: "面取り1", edges: [{ mid: [-8, -50, 0], type: "CIRCLE" }], distance: "d4" },
+  );
+  doc.endOfPart = doc.features.length;
+  return doc;
+}
+
+/** Bracket + two pins: one inserted into the bore, one free next to it. */
+export function sampleAssembly(): AssemblyDocument {
+  const bracket = sampleDocument();
+  const pin = samplePin();
+  return {
+    format: "3dcad-assembly",
+    version: 1,
+    name: "ピン組立",
+    parts: [
+      { id: "p-bracket", name: bracket.name, kind: "part", doc: bracket },
+      { id: "p-pin", name: pin.name, kind: "part", doc: pin },
+    ],
+    components: [
+      { id: "c1", name: "ブラケット:1", partId: "p-bracket", matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], grounded: true },
+      { id: "c2", name: "ピン:1", partId: "p-pin", matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 70, 30, 0, 1], grounded: false },
+      { id: "c3", name: "ピン:2", partId: "p-pin", matrix: [0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, 0, -90, 20, 40, 1], grounded: false },
+    ],
+    constraints: [
+      {
+        id: "k1",
+        name: "挿入:1",
+        type: "insert",
+        // bore edge on the boss top face (normal +Y) and the head's underside rim (normal -Y)
+        a: { comp: "c1", geom: "axis", point: [0, 35, 0], dir: [0, 1, 0], label: "ブラケット:1 エッジ" },
+        b: { comp: "c2", geom: "axis", point: [0, 0, 0], dir: [0, -1, 0], label: "ピン:1 エッジ" },
+        offset: "0",
+      },
+    ],
+    params: [],
+    iprops: { パーツ番号: "ASM-001", 説明: "サンプル アセンブリ", 設計者: "", 作成日: new Date().toISOString().slice(0, 10) },
+  };
 }

@@ -1,6 +1,6 @@
 // Promise-based RPC to the geometry worker. Rebuild requests are coalesced:
 // while one is running only the latest pending request is kept.
-import type { MassProps, MeasureResult, PickRef, ProjectionView, RebuildResult, RFeature, WorkerRequest, WorkerResponse } from "./protocol";
+import type { Interference, MassProps, MeasureResult, PickRef, Placement, ProjectionView, RebuildResult, RFeature, WorkerRequest, WorkerResponse } from "./protocol";
 
 export class KernelClient {
   private worker: Worker;
@@ -31,6 +31,26 @@ export class KernelClient {
 
   init(): Promise<boolean> {
     return this.call({ kind: "init" });
+  }
+
+  /** Rebuild of an assembly part in its own engine (not coalesced). */
+  rebuildKey(key: string, features: RFeature[]): Promise<RebuildResult> {
+    return this.call({ kind: "rebuild", features, key });
+  }
+  dropEngine(key: string): Promise<boolean> {
+    return this.call({ kind: "dropEngine", key });
+  }
+  exportAssembly(format: "step" | "stl", placements: Placement[]): Promise<ArrayBuffer> {
+    return this.call({ kind: "exportAssembly", format, placements });
+  }
+  interference(placements: Placement[]): Promise<Interference[]> {
+    return this.call({ kind: "interference", placements });
+  }
+  massPropsKey(key: string): Promise<MassProps> {
+    return this.call({ kind: "massProps", key });
+  }
+  projectionPlaced(views: { name: string; dir: [number, number, number]; xAxis: [number, number, number] }[], placements: Placement[]): Promise<ProjectionView[]> {
+    return this.call({ kind: "projection", views, placements });
   }
 
   rebuild(features: RFeature[], captureBefore?: string): Promise<RebuildResult> {

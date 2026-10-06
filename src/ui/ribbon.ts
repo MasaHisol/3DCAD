@@ -99,7 +99,7 @@ export class Ribbon {
     this.bodyEl.innerHTML = "";
     this.buttons = [];
     this.el.classList.toggle("collapsed", this.collapsed);
-    const tab = this.tabs.find((t) => t.id === this.active && (!t.visible || t.visible())) ?? this.tabs[0];
+    const tab = this.tabs.find((t) => t.id === this.active && (!t.visible || t.visible())) ?? this.tabs.find((t) => !t.visible || t.visible())!;
     if (tab.id !== this.active) this.active = tab.id;
     for (const p of tab.panels) {
       const items = h("div", { class: "rb-items" });

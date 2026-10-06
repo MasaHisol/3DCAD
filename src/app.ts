@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { DocumentStore, FEATURE_LABELS, MATERIALS, ORIGIN_PLANES, featureSketchRefs, newDocument, uid } from "./core/document";
 import { formatNumber } from "./core/expr";
-import { evalWith, evaluateParams } from "./core/params";
-import { planeToWorld, resolveDocument, worldToPlane, type Resolved, type SketchState } from "./core/resolve";
+import { evaluateParams } from "./core/params";
+import { planeToWorld, prepareDocument, resolveDocument, worldToPlane, type Resolved, type SketchState } from "./core/resolve";
 import type { EdgeRef, FaceRef, Feature, PartDocument, PlaneDef, SketchFeature, Vec3, WorkPlaneFeature } from "./core/types";
 import { KernelClient } from "./kernel/client";
 import type { BodyMesh, RebuildResult } from "./kernel/protocol";
@@ -18,9 +18,11 @@ import { SketchRenderer } from "./viewer/sketchRender";
 import { ViewCube } from "./viewer/viewcube";
 import { samePick, Viewport, type Pick, type ToolHandler, type VisualStyle } from "./viewer/viewport";
 import { openDrawing, openIProperties, openParameters, openShortcuts } from "./ui/dialogs";
-import { sampleDocument } from "./samples";
+import { sampleAssembly, sampleDocument } from "./samples";
+import { AssemblyEnv } from "./assembly/env";
+import { newAssembly, type AssemblyDocument } from "./assembly/types";
 
-const AUTOSAVE_KEY = "3dcad.autosave.v1";
+const AUTOSAVE_KEY = "3dcad.autosave.v2";
 
 export interface SketchOverlay {
   sketchId: string;
@@ -38,6 +40,10 @@ export class App {
   panelHost!: HTMLElement;
   commands!: CommandRegistry;
 
+  /** Active environment: part modelling or assembly. */
+  env: "part" | "assembly" = "part";
+  asm!: AssemblyEnv;
+  private asmBanner!: HTMLElement;
   mode: "model" | "sketch" = "model";
   sketchEditor: SketchEditor | null = null;
   command: Command | null = null;
@@ -101,7 +107,8 @@ export class App {
     const vpEl = h("section", { class: "viewport", "aria-label": "3D ビュー" });
     this.panelHost = h("div", { class: "panel-host" });
     this.busyEl = h("div", { class: "busy" }, h("span", { class: "spinner" }), "再計算中…");
-    vpEl.append(this.panelHost, this.busyEl);
+    this.asmBanner = h("div", { class: "asm-banner" });
+    vpEl.append(this.panelHost, this.busyEl, this.asmBanner);
     this.statusEl = h("span", { class: "st-prompt" }, "準備完了");
     this.statusSel = h("span", { class: "st-sel" });
     this.statusDof = h("span", { class: "st-dof" });
@@ -110,7 +117,13 @@ export class App {
     const status = h("footer", { class: "statusbar" }, this.statusEl, h("span", { class: "spacer" }), this.statusDof, this.statusSel, this.statusCoord, h("span", { class: "st-unit" }, "mm"), this.statusRegen);
     root.append(titlebar, ribbonHost, main, status);
 
+    this.asm = new AssemblyEnv(this);
     this.browser = new ModelBrowser(main, {
+      customRender: (list) => {
+        if (this.env !== "assembly") return false;
+        this.asm.renderBrowser(list);
+        return true;
+      },
       doc: () => this.store.doc,
       errors: () => this.featureErrors,
       bodyCount: () => this.bodies.length,
@@ -298,24 +311,11 @@ export class App {
   }
 
   async regenNow() {
+    if (this.env !== "part") return;
     const doc = this.store.doc;
     const values = evaluateParams(doc.params);
     // work planes resolve on the UI side; sketches on them follow
-    for (const f of doc.features)
-      if (f.type === "workplane") {
-        let off = 0;
-        try {
-          off = evalWith(values, f.offset);
-        } catch {
-          /* keep 0 */
-        }
-        f.plane = { ...f.base, origin: f.base.origin.map((o, i) => o + f.base.normal[i] * off) as Vec3 };
-      }
-    for (const f of doc.features)
-      if (f.type === "sketch" && f.planeRef) {
-        const wp = doc.features.find((x) => x.id === f.planeRef) as WorkPlaneFeature | undefined;
-        if (wp?.plane) f.plane = wp.plane;
-      }
+    prepareDocument(doc, values);
     const resolved = resolveDocument(doc, values);
     this.resolved = resolved;
     if (!this.kernelReady) {
@@ -374,6 +374,10 @@ export class App {
       this.vp.sketchLayer.remove(r.group);
     }
     this.sketchRenderers = [];
+    if (this.env !== "part") {
+      this.vp.invalidate();
+      return;
+    }
     const overlays = overlay ? (Array.isArray(overlay) ? overlay : [overlay]) : [];
     const doc = this.store.doc;
     const consumed = new Set(doc.features.flatMap(featureSketchRefs));
@@ -405,6 +409,10 @@ export class App {
 
   /** Origin planes / axes and work planes shown in the viewport. */
   updateRefs() {
+    if (this.env !== "part") {
+      this.vp.setRefs([]);
+      return;
+    }
     const box = this.vp.modelBounds();
     const size = box.isEmpty() ? 60 : Math.max(40, box.getSize(new THREE.Vector3()).length() * 0.6);
     const list: Parameters<Viewport["setRefs"]>[0] = [];
@@ -797,13 +805,125 @@ export class App {
   // ------------------------------------------------------------- editing ---
 
   undo() {
+    if (this.env === "assembly") {
+      this.cancelAsmCommand();
+      this.asm.store.undo();
+      return;
+    }
     if (this.command) this.finishCommand(this.command, false);
     this.store.undo();
   }
 
   redo() {
+    if (this.env === "assembly") {
+      this.cancelAsmCommand();
+      this.asm.store.redo();
+      return;
+    }
     if (this.command) this.finishCommand(this.command, false);
     this.store.redo();
+  }
+
+  // ------------------------------------------------------------ assembly ---
+
+  cancelAsmCommand() {
+    this.asm.command?.cancel();
+    this.asm.command = null;
+  }
+
+  /** Switch the UI to the assembly environment. */
+  activateAssembly() {
+    this.env = "assembly";
+    if (this.command) this.finishCommand(this.command, false);
+    if (this.sketchEditor) this.exitSketch(false);
+    this.renderSketches();
+    this.vp.setRefs([]);
+    this.vp.setSelection([]);
+    this.vp.pickKinds = new Set(["face", "edge"]);
+    this.vp.pickFilter = null;
+    this.vp.tool = this.asm.tool;
+    this.vp.renderer.domElement.style.cursor = "default";
+    this.ribbon.setActive("assemble");
+    void this.asm.update().then(() => {
+      if (this.firstFit && this.asm.doc.components.length) {
+        this.firstFit = false;
+        this.vp.fitAll(false);
+      }
+    });
+    this.refreshUI();
+  }
+
+  async newAssembly() {
+    if (!(await this.confirmDiscard())) return;
+    this.asm.editingPart = null;
+    this.asm.store.reset(newAssembly(), "load");
+    this.asm.selected.clear();
+    this.firstFit = true;
+    this.activateAssembly();
+    this.vp.setStandardView([1, 1, 1], false);
+    toast("新しいアセンブリ — 「配置」(P) でパーツや STEP を配置します", "info");
+  }
+
+  loadAssembly(doc: AssemblyDocument, name?: string) {
+    if (doc.format !== "3dcad-assembly") throw new Error("アセンブリ ファイルではありません");
+    this.asm.editingPart = null;
+    this.asm.store.reset(doc, "load");
+    this.asm.store.fileHandleName = name ?? null;
+    this.asm.selected.clear();
+    this.firstFit = true;
+    this.vp.setStandardView([1, 1, 1], false);
+    this.activateAssembly();
+  }
+
+  loadSampleAssembly() {
+    this.loadAssembly(sampleAssembly());
+    toast("サンプル アセンブリを開きました。ピンは「挿入」拘束でボスに組み付けられています", "ok");
+  }
+
+  /** Open a part of the assembly for editing (Inventor "edit in place"). */
+  editAssemblyPart(partId: string) {
+    const part = this.asm.doc.parts.find((p) => p.id === partId);
+    if (!part) return;
+    if (part.kind === "step" || !part.doc) {
+      toast("STEP から配置したパーツは編集できません (読み込み専用のベース ソリッド)", "info");
+      return;
+    }
+    this.cancelAsmCommand();
+    this.asm.editingPart = partId;
+    this.env = "part";
+    this.vp.setBodyHighlight(new Set());
+    this.store.load(structuredClone(part.doc));
+    this.store.fileHandleName = null;
+    this.firstFit = true;
+    this.setModelTool();
+    this.ribbon.setActive("model");
+    this.scheduleRegen(0);
+    this.refreshUI();
+    toast(`「${part.name}」を編集中 — 完了したら「アセンブリに戻る」をクリック`, "info");
+  }
+
+  returnToAssembly() {
+    const id = this.asm.editingPart;
+    if (!id) return;
+    if (this.command) this.finishCommand(this.command, false);
+    if (this.sketchEditor) this.exitSketch(true);
+    const doc = structuredClone(this.store.doc);
+    this.asm.editingPart = null;
+    this.env = "assembly";
+    this.asm.store.mutate("パーツを編集", (d) => {
+      const p = d.parts.find((x) => x.id === id);
+      if (p) {
+        p.doc = doc;
+        p.name = doc.name;
+      }
+    });
+    this.activateAssembly();
+  }
+
+  private async confirmDiscard(): Promise<boolean> {
+    const dirty = this.env === "assembly" || this.asm.editingPart ? this.asm.store.dirty || this.store.dirty : this.store.dirty && this.store.doc.features.length > 0;
+    if (!dirty) return true;
+    return confirmDialog("変更の破棄", "保存されていない変更があります。破棄して続行しますか?", "破棄して続行");
   }
 
   async deleteFeatures(ids: string[]) {
@@ -893,9 +1013,11 @@ export class App {
   fileMenu(anchor: HTMLElement) {
     const r = anchor.getBoundingClientRect();
     contextMenu(r.left, r.bottom + 2, [
-      { label: "新規", icon: "new", shortcut: "Ctrl+N", action: () => this.newDocument() },
+      { label: "新規パーツ", icon: "new", shortcut: "Ctrl+N", action: () => this.newDocument() },
+      { label: "新規アセンブリ", icon: "assembly", action: () => this.newAssembly() },
       { label: "開く…", icon: "open", shortcut: "Ctrl+O", action: () => this.openFile() },
-      { label: "サンプルを開く", icon: "part", action: () => this.loadSample() },
+      { label: "サンプル パーツを開く", icon: "part", action: () => this.loadSample() },
+      { label: "サンプル アセンブリを開く", icon: "assembly", action: () => this.loadSampleAssembly() },
       { separator: true, label: "" },
       { label: "保存", icon: "save", shortcut: "Ctrl+S", action: () => this.save() },
       { label: "名前を付けて保存…", icon: "saveAs", shortcut: "Ctrl+Shift+S", action: () => this.save(true) },
@@ -911,11 +1033,24 @@ export class App {
   }
 
   async newDocument() {
-    if (this.store.dirty && this.store.doc.features.length && !(await confirmDialog("新規パーツ", "現在のパーツの変更は保存されていません。破棄して新規作成しますか?", "破棄して新規作成"))) return;
+    if (!(await this.confirmDiscard())) return;
+    this.leaveAssembly();
     this.resetForLoad();
     this.store.load(newDocument());
     this.firstFit = true;
     this.vp.setStandardView([1, 1, 1], false);
+  }
+
+  /** Back to plain part modelling (drops the assembly context). */
+  private leaveAssembly() {
+    if (this.env === "assembly" || this.asm.editingPart) {
+      this.cancelAsmCommand();
+      this.asm.editingPart = null;
+      this.env = "part";
+      this.vp.setBodyHighlight(new Set());
+      this.setModelTool();
+      this.ribbon.setActive("model");
+    }
   }
 
   private resetForLoad() {
@@ -926,6 +1061,7 @@ export class App {
   }
 
   loadSample() {
+    this.leaveAssembly();
     this.resetForLoad();
     this.store.load(sampleDocument());
     this.store.dirty = false;
@@ -935,7 +1071,7 @@ export class App {
   }
 
   async openFile() {
-    const f = await pickFile(".3dcp,.json,.step,.stp,.stl");
+    const f = await pickFile(".3dcp,.3dca,.json,.step,.stp,.stl");
     if (f) this.openOrImport(f);
   }
 
@@ -947,14 +1083,23 @@ export class App {
   private async openOrImport(f: File) {
     const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
     try {
-      if (ext === "3dcp" || ext === "json") {
+      if (ext === "3dca" || (ext === "json" && (await f.text()).includes('"3dcad-assembly"'))) {
+        this.loadAssembly(JSON.parse(await f.text()) as AssemblyDocument, f.name);
+        toast(`${f.name} を開きました`, "ok");
+      } else if (ext === "3dcp" || ext === "json") {
         const doc = JSON.parse(await f.text()) as PartDocument;
+        this.leaveAssembly();
         this.resetForLoad();
         this.store.load(doc);
         this.store.fileHandleName = f.name;
         this.firstFit = true;
         this.vp.setStandardView([1, 1, 1], false);
         toast(`${f.name} を開きました`, "ok");
+      } else if (this.env === "assembly" && (ext === "step" || ext === "stp")) {
+        const step = await f.text();
+        const id = uid("pt");
+        this.asm.store.mutate("配置", (d) => d.parts.push({ id, name: f.name.replace(/\.[^.]+$/, ""), kind: "step", step, fileName: f.name }));
+        await this.asm.placeInstance(id);
       } else if (ext === "step" || ext === "stp" || ext === "stl") {
         let data: string;
         if (ext === "stl") {
@@ -984,6 +1129,30 @@ export class App {
   }
 
   save(as = false) {
+    if (this.env === "assembly" || this.asm.editingPart) {
+      if (this.asm.editingPart) {
+        const doc = structuredClone(this.store.doc);
+        const id = this.asm.editingPart;
+        this.asm.store.patch((d) => {
+          const p = d.parts.find((x) => x.id === id);
+          if (p) p.doc = doc;
+        }, "solve");
+        this.store.dirty = false;
+      }
+      let name = this.asm.store.fileHandleName ?? `${this.asm.doc.name}.3dca`;
+      if (as) {
+        const n = window.prompt("ファイル名", name.replace(/\.3dca$/, ""));
+        if (!n) return;
+        name = n.endsWith(".3dca") ? n : `${n}.3dca`;
+        this.asm.store.patch((d) => (d.name = name.replace(/\.3dca$/, "")), "solve");
+      }
+      download(name, JSON.stringify(this.asm.doc), "application/json");
+      this.asm.store.fileHandleName = name;
+      this.asm.store.dirty = false;
+      this.refreshUI();
+      toast(`${name} を保存しました`, "ok", 2000);
+      return;
+    }
     let name = this.store.fileHandleName ?? `${this.store.doc.name}.3dcp`;
     if (as) {
       const n = window.prompt("ファイル名", name.replace(/\.3dcp$/, ""));
@@ -999,6 +1168,15 @@ export class App {
   }
 
   async exportFile(format: "step" | "stl") {
+    if (this.env === "assembly") {
+      if (format === "step") return this.asm.exportStep();
+      try {
+        download(`${this.asm.doc.name}.stl`, await this.kernel.exportAssembly("stl", this.asm.placements()), "model/stl");
+      } catch (e) {
+        toast((e as Error).message, "error");
+      }
+      return;
+    }
     if (!this.bodies.length) {
       toast("エクスポートするソリッドがありません", "warn");
       return;
@@ -1024,7 +1202,11 @@ export class App {
     clearTimeout(this.autosaveTimer);
     this.autosaveTimer = window.setTimeout(() => {
       try {
-        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(this.store.doc));
+        const asmActive = this.env === "assembly" || !!this.asm.editingPart;
+        localStorage.setItem(
+          AUTOSAVE_KEY,
+          JSON.stringify({ env: asmActive ? "assembly" : "part", part: asmActive ? null : this.store.doc, asm: asmActive ? this.asm.doc : null }),
+        );
       } catch {
         /* quota / private mode */
       }
@@ -1038,12 +1220,15 @@ export class App {
         this.showWelcome();
         return;
       }
-      const doc = JSON.parse(s) as PartDocument;
-      if (doc.format !== "3dcad-part" || !doc.features.length) {
+      const saved = JSON.parse(s) as { env: string; part: PartDocument | null; asm: AssemblyDocument | null };
+      if (saved.env === "assembly" && saved.asm?.components.length) {
+        this.loadAssembly(saved.asm);
+      } else if (saved.part?.format === "3dcad-part" && saved.part.features.length) {
+        this.store.load(saved.part);
+      } else {
         this.showWelcome();
         return;
       }
-      this.store.load(doc);
       toast("前回の作業内容を復元しました", "info", 2500);
     } catch {
       this.showWelcome();
@@ -1067,7 +1252,9 @@ export class App {
           "div",
           { class: "wc-cards" },
           card("new", "新規パーツ", "空のパーツから開始", () => this.commands.run("sketch")),
-          card("part", "サンプルを開く", "フィーチャ ツリー付きの部品", () => this.loadSample()),
+          card("assembly", "新規アセンブリ", "部品を配置して拘束", () => this.newAssembly()),
+          card("part", "サンプル パーツ", "フィーチャ ツリー付きの部品", () => this.loadSample()),
+          card("assembly", "サンプル アセンブリ", "ブラケット + ピン", () => this.loadSampleAssembly()),
           card("open", "開く / インポート", ".3dcp, STEP, STL", () => this.openFile()),
           card("keyboard", "操作ガイド", "マウス操作とショートカット", () => openShortcuts()),
         ),
@@ -1110,6 +1297,26 @@ export class App {
       if (k === "F8" || k === "F9") return void (e.preventDefault(), this.toggleConstraintGlyphs());
       if (k === "F2" && this.browserSelection.size === 1 && this.mode === "model") return void (e.preventDefault(), this.browser.startRename([...this.browserSelection][0]));
       if (["F2", "F3", "F4"].includes(k)) return void e.preventDefault();
+      if (this.env === "assembly") {
+        if (k === "Escape") {
+          closeMenus();
+          if (this.vp.navMode !== "none") return void this.navSetMode(this.vp.navMode as "pan");
+          if (this.asm.command) return void this.cancelAsmCommand();
+          return void this.asm.select([]);
+        }
+        if (k === "Enter" && this.asm.command) return void (e.preventDefault(), this.asm.command.ok());
+        if (k === "Delete" || k === "Backspace") return void this.asm.deleteSelection();
+        if (ctrl || e.altKey) return;
+        const r = this.vp.el.getBoundingClientRect();
+        const amap: Record<string, () => void> = {
+          p: () => this.asm.placeMenu(r.left + r.width / 2 - 100, r.top + r.height / 2 - 60),
+          c: () => this.asm.startConstraint(),
+          v: () => this.asm.setDragMode("move"),
+          g: () => this.asm.setDragMode("rotate"),
+        };
+        amap[kl]?.();
+        return;
+      }
       if (k === "Escape") {
         closeMenus();
         if (this.vp.navMode !== "none") return void this.navSetMode(this.vp.navMode as "pan");
@@ -1151,10 +1358,26 @@ export class App {
 
   refreshUI() {
     const d = this.store.doc;
-    this.titleEl.textContent = `${d.name}${this.store.dirty ? " *" : ""}${this.mode === "sketch" && this.sketchEditor ? ` — ${this.sketchEditor.sk?.name ?? ""} を編集中` : ""}`;
-    document.title = `${d.name} — 3DCAD Studio`;
-    (document.getElementById("qat-undo") as HTMLButtonElement | null)?.toggleAttribute("disabled", !this.store.canUndo());
-    (document.getElementById("qat-redo") as HTMLButtonElement | null)?.toggleAttribute("disabled", !this.store.canRedo());
+    const asm = this.asm.doc;
+    if (this.env === "assembly") {
+      this.titleEl.textContent = `${asm.name}${this.asm.store.dirty ? " *" : ""} (アセンブリ)`;
+      document.title = `${asm.name} — 3DCAD Studio`;
+    } else {
+      this.titleEl.textContent = `${d.name}${this.store.dirty ? " *" : ""}${this.asm.editingPart ? ` — ${asm.name} 内で編集中` : ""}${this.mode === "sketch" && this.sketchEditor ? ` — ${this.sketchEditor.sk?.name ?? ""} を編集中` : ""}`;
+      document.title = `${d.name} — 3DCAD Studio`;
+    }
+    this.materialSel.closest(".qat-field")!.classList.toggle("hidden", this.env === "assembly");
+    this.asmBanner.innerHTML = "";
+    this.asmBanner.classList.toggle("show", !!this.asm.editingPart && this.env === "part");
+    if (this.asm.editingPart && this.env === "part")
+      this.asmBanner.append(
+        iconEl("assembly"),
+        h("span", {}, `アセンブリ「${asm.name}」内でパーツ「${d.name}」を編集中`),
+        h("button", { class: "btn primary", onClick: () => this.returnToAssembly() }, iconEl("check"), "アセンブリに戻る"),
+      );
+    const st = this.env === "assembly" ? this.asm.store : this.store;
+    (document.getElementById("qat-undo") as HTMLButtonElement | null)?.toggleAttribute("disabled", !st.canUndo());
+    (document.getElementById("qat-redo") as HTMLButtonElement | null)?.toggleAttribute("disabled", !st.canRedo());
     this.browser.render();
     this.ribbon.refresh();
   }

@@ -137,6 +137,10 @@ function transformShape(s: Shape, t: Transform): Shape {
 
 // ------------------------------------------------------------ references ---
 
+type OcAx = { Location(): OcXYZ; Direction(): OcXYZ };
+type OcXYZ = { X(): number; Y(): number; Z(): number };
+const xyz = (p: OcXYZ): Vec3 => [p.X(), p.Y(), p.Z()];
+
 function edgeInfo(e: R.Edge): EdgeInfo {
   const a = tuple(e.startPoint), b = tuple(e.endPoint);
   let mid: Vec3;
@@ -145,7 +149,18 @@ function edgeInfo(e: R.Edge): EdgeInfo {
   } catch {
     mid = scale(add(a, b), 0.5);
   }
-  return { mid, a, b, type: String(e.geomType), length: e.length };
+  const info: EdgeInfo = { mid, a, b, type: String(e.geomType), length: e.length };
+  if (info.type === "CIRCLE") {
+    try {
+      const ad = (e as unknown as { _geomAdaptor(): { Circle(): { Axis(): OcAx; Radius(): number } } })._geomAdaptor();
+      const ci = ad.Circle();
+      const ax = ci.Axis();
+      info.axis = { origin: xyz(ax.Location()), dir: normalize(xyz(ax.Direction())), radius: ci.Radius() };
+    } catch {
+      /* no axis */
+    }
+  }
+  return info;
 }
 
 type Box = [Vec3, Vec3];
@@ -214,6 +229,22 @@ function faceInfo(f: R.Face): FaceInfo {
   }
   const type = String(f.geomType);
   const info: FaceInfo = { center, normal, type };
+  if (type === "CYLINDRE" || type === "CONE") {
+    try {
+      const ad = (f as unknown as { _geomAdaptor(): { Cylinder(): { Axis(): OcAx; Radius(): number }; Cone(): { Axis(): OcAx; RefRadius(): number } } })._geomAdaptor();
+      if (type === "CYLINDRE") {
+        const cy = ad.Cylinder();
+        const ax = cy.Axis();
+        info.axis = { origin: xyz(ax.Location()), dir: normalize(xyz(ax.Direction())), radius: cy.Radius() };
+      } else {
+        const co = ad.Cone();
+        const ax = co.Axis();
+        info.axis = { origin: xyz(ax.Location()), dir: normalize(xyz(ax.Direction())), radius: co.RefRadius() };
+      }
+    } catch {
+      /* no axis */
+    }
+  }
   if (type === "PLANE") {
     // pick an x axis aligned with the most fitting world axis
     const axes: Vec3[] = [
@@ -441,7 +472,7 @@ async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<S
 
 export class GeometryEngine {
   private cache: CacheEntry[] = [];
-  private bodies: Shape[] = [];
+  bodies: Shape[] = [];
 
   async rebuild(features: RFeature[], captureBefore?: string): Promise<RebuildResult> {
     const t0 = performance.now();
@@ -558,9 +589,9 @@ export class GeometryEngine {
     return res;
   }
 
-  projection(views: { name: string; dir: Vec3; xAxis: Vec3 }[]): ProjectionView[] {
-    if (!this.bodies.length) return [];
-    const shape = this.bodies.length === 1 ? this.bodies[0] : (R.makeCompound(this.bodies) as unknown as Shape);
+  projection(views: { name: string; dir: Vec3; xAxis: Vec3 }[], shapes: Shape[] = this.bodies): ProjectionView[] {
+    if (!shapes.length) return [];
+    const shape = shapes.length === 1 ? shapes[0] : (R.makeCompound(shapes) as unknown as Shape);
     return views.map((v) => {
       const cam = new R.ProjectionCamera([0, 0, 0], v.dir, v.xAxis);
       const proj = R.drawProjection(shape as never, cam);
@@ -584,6 +615,52 @@ export class GeometryEngine {
     });
   }
 
+}
+
+/** Applies a column-major rigid 4x4 matrix to a shape (rotation + translation). */
+export function placeShape(s: Shape, m: number[]): Shape {
+  // rotation matrix -> axis / angle
+  const r00 = m[0], r10 = m[1], r20 = m[2], r01 = m[4], r11 = m[5], r21 = m[6], r02 = m[8], r12 = m[9], r22 = m[10];
+  const tr = r00 + r11 + r22;
+  const angle = Math.acos(Math.max(-1, Math.min(1, (tr - 1) / 2)));
+  let out = s.clone();
+  if (angle > 1e-9) {
+    let axis: Vec3;
+    if (Math.PI - angle > 1e-6) axis = normalize([r21 - r12, r02 - r20, r10 - r01]);
+    else {
+      // 180 degrees: axis from the diagonal
+      const xx = Math.sqrt(Math.max(0, (r00 + 1) / 2)), yy = Math.sqrt(Math.max(0, (r11 + 1) / 2)), zz = Math.sqrt(Math.max(0, (r22 + 1) / 2));
+      axis = normalize([xx, r01 >= 0 ? yy : -yy, r02 >= 0 ? zz : -zz]);
+      if (xx < 1e-6) axis = normalize([0, yy, r12 >= 0 ? zz : -zz]);
+    }
+    out = out.rotate((angle * 180) / Math.PI, [0, 0, 0], axis);
+  }
+  if (m[12] || m[13] || m[14]) out = out.translate([m[12], m[13], m[14]]);
+  return out;
+}
+
+export function exportPlaced(shapes: { shape: Shape; name: string }[], format: "step" | "stl"): Blob {
+  if (!shapes.length) throw new Error("エクスポートするボディがありません");
+  if (format === "step") return R.exportSTEP(shapes.map((x) => ({ shape: x.shape, name: x.name })), { unit: "MM" } as never);
+  const comp = R.makeCompound(shapes.map((x) => x.shape)) as unknown as Shape;
+  const diag = modelDiag(shapes.map((x) => x.shape));
+  return comp.blobSTL({ tolerance: Math.max(0.005, diag * 2e-4), angularTolerance: 0.1, binary: true });
+}
+
+export function interferences(shapes: Shape[]): { a: number; b: number; volume: number }[] {
+  const out: { a: number; b: number; volume: number }[] = [];
+  for (let i = 0; i < shapes.length; i++)
+    for (let j = i + 1; j < shapes.length; j++) {
+      if (!bboxOverlap(shapes[i], shapes[j])) continue;
+      try {
+        const x = shapes[i].intersect(shapes[j]);
+        const v = isEmpty(x) ? 0 : R.measureVolume(x as never);
+        if (v > 1e-6) out.push({ a: i, b: j, volume: v });
+      } catch {
+        /* ignore failed booleans */
+      }
+    }
+  return out;
 }
 
 function circumradius(a: Vec3, b: Vec3, c: Vec3): number {

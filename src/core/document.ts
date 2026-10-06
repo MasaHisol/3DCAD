@@ -1,4 +1,5 @@
 import { evaluateParams, nextParamName } from "./params";
+import { Store } from "./store";
 import type { Feature, FeatureType, Parameter, ParamUnit, PartDocument, PlaneDef } from "./types";
 
 export const ORIGIN_PLANES: Record<"YZ" | "XZ" | "XY", PlaneDef> = {
@@ -74,96 +75,15 @@ export function uid(prefix = "f"): string {
   return `${prefix}${Date.now().toString(36)}${idCounter.toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;
 }
 
-type Listener = (reason: string) => void;
-
-/**
- * Holds the current part document plus undo/redo history. Mutations happen
- * through `mutate()` so each user action becomes exactly one undo step.
- */
-export class DocumentStore {
-  doc: PartDocument;
-  private undoStack: string[] = [];
-  private redoStack: string[] = [];
-  private listeners = new Set<Listener>();
-  dirty = false;
-  fileHandleName: string | null = null;
-
+/** The part document store (undo/redo + part-specific helpers). */
+export class DocumentStore extends Store<PartDocument> {
   constructor(doc?: PartDocument) {
-    this.doc = doc ?? newDocument();
-  }
-
-  on(l: Listener): () => void {
-    this.listeners.add(l);
-    return () => this.listeners.delete(l);
-  }
-
-  emit(reason: string) {
-    for (const l of this.listeners) l(reason);
-  }
-
-  snapshot(): string {
-    return JSON.stringify(this.doc);
-  }
-
-  /** Apply a change as a single undoable step. */
-  mutate(label: string, fn: (doc: PartDocument) => void, silent = false) {
-    this.undoStack.push(this.snapshot());
-    if (this.undoStack.length > 200) this.undoStack.shift();
-    this.redoStack = [];
-    fn(this.doc);
-    this.dirty = true;
-    if (!silent) this.emit(label);
-  }
-
-  /** Change without creating an undo step (used for live previews and ref tracking). */
-  patch(fn: (doc: PartDocument) => void, reason = "patch") {
-    fn(this.doc);
-    this.emit(reason);
-  }
-
-  /** Restore a snapshot without touching history (used by cancel). */
-  restore(snap: string, reason = "restore") {
-    this.doc = JSON.parse(snap);
-    this.emit(reason);
-  }
-
-  /** Push an explicit history entry captured earlier (used when committing a command). */
-  pushHistory(snap: string) {
-    this.undoStack.push(snap);
-    this.redoStack = [];
-    this.dirty = true;
-  }
-
-  canUndo() {
-    return this.undoStack.length > 0;
-  }
-  canRedo() {
-    return this.redoStack.length > 0;
-  }
-
-  undo() {
-    const s = this.undoStack.pop();
-    if (!s) return;
-    this.redoStack.push(this.snapshot());
-    this.doc = JSON.parse(s);
-    this.emit("undo");
-  }
-
-  redo() {
-    const s = this.redoStack.pop();
-    if (!s) return;
-    this.undoStack.push(this.snapshot());
-    this.doc = JSON.parse(s);
-    this.emit("redo");
+    super(doc ?? newDocument());
   }
 
   load(doc: PartDocument) {
     if (doc.format !== "3dcad-part") throw new Error("サポートされていないファイル形式です");
-    this.doc = doc;
-    this.undoStack = [];
-    this.redoStack = [];
-    this.dirty = false;
-    this.emit("load");
+    this.reset(doc, "load");
   }
 
   // ------------------------------------------------------------- helpers ---

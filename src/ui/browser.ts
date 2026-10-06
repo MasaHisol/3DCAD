@@ -25,6 +25,8 @@ export const FEATURE_ICONS: Record<string, string> = {
 };
 
 export interface BrowserHost {
+  /** Alternative tree (assembly environment). Return true when rendered. */
+  customRender?(list: HTMLElement): boolean;
   doc(): PartDocument;
   errors(): Record<string, string>;
   bodyCount(): number;
@@ -72,6 +74,7 @@ export class ModelBrowser {
   }
 
   render() {
+    if (this.host.customRender?.(this.list)) return;
     const doc = this.host.doc();
     const errors = this.host.errors();
     const sel = this.host.selected();

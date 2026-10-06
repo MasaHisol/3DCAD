@@ -6,7 +6,7 @@ import type { PathSeg, RFeature, Transform } from "../kernel/protocol";
 import { findRegions, pointInRegion, type Region } from "../sketch/profiles";
 import { solve, type SolveResult } from "../sketch/solver";
 import { evalWith } from "./params";
-import type { AxisRef, Feature, PartDocument, PlaneDef, SketchFeature, SkLine, SkPoint, Vec2, Vec3 } from "./types";
+import type { AxisRef, Feature, PartDocument, PlaneDef, SketchFeature, SkLine, SkPoint, Vec2, Vec3, WorkPlaneFeature } from "./types";
 
 export interface SketchState {
   regions: Region[];
@@ -62,6 +62,25 @@ export function holeCenterPoints(sk: SketchFeature): SkPoint[] {
     if (e.type === "arc") used.add(e.c), used.add(e.p1), used.add(e.p2);
   }
   return sk.entities.filter((e): e is SkPoint => e.type === "point" && !used.has(e.id) && !e.fixed && !e.ref && !e.construction);
+}
+
+/** Updates cached work-plane frames and sketches that live on work planes. */
+export function prepareDocument(doc: PartDocument, values: Map<string, number>) {
+  for (const f of doc.features)
+    if (f.type === "workplane") {
+      let off = 0;
+      try {
+        off = evalWith(values, f.offset);
+      } catch {
+        /* keep 0 */
+      }
+      f.plane = { ...f.base, origin: f.base.origin.map((o, i) => o + f.base.normal[i] * off) as Vec3 };
+    }
+  for (const f of doc.features)
+    if (f.type === "sketch" && f.planeRef) {
+      const wp = doc.features.find((x) => x.id === f.planeRef) as WorkPlaneFeature | undefined;
+      if (wp?.plane) f.plane = wp.plane;
+    }
 }
 
 export function resolveDocument(doc: PartDocument, values: Map<string, number>, upto = doc.endOfPart): Resolved {
