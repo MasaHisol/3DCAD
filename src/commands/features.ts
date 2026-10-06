@@ -581,7 +581,17 @@ class ShellCommand extends TopoCommand<ShellFeature> {
     const sec = this.panel.section("入力");
     this.pick = this.panel.picker(sec, "除去する面", "shell", () => {}, () => this.update((f) => (f.faces = [])));
     this.pick.setActive(true);
-    this.panel.expr(sec, "厚さ (内側)", this.expr(this.feature.thickness), "mm", (e) => this.setParam(this.feature.thickness, e), this.feature.thickness);
+    this.panel.toggles(
+      sec,
+      "方向",
+      [
+        { value: "inside", icon: "shell", title: "内側" },
+        { value: "outside", icon: "box", title: "外側" },
+      ],
+      this.feature.outside ? "outside" : "inside",
+      (v) => this.update((f) => (f.outside = v === "outside")),
+    );
+    this.panel.expr(sec, "厚さ", this.expr(this.feature.thickness), "mm", (e) => this.setParam(this.feature.thickness, e), this.feature.thickness);
     this.setup();
     app.status("除去する (開口する) 面を選択");
   }

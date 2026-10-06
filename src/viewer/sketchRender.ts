@@ -43,7 +43,6 @@ const GLYPH: Record<string, string> = {
   midpoint: "M",
   fix: "⚓",
   symmetric: "⇋",
-  pointOnCurve: "•",
 };
 
 export function pointMap(sk: SketchFeature): Map<string, SkPoint> {

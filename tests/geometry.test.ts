@@ -81,5 +81,7 @@ describe("geometry engine", () => {
     ]);
     expect(Object.keys(r.errors)).toEqual(["c"]);
     expect(r.bodies.length).toBe(1);
+    // shell hollows inward by default: 5x5x5 minus 3x3x4 cavity
+    expect(eng.massProps().volume).toBeCloseTo(125 - 36, 3);
   }, 60000);
 });

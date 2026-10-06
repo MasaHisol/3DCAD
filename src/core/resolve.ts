@@ -171,7 +171,7 @@ function resolveFeature(
       if (!f.edges.length) throw new Error("エッジが選択されていません");
       return { id: f.id, type: "chamfer", edges: f.edges, distance: num(f, f.distance, "距離") };
     case "shell":
-      return { id: f.id, type: "shell", faces: f.faces, thickness: num(f, f.thickness, "厚さ") };
+      return { id: f.id, type: "shell", faces: f.faces, thickness: num(f, f.thickness, "厚さ"), outside: f.outside };
     case "hole": {
       const { sk } = sketchOf(f.sketch);
       const pts = (f.points.length ? f.points.map((id) => sk.entities.find((e) => e.id === id)) : holeCenterPoints(sk)).filter(

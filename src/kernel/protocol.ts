@@ -34,7 +34,7 @@ export type RFeature =
     }
   | { id: string; type: "fillet"; edges: EdgeRef[]; radius: number }
   | { id: string; type: "chamfer"; edges: EdgeRef[]; distance: number }
-  | { id: string; type: "shell"; faces: FaceRef[]; thickness: number }
+  | { id: string; type: "shell"; faces: FaceRef[]; thickness: number; outside?: boolean }
   | {
       id: string;
       type: "hole";

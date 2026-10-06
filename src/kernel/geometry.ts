@@ -369,7 +369,9 @@ async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<S
       const out = bodies.map((b, i) => {
         const faces = perBody.get(i) ?? [];
         if (!faces.length && f.faces.length) return b;
-        return b.shell(-Math.abs(f.thickness), (fc) => fc.inList(faces));
+        // replicad: positive thickness hollows inward, negative grows outward
+        const t = Math.abs(f.thickness) * (f.outside ? -1 : 1);
+        return b.shell(t, (fc) => fc.inList(faces));
       });
       return { bodies: out, tools };
     }

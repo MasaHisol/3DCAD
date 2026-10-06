@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { DocumentStore, FEATURE_LABELS, MATERIALS, ORIGIN_PLANES, newDocument, uid } from "./core/document";
 import { formatNumber } from "./core/expr";
 import { evalWith, evaluateParams } from "./core/params";
-import { resolveDocument, worldToPlane, type Resolved, type SketchState } from "./core/resolve";
+import { planeToWorld, resolveDocument, worldToPlane, type Resolved, type SketchState } from "./core/resolve";
 import type { EdgeRef, FaceRef, Feature, PartDocument, PlaneDef, SketchFeature, Vec3, WorkPlaneFeature } from "./core/types";
 import { KernelClient } from "./kernel/client";
 import type { BodyMesh, RebuildResult } from "./kernel/protocol";
@@ -1160,6 +1160,18 @@ export class App {
     } catch {
       /* ignore */
     }
+  }
+
+  /** Screen position of a point in the active sketch (used by automation / tests). */
+  sketchToScreen(u: number, v: number): { x: number; y: number } | null {
+    const sk = this.sketchEditor?.sk;
+    if (!sk) return null;
+    return this.vp.toScreen(new THREE.Vector3(...planeToWorld(sk.plane, [u, v])));
+  }
+
+  /** Screen position of a world point. */
+  worldToScreen(x: number, y: number, z: number): { x: number; y: number } {
+    return this.vp.toScreen(new THREE.Vector3(x, y, z));
   }
 
   featureLabel(f: Feature): string {

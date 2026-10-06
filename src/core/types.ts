@@ -183,6 +183,8 @@ export interface ShellFeature extends FeatureBase {
   type: "shell";
   faces: FaceRef[];
   thickness: string;
+  /** Grow the wall outward instead of hollowing inward. */
+  outside?: boolean;
 }
 
 export interface HoleFeature extends FeatureBase {
