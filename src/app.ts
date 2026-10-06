@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { DocumentStore, FEATURE_LABELS, MATERIALS, ORIGIN_PLANES, newDocument, uid } from "./core/document";
+import { DocumentStore, FEATURE_LABELS, MATERIALS, ORIGIN_PLANES, featureSketchRefs, newDocument, uid } from "./core/document";
 import { formatNumber } from "./core/expr";
 import { evalWith, evaluateParams } from "./core/params";
 import { planeToWorld, resolveDocument, worldToPlane, type Resolved, type SketchState } from "./core/resolve";
@@ -21,6 +21,12 @@ import { openDrawing, openIProperties, openParameters, openShortcuts } from "./u
 import { sampleDocument } from "./samples";
 
 const AUTOSAVE_KEY = "3dcad.autosave.v1";
+
+export interface SketchOverlay {
+  sketchId: string;
+  selected: Set<number>;
+  hover: number | null;
+}
 
 export class App {
   readonly store = new DocumentStore();
@@ -361,20 +367,21 @@ export class App {
   }
   private firstFit = true;
 
-  /** Draw inactive sketches in model mode. */
-  renderSketches(overlay?: { sketchId: string; selected: Set<number>; hover: number | null }) {
+  /** Draw inactive sketches in model mode (optionally with profile-picking overlays). */
+  renderSketches(overlay?: SketchOverlay | SketchOverlay[]) {
     for (const r of this.sketchRenderers) {
       r.clear();
       this.vp.sketchLayer.remove(r.group);
     }
     this.sketchRenderers = [];
+    const overlays = overlay ? (Array.isArray(overlay) ? overlay : [overlay]) : [];
     const doc = this.store.doc;
-    const consumed = new Set(doc.features.map((f) => (f as { sketch?: string }).sketch).filter(Boolean) as string[]);
+    const consumed = new Set(doc.features.flatMap(featureSketchRefs));
     doc.features.forEach((f, i) => {
       if (f.type !== "sketch") return;
       if (this.sketchEditor?.sketchId === f.id) return;
-      const isOverlay = overlay?.sketchId === f.id;
-      const visible = isOverlay || (i < doc.endOfPart && (consumed.has(f.id) ? f.visible === true : f.visible !== false));
+      const ov = overlays.find((o) => o.sketchId === f.id);
+      const visible = !!ov || (i < doc.endOfPart && (consumed.has(f.id) ? f.visible === true : f.visible !== false));
       if (!visible) return;
       const r = new SketchRenderer(this.vp.sketchLayer);
       const st = this.sketchState(f.id);
@@ -389,7 +396,7 @@ export class App {
           pixel: this.vp.pixelSize,
           dimText: () => "",
         },
-        isOverlay && st ? { list: st.regions, selected: overlay!.selected, hover: overlay!.hover } : undefined,
+        ov && st ? { list: st.regions, selected: ov.selected, hover: ov.hover } : undefined,
       );
       this.sketchRenderers.push(r);
     });
@@ -815,8 +822,8 @@ export class App {
     }
     // consumed sketches of deleted features
     for (const id of [...all]) {
-      const s = (this.store.feature(id) as { sketch?: string }).sketch;
-      if (s && !this.store.doc.features.some((f) => !all.has(f.id) && (f as { sketch?: string }).sketch === s)) all.add(s);
+      for (const s of featureSketchRefs(this.store.feature(id)!))
+        if (!this.store.doc.features.some((f) => !all.has(f.id) && featureSketchRefs(f).includes(s))) all.add(s);
     }
     const names = [...all].map((id) => this.store.feature(id)!.name);
     if (all.size > ids.length) {
@@ -855,8 +862,10 @@ export class App {
     const items: MenuItem[] = [];
     if (f.type === "sketch") items.push({ label: "スケッチを編集", icon: "edit", action: () => this.enterSketch(id) });
     else items.push({ label: "フィーチャを編集", icon: "edit", action: () => this.editFeature(id) });
-    const sk = (f as { sketch?: string }).sketch;
-    if (sk) items.push({ label: "スケッチを編集", icon: "sketch", action: () => this.enterSketch(sk) });
+    for (const sk of featureSketchRefs(f)) {
+      const name = this.store.feature(sk)?.name ?? "";
+      items.push({ label: `スケッチを編集 (${name})`, icon: "sketch", action: () => this.enterSketch(sk) });
+    }
     if (f.type === "sketch" || f.type === "workplane")
       items.push({
         label: f.visible === false ? "表示" : "非表示",
@@ -1131,7 +1140,10 @@ export class App {
       const map: Record<string, string> = { s: "sketch", e: "extrude", r: "revolve", h: "hole", f: "fillet", m: "measure" };
       const cmd = map[k.toLowerCase()];
       if (cmd && !this.command) this.commands.run(cmd);
-      if (k === "Enter" && this.command) this.finishCommand(this.command, true);
+      if (k === "Enter" && this.command) {
+        e.preventDefault();
+        this.finishCommand(this.command, true);
+      }
     });
   }
 

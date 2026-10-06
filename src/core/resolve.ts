@@ -2,7 +2,7 @@
 // parameters -> numbers, sketches -> solved geometry + profile regions,
 // patterns -> transform lists.
 
-import type { RFeature, Transform } from "../kernel/protocol";
+import type { PathSeg, RFeature, Transform } from "../kernel/protocol";
 import { findRegions, pointInRegion, type Region } from "../sketch/profiles";
 import { solve, type SolveResult } from "../sketch/solver";
 import { evalWith } from "./params";
@@ -164,6 +164,23 @@ function resolveFeature(
         op: f.op,
       };
     }
+    case "loft": {
+      const sections = f.sketches.map((id) => {
+        const { sk, st } = sketchOf(id);
+        const r = st.regions.find((x) => !x.island) ?? st.regions[0];
+        if (!r) throw new Error(`${sk.name} に閉じたプロファイルがありません`);
+        return { plane: sk.plane, outer: r.outer };
+      });
+      if (sections.length < 2) throw new Error("断面を 2 つ以上選択してください");
+      return { id: f.id, type: "loft", sections, ruled: f.ruled, op: f.op };
+    }
+    case "sweep": {
+      const { sk, st } = sketchOf(f.sketch);
+      if (!f.path) throw new Error("パスを選択してください");
+      const pathSk = doc.features.find((x) => x.id === f.path) as SketchFeature | undefined;
+      if (!pathSk) throw new Error("パスのスケッチが見つかりません");
+      return { id: f.id, type: "sweep", plane: sk.plane, regions: regionsOf(st, f.profiles, f.profilePts), path: sketchPath(pathSk), op: f.op };
+    }
     case "fillet":
       if (!f.edges.length) throw new Error("エッジが選択されていません");
       return { id: f.id, type: "fillet", edges: f.edges, radius: num(f, f.radius, "半径") };
@@ -259,6 +276,56 @@ function resolveFeature(
     default:
       return null;
   }
+}
+
+/** Orders the non-construction curves of a sketch into one 3D path chain. */
+export function sketchPath(sk: SketchFeature): PathSeg[] {
+  const pts = new Map(sk.entities.filter((e): e is SkPoint => e.type === "point").map((p) => [p.id, p]));
+  type Seg = { a: string; b: string; mid?: Vec2 };
+  const segs: Seg[] = [];
+  for (const e of sk.entities) {
+    if (e.construction) continue;
+    if (e.type === "line") segs.push({ a: e.p1, b: e.p2 });
+    if (e.type === "arc") {
+      const c = pts.get(e.c)!, p1 = pts.get(e.p1)!, p2 = pts.get(e.p2)!;
+      const r = Math.hypot(p1.x - c.x, p1.y - c.y);
+      const t0 = Math.atan2(p1.y - c.y, p1.x - c.x);
+      let t1 = Math.atan2(p2.y - c.y, p2.x - c.x);
+      while (t1 <= t0) t1 += Math.PI * 2;
+      const tm = (t0 + t1) / 2;
+      segs.push({ a: e.p1, b: e.p2, mid: [c.x + r * Math.cos(tm), c.y + r * Math.sin(tm)] });
+    }
+  }
+  if (!segs.length) throw new Error("パスに線分または円弧がありません");
+  // coincident points are shared ids in this sketcher; also honour coincident constraints
+  const alias = new Map<string, string>();
+  for (const c of sk.constraints) if (c.type === "coincident") alias.set(c.refs[0], c.refs[1]);
+  const id = (x: string) => {
+    let k = x;
+    for (let i = 0; i < 10 && alias.has(k); i++) k = alias.get(k)!;
+    return k;
+  };
+  const deg = new Map<string, number>();
+  for (const s of segs) for (const v of [id(s.a), id(s.b)]) deg.set(v, (deg.get(v) ?? 0) + 1);
+  let start = [...deg.entries()].find(([, d]) => d === 1)?.[0] ?? id(segs[0].a);
+  const used = new Set<Seg>();
+  const out: PathSeg[] = [];
+  const W = (pid: string): Vec3 => {
+    const p = pts.get(pid)!;
+    return planeToWorld(sk.plane, [p.x, p.y]);
+  };
+  for (;;) {
+    const next = segs.find((s) => !used.has(s) && (id(s.a) === start || id(s.b) === start));
+    if (!next) break;
+    used.add(next);
+    const fwd = id(next.a) === start;
+    const a = fwd ? next.a : next.b, b = fwd ? next.b : next.a;
+    if (next.mid) out.push({ t: "arc", a: W(a), m: planeToWorld(sk.plane, next.mid), b: W(b) });
+    else out.push({ t: "line", a: W(a), b: W(b) });
+    start = id(b);
+  }
+  if (used.size !== segs.length) throw new Error("パスは 1 本につながった曲線である必要があります");
+  return out;
 }
 
 function composeMove(id: string, [rx, ry, rz]: number[], t: Transform): RFeature {

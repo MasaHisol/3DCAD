@@ -49,7 +49,13 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
                 cmd("sphere", "球", "sphere", undefined, "球プリミティブを配置します。", "small"),
               ],
             },
-            { stack: [cmd("torus", "トーラス", "torus", undefined, "トーラス プリミティブを配置します。", "small")] },
+            {
+              stack: [
+                cmd("loft", "ロフト", "loft", undefined, "複数の断面スケッチの間を滑らかにつないだソリッドを作成します。", "small"),
+                cmd("sweep", "スイープ", "sweep", undefined, "プロファイルをパスに沿って掃引してソリッドを作成します。", "small"),
+                cmd("torus", "トーラス", "torus", undefined, "トーラス プリミティブを配置します。", "small"),
+              ],
+            },
           ],
         },
         {

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type { App } from "../app";
-import { ORIGIN_PLANES, uid } from "../core/document";
+import { featureSketchRefs, ORIGIN_PLANES, uid } from "../core/document";
 import { formatNumber } from "../core/expr";
 import { holeCenterPoints, worldToPlane } from "../core/resolve";
 import type {
@@ -11,6 +11,8 @@ import type {
   Feature,
   FilletFeature,
   HoleFeature,
+  LoftFeature,
+  SweepFeature,
   MirrorFeature,
   MoveFeature,
   PatternFeature,
@@ -71,7 +73,7 @@ function regionSample(r: Region): Vec2 {
 /** Sketches whose profiles can be used (visible / unconsumed first). */
 function profileSketches(app: App, current?: string): SketchFeature[] {
   const doc = app.store.doc;
-  const consumed = new Set(doc.features.map((f) => (f as { sketch?: string }).sketch).filter(Boolean) as string[]);
+  const consumed = new Set(doc.features.flatMap(featureSketchRefs));
   return doc.features.filter(
     (f, i): f is SketchFeature =>
       f.type === "sketch" && i < doc.endOfPart && (f.id === current || !consumed.has(f.id)) && (app.sketchState(f.id)?.regions.length ?? 0) > 0,
@@ -441,6 +443,169 @@ function segDist(p: Vec2, a: Vec2, b: Vec2): number {
   return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
 }
 
+// ---------------------------------------------------------------- loft ---
+
+class LoftCommand extends FeatureCommand<LoftFeature> {
+  readonly id = "loft";
+  private picker: ProfilePicker;
+  private secPick!: ReturnType<PropertyPanel["picker"]>;
+  private list!: HTMLElement;
+
+  constructor(app: App, existing: LoftFeature | null) {
+    const candidates = profileSketches(app);
+    const pre = [...app.browserSelection].filter((id) => candidates.some((s) => s.id === id));
+    super(app, existing, () => ({
+      id: uid("lf"),
+      type: "loft",
+      name: app.store.nextFeatureName("loft"),
+      sketches: pre,
+      op: app.hasBodies() ? "join" : "new",
+      ruled: false,
+    }));
+    this.picker = new ProfilePicker(
+      app,
+      () => "",
+      () => profileSketches(app).concat(this.feature.sketches.map((id) => app.store.feature<SketchFeature>(id)!).filter(Boolean)),
+      (sk) => this.toggle(sk),
+    );
+    this.handler = {
+      cursor: "pointer",
+      onPointerMove: (e) => {
+        this.picker.move(e);
+        this.draw();
+      },
+      onPointerDown: (e) => {
+        if (e.button === 0) this.picker.click(e);
+      },
+    };
+    this.openPanel(this.editing ? `ロフト: ${this.feature.name}` : "ロフト", "loft");
+    const p = this.panel;
+    const sec = p.section("断面");
+    this.secPick = p.picker(sec, "断面", "sketch", () => {}, () => this.update((f) => (f.sketches = [])));
+    this.secPick.setActive(true);
+    this.list = h("ol", { class: "pp-list" });
+    sec.appendChild(this.list);
+    p.note(sec, "断面のスケッチを順番にクリック (またはブラウザで選択) します。各スケッチの外側の輪郭が使われます。");
+    const opt = p.section("オプション");
+    p.checkbox(opt, "ルールド (直線で接続)", this.feature.ruled, (v) => this.update((f) => (f.ruled = v)));
+    const out = p.section("出力");
+    p.toggles(out, "ブール演算", OPS, this.feature.op, (v) => this.update((x) => (x.op = v as BoolOp)));
+    this.refresh();
+    app.status("ロフトの断面にするスケッチを順にクリック");
+  }
+
+  onBrowserSelect(id: string): boolean {
+    if (this.app.store.feature(id)?.type === "sketch") this.toggle(id);
+    return true;
+  }
+
+  private toggle(sk: string) {
+    this.update((f) => {
+      const k = f.sketches.indexOf(sk);
+      if (k >= 0) f.sketches.splice(k, 1);
+      else f.sketches.push(sk);
+    });
+    this.refresh();
+  }
+
+  private draw() {
+    const hov = this.picker.hover;
+    const ids = new Set([...this.feature.sketches, ...(hov ? [hov.sketch] : [])]);
+    this.app.renderSketches(
+      [...ids].map((id) => {
+        const st = this.app.sketchState(id);
+        const idx = st ? st.regions.findIndex((r) => !r.island) : -1;
+        return { sketchId: id, selected: new Set(this.feature.sketches.includes(id) && idx >= 0 ? [idx] : []), hover: hov?.sketch === id ? hov.index : null };
+      }),
+    );
+  }
+
+  private refresh() {
+    const names = this.feature.sketches.map((id) => this.app.store.feature(id)?.name ?? "?");
+    this.secPick.setCount(names.length, names.length ? `${names.length} 断面` : "選択してください");
+    this.list.innerHTML = "";
+    names.forEach((n) => this.list.appendChild(h("li", {}, n)));
+    this.draw();
+  }
+}
+
+// --------------------------------------------------------------- sweep ---
+
+class SweepCommand extends FeatureCommand<SweepFeature> {
+  readonly id = "sweep";
+  private picker: ProfilePicker;
+  private profPick!: ReturnType<PropertyPanel["picker"]>;
+
+  constructor(app: App, existing: SweepFeature | null) {
+    const sketches = profileSketches(app);
+    const doc = app.store.doc;
+    const consumed = new Set(doc.features.flatMap(featureSketchRefs));
+    const openSketches = doc.features.filter(
+      (f): f is SketchFeature => f.type === "sketch" && !consumed.has(f.id) && (app.sketchState(f.id)?.regions.length ?? 0) === 0 && f.entities.some((e) => (e.type === "line" || e.type === "arc") && !e.construction),
+    );
+    const auto = sketches.length === 1 ? sketches[0].id : "";
+    super(app, existing, () => {
+      const st = auto ? app.sketchState(auto) : undefined;
+      const prof = st ? [st.regions.findIndex((r) => !r.island)].filter((i) => i >= 0) : [];
+      return {
+        id: uid("sw"),
+        type: "sweep",
+        name: app.store.nextFeatureName("sweep"),
+        sketch: auto,
+        profiles: prof,
+        profilePts: st ? prof.map((i) => regionSample(st.regions[i])) : [],
+        path: openSketches.length === 1 ? openSketches[0].id : "",
+        op: app.hasBodies() ? "join" : "new",
+      };
+    });
+    this.picker = new ProfilePicker(
+      app,
+      () => this.feature.sketch,
+      () => profileSketches(app, this.feature.sketch),
+      (sk, i, sample) => {
+        this.update((f) => {
+          if (f.sketch !== sk) (f.sketch = sk), (f.profiles = []), (f.profilePts = []);
+          const k = f.profiles.indexOf(i);
+          const pts = f.profilePts ?? [];
+          if (k >= 0) f.profiles.splice(k, 1), pts.splice(k, 1);
+          else f.profiles.push(i), pts.push(sample);
+          f.profilePts = pts;
+        });
+        this.picker.selected = this.feature.profiles;
+        this.picker.draw();
+        this.profPick.setCount(this.feature.profiles.length);
+      },
+    );
+    this.picker.selected = this.feature.profiles;
+    this.handler = {
+      cursor: "pointer",
+      onPointerMove: (e) => this.picker.move(e),
+      onPointerDown: (e) => {
+        if (e.button === 0) this.picker.click(e);
+      },
+    };
+    this.openPanel(this.editing ? `スイープ: ${this.feature.name}` : "スイープ", "sweep");
+    const p = this.panel;
+    const inp = p.section("入力ジオメトリ");
+    this.profPick = p.picker(inp, "プロファイル", "sketch", () => {});
+    this.profPick.setActive(true);
+    this.profPick.setCount(this.feature.profiles.length);
+    const allSketches = doc.features.filter((f): f is SketchFeature => f.type === "sketch" && f.id !== this.featureId);
+    p.select(
+      inp,
+      "パス",
+      [{ value: "", label: "パスのスケッチを選択…" }, ...allSketches.map((s) => ({ value: s.id, label: s.name }))],
+      this.feature.path,
+      (v) => this.update((f) => (f.path = v)),
+    );
+    p.note(inp, "パスは線分・円弧をつなげた 1 本の曲線です (別のスケッチに作成し、プロファイルと交差させます)。");
+    const out = p.section("出力");
+    p.toggles(out, "ブール演算", OPS, this.feature.op, (v) => this.update((x) => (x.op = v as BoolOp)));
+    this.picker.draw();
+    app.status("スイープするプロファイルを選択し、パスのスケッチを指定");
+  }
+}
+
 // ------------------------------------------------- fillet / chamfer / shell ---
 
 abstract class TopoCommand<F extends FilletFeature | ChamferFeature | ShellFeature> extends FeatureCommand<F> {
@@ -607,7 +772,7 @@ class HoleCommand extends FeatureCommand<HoleFeature> {
   constructor(app: App, existing: HoleFeature | null) {
     // use a selected / single unconsumed sketch with points, otherwise click faces
     const doc = app.store.doc;
-    const consumed = new Set(doc.features.map((f) => (f as { sketch?: string }).sketch).filter(Boolean) as string[]);
+    const consumed = new Set(doc.features.flatMap(featureSketchRefs));
     const withPts = doc.features.filter((f): f is SketchFeature => f.type === "sketch" && !consumed.has(f.id) && holeCenterPoints(f).length > 0);
     const pre = [...app.browserSelection].find((id) => withPts.some((s) => s.id === id)) ?? (withPts.length === 1 ? withPts[0].id : "");
     super(app, existing, () => {
@@ -1167,6 +1332,8 @@ export function buildCommands(app: App): CommandRegistry {
     sketch: { id: "sketch", label: "2D スケッチ", icon: "sketch" },
     extrude: { id: "extrude", label: "押し出し", icon: "extrude" },
     revolve: { id: "revolve", label: "回転", icon: "revolve" },
+    loft: { id: "loft", label: "ロフト", icon: "loft" },
+    sweep: { id: "sweep", label: "スイープ", icon: "sweep" },
     fillet: { id: "fillet", label: "フィレット", icon: "fillet" },
     chamfer: { id: "chamfer", label: "面取り", icon: "chamfer" },
     shell: { id: "shell", label: "シェル", icon: "shell" },
@@ -1190,6 +1357,10 @@ export function buildCommands(app: App): CommandRegistry {
         return new ExtrudeCommand(app, f as ExtrudeFeature | null);
       case "revolve":
         return new RevolveCommand(app, f as RevolveFeature | null);
+      case "loft":
+        return new LoftCommand(app, f as LoftFeature | null);
+      case "sweep":
+        return new SweepCommand(app, f as SweepFeature | null);
       case "fillet":
         return new FilletCommand(app, f as FilletFeature | null);
       case "chamfer":
@@ -1218,7 +1389,7 @@ export function buildCommands(app: App): CommandRegistry {
     }
     return null;
   };
-  const needsProfile = new Set(["extrude", "revolve"]);
+  const needsProfile = new Set(["extrude", "revolve", "loft", "sweep"]);
   const needsBody = new Set(["fillet", "chamfer", "shell", "hole", "move"]);
   return {
     get: (id) => info[id],

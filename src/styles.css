@@ -1599,3 +1599,11 @@ kbd {
     width: 200px;
   }
 }
+
+.pp-list {
+  margin: 0;
+  padding-left: 22px;
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.7;
+}

@@ -11,6 +11,8 @@ export const FEATURE_LABELS: Record<FeatureType, string> = {
   sketch: "スケッチ",
   extrude: "押し出し",
   revolve: "回転",
+  loft: "ロフト",
+  sweep: "スイープ",
   fillet: "フィレット",
   chamfer: "面取り",
   shell: "シェル",
@@ -54,6 +56,16 @@ export function newDocument(name = "パーツ1"): PartDocument {
     material: { ...MATERIALS[0] },
     iprops: { パーツ番号: name, 説明: "", 設計者: "", 作成日: new Date().toISOString().slice(0, 10) },
   };
+}
+
+/** Sketches a feature consumes (profile, path, loft sections). */
+export function featureSketchRefs(f: Feature): string[] {
+  const out: string[] = [];
+  const fx = f as unknown as { sketch?: string; path?: string; sketches?: string[] };
+  if (fx.sketch) out.push(fx.sketch);
+  if (fx.path) out.push(fx.path);
+  if (Array.isArray(fx.sketches)) out.push(...fx.sketches);
+  return out;
 }
 
 let idCounter = 0;
@@ -188,7 +200,7 @@ export class DocumentStore {
     return this.doc.features.filter((f) => {
       if (f.id === id) return false;
       const fx = f as unknown as Record<string, unknown>;
-      if (fx.sketch === id) return true;
+      if (featureSketchRefs(f).includes(id)) return true;
       if (Array.isArray(fx.features) && (fx.features as string[]).includes(id)) return true;
       return false;
     });
@@ -205,6 +217,7 @@ export class DocumentStore {
     for (const f of doc.features) {
       const fx = f as unknown as Record<string, unknown>;
       if (Array.isArray(fx.features)) fx.features = (fx.features as string[]).filter((x) => !set.has(x));
+      if (Array.isArray(fx.sketches)) fx.sketches = (fx.sketches as string[]).filter((x) => !set.has(x));
     }
   }
 

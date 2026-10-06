@@ -32,6 +32,8 @@ export type RFeature =
       angle: number;
       op: BoolOp;
     }
+  | { id: string; type: "loft"; sections: { plane: PlaneDef; outer: LoopSeg[] }[]; ruled: boolean; op: BoolOp }
+  | { id: string; type: "sweep"; plane: PlaneDef; regions: RRegion[]; path: PathSeg[]; op: BoolOp }
   | { id: string; type: "fillet"; edges: EdgeRef[]; radius: number }
   | { id: string; type: "chamfer"; edges: EdgeRef[]; distance: number }
   | { id: string; type: "shell"; faces: FaceRef[]; thickness: number; outside?: boolean }
@@ -59,6 +61,8 @@ export type RFeature =
   | { id: string; type: "primitive"; shape: "box" | "cylinder" | "sphere" | "torus"; plane: PlaneDef; center: Vec2; a: number; b: number; c: number; op: BoolOp }
   | { id: string; type: "import"; format: "step" | "stl"; data: string }
   | { id: string; type: "move"; transform: Transform };
+
+export type PathSeg = { t: "line"; a: Vec3; b: Vec3 } | { t: "arc"; a: Vec3; m: Vec3; b: Vec3 };
 
 /** Rigid transform: optional mirror, rotation (deg about axis through origin) then translation. */
 export interface Transform {

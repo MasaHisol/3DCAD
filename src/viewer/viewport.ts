@@ -775,7 +775,8 @@ export class Viewport {
     pts.forEach((p) => (lo.min(p), hi.max(p)));
     const c = lo.clone().add(hi).multiplyScalar(0.5).applyQuaternion(quat);
     const h = Math.max(hi.y - lo.y, (hi.x - lo.x) / this.aspect) * 1.35;
-    return { target: c, height: Math.max(h, 1) };
+    // never zoom in so far that a sketch has no room to grow
+    return { target: c, height: Math.max(h, 60) };
   }
 
   fitAll(animate = true) {

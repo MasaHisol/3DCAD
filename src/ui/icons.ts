@@ -44,6 +44,8 @@ export const ICONS: Record<string, string> = {
   fillet2d: I(`<path class="b" d="M5 20V12a7 7 0 017-7h8" stroke-width="2"/><path d="M5 5h0" /><path d="M5 9V5h4" stroke-dasharray="1.5 1.5"/>`),
   extrude: I(`<path class="b" d="M4 18l6-3 10 3-6 3z"/><path d="M4 18V9l6-3 10 3v9M10 6v9M4 9l10 3 6-3M14 12v9"/><path class="a" d="M4 9l6-3 10 3-6 3z"/>`),
   revolve: I(`<path d="M12 2v20" stroke-dasharray="2 2"/><path class="a" d="M12 6h5v10h-5z"/><path d="M6 8a7 3 0 0012 9" /><path d="M16 15l2 2-3 1"/>`),
+  loft: I(`<path class="b" d="M4 18h9l-3 3H1z"/><circle class="b" cx="16" cy="5" r="3.2"/><path class="a" d="M4 18L12.8 5.5M13 18l6-12.2" opacity=".9"/><path d="M4 18c3-5 6-9 9-12.5M13 18c2-4 4-8 6-12.5"/>`),
+  sweep: I(`<path class="b" d="M3 20c6 0 6-14 18-14" stroke-width="1.6" stroke-dasharray="2 1.6"/><ellipse class="a" cx="5" cy="19" rx="2.2" ry="3.5"/><ellipse class="a" cx="19" cy="6.5" rx="2" ry="3.3"/><path d="M5 15.5c5-1 7-12 14-12.3M5 22.5c6-.5 8-13 14-12.7"/>`),
   fillet: I(`<path class="a" d="M4 20V10a6 6 0 016-6h10v16z"/><path d="M4 10a6 6 0 016-6" stroke-width="2.2" class="hl"/>`),
   chamfer: I(`<path class="a" d="M4 20V10l6-6h10v16z"/><path d="M4 10l6-6" stroke-width="2.2" class="hl"/>`),
   shell: I(`<path class="a" d="M3 8h18v12H3z"/><path class="g" d="M6 8h12v9H6z"/>`),

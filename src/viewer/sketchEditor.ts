@@ -923,6 +923,12 @@ export class SketchEditor implements ToolHandler {
       this.escape();
       return;
     }
+    if (e.key === "Tab") {
+      // Tab separates width / height (Inventor dynamic input)
+      e.preventDefault();
+      if (this.hudInput.value.trim() && !this.hudInput.value.includes(",")) this.hudInput.value = this.hudInput.value.trim() + ", ";
+      return;
+    }
     if (e.key !== "Enter") return;
     e.preventDefault();
     const raw = this.hudInput.value.trim();

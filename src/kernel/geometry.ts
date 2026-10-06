@@ -349,6 +349,32 @@ async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<S
       tools.set(f.id, { shape: tool, op: f.op });
       return { bodies: applyOp(bodies, tool, f.op), tools };
     }
+    case "loft": {
+      if (f.sections.length < 2) throw new Error("ロフトには 2 つ以上の断面が必要です");
+      const sks = f.sections.map((sec) => loopDrawing(sec.outer).sketchOnPlane(toPlane(sec.plane)) as R.Sketch);
+      const tool = sks[0].loftWith(sks.slice(1), { ruled: f.ruled });
+      tools.set(f.id, { shape: tool, op: f.op });
+      return { bodies: applyOp(bodies, tool, f.op), tools };
+    }
+    case "sweep": {
+      if (!f.path.length) throw new Error("パスがありません");
+      const spine = R.assembleWire(
+        f.path.map((s) => (s.t === "line" ? R.makeLine(s.a, s.b) : R.makeThreePointArc(s.a, s.m, s.b))) as R.Edge[],
+      );
+      const sweepLoop = (segs: LoopSeg[]) => {
+        const sk = loopDrawing(segs).sketchOnPlane(toPlane(f.plane)) as R.Sketch;
+        return R.genericSweep(sk.wire, spine, { frenet: true, transitionMode: "right" }, false);
+      };
+      if (!f.regions.length) throw new Error("プロファイルが選択されていません");
+      const parts = f.regions.map((r) => {
+        let solid = sweepLoop(r.outer);
+        for (const h of r.holes) solid = solid.cut(sweepLoop(h));
+        return solid;
+      });
+      const tool = fuseAll(parts);
+      tools.set(f.id, { shape: tool, op: f.op });
+      return { bodies: applyOp(bodies, tool, f.op), tools };
+    }
     case "fillet":
     case "chamfer": {
       const { perBody, updated } = resolveEdges(bodies, f.edges, diag);

@@ -72,6 +72,39 @@ describe("geometry engine", () => {
     expect(eng2.massProps().volume).toBeCloseTo(eng.massProps().volume, 0);
   }, 60000);
 
+  it("lofts between sections and sweeps along a path", async () => {
+    const eng = new GeometryEngine();
+    const top: PlaneDef = { origin: [0, 0, 30], xDir: [1, 0, 0], normal: [0, 0, 1] };
+    const r = await eng.rebuild([
+      {
+        id: "l",
+        type: "loft",
+        sections: [
+          { plane: XY, outer: rect(20, 20).outer },
+          { plane: top, outer: [{ t: "circle", c: [10, 10], r: 6 }] },
+        ],
+        ruled: false,
+        op: "new",
+      },
+    ]);
+    expect(r.errors).toEqual({});
+    expect(eng.massProps().volume).toBeGreaterThan(Math.PI * 36 * 30);
+    expect(eng.massProps().volume).toBeLessThan(400 * 30);
+    const eng2 = new GeometryEngine();
+    const r2 = await eng2.rebuild([
+      {
+        id: "s",
+        type: "sweep",
+        plane: XY,
+        regions: [{ outer: [{ t: "circle", c: [0, 0], r: 3 }], holes: [[{ t: "circle", c: [0, 0], r: 2 }]] }],
+        path: [{ t: "line", a: [0, 0, 0], b: [0, 0, 40] }],
+        op: "new",
+      },
+    ]);
+    expect(r2.errors).toEqual({});
+    expect(eng2.massProps().volume).toBeCloseTo(Math.PI * (9 - 4) * 40, 1);
+  }, 60000);
+
   it("reports a feature error but keeps building", async () => {
     const eng = new GeometryEngine();
     const r = await eng.rebuild([

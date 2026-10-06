@@ -167,6 +167,24 @@ export interface RevolveFeature extends FeatureBase {
   flip: boolean;
 }
 
+export interface LoftFeature extends FeatureBase {
+  type: "loft";
+  /** Section sketches in order (outer loop of their first region). */
+  sketches: string[];
+  op: BoolOp;
+  ruled: boolean;
+}
+
+export interface SweepFeature extends FeatureBase {
+  type: "sweep";
+  sketch: string;
+  profiles: number[];
+  profilePts?: Vec2[];
+  /** Sketch holding the path (open or closed chain of lines / arcs). */
+  path: string;
+  op: BoolOp;
+}
+
 export interface FilletFeature extends FeatureBase {
   type: "fillet";
   edges: EdgeRef[];
@@ -267,6 +285,8 @@ export type Feature =
   | SketchFeature
   | ExtrudeFeature
   | RevolveFeature
+  | LoftFeature
+  | SweepFeature
   | FilletFeature
   | ChamferFeature
   | ShellFeature

@@ -1,4 +1,4 @@
-import { FEATURE_LABELS } from "../core/document";
+import { FEATURE_LABELS, featureSketchRefs } from "../core/document";
 import type { Feature, PartDocument } from "../core/types";
 import { h, iconEl } from "./dom";
 
@@ -6,6 +6,8 @@ export const FEATURE_ICONS: Record<string, string> = {
   sketch: "sketch",
   extrude: "extrude",
   revolve: "revolve",
+  loft: "loft",
+  sweep: "sweep",
   fillet: "fillet",
   chamfer: "chamfer",
   shell: "shell",
@@ -194,10 +196,7 @@ export class ModelBrowser {
 
     // features (consumed sketches are nested under their consumer, like Inventor)
     const consumer = new Map<string, string>();
-    for (const f of doc.features) {
-      const s = (f as { sketch?: string }).sketch;
-      if (s && !consumer.has(s)) consumer.set(s, f.id);
-    }
+    for (const f of doc.features) for (const s of featureSketchRefs(f)) if (!consumer.has(s)) consumer.set(s, f.id);
     const match = (f: Feature) => !this.filter || f.name.toLowerCase().includes(this.filter) || FEATURE_LABELS[f.type].includes(this.filter);
     const featureRow = (f: Feature, i: number, depth: number) => {
       const err = errors[f.id];
