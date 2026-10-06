@@ -9,7 +9,7 @@ import type { BodyMesh, RebuildResult } from "./kernel/protocol";
 import type { Command } from "./commands/command";
 import { buildCommands, type CommandRegistry } from "./commands/features";
 import { ModelBrowser } from "./ui/browser";
-import { closeMenus, confirmDialog, contextMenu, download, h, iconEl, markingMenu, pickFile, toast, type MenuItem } from "./ui/dom";
+import { closeMenus, confirmDialog, contextMenu, download, h, iconEl, markingMenu, pickFile, promptDialog, toast, type MenuItem } from "./ui/dom";
 import { icon } from "./ui/icons";
 import { Ribbon } from "./ui/ribbon";
 import { buildRibbonTabs } from "./ui/ribbonTabs";
@@ -1080,7 +1080,8 @@ export class App {
     if (f) this.openOrImport(f);
   }
 
-  private async openOrImport(f: File) {
+  async openOrImport(f: File) {
+    document.querySelector(".welcome")?.remove();
     const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
     try {
       if (ext === "3dca" || (ext === "json" && (await f.text()).includes('"3dcad-assembly"'))) {
@@ -1128,7 +1129,7 @@ export class App {
     }
   }
 
-  save(as = false) {
+  async save(as = false) {
     if (this.env === "assembly" || this.asm.editingPart) {
       if (this.asm.editingPart) {
         const doc = structuredClone(this.store.doc);
@@ -1141,7 +1142,7 @@ export class App {
       }
       let name = this.asm.store.fileHandleName ?? `${this.asm.doc.name}.3dca`;
       if (as) {
-        const n = window.prompt("ファイル名", name.replace(/\.3dca$/, ""));
+        const n = await promptDialog("名前を付けて保存", "ファイル名", name.replace(/\.3dca$/, ""));
         if (!n) return;
         name = n.endsWith(".3dca") ? n : `${n}.3dca`;
         this.asm.store.patch((d) => (d.name = name.replace(/\.3dca$/, "")), "solve");
@@ -1155,7 +1156,7 @@ export class App {
     }
     let name = this.store.fileHandleName ?? `${this.store.doc.name}.3dcp`;
     if (as) {
-      const n = window.prompt("ファイル名", name.replace(/\.3dcp$/, ""));
+      const n = await promptDialog("名前を付けて保存", "ファイル名", name.replace(/\.3dcp$/, ""));
       if (!n) return;
       name = n.endsWith(".3dcp") ? n : `${n}.3dcp`;
       this.store.patch((d) => (d.name = name.replace(/\.3dcp$/, "")), "rename");

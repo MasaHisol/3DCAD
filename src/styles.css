@@ -1,5 +1,5 @@
 :root {
-  --font: "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+  --font: "Yu Gothic UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", "Noto Sans CJK JP", "Noto Sans JP", system-ui, sans-serif;
   --bg: #eef0f3;
   --surface: #ffffff;
   --surface-2: #f6f7f9;
@@ -1556,7 +1556,7 @@ kbd {
 }
 .wc-cards {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 .wc-card {
@@ -1647,4 +1647,24 @@ kbd {
 
 .hidden {
   display: none !important;
+}
+
+.fatal {
+  max-width: 640px;
+  margin: 12vh auto;
+  padding: 28px 32px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  line-height: 1.7;
+}
+.fatal h1 {
+  font-size: 18px;
+  margin: 0 0 8px;
+}
+.fatal pre {
+  white-space: pre-wrap;
+  font-size: 11px;
+  color: var(--text-3);
 }

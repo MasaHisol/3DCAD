@@ -1,20 +1,56 @@
 # 3DCAD Studio
 
-ブラウザで動くパラメトリック 3D CAD です。Autodesk Inventor と同じ考え方・操作感
+Windows / macOS / Linux で動くパラメトリック 3D CAD アプリケーションです。Autodesk Inventor と同じ考え方・操作感
 (スケッチ → フィーチャ → パラメータ、モデル ブラウザ、ViewCube、マーキング メニュー、
 アセンブリ拘束) で部品と組立を設計でき、**STEP (AP214) で Inventor とデータを相互にやり取り**できます。
 
 ジオメトリ カーネルには産業用 B-rep カーネル **OpenCascade** (replicad 経由の WebAssembly) を使用しているため、
 フィレット・シェル・ブール演算などは近似ではなく正確なソリッドとして計算されます。
 
-## 起動
+## デスクトップ アプリ (Windows / macOS / Linux)
+
+3DCAD Studio はインストールして使うデスクトップ アプリケーションです (Electron)。
+インターネット接続は不要で、ジオメトリ カーネルを含むすべてがアプリに同梱されています。
+
+| OS | 配布ファイル |
+| --- | --- |
+| Windows 10 / 11 (x64) | `3DCAD-Studio-Setup-<版>.exe` (インストーラ) / `3DCAD-Studio-<版>-portable.exe` (インストール不要版) |
+| macOS (Intel / Apple シリコン) | `3DCAD-Studio-<版>-mac.dmg` |
+| Linux (x64) | `3DCAD-Studio-<版>-linux-x86_64.AppImage` / `.deb` |
+
+- `.3dcp` (パーツ) / `.3dca` (アセンブリ) がアプリに関連付けられ、ダブルクリックで開けます
+- 保存・書き出しは OS の保存ダイアログで行います。未保存の変更がある状態で閉じると確認が表示されます
+- GPU が使えない環境 (仮想マシン、リモート デスクトップ等) でもソフトウェア描画で起動します
+
+### 配布ファイルの作り方
+
+**GitHub Actions (推奨)** — `.github/workflows/release.yml`
+
+- Actions タブ →「Desktop app」→「Run workflow」: 3 OS のインストーラを作成し、実行結果の Artifacts からダウンロードできます
+- `v0.1.0` のようなタグを push: 上記に加えて GitHub Release を作成し、インストーラを添付します
+
+**手元でビルド**
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
+npm run app          # 開発用にアプリとして起動
+npm run dist         # 実行中の OS 向けインストーラを release/ に作成
+npm run dist:win     # Windows 向け (Windows 上で実行。Linux/macOS からは Wine が必要)
+npm run dist:mac     # macOS 向け (macOS 上で実行)
+npm run dist:linux   # Linux 向け
 ```
 
-本番ビルド: `npm run build` → `dist/` を任意の静的サーバに配置 (`npm run preview` で確認)。
+> コード署名証明書は設定していません。初回起動時に Windows SmartScreen の「詳細情報 → 実行」、
+> macOS では「右クリック → 開く」が必要です。社内配布で警告を出さないようにするには、
+> コード署名証明書 (Windows) / Apple Developer ID (macOS) を electron-builder に設定してください。
+
+## 開発
+
+```bash
+npm install
+npm run dev        # ブラウザでの開発サーバ (http://localhost:5173)
+npm run app        # デスクトップ アプリとして起動
+```
 
 ## できること
 
@@ -52,7 +88,7 @@ npm run dev        # http://localhost:5173
 - ViewCube (面・エッジ・コーナー クリック、ドラッグで回転、ホーム)、ナビゲーション バー
 - 右クリックの**マーキング メニュー**、中ボタン ドラッグで画面移動、Shift+中ボタン / Alt+左でオービット、カーソル位置へのズーム
 - 表示スタイル (エッジ付きシェーディング / シェーディング / 隠れ線 / ワイヤフレーム)、断面図、平行 / 透視投影、ライト / ダーク テーマ
-- 自動保存 (ブラウザに保存し、再読み込み時に復元)
+- 自動保存 (作業内容を保存し、次回起動時に復元)
 
 主なショートカット (Inventor の既定値に準拠):
 
@@ -90,6 +126,8 @@ src/
   assembly/    アセンブリ ドキュメント、剛体拘束ソルバ、組立環境
   commands/    フィーチャ コマンド (プロパティ パネル + ライブ プレビュー)
   ui/          リボン、モデル ブラウザ、パネル、ダイアログ、アイコン
+electron/      デスクトップ アプリのシェル (app:// スキームでオフライン配信、ファイル関連付け、メニュー)
+build/         アプリ アイコン
 ```
 
 モデリングはすべて Web Worker 上で行い、フィーチャ単位でキャッシュするため、後ろのフィーチャだけを

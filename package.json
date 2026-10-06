@@ -2,26 +2,134 @@
   "name": "3dcad-studio",
   "version": "0.1.0",
   "private": true,
-  "description": "Browser-based parametric 3D CAD with an Inventor-style workflow (OpenCascade kernel)",
+  "description": "パラメトリック 3D CAD (Inventor スタイルのワークフロー、STEP 互換)",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "app": "vite build && electron .",
+    "dist": "npm run build && electron-builder --publish never",
+    "dist:win": "npm run build && electron-builder --win --publish never",
+    "dist:mac": "npm run build && electron-builder --mac --publish never",
+    "dist:linux": "npm run build && electron-builder --linux --publish never",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "e2e": "node scripts/e2e.mjs"
   },
-  "dependencies": {
-    "replicad": "^1.1.0",
-    "replicad-opencascadejs": "^1.1.0",
-    "three": "^0.186.1"
-  },
   "devDependencies": {
     "@types/three": "^0.186.0",
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3",
     "playwright": "^1.63.0",
+    "replicad": "^1.1.0",
+    "replicad-opencascadejs": "^1.1.0",
+    "three": "^0.186.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.3",
     "vitest": "^5.0.3"
-  }
+  },
+  "main": "electron/main.cjs",
+  "productName": "3DCAD Studio",
+  "author": "3DCAD Studio",
+  "build": {
+    "appId": "jp.hisol.cad3d.studio",
+    "productName": "3DCAD Studio",
+    "copyright": "Copyright © 2026 3DCAD Studio",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "build/icon.png",
+      "package.json"
+    ],
+    "asar": true,
+    "fileAssociations": [
+      {
+        "ext": "3dcp",
+        "name": "3DCAD Part",
+        "description": "3DCAD Studio パーツ",
+        "role": "Editor",
+        "icon": "icon"
+      },
+      {
+        "ext": "3dca",
+        "name": "3DCAD Assembly",
+        "description": "3DCAD Studio アセンブリ",
+        "role": "Editor",
+        "icon": "icon"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "3DCAD Studio",
+      "artifactName": "3DCAD-Studio-Setup-${version}.${ext}",
+      "installerLanguages": [
+        "ja_JP"
+      ],
+      "language": "1041"
+    },
+    "portable": {
+      "artifactName": "3DCAD-Studio-${version}-portable.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.graphics-design",
+      "icon": "build/icon.png",
+      "artifactName": "3DCAD-Studio-${version}-mac.${ext}"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Graphics",
+      "icon": "build/icon.png",
+      "maintainer": "3DCAD Studio",
+      "artifactName": "3DCAD-Studio-${version}-linux-${arch}.${ext}",
+      "syncDesktopName": true
+    }
+  },
+  "desktopName": "3dcad-studio.desktop"
 }
