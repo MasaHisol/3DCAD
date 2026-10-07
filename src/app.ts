@@ -1115,6 +1115,26 @@ export class App {
     ]);
   }
 
+  /** Studio rendering on/off (metal look for metallic materials). */
+  toggleRealistic() {
+    const metals = ["鋼", "ステンレス鋼", "アルミニウム 6061", "黄銅", "銅", "チタン"];
+    const metal = this.env === "assembly" || metals.includes(this.store.doc.material.name);
+    this.vp.setRealistic(!this.vp.realistic, metal);
+    if (this.vp.realistic && this.vp.style !== "shaded") this.setStyle("shaded");
+    else if (!this.vp.realistic) this.setStyle("shadedEdges");
+    this.ribbon.refresh();
+  }
+
+  /** Save the current view as a high-resolution PNG. */
+  saveImage(scale = 2) {
+    const url = this.vp.capture(scale);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${this.env === "assembly" ? this.asm.doc.name : this.store.doc.name}.png`;
+    a.click();
+    toast("画像を保存しました", "ok");
+  }
+
   /** Open a generated part (standard parts library) as the current document. */
   async openPartDocument(doc: PartDocument) {
     if (!(await this.confirmDiscard())) return;

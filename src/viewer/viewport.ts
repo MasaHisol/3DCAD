@@ -269,6 +269,7 @@ export class Viewport {
     r.setScissorTest(false);
     r.clear();
     r.render(this.scene, this.camera);
+    if (this.capturing) return;
     // axis triad (bottom-left)
     const s = 90 * r.getPixelRatio();
     const size = r.getDrawingBufferSize(new THREE.Vector2());
@@ -330,6 +331,8 @@ export class Viewport {
     if (!m) {
       m = this.material.clone();
       if (color) m.color.set(color);
+      m.metalness = this.material.metalness;
+      m.roughness = this.material.roughness;
       if (hl) {
         m.emissive.set("#1f6feb");
         m.emissiveIntensity = 0.35;
@@ -409,6 +412,111 @@ export class Viewport {
     this.refreshHighlights();
   }
 
+  // ------------------------------------------------------- realistic ---
+  realistic = false;
+  private realMetal = true;
+  private capturing = false;
+  private sun = new THREE.DirectionalLight(0xffffff, 1.5);
+  private ground: THREE.Mesh | null = null;
+
+  /** Studio rendering: shadows on a ground plane, stronger reflections, metal / plastic look. */
+  setRealistic(on: boolean, metal = this.realMetal) {
+    this.realistic = on;
+    this.realMetal = metal;
+    const r = this.renderer;
+    r.shadowMap.enabled = on;
+    r.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.scene.environmentIntensity = on ? 1.0 : 0.45;
+    for (const m of [this.material, ...this.colorMats.values()]) {
+      m.metalness = on ? (metal ? 0.85 : 0.05) : 0.08;
+      m.roughness = on ? (metal ? 0.42 : 0.4) : 0.48;
+      m.needsUpdate = true;
+    }
+    this.updateRealism();
+  }
+
+  private updateRealism() {
+    if (this.ground) {
+      this.scene.remove(this.ground);
+      this.ground.geometry.dispose();
+      this.ground = null;
+    }
+    this.scene.remove(this.sun, this.sun.target);
+    // bodies only cast: self shadowing on coarse tessellation shows acne
+    for (const b of this.bodies) b.mesh.castShadow = this.realistic;
+    if (this.realistic) {
+      const box = this.modelBounds();
+      if (!box.isEmpty()) {
+        const c = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3()).length() || 100;
+        const g = new THREE.Mesh(new THREE.PlaneGeometry(size * 6, size * 6), new THREE.ShadowMaterial({ opacity: 0.22 }));
+        g.rotation.x = -Math.PI / 2;
+        g.position.set(c.x, box.min.y - size * 0.002, c.z);
+        g.receiveShadow = true;
+        this.ground = g;
+        this.scene.add(g);
+        this.sun.position.set(c.x + size * 0.6, c.y + size * 1.4, c.z + size * 0.8);
+        this.sun.target.position.copy(c);
+        this.sun.castShadow = true;
+        this.sun.shadow.mapSize.set(2048, 2048);
+        const sc = this.sun.shadow.camera;
+        sc.left = sc.bottom = -size;
+        sc.right = sc.top = size;
+        sc.near = 0.1;
+        sc.far = size * 5;
+        sc.updateProjectionMatrix();
+        this.sun.shadow.bias = -0.0002;
+        this.sun.shadow.normalBias = size * 0.004;
+        this.sun.shadow.radius = 4;
+        this.scene.add(this.sun, this.sun.target);
+      }
+    }
+    this.invalidate();
+  }
+
+  /** PNG of the current view at `scale` × screen resolution (no triad / labels). */
+  capture(scale = 2): string {
+    const r = this.renderer;
+    const pr = r.getPixelRatio();
+    r.setPixelRatio(pr * scale);
+    this.capturing = true;
+    this.needsRender = true;
+    this.tick(performance.now());
+    const url = r.domElement.toDataURL("image/png");
+    this.capturing = false;
+    r.setPixelRatio(pr);
+    this.invalidate();
+    return url;
+  }
+
+  private resultMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.65, metalness: 0, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+
+  /**
+   * Analysis result display: per-vertex colours and optionally displaced
+   * vertex positions for each body. `null` restores the normal display.
+   */
+  setResult(per: ({ colors: Float32Array; positions?: Float32Array } | null)[] | null) {
+    this.bodies.forEach((b, bi) => {
+      const r = per?.[bi] ?? null;
+      const g = b.mesh.geometry;
+      if (r) {
+        g.setAttribute("color", new THREE.BufferAttribute(r.colors, 3));
+        g.setAttribute("position", new THREE.BufferAttribute(r.positions ?? b.data.positions, 3));
+        if (r.positions) g.computeVertexNormals();
+        else g.setAttribute("normal", new THREE.BufferAttribute(b.data.normals, 3));
+        b.mesh.material = this.resultMaterial;
+        b.edges.visible = !r.positions && this.style !== "shaded";
+      } else {
+        g.deleteAttribute("color");
+        g.setAttribute("position", new THREE.BufferAttribute(b.data.positions, 3));
+        g.setAttribute("normal", new THREE.BufferAttribute(b.data.normals, 3));
+        b.mesh.material = this.materialFor(bi);
+        b.edges.visible = this.style !== "shaded";
+      }
+      g.computeBoundingSphere();
+    });
+    this.invalidate();
+  }
+
   /** Dashed trail lines (exploded views). */
   setTrails(segs: [Vec3, Vec3][]) {
     for (const c of [...this.trailLayer.children]) {
@@ -476,6 +584,7 @@ export class Viewport {
     this.applyClip();
     this.hover = null;
     this.refreshHighlights();
+    if (this.realistic) this.updateRealism();
   }
 
   setMaterialColor(color: string) {

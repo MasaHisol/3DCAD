@@ -190,6 +190,10 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
           items: [cmd("measure", "測定", "measure", "M", "距離・角度・長さ・面積を測定します。")],
         },
         {
+          title: "解析",
+          items: [cmd("stress", "応力解析", "stress", undefined, "固定面と荷重を指定して線形静解析を行い、ミーゼス応力・変位・安全率を色分け表示します。")],
+        },
+        {
           title: "プロパティ",
           items: [{ id: "iprops", label: "iProperties", icon: "iprops", tip: "質量、体積、表面積、重心などの物理プロパティと概要情報。", action: () => openIProperties(app) }],
         },
@@ -258,6 +262,13 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
                 { id: "persp", label: "透視投影", icon: "perspective", size: "small", action: () => app.vp.setPerspective(true), active: () => app.vp.perspective },
               ],
             },
+          ],
+        },
+        {
+          title: "レンダリング",
+          items: [
+            { id: "realistic", label: "リアル表示", icon: "render", tip: "影・映り込み・金属/樹脂の質感でフォトリアルに表示します (KeyShot / Inventor Studio 相当の簡易版)。", action: () => app.toggleRealistic(), active: () => app.vp.realistic },
+            { id: "save-image", label: "高解像度画像", icon: "image", tip: "現在のビューを 2 倍解像度の PNG で保存します (レンダリング用)。", action: () => app.saveImage(2) },
           ],
         },
         {

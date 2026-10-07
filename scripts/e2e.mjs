@@ -68,6 +68,38 @@ try {
   const bb = (await page.evaluate(() => window.cad.kernel.massProps())).bbox;
   check("parameter drives model", Math.abs(bb[1][0] - bb[0][0] - 110) < 1e-6 && (await page.evaluate(() => Object.keys(window.cad.featureErrors).length)) === 0);
 
+  // stress analysis on the bracket: base fixed, boss top pushed down
+  await page.evaluate(() => window.cad.commands.run("stress"));
+  await page.evaluate(() => {
+    const cmd = window.cad.command;
+    const faces = window.cad.bodies[0].faces;
+    let lo = 0, hi = 0;
+    faces.forEach((f, i) => {
+      if (f.type === "PLANE" && f.normal[1] < -0.99 && f.center[1] <= faces[lo].center[1]) lo = i;
+      if (f.type === "PLANE" && f.normal[1] > 0.99 && f.center[1] >= faces[hi].center[1]) hi = i;
+    });
+    cmd.fixed.push({ kind: "face", body: 0, index: lo, point: faces[lo].center });
+    cmd.loaded.push({ kind: "face", body: 0, index: hi, point: faces[hi].center });
+  });
+  await page.locator(".pp-body select").nth(1).selectOption("25");
+  await page.locator(".pp-body .btn", { hasText: "解析を実行" }).click();
+  await page.waitForFunction(() => document.querySelector(".measure-out")?.textContent.includes("最大ミーゼス"), null, { timeout: 120000 });
+  const fea = await page.locator(".measure-out").innerText();
+  check("stress analysis", /最大ミーゼス応力\s*[\d.]+ MPa/.test(fea) && (await page.locator(".fea-legend.show").count()) === 1, fea.split("\n").slice(0, 2).join(" "));
+  await page.locator(".pp-body select").nth(3).selectOption("auto");
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/stress.png` });
+  await page.keyboard.press("Escape");
+  await settle();
+
+  // studio rendering + high resolution image
+  await page.locator(".rb-tab", { hasText: "表示" }).click();
+  await page.locator('[data-cmd="realistic"]').click();
+  await settle();
+  const png = await page.evaluate(() => window.cad.vp.capture(2));
+  check("realistic rendering + capture", png.startsWith("data:image/png") && png.length > 20000, `${Math.round(png.length / 1024)} KB`);
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/render.png` });
+  await page.locator('[data-cmd="realistic"]').click();
+
   // 2D drawing of the part: standard views, automatic dimensions, DXF/SVG output
   await page.evaluate(() => window.cad.openDrawingEnv());
   await page.waitForFunction(() => window.cad.env === "drawing" && document.querySelectorAll(".dw-stage .dview").length >= 4, null, { timeout: 60000 });

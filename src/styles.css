@@ -2027,3 +2027,51 @@ kbd {
 .explode-slider {
   width: 100%;
 }
+
+/* --------------------------------------------------- stress analysis --- */
+.fea-legend {
+  position: absolute;
+  right: 70px;
+  bottom: 80px;
+  z-index: 4;
+  display: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--panel, rgba(255, 255, 255, 0.92));
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  font-size: 11px;
+}
+.fea-legend.show {
+  display: block;
+}
+.fl-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.fl-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.fl-sw {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+}
+.mo-row.bad b {
+  color: #d33;
+}
+.mo-row.warn b {
+  color: #c78400;
+}
+.mo-row.ok b {
+  color: #1e9e4a;
+}
+.mo-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+}

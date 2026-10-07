@@ -36,6 +36,7 @@ import type {
 import { pointInRegion, type Region } from "../sketch/profiles";
 import { h, iconEl, toast } from "../ui/dom";
 import { PropertyPanel } from "../ui/panel";
+import { StressCommand } from "../analysis/ui";
 import { pointMap } from "../viewer/sketchRender";
 import { samePick, type Pick, type ToolHandler } from "../viewer/viewport";
 import { FeatureCommand, type Command } from "./command";
@@ -1778,6 +1779,7 @@ export function buildCommands(app: App): CommandRegistry {
     workplane: { id: "workplane", label: "作業平面", icon: "workplane" },
     move: { id: "move", label: "ボディを移動", icon: "move" },
     measure: { id: "measure", label: "測定", icon: "measure" },
+    stress: { id: "stress", label: "応力解析", icon: "stress" },
   };
   const make = (id: string, f: Feature | null): Command | null => {
     switch (id) {
@@ -1824,11 +1826,13 @@ export function buildCommands(app: App): CommandRegistry {
         return new MoveCommand(app, f as MoveFeature | null);
       case "measure":
         return new MeasureCommand(app);
+      case "stress":
+        return new StressCommand(app);
     }
     return null;
   };
   const needsProfile = new Set(["extrude", "revolve", "loft", "sweep", "sheetFace"]);
-  const needsBody = new Set(["fillet", "chamfer", "shell", "hole", "move", "pushpull", "thread", "flange"]);
+  const needsBody = new Set(["stress", "fillet", "chamfer", "shell", "hole", "move", "pushpull", "thread", "flange"]);
   return {
     get: (id) => info[id],
     run: (id) => {
