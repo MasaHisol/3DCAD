@@ -106,7 +106,7 @@ try {
   await settle();
 
   // sheet metal: face from the 120x80 sketch, four flanges, flat pattern
-  await page.evaluate(() => window.cad.newDocument());
+  await page.evaluate(() => void window.cad.newDocument());
   await page.locator(".modal-foot .btn", { hasText: "破棄して続行" }).click({ timeout: 2000 }).catch(() => {});
   await settle();
   await page.evaluate(() => window.cad.createSketch({ origin: [0, 0, 0], xDir: [1, 0, 0], normal: [0, 0, 1] }, "XY 平面"));
