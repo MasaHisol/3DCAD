@@ -1,5 +1,6 @@
 import type { App } from "../app";
 import type { SketchTool } from "../viewer/sketchEditor";
+import { openLibrary } from "../library/dialog";
 import { openIProperties, openParameters, openShortcuts } from "./dialogs";
 import type { RibbonButton, RibbonTab } from "./ribbon";
 
@@ -64,7 +65,8 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
         {
           title: "修正",
           items: [
-            cmd("hole", "穴", "hole", "H", "単純穴・座ぐり・皿穴を平面上またはスケッチ点に作成します。"),
+            cmd("hole", "穴", "hole", "H", "単純穴・座ぐり・皿穴、ボルト用キリ穴 (ISO 273)、ねじ穴 (タップ) を平面上またはスケッチ点に作成します。"),
+            cmd("thread", "ねじ", "thread", "T", "円筒面にねじ (おねじ / めねじ) を設定します。3D ではねじ山、図面では JIS の略画法で表示されます。"),
             cmd("fillet", "フィレット", "fillet", "F", "選択したエッジを丸めます。"),
             {
               stack: [
@@ -174,6 +176,10 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
         {
           title: "パラメータ",
           items: [{ id: "params2", label: "パラメータ", icon: "params", tip: "パラメータ テーブルを開きます。", action: () => openParameters(app) }],
+        },
+        {
+          title: "コンテンツ",
+          items: [{ id: "library", label: "標準部品", icon: "library", tip: "ボルト・ナット・座金・ピン・軸受を規格寸法のパラメトリック パーツとして開きます (コンテンツ センター)。", action: () => openLibrary(app) }],
         },
         {
           title: "読み込み/書き出し",

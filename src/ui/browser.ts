@@ -13,6 +13,7 @@ export const FEATURE_ICONS: Record<string, string> = {
   chamfer: "chamfer",
   shell: "shell",
   hole: "hole",
+  thread: "thread",
   rectPattern: "rectPattern",
   circPattern: "circPattern",
   mirror: "mirror",

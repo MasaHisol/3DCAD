@@ -4,6 +4,7 @@
 import * as R from "replicad";
 import type { EdgeRef, FaceRef, PlaneDef, Vec2, Vec3 } from "../core/types";
 import type { LoopSeg } from "../sketch/profiles";
+import { THREADS } from "../core/threads";
 import type {
   BodyMesh,
   EdgeInfo,
@@ -16,6 +17,8 @@ import type {
   RFeature,
   RRegion,
   Seg2,
+  ThreadInfo,
+  ThreadSpec,
   Transform,
   ViewGeometry,
   ViewSpec,
@@ -26,6 +29,8 @@ type Shape = R.Shape3D;
 interface State {
   bodies: Shape[];
   tools: Map<string, { shape: Shape; op: string }>;
+  /** Cosmetic threads created so far. */
+  threads?: ThreadInfo[];
 }
 
 interface CacheEntry {
@@ -128,6 +133,32 @@ function modelDiag(bodies: Shape[]): number {
     hi = [Math.max(hi[0], c[0]), Math.max(hi[1], c[1]), Math.max(hi[2], c[2])];
   }
   return bodies.length ? dist(lo, hi) : 100;
+}
+
+function rotateVec(v: Vec3, axis: Vec3, deg: number): Vec3 {
+  const k = normalize(axis), a = (deg * Math.PI) / 180, c = Math.cos(a), sn = Math.sin(a);
+  const kv = cross(k, v), kd = dot(k, v);
+  return [0, 1, 2].map((i) => v[i] * c + kv[i] * sn + k[i] * kd * (1 - c)) as Vec3;
+}
+
+/** Apply a Transform to a point (or a direction when `dir`). */
+function transformPoint(p: Vec3, t: Transform, dir = false): Vec3 {
+  let q = p;
+  if (t.mirror) {
+    const n = normalize(t.mirror.normal);
+    const d = dir ? dot(q, n) : dot(sub(q, t.mirror.origin), n);
+    q = sub(q, scale(n, 2 * d));
+  }
+  if (t.rotate && t.rotate.angle) {
+    const o = dir ? ([0, 0, 0] as Vec3) : t.rotate.origin;
+    q = add(rotateVec(sub(q, o), t.rotate.axis, t.rotate.angle), o);
+  }
+  if (t.translate && !dir) q = add(q, t.translate);
+  return q;
+}
+
+function transformThread(th: ThreadInfo, t: Transform): ThreadInfo {
+  return { ...th, origin: transformPoint(th.origin, t), dir: normalize(transformPoint(th.dir, t, true)) };
 }
 
 function transformShape(s: Shape, t: Transform): Shape {
@@ -280,7 +311,9 @@ function resolveFaces(bodies: Shape[], refs: FaceRef[], diag: number): { perBody
     let best: { bi: number; f: R.Face; info: FaceInfo; n: Vec3; score: number } | null = null;
     infos.forEach((list, bi) =>
       list.forEach(({ f, info, n }) => {
-        let score = matchScore(info.center, n, ref.center, ref.n, diag) + (1 - dot(info.normal, ref.normal)) * diag;
+        // a full cylinder's "normal at centre" is ill-defined: match those by position only
+        const nTerm = ref.type === "CYLINDRE" && info.type === "CYLINDRE" ? 0 : (1 - dot(info.normal, ref.normal)) * diag;
+        let score = matchScore(info.center, n, ref.center, ref.n, diag) + nTerm;
         if (ref.type && ref.type !== info.type) score += diag * 0.3;
         if (!best || score < best.score) best = { bi, f, info, n, score };
       }),
@@ -356,6 +389,83 @@ function buildPrimitive(f: Extract<RFeature, { type: "primitive" }>): Shape {
 }
 
 async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<State> {
+  const out = await evalShape(f, st, entry);
+  let threads = out.threads ?? st.threads ?? [];
+  if (f.type === "hole" && f.thread) threads = [...threads, ...holeThreads(f, f.thread, out.bodies)];
+  if (f.type === "pattern") {
+    const src = new Set(f.sources);
+    const base = threads.filter((t) => src.has(t.feature));
+    threads = [...threads, ...f.transforms.flatMap((tr) => base.map((t) => transformThread(t, tr)))];
+  }
+  if (f.type === "move") threads = threads.map((t) => transformThread(t, f.transform));
+  return { ...out, threads };
+}
+
+/** Thread size for a cylinder of diameter `dia` (external: major ≈ dia, internal: minor ≈ dia). */
+function autoThread(spec: ThreadSpec, dia: number, internal: boolean): { name: string; d: number; pitch: number } {
+  if (spec.name && spec.d > 0) return spec;
+  const list = THREADS.filter((t) => t.family === "M");
+  let best = list[0], bd = Infinity;
+  for (const t of list) {
+    const ref = internal ? t.d - t.pitch : t.d;
+    const e = Math.abs(ref - dia);
+    if (e < bd) (bd = e), (best = t);
+  }
+  return best;
+}
+
+/** Span of a cylindrical face along its axis, measured from `origin`. */
+function cylSpan(face: R.Face, origin: Vec3, dir: Vec3): [number, number] {
+  let t0 = Infinity, t1 = -Infinity;
+  for (const e of face.edges)
+    for (const u of [0, 0.25, 0.5, 0.75, 1]) {
+      const t = dot(sub(tuple(e.pointAt(u)), origin), dir);
+      t0 = Math.min(t0, t);
+      t1 = Math.max(t1, t);
+    }
+  return [t0, t1];
+}
+
+function holeThreads(f: Extract<RFeature, { type: "hole" }>, spec: ThreadSpec, bodies: Shape[]): ThreadInfo[] {
+  const n: Vec3 = f.flip ? f.plane.normal : scale(f.plane.normal, -1);
+  const r = f.diameter / 2;
+  const out: ThreadInfo[] = [];
+  for (const uv of f.points) {
+    const p = planePoint(f.plane, uv);
+    // the drilled wall: cylinder faces of radius r on this axis
+    let t0 = Infinity, t1 = -Infinity;
+    for (const b of bodies)
+      for (const face of b.faces) {
+        if (String(face.geomType) !== "CYLINDRE") continue;
+        const ax = faceInfo(face).axis;
+        if (!ax || Math.abs(ax.radius - r) > 1e-4 || Math.abs(Math.abs(dot(ax.dir, n)) - 1) > 1e-6) continue;
+        const off = sub(ax.origin, p);
+        const rad = sub(off, scale(n, dot(off, n)));
+        if (Math.hypot(rad[0], rad[1], rad[2]) > 1e-4) continue;
+        const [a, z] = cylSpan(face, p, n);
+        t0 = Math.min(t0, a);
+        t1 = Math.max(t1, z);
+      }
+    if (!Number.isFinite(t0)) continue;
+    const span = t1 - t0;
+    const th = autoThread(spec, f.diameter, true);
+    out.push({
+      feature: f.id,
+      origin: add(p, scale(n, t0)),
+      dir: n,
+      major: th.d,
+      minor: f.diameter,
+      pitch: th.pitch,
+      length: spec.full ? span : Math.min(spec.length, span),
+      internal: true,
+      through: spec.full && f.through,
+      name: th.name,
+    });
+  }
+  return out;
+}
+
+async function evalShape(f: RFeature, st: State, entry: CacheEntry): Promise<State> {
   const bodies = st.bodies;
   const tools = new Map(st.tools);
   const diag = modelDiag(bodies);
@@ -481,6 +591,40 @@ async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<S
     case "move": {
       return { bodies: bodies.map((b) => transformShape(b, f.transform)), tools };
     }
+    case "thread": {
+      const { perBody, updated } = resolveFaces(bodies, [f.face], diag);
+      entry.refs = { faces: updated };
+      const face = [...perBody.values()][0]?.[0];
+      const info = face && faceInfo(face);
+      if (!info?.axis || info.type !== "CYLINDRE") throw new Error("円筒面を選択してください");
+      const ax = info.axis;
+      // material side: a hole's wall normal points towards the axis
+      const q = tuple(face.edges[0].pointAt(0.5));
+      const qv = sub(q, ax.origin);
+      const radial = sub(qv, scale(ax.dir, dot(qv, ax.dir)));
+      const internal = dot(tuple(face.normalAt(q)), radial) < 0;
+      let dir = ax.dir;
+      let [t0, t1] = cylSpan(face, ax.origin, dir);
+      if (f.flip) {
+        dir = scale(dir, -1);
+        [t0, t1] = [-t1, -t0];
+      }
+      const span = t1 - t0 - f.offset;
+      if (span <= 1e-6) throw new Error("オフセットが面の長さを超えています");
+      const th = autoThread(f.thread, ax.radius * 2, internal);
+      const thread: ThreadInfo = {
+        feature: f.id,
+        origin: add(ax.origin, scale(dir, t0 + f.offset)),
+        dir,
+        major: internal ? th.d : ax.radius * 2,
+        minor: internal ? ax.radius * 2 : ax.radius * 2 - 1.22687 * th.pitch,
+        pitch: th.pitch,
+        length: f.thread.full ? span : Math.min(f.thread.length, span),
+        internal,
+        name: th.name,
+      };
+      return { bodies, tools, threads: [...(st.threads ?? []), thread] };
+    }
   }
 }
 
@@ -489,10 +633,11 @@ async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<S
 export class GeometryEngine {
   private cache: CacheEntry[] = [];
   bodies: Shape[] = [];
+  threads: ThreadInfo[] = [];
 
   async rebuild(features: RFeature[], captureBefore?: string): Promise<RebuildResult> {
     const t0 = performance.now();
-    let state: State = { bodies: [], tools: new Map() };
+    let state: State = { bodies: [], tools: new Map(), threads: [] };
     const errors: Record<string, string> = {};
     const updatedRefs: RebuildResult["updatedRefs"] = {};
     const next: CacheEntry[] = [];
@@ -525,10 +670,11 @@ export class GeometryEngine {
     }
     this.cache = next;
     this.bodies = state.bodies;
+    this.threads = state.threads ?? [];
     const diag = modelDiag(this.bodies);
     const bodies = this.bodies.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag));
     const beforeMeshes = before ? before.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag)) : undefined;
-    return { bodies, before: beforeMeshes, errors, updatedRefs, timeMs: performance.now() - t0 };
+    return { bodies, before: beforeMeshes, errors, updatedRefs, timeMs: performance.now() - t0, threads: this.threads };
   }
 
   exportFile(format: "step" | "stl", name: string): Blob {
@@ -746,7 +892,7 @@ function segBounds(segs: Seg2[], b: [number, number, number, number]) {
 }
 
 /** Projects shapes for a drawing view (optionally sectioned) into tagged 2D segments. */
-export function drawView(items: { shape: Shape; tag: number }[], v: ViewSpec): ViewGeometry {
+export function drawView(items: { shape: Shape; tag: number }[], v: ViewSpec, threads: ThreadInfo[] = []): ViewGeometry {
   const dir = normalize(v.dir), xAxis = normalize(v.xAxis);
   const yAxis = cross(dir, xAxis);
   const to2 = (p: Vec3): P2 => [dot(p, xAxis), dot(p, yAxis)];
@@ -804,10 +950,43 @@ export function drawView(items: { shape: Shape; tag: number }[], v: ViewSpec): V
       for (const seg of visible) seg.tag = owner.get(key(seg)) ?? -1;
     }
   }
+  // threads, JIS B 0002 simplified representation
+  const thin: Seg2[] = [];
+  const thr: ViewGeometry["threads"] = [];
+  for (const t of threads) {
+    const along = dot(t.dir, dir);
+    let cut = false;
+    if (v.section) {
+      const n = normalize(v.section.normal);
+      const off = dot(sub(t.origin, v.section.origin), n);
+      const offEnd = dot(sub(add(t.origin, scale(t.dir, t.length)), v.section.origin), n);
+      if (Math.min(off, offEnd) > t.major / 2) continue; // removed by the cut
+      cut = Math.abs(along) < 1e-6 && Math.abs(off) < t.minor / 2;
+    }
+    const c = to2(t.origin);
+    if (Math.abs(Math.abs(along) - 1) < 1e-6) {
+      // end view: 3/4 thin circle (root), open in the upper-right quadrant
+      const r = (t.internal ? t.major : t.minor) / 2;
+      thin.push({ t: "arc", c, r, a0: Math.PI / 2 + 0.25, a1: Math.PI * 2 + 0.1, tag: -1 });
+      thr.push({ c, r: (t.internal ? t.minor : t.major) / 2, name: t.name, depth: t.internal && !t.through ? t.length : null, internal: t.internal });
+    } else if (Math.abs(along) < 1e-6) {
+      // side view: root lines along the length, thick limit line at the end
+      const e = to2(add(t.origin, scale(t.dir, t.length)));
+      const ax: P2 = [e[0] - c[0], e[1] - c[1]];
+      const L = Math.hypot(ax[0], ax[1]) || 1;
+      const nrm: P2 = [-ax[1] / L, ax[0] / L];
+      const off = (r: number, p: P2, k: number): P2 => [p[0] + nrm[0] * r * k, p[1] + nrm[1] * r * k];
+      const rootR = (t.internal ? t.major : t.minor) / 2;
+      const crestR = (t.internal ? t.minor : t.major) / 2;
+      const shown = !t.internal || cut;
+      for (const k of [1, -1]) (shown ? thin : hidden).push({ t: "line", a: off(rootR, c, k), b: off(rootR, e, k), tag: -1 });
+      if (shown) visible.push({ t: "line", a: off(Math.max(rootR, crestR), e, 1), b: off(Math.max(rootR, crestR), e, -1), tag: -1 });
+    }
+  }
   const bounds: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity];
   segBounds(visible, bounds);
   if (!Number.isFinite(bounds[0])) bounds.splice(0, 4, 0, 0, 0, 0);
-  return { visible, hidden, hatch, bounds };
+  return { visible, hidden, hatch, thin, threads: thr, bounds };
 }
 
 /** Applies a column-major rigid 4x4 matrix to a shape (rotation + translation). */

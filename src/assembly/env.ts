@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { App } from "../app";
+import { openLibrary } from "../library/dialog";
 import { MATERIALS, newDocument, uid } from "../core/document";
 import { formatNumber } from "../core/expr";
 import { evalWith, evaluateParams } from "../core/params";
@@ -560,6 +561,7 @@ export class AssemblyEnv {
       { label: "ファイルから配置… (.3dcp / STEP)", icon: "open", action: () => this.placeFromFile() },
       { label: "現在のパーツ ファイルを配置", icon: "part", disabled: !this.app.store.doc.features.length, action: () => this.placeDocument(structuredClone(this.app.store.doc)) },
       { label: "新しいパーツを作成して配置", icon: "new", action: () => this.createPart() },
+      { label: "標準部品から配置… (ボルト・ナット・座金・ピン・軸受)", icon: "library", action: () => openLibrary(this.app) },
     ];
     if (this.doc.parts.length) {
       items.push({ separator: true, label: "" });
@@ -759,6 +761,7 @@ export class AssemblyEnv {
               },
             },
             { id: "asm-create", label: "作成", icon: "new", tip: "新しいパーツを作成し、アセンブリ内で編集します。", action: () => this.createPart() },
+            { id: "asm-library", label: "標準部品", icon: "library", tip: "ボルト・ナット・座金・ピン・軸受を規格寸法で配置します (コンテンツ センター)。", action: () => openLibrary(this.app) },
           ],
         },
         {

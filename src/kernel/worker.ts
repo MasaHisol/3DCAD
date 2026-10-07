@@ -4,7 +4,17 @@ import opencascade from "replicad-opencascadejs";
 import wasmUrl from "replicad-opencascadejs/wasm?url";
 import { setOC } from "replicad";
 import { drawView, exportPlaced, GeometryEngine, interferences, placeShape } from "./geometry";
-import type { BodyMesh, Placement, WorkerRequest, WorkerResponse } from "./protocol";
+import type { BodyMesh, Placement, ThreadInfo, WorkerRequest, WorkerResponse } from "./protocol";
+import type { Vec3 } from "../core/types";
+
+/** Threads of a placed part, in assembly coordinates (column-major matrix). */
+function placedThreads(ps: Placement[]): ThreadInfo[] {
+  return ps.flatMap((p) => {
+    const m = p.matrix;
+    const pt = (v: Vec3, w: number): Vec3 => [0, 1, 2].map((i) => m[i] * v[0] + m[4 + i] * v[1] + m[8 + i] * v[2] + m[12 + i] * w) as Vec3;
+    return engineFor(p.key).threads.map((t) => ({ ...t, origin: pt(t.origin, 1), dir: pt(t.dir, 0) }));
+  });
+}
 
 const engines = new Map<string, GeometryEngine>();
 let ready: Promise<void> | null = null;
@@ -49,7 +59,8 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
       const items = req.placements
         ? placed(req.placements).map((x) => ({ shape: x.shape, tag: x.index }))
         : eng.bodies.map((shape, i) => ({ shape, tag: i }));
-      return { result: req.views.map((v) => drawView(items, v)), transfer: [] };
+      const threads = req.placements ? placedThreads(req.placements) : eng.threads;
+      return { result: req.views.map((v) => drawView(items, v, threads)), transfer: [] };
     }
     case "exportAssembly": {
       const buf = await exportPlaced(placed(req.placements), req.format).arrayBuffer();

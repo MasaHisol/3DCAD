@@ -226,6 +226,25 @@ export interface HoleFeature extends FeatureBase {
   csDiameter: string;
   csAngle: string;
   flip: boolean;
+  /** Standard hole: free diameter, bolt clearance (ISO 273) or tapped (threaded). */
+  standard?: "custom" | "clearance" | "tapped";
+  /** Thread / fastener designation ("M6", "M10×1.25", "1/4-20 UNC"). */
+  size?: string;
+  fit?: "close" | "normal" | "loose";
+  threadLength?: string;
+  threadFull?: boolean;
+}
+
+/** Cosmetic thread on a cylindrical face (Inventor "Thread"). */
+export interface ThreadFeature extends FeatureBase {
+  type: "thread";
+  face: FaceRef | null;
+  /** Designation; empty = automatic from the cylinder diameter. */
+  size: string;
+  length: string;
+  full: boolean;
+  offset: string;
+  flip: boolean;
 }
 
 export type AxisRef = "X" | "Y" | "Z";
@@ -299,6 +318,7 @@ export type Feature =
   | ChamferFeature
   | ShellFeature
   | HoleFeature
+  | ThreadFeature
   | PatternFeature
   | MirrorFeature
   | PrimitiveFeature

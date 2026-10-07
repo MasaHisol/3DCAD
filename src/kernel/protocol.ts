@@ -52,7 +52,10 @@ export type RFeature =
       csDiameter: number;
       csAngle: number;
       flip: boolean;
+      /** Tapped hole: cosmetic thread on the drilled wall. */
+      thread?: ThreadSpec;
     }
+  | { id: string; type: "thread"; face: FaceRef; thread: ThreadSpec; offset: number; flip: boolean }
   | {
       id: string;
       type: "pattern";
@@ -64,6 +67,33 @@ export type RFeature =
   | { id: string; type: "move"; transform: Transform };
 
 export type PathSeg = { t: "line"; a: Vec3; b: Vec3 } | { t: "arc"; a: Vec3; m: Vec3; b: Vec3 };
+
+/** Cosmetic thread definition (size from the standard table, or auto from the face). */
+export interface ThreadSpec {
+  /** Designation ("M6", "M10×1.25"); empty = choose from the cylinder diameter. */
+  name: string;
+  d: number;
+  pitch: number;
+  /** Thread length; ignored when full. */
+  length: number;
+  full: boolean;
+}
+
+/** A resolved cosmetic thread (3D display, drawings, hole notes). */
+export interface ThreadInfo {
+  feature: string;
+  /** Start of the thread on the axis, and the direction it runs into the material. */
+  origin: Vec3;
+  dir: Vec3;
+  major: number;
+  minor: number;
+  pitch: number;
+  length: number;
+  internal: boolean;
+  /** Runs through the whole part (hole notes omit the depth). */
+  through?: boolean;
+  name: string;
+}
 
 /** Rigid transform: optional mirror, rotation (deg about axis through origin) then translation. */
 export interface Transform {
@@ -121,6 +151,7 @@ export interface RebuildResult {
   /** References re-resolved during the rebuild (keeps them tracking edits). */
   updatedRefs: Record<string, { edges?: EdgeRef[]; faces?: FaceRef[] }>;
   timeMs: number;
+  threads: ThreadInfo[];
 }
 
 export interface MassProps {
@@ -161,6 +192,10 @@ export interface ViewGeometry {
   hidden: Seg2[];
   /** Cut faces of a section view: rings (outer + holes) per face. */
   hatch: [number, number][][][];
+  /** Thin lines: thread roots / crests (JIS B 0002 simplified representation). */
+  thin: Seg2[];
+  /** Thread end views: centre, radius of the drilled / minor circle and callout. */
+  threads: { c: [number, number]; r: number; name: string; depth: number | null; internal: boolean }[];
   bounds: [number, number, number, number];
 }
 

@@ -2,7 +2,8 @@
 // parameters -> numbers, sketches -> solved geometry + profile regions,
 // patterns -> transform lists.
 
-import type { PathSeg, RFeature, Transform } from "../kernel/protocol";
+import type { PathSeg, RFeature, ThreadSpec, Transform } from "../kernel/protocol";
+import { threadByName } from "./threads";
 import { findRegions, pointInRegion, type Region } from "../sketch/profiles";
 import { solve, type SolveResult } from "../sketch/solver";
 import { evalWith } from "./params";
@@ -231,8 +232,19 @@ function resolveFeature(
         csDiameter: f.holeType === "countersink" ? num(f, f.csDiameter, "皿径") : 0,
         csAngle: f.holeType === "countersink" ? num(f, f.csAngle, "皿角度") : 90,
         flip: f.flip,
+        thread: f.standard === "tapped" ? threadSpec(f.size ?? "", f.threadFull !== false || !f.threadLength ? 0 : num(f, f.threadLength, "ねじ長さ"), f.threadFull !== false || !f.threadLength) : undefined,
       };
     }
+    case "thread":
+      if (!f.face) throw new Error("円筒面を選択してください");
+      return {
+        id: f.id,
+        type: "thread",
+        face: f.face,
+        thread: threadSpec(f.size, f.full ? 0 : num(f, f.length, "長さ"), f.full),
+        offset: num(f, f.offset, "オフセット"),
+        flip: f.flip,
+      };
     case "rectPattern":
     case "circPattern": {
       if (!f.features.length) throw new Error("パターン化するフィーチャを選択してください");
@@ -372,4 +384,10 @@ function quatMul(a: number[], b: number[]): [number, number, number, number] {
     a[3] * b[2] + a[0] * b[1] - a[1] * b[0] + a[2] * b[3],
     a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2],
   ];
+}
+
+function threadSpec(name: string, length: number, full: boolean): ThreadSpec {
+  const t = name ? threadByName(name) : undefined;
+  if (name && !t) throw new Error(`ねじの呼び「${name}」が見つかりません`);
+  return { name: t?.name ?? "", d: t?.d ?? 0, pitch: t?.pitch ?? 0, length, full };
 }

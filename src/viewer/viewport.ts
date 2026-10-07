@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import type { BodyMesh } from "../kernel/protocol";
+import type { BodyMesh, ThreadInfo } from "../kernel/protocol";
 import type { PlaneDef, Vec3 } from "../core/types";
 
 export type PickKind = "face" | "edge" | "plane" | "axis" | "point";
@@ -83,6 +83,8 @@ export class Viewport {
   readonly model = new THREE.Group();
   readonly overlay = new THREE.Group();
   readonly sketchLayer = new THREE.Group();
+  /** Cosmetic threads drawn as helices on their cylinders. */
+  readonly threadLayer = new THREE.Group();
   readonly refLayer = new THREE.Group();
   readonly triadScene = new THREE.Scene();
   readonly triadCam = new THREE.OrthographicCamera(-1.6, 1.6, 1.6, -1.6, -10, 10);
@@ -159,7 +161,7 @@ export class Viewport {
     });
     this.backMaterial = new THREE.MeshBasicMaterial({ color: "#e0a458", side: THREE.BackSide });
 
-    this.scene.add(this.model, this.refLayer, this.sketchLayer, this.overlay);
+    this.scene.add(this.model, this.threadLayer, this.refLayer, this.sketchLayer, this.overlay);
     this.overlay.add(this.hoverObj, this.selectObj);
     this.buildTriad();
     this.setStandardView([1, 1, 1], false);
@@ -404,6 +406,34 @@ export class Viewport {
     this.placeView(v, m.clone());
     if (this.pickViews !== this.bodies && this.pickViews[i]) this.placeView(this.pickViews[i], m.clone());
     this.refreshHighlights();
+  }
+
+  setThreads(threads: ThreadInfo[]) {
+    for (const c of [...this.threadLayer.children]) {
+      this.threadLayer.remove(c);
+      (c as THREE.Line).geometry.dispose();
+    }
+    const mat = new THREE.LineBasicMaterial({ color: 0x3d4652, transparent: true, opacity: 0.75 });
+    for (const t of threads) {
+      const dir = new THREE.Vector3(...t.dir).normalize();
+      const u = new THREE.Vector3(Math.abs(dir.x) < 0.9 ? 1 : 0, Math.abs(dir.x) < 0.9 ? 0 : 1, 0).cross(dir).normalize();
+      const v = dir.clone().cross(u);
+      // the visible wall: drilled wall of a tapped hole, crest of a bolt
+      const r = t.internal ? (t.minor / 2) * 0.997 : (t.major / 2) * 1.003;
+      let pitch = t.pitch;
+      while (t.length / pitch > 300) pitch *= 2;
+      const turns = t.length / pitch, steps = Math.max(24, Math.ceil(turns * 36));
+      const pts: THREE.Vector3[] = [];
+      const o = new THREE.Vector3(...t.origin);
+      for (let i = 0; i <= steps; i++) {
+        const k = i / steps, a = k * turns * Math.PI * 2;
+        pts.push(o.clone().addScaledVector(dir, k * t.length).addScaledVector(u, Math.cos(a) * r).addScaledVector(v, Math.sin(a) * r));
+      }
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat);
+      line.renderOrder = 2;
+      this.threadLayer.add(line);
+    }
+    this.invalidate();
   }
 
   setBodies(bodies: BodyMesh[], pickBodies?: BodyMesh[], colors?: (string | undefined)[], matrices?: THREE.Matrix4[]) {

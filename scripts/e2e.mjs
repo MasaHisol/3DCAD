@@ -85,6 +85,26 @@ try {
   await settle();
   check("back to model", (await page.evaluate(() => window.cad.env)) === "part");
 
+  // standard parts library: hex nut M10 opens as a part with a tapped hole (cosmetic thread)
+  await page.locator(".rb-tab", { hasText: "管理" }).click();
+  await page.locator('[data-cmd="library"]').click();
+  await page.locator(".lib-item", { hasText: "六角ナット" }).click();
+  await page.locator(".lib-detail select").first().selectOption("M10");
+  await page.locator(".modal-foot .btn", { hasText: "パーツとして開く" }).click();
+  await page.locator(".modal-foot .btn", { hasText: "破棄して続行" }).click(); // the edited sample is unsaved
+  await settle();
+  const nut = await page.evaluate(() => ({ errors: Object.keys(window.cad.featureErrors).length, threads: window.cad.vp.threadLayer.children.length, name: window.cad.store.doc.name }));
+  check("library: hex nut with tapped thread", nut.errors === 0 && nut.threads === 1 && nut.name.includes("M10"), JSON.stringify(nut));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/nut.png` });
+  await page.evaluate(() => window.cad.openDrawingEnv());
+  await page.waitForFunction(() => window.cad.env === "drawing" && document.querySelectorAll(".dw-stage .dview").length >= 4, null, { timeout: 60000 });
+  await settle();
+  const thinLines = await page.evaluate(() => document.querySelectorAll(".dw-stage .thread-lines").length);
+  check("drawing: JIS thread representation", thinLines >= 1, `views with thread lines=${thinLines}`);
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/nut-drawing.png` });
+  await page.evaluate(() => window.cad.leaveDrawingEnv());
+  await settle();
+
   // sample assembly: insert constraint seats the pin
   await page.evaluate(() => window.cad.loadSampleAssembly());
   await page.waitForFunction(() => window.cad.asm.bodyMap.length >= 3, null, { timeout: 60000 });
@@ -93,6 +113,17 @@ try {
   check("assembly insert constraint", Math.abs(pin[0]) < 1e-6 && Math.abs(pin[1] - 35) < 1e-6 && Math.abs(pin[2]) < 1e-6, JSON.stringify(pin));
   const hits = await page.evaluate(() => window.cad.kernel.interference(window.cad.asm.placements()));
   check("no interference", hits.length === 0);
+  await page.evaluate(() => window.cad.openDrawingEnv());
+  await page.waitForFunction(() => window.cad.env === "drawing" && document.querySelectorAll(".dw-stage .dview").length >= 4, null, { timeout: 60000 });
+  await settle();
+  await page.evaluate(() => window.cad.leaveDrawingEnv());
+  await settle();
+  await page.locator('[data-cmd="asm-library"]').click();
+  await page.locator(".lib-item", { hasText: "六角穴付きボルト" }).click();
+  await page.locator(".modal-foot .btn", { hasText: "アセンブリに配置" }).click();
+  await page.waitForFunction(() => window.cad.asm.doc.components.length === 4, null, { timeout: 60000 });
+  await settle();
+  check("library: bolt placed in assembly", (await page.evaluate(() => window.cad.asm.doc.parts.some((p) => p.doc?.iprops?.["規格"] === "ISO 4762"))) === true);
   await page.evaluate(() => window.cad.openDrawingEnv());
   await page.waitForFunction(() => window.cad.env === "drawing" && document.querySelectorAll(".dw-stage .dview").length >= 4, null, { timeout: 60000 });
   await settle();

@@ -24,6 +24,7 @@ import { NAV_PRESETS, type NavPreset } from "./viewer/viewport";
 import { Timeline } from "./ui/timeline";
 import { openCommandSearch } from "./ui/commandSearch";
 import { AssemblyEnv } from "./assembly/env";
+import { openLibrary } from "./library/dialog";
 import { DrawingEnv } from "./drawing/env";
 import { newAssembly, type AssemblyDocument } from "./assembly/types";
 
@@ -364,6 +365,7 @@ export class App {
     this.bodies = res.bodies;
     this.pickBodies = res.before ?? res.bodies;
     this.vp.setBodies(res.bodies, res.before);
+    this.vp.setThreads(res.threads ?? []);
     this.vp.setMaterialColor(doc.material.color);
     this.statusRegen.textContent = `${Math.round(res.timeMs)} ms`;
     // keep topology references tracking the edited geometry
@@ -917,6 +919,7 @@ export class App {
     if (this.sketchEditor) this.exitSketch(false);
     this.renderSketches();
     this.vp.setRefs([]);
+    this.vp.setThreads([]);
     this.vp.setSelection([]);
     this.vp.pickKinds = new Set(["face", "edge"]);
     this.vp.pickFilter = null;
@@ -1107,8 +1110,20 @@ export class App {
       { label: "オプション…", icon: "settings", action: () => this.openSettings() },
       { separator: true, label: "" },
       { label: "図面を作成…", icon: "drawing", action: () => this.openDrawingEnv() },
+      { label: "標準部品ライブラリ…", icon: "library", action: () => openLibrary(this) },
       { label: "iProperties…", icon: "iprops", action: () => openIProperties(this) },
     ]);
+  }
+
+  /** Open a generated part (standard parts library) as the current document. */
+  async openPartDocument(doc: PartDocument) {
+    if (!(await this.confirmDiscard())) return;
+    this.leaveAssembly();
+    this.resetForLoad();
+    this.store.load(doc);
+    this.store.fileHandleName = null;
+    this.firstFit = true;
+    this.vp.setStandardView([1, 1, 1], false);
   }
 
   async newDocument() {
@@ -1576,7 +1591,7 @@ export class App {
         if (k.toLowerCase() === "s" && !e.shiftKey) return void this.exitSketch(true);
         return;
       }
-      const map: Record<string, string> = { s: "sketch", e: "extrude", r: "revolve", h: "hole", f: "fillet", m: "measure", q: "pushpull" };
+      const map: Record<string, string> = { s: "sketch", e: "extrude", r: "revolve", h: "hole", f: "fillet", m: "measure", q: "pushpull", t: "thread" };
       const cmd = map[k.toLowerCase()];
       if (cmd && !this.command) this.commands.run(cmd);
       if (k === "Enter" && this.command) {

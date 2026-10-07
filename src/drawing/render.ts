@@ -3,7 +3,7 @@
 
 import type { Vec2 } from "../core/types";
 import type { Seg2, ViewGeometry } from "../kernel/protocol";
-import { dimText, dimValue, linearPoints, sameCircles, toSheet } from "./geom";
+import { dimText, dimValue, holeThread, linearPoints, sameCircles, toSheet } from "./geom";
 import { scaleText, sheetSize, type Anno, type DimAnno, type DrawingDoc, type DView, type Sheet } from "./types";
 
 export interface BomRow {
@@ -86,6 +86,7 @@ function renderDim(d: DimAnno, v: DView, g: ViewGeometry | undefined): string {
   const parts: string[] = [];
   const line = (a: Vec2, b: Vec2) => parts.push(`<path d="M${f(a[0])} ${f(a[1])}L${f(b[0])} ${f(b[1])}"/>`);
   const holes = d.kind === "hole" && g ? sameCircles(g, d.refs[0]?.r ?? 0) : 1;
+  const thr = d.kind === "hole" ? holeThread(g, d.refs[0]) : null;
   if (d.kind === "diameter" || d.kind === "radius" || d.kind === "hole") {
     const r0 = d.refs[0];
     if (!r0) return "";
@@ -106,7 +107,7 @@ function renderDim(d: DimAnno, v: DView, g: ViewGeometry | undefined): string {
       const start: Vec2 = d.kind === "radius" ? C : edge;
       line(d.kind === "radius" ? C : edge, P);
       parts.push(arrow(edge, d.kind === "radius" ? C : P));
-      const label = dimText(d, holes).main;
+      const label = dimText(d, holes, thr).main;
       const sh = Math.max(8, label.length * 2.2 + 2);
       const dir = ux >= 0 ? 1 : -1;
       const E: Vec2 = [P[0] + dir * sh, P[1]];
@@ -288,6 +289,7 @@ function renderView(v: DView, ctx: RenderCtx, views: Map<string, DView>): string
   }
   if (v.hidden && g.hidden.length) out += `<path d="${g.hidden.map((s) => segPath(v, s)).join("")}" stroke="#000" stroke-width="${W.thin}" stroke-dasharray="3 1.2" class="hidden-lines"/>`;
   out += `<path d="${g.visible.map((s) => segPath(v, s)).join("")}" stroke="#000" stroke-width="${W.thick}" class="visible-lines"/>`;
+  if (g.thin?.length) out += `<path d="${g.thin.map((s) => segPath(v, s)).join("")}" stroke="#000" stroke-width="${W.thin}" class="thread-lines"/>`;
   // centre marks for circles
   if (v.centerMarks) {
     const cm: string[] = [];

@@ -167,4 +167,40 @@ describe("drawing views", () => {
     const area = sec.hatch.reduce((s, f) => s + Math.abs(f[0].reduce((a, p, i, r) => a + (p[0] * r[(i + 1) % r.length][1] - r[(i + 1) % r.length][0] * p[1]) / 2, 0)), 0);
     expect(area).toBeCloseTo(40 * 10 - 10 * 10, 3);
   }, 60000);
+
+  it("creates cosmetic threads on tapped holes and shafts and draws them (JIS)", async () => {
+    const { drawView } = await import("../src/kernel/geometry");
+    const eng = new GeometryEngine();
+    const r = await eng.rebuild([
+      { id: "e", type: "extrude", plane: XY, regions: [rect(40, 20)], op: "new", from: 0, to: 10, through: false, flip: false },
+      {
+        id: "h", type: "hole", plane: { ...XY, origin: [0, 0, 10] }, points: [[10, 10], [30, 10]], holeType: "simple", diameter: 5, depth: 8, through: false,
+        cbDiameter: 0, cbDepth: 0, csDiameter: 0, csAngle: 90, flip: false, thread: { name: "M6", d: 6, pitch: 1, length: 6, full: false },
+      },
+      { id: "s", type: "primitive", shape: "cylinder", plane: { origin: [0, 0, 10], xDir: [1, 0, 0], normal: [0, 0, 1] }, center: [20, 30], a: 10, b: 0, c: 20, op: "new" },
+      { id: "t", type: "thread", face: { center: [20, 30, 20], normal: [0, 0, 1], type: "CYLINDRE" }, thread: { name: "", d: 0, pitch: 0, length: 0, full: true }, offset: 0, flip: false },
+    ]);
+    expect(r.errors).toEqual({});
+    expect(r.threads.length).toBe(3);
+    const holes = r.threads.filter((t) => t.internal);
+    expect(holes.length).toBe(2);
+    expect(holes[0].name).toBe("M6");
+    expect(holes[0].length).toBeCloseTo(6, 6);
+    expect(holes[0].origin[2]).toBeCloseTo(10, 4);
+    expect(holes[0].dir[2]).toBeCloseTo(-1, 6);
+    const shaft = r.threads.find((t) => !t.internal)!;
+    expect(shaft.name).toBe("M10");
+    expect(shaft.length).toBeCloseTo(20, 4);
+    expect(shaft.minor).toBeCloseTo(10 - 1.22687 * 1.5, 4);
+    // top view: 3/4 circles and hole callouts
+    const top = drawView(eng.bodies.map((shape, i) => ({ shape, tag: i })), { dir: [0, 0, 1], xAxis: [1, 0, 0] }, r.threads);
+    expect(top.thin.filter((s) => s.t === "arc").length).toBe(3);
+    const t1 = top.threads.find((t) => t.internal)!;
+    expect(t1.name).toBe("M6");
+    expect(t1.r).toBeCloseTo(2.5, 6);
+    expect(t1.depth).toBeCloseTo(6, 6);
+    // front view: shaft root lines (thin) + thread limit (thick); hole threads hidden
+    const front = drawView(eng.bodies.map((shape, i) => ({ shape, tag: i })), { dir: [0, -1, 0], xAxis: [1, 0, 0] }, r.threads);
+    expect(front.thin.filter((s) => s.t === "line").length).toBe(2);
+  }, 60000);
 });

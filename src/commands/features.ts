@@ -3,6 +3,7 @@ import type { App } from "../app";
 import { featureSketchRefs, ORIGIN_PLANES, uid } from "../core/document";
 import { formatNumber } from "../core/expr";
 import { holeCenterPoints, worldToPlane } from "../core/resolve";
+import { clearanceHole, counterbore, countersink, FAMILY_LABEL, FIT_LABEL, tapDrill, threadByName, threadsOf, type Fit, type ThreadFamily } from "../core/threads";
 import type {
   AxisRef,
   BoolOp,
@@ -11,6 +12,7 @@ import type {
   Feature,
   FilletFeature,
   HoleFeature,
+  ThreadFeature,
   LoftFeature,
   PushPullFeature,
   SweepFeature,
@@ -836,6 +838,79 @@ class PushPullCommand extends FeatureCommand<PushPullFeature> {
   }
 }
 
+// -------------------------------------------------------------- thread ---
+
+class ThreadCommand extends FeatureCommand<ThreadFeature> {
+  readonly id = "thread";
+  private pick: ReturnType<PropertyPanel["picker"]>;
+
+  constructor(app: App, existing: ThreadFeature | null) {
+    super(app, existing, () => {
+      const id = uid("th");
+      const P = (e: string) => app.store.addParam(app.store.doc, e, "mm", id);
+      return { id, type: "thread", name: app.store.nextFeatureName("thread"), face: null, size: "", length: P("10"), full: true, offset: P("0"), flip: false };
+    });
+    const f = this.feature;
+    this.openPanel(this.editing ? `ねじ: ${f.name}` : "ねじ", "thread");
+    const p = this.panel;
+    const sec = p.section("配置");
+    this.pick = p.picker(sec, "面", "thread", () => {});
+    this.pick.setActive(true);
+    this.pick.setCount(f.face ? 1 : 0, f.face ? "円筒面" : "円筒面を選択");
+    p.checkbox(sec, "方向を反転", f.flip, (v) => this.update((x) => (x.flip = v)));
+    const spec = p.section("仕様");
+    const cur = threadByName(f.size);
+    const fam = p.select(
+      spec,
+      "規格",
+      (Object.keys(FAMILY_LABEL) as ThreadFamily[]).map((k) => ({ value: k, label: FAMILY_LABEL[k] })),
+      cur?.family ?? "M",
+      () => fillSizes(),
+    );
+    const size = p.select(spec, "呼び", [], f.size, (v) => this.update((x) => (x.size = v)));
+    const fillSizes = () => {
+      size.innerHTML = "";
+      size.appendChild(h("option", { value: "" }, "自動 (面の直径から)"));
+      for (const t of threadsOf(fam.value as ThreadFamily)) size.appendChild(h("option", { value: t.name, selected: t.name === this.feature.size }, `${t.name}  (P${formatNumber(t.pitch, 3)})`));
+      if (!threadsOf(fam.value as ThreadFamily).some((t) => t.name === this.feature.size)) {
+        size.value = "";
+        if (this.feature.size) this.update((x) => (x.size = ""));
+      }
+    };
+    fillSizes();
+    const len = p.section("長さ");
+    const lenF = p.expr(len, "長さ", this.expr(f.length), "mm", (e) => this.setParam(this.feature.length, e), f.length);
+    lenF.el.style.display = f.full ? "none" : "";
+    p.checkbox(len, "全長", f.full, (v) => {
+      this.update((x) => (x.full = v));
+      lenF.el.style.display = v ? "none" : "";
+    });
+    p.expr(len, "オフセット", this.expr(f.offset), "mm", (e) => this.setParam(this.feature.offset, e), f.offset);
+    p.note(len, "ねじは外観表示 (コスメティック) です。図面では JIS B 0002 の略画法 (谷径の細線・3/4 円) で描かれ、穴注記に呼びが入ります。");
+    app.vp.pickKinds = new Set(["face"]);
+    app.vp.pickFilter = (pk) => app.pickBodies[pk.body]?.faces[pk.index]?.type === "CYLINDRE";
+    this.handler = {
+      cursor: "pointer",
+      onPointerMove: (e, vp) => vp.setHover(vp.pick(e)),
+      onPointerDown: (e, vp) => {
+        if (e.button !== 0) return;
+        const pk = vp.pick(e);
+        if (!pk) return;
+        const r = app.faceRef(pk);
+        if (!r) return;
+        this.update((x) => (x.face = r));
+        this.pick.setCount(1, "円筒面");
+        vp.setSelection([pk]);
+      },
+    };
+    app.status("ねじを付ける円筒面 (軸・穴) をクリック");
+  }
+
+  captureBefore() {
+    return this.featureId;
+  }
+}
+
 // ---------------------------------------------------------------- hole ---
 
 class HoleCommand extends FeatureCommand<HoleFeature> {
@@ -973,8 +1048,98 @@ class HoleCommand extends FeatureCommand<HoleFeature> {
         update();
       },
     );
+    // standard holes (Inventor: drilled / clearance / tapped)
+    if (!f.threadLength) this.update((x) => (x.threadLength = this.app.store.addParam(this.app.store.doc, "10", "mm", x.id)));
+    const stdSec = p.section("規格");
+    const kind = p.select(
+      stdSec,
+      "穴の種類",
+      [
+        { value: "custom", label: "単純穴 (直径指定)" },
+        { value: "clearance", label: "キリ穴 (ボルト用, ISO 273)" },
+        { value: "tapped", label: "ねじ穴 (タップ)" },
+      ],
+      f.standard ?? "custom",
+      (v) => {
+        this.update((x) => (x.standard = v as HoleFeature["standard"]));
+        if (v !== "custom" && !this.feature.size) this.update((x) => (x.size = "M6"));
+        stdUpdate();
+        applyStd();
+      },
+    );
+    const famSel = p.select(
+      stdSec,
+      "規格",
+      (Object.keys(FAMILY_LABEL) as ThreadFamily[]).map((k) => ({ value: k, label: FAMILY_LABEL[k] })),
+      threadByName(f.size ?? "")?.family ?? "M",
+      () => {
+        fillSizes();
+        applyStd();
+      },
+    );
+    const sizeSel = p.select(stdSec, "呼び", [], f.size ?? "M6", (v) => {
+      this.update((x) => (x.size = v));
+      applyStd();
+    });
+    const fillSizes = () => {
+      sizeSel.innerHTML = "";
+      const list = threadsOf(famSel.value as ThreadFamily);
+      for (const t of list) sizeSel.appendChild(h("option", { value: t.name, selected: t.name === this.feature.size }, t.name));
+      if (!list.some((t) => t.name === this.feature.size)) {
+        sizeSel.value = list[0].name;
+        if ((this.feature.standard ?? "custom") !== "custom") this.update((x) => (x.size = list[0].name));
+      }
+    };
+    const fitSel = p.select(
+      stdSec,
+      "はめあい",
+      (Object.keys(FIT_LABEL) as Fit[]).map((k) => ({ value: k, label: FIT_LABEL[k] })),
+      f.fit ?? "normal",
+      (v) => {
+        this.update((x) => (x.fit = v as Fit));
+        applyStd();
+      },
+    );
+    const thrLen = p.expr(stdSec, "ねじ深さ", this.expr(f.threadLength ?? "10"), "mm", (e) => this.setParam(this.feature.threadLength!, e), f.threadLength);
+    const thrFull = p.checkbox(stdSec, "全長ねじ", f.threadFull !== false, (v) => {
+      this.update((x) => (x.threadFull = v));
+      stdUpdate();
+    });
+    const stdNote = p.note(stdSec, "");
+    const row = (el: HTMLElement) => (el.closest(".field") as HTMLElement) ?? el;
+    const stdUpdate = () => {
+      const k = this.feature.standard ?? "custom";
+      row(famSel).style.display = row(sizeSel).style.display = k === "custom" ? "none" : "";
+      row(fitSel).style.display = k === "clearance" ? "" : "none";
+      row(thrFull).style.display = k === "tapped" ? "" : "none";
+      thrLen.el.style.display = k === "tapped" && this.feature.threadFull === false ? "" : "none";
+      const t = threadByName(this.feature.size ?? "");
+      stdNote.textContent =
+        k === "tapped" && t ? `下穴径 φ${formatNumber(tapDrill(t), 2)} / ピッチ ${formatNumber(t.pitch, 3)}` : k === "clearance" && t ? `キリ穴径 φ${formatNumber(clearanceHole(t.d, this.feature.fit ?? "normal"), 2)}` : "";
+      stdNote.style.display = stdNote.textContent ? "" : "none";
+    };
+    /** Drive diameter / counterbore from the standard tables. */
+    const applyStd = () => {
+      const x = this.feature;
+      const t = threadByName(x.size ?? "");
+      if (!t || (x.standard ?? "custom") === "custom") return stdUpdate();
+      const dia = x.standard === "tapped" ? tapDrill(t) : clearanceHole(t.d, x.fit ?? "normal");
+      const fx = (n: number) => formatNumber(n, 3);
+      this.setParam(x.diameter, fx(dia));
+      diaF.set(fx(dia));
+      if (x.standard === "clearance") {
+        const cb = counterbore(t.d);
+        this.setParam(x.cbDiameter, fx(cb.dia));
+        this.setParam(x.cbDepth, fx(cb.depth));
+        cb1.set(fx(cb.dia));
+        cb2.set(fx(cb.depth));
+        this.setParam(x.csDiameter, fx(countersink(t.d)));
+        cs1.set(fx(countersink(t.d)));
+      }
+      stdUpdate();
+    };
     const dims = p.section("寸法");
-    p.expr(dims, "直径", this.expr(f.diameter), "mm", (e) => this.setParam(this.feature.diameter, e), f.diameter);
+    const diaF = p.expr(dims, "直径", this.expr(f.diameter), "mm", (e) => this.setParam(this.feature.diameter, e), f.diameter);
     const cb1 = p.expr(dims, "座ぐり径", this.expr(f.cbDiameter), "mm", (e) => this.setParam(this.feature.cbDiameter, e), f.cbDiameter);
     const cb2 = p.expr(dims, "座ぐり深さ", this.expr(f.cbDepth), "mm", (e) => this.setParam(this.feature.cbDepth, e), f.cbDepth);
     const cs1 = p.expr(dims, "皿径", this.expr(f.csDiameter), "mm", (e) => this.setParam(this.feature.csDiameter, e), f.csDiameter);
@@ -995,6 +1160,9 @@ class HoleCommand extends FeatureCommand<HoleFeature> {
     const depth = p.expr(dims, "深さ", this.expr(f.depth), "mm", (e) => this.setParam(this.feature.depth, e), f.depth);
     p.checkbox(dims, "方向を反転", f.flip, (v) => this.update((x) => (x.flip = v)));
     update();
+    fillSizes();
+    stdUpdate();
+    void kind;
   }
 }
 
@@ -1413,6 +1581,7 @@ export function buildCommands(app: App): CommandRegistry {
     chamfer: { id: "chamfer", label: "面取り", icon: "chamfer" },
     shell: { id: "shell", label: "シェル", icon: "shell" },
     hole: { id: "hole", label: "穴", icon: "hole" },
+    thread: { id: "thread", label: "ねじ", icon: "thread" },
     rectPattern: { id: "rectPattern", label: "矩形状パターン", icon: "rectPattern" },
     circPattern: { id: "circPattern", label: "円形状パターン", icon: "circPattern" },
     mirror: { id: "mirror", label: "ミラー", icon: "mirror" },
@@ -1446,6 +1615,8 @@ export function buildCommands(app: App): CommandRegistry {
         return new ShellCommand(app, f as ShellFeature | null);
       case "hole":
         return new HoleCommand(app, f as HoleFeature | null);
+      case "thread":
+        return new ThreadCommand(app, f as ThreadFeature | null);
       case "rectPattern":
         return new RectPatternCommand(app, f as PatternFeature | null);
       case "circPattern":
@@ -1467,7 +1638,7 @@ export function buildCommands(app: App): CommandRegistry {
     return null;
   };
   const needsProfile = new Set(["extrude", "revolve", "loft", "sweep"]);
-  const needsBody = new Set(["fillet", "chamfer", "shell", "hole", "move", "pushpull"]);
+  const needsBody = new Set(["fillet", "chamfer", "shell", "hole", "move", "pushpull", "thread"]);
   return {
     get: (id) => info[id],
     run: (id) => {

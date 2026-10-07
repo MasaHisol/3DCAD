@@ -197,7 +197,14 @@ export function dimValue(d: DimAnno): number {
 }
 
 /** Main text and stacked tolerance text of a dimension (JIS style). */
-export function dimText(d: DimAnno, holeCount = 1): { main: string; upper?: string; lower?: string; boxed?: boolean; paren?: boolean } {
+/** Thread at a hole circle of a view (tapped holes get "M6 深さ12" notes). */
+export function holeThread(g: ViewGeometry | undefined, ref: GRef | undefined): { name: string; depth: number | null } | null {
+  if (!g || !ref || ref.r === undefined) return null;
+  const t = g.threads?.find((x) => Math.hypot(x.c[0] - ref.p[0], x.c[1] - ref.p[1]) < 1e-3 && Math.abs(x.r - ref.r!) < 1e-3);
+  return t ? { name: t.name, depth: t.depth } : null;
+}
+
+export function dimText(d: DimAnno, holeCount = 1, thread?: { name: string; depth: number | null } | null): { main: string; upper?: string; lower?: string; boxed?: boolean; paren?: boolean } {
   const v = dimValue(d);
   const num = formatNumber(v, d.kind === "angle" ? 1 : 2);
   let main = d.text ?? "";
@@ -205,6 +212,7 @@ export function dimText(d: DimAnno, holeCount = 1): { main: string; upper?: stri
     if (d.kind === "diameter") main = `φ${num}`;
     else if (d.kind === "radius") main = `R${num}`;
     else if (d.kind === "angle") main = `${num}°`;
+    else if (d.kind === "hole" && thread) main = `${holeCount > 1 ? `${holeCount}×` : ""}${thread.name}${thread.depth ? ` 深さ${formatNumber(thread.depth, 2)}` : ""}`;
     else if (d.kind === "hole") main = `${holeCount > 1 ? `${holeCount}×` : ""}φ${num}`;
     else main = num;
   }
