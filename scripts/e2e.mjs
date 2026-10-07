@@ -68,6 +68,30 @@ try {
   const bb = (await page.evaluate(() => window.cad.kernel.massProps())).bbox;
   check("parameter drives model", Math.abs(bb[1][0] - bb[0][0] - 110) < 1e-6 && (await page.evaluate(() => Object.keys(window.cad.featureErrors).length)) === 0);
 
+  // rules (iLogic): a parameter change suppresses the fillet and writes an iProperty
+  await page.evaluate(() =>
+    window.cad.store.mutate("ルールを追加", (d) => {
+      d.rules = [{ id: "r1", name: "幅ルール", trigger: "paramChange", enabled: true, code: 'suppress("フィレット1", 幅 > 120);\niprop("説明", `ブラケット W${幅}`);' }];
+    }),
+  );
+  await page.evaluate(() => window.cad.store.mutate("p", (d) => (d.params.find((x) => x.name === "幅").expr = "130")));
+  await page.waitForFunction(() => window.cad.store.doc.iprops["説明"] === "ブラケット W130", null, { timeout: 15000 });
+  await settle();
+  check("rule on parameter change", await page.evaluate(() => window.cad.store.doc.features.find((f) => f.name === "フィレット1").suppressed === true));
+  await page.locator(".rb-tab", { hasText: "管理" }).click();
+  await page.locator('[data-cmd="rules"]').click();
+  await page.locator(".rl-code").fill('幅 = 110;\nsuppress("フィレット1", 幅 > 120);');
+  await page.locator(".btn", { hasText: "このルールを実行" }).click();
+  await page.waitForFunction(() => document.querySelector(".rl-out")?.textContent.includes("幅 = 110"), null, { timeout: 15000 });
+  check("rule editor run", (await page.locator(".rl-out").innerText()).includes("フィレット1 を抑制解除"));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/rules.png` });
+  await page.locator(".modal-foot .btn", { hasText: "OK" }).click();
+  await settle();
+  await page.locator('[data-cmd="family"]').click();
+  await page.locator(".modal-foot .btn", { hasText: "選択した構成を適用" }).click();
+  check("family table", await page.evaluate(() => window.cad.store.doc.iprops["構成"] === "標準" && window.cad.store.doc.family.rows.length === 1));
+  await page.locator(".rb-tab", { hasText: "3D モデル" }).click();
+
   // stress analysis on the bracket: base fixed, boss top pushed down
   await page.evaluate(() => window.cad.commands.run("stress"));
   await page.evaluate(() => {

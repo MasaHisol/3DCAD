@@ -2075,3 +2075,76 @@ kbd {
   gap: 8px;
   padding: 2px 0;
 }
+
+/* ------------------------------------------------------------ rules --- */
+.rl {
+  grid-template-columns: 200px 1fr;
+}
+.rl-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.rl-code {
+  width: 100%;
+  min-height: 200px;
+  resize: vertical;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 8px;
+  border: 1px solid var(--border, #d0d5dc);
+  border-radius: 6px;
+  background: var(--input-bg, #fff);
+  color: inherit;
+  tab-size: 2;
+}
+.rl-out {
+  white-space: pre-wrap;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  min-height: 1em;
+}
+.rl-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  font-size: 12px;
+}
+.chip {
+  border: 1px solid var(--border, #d0d5dc);
+  background: none;
+  color: inherit;
+  border-radius: 10px;
+  padding: 1px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.chip:hover,
+.chip.on {
+  background: var(--accent-soft, rgba(31, 111, 224, 0.15));
+  border-color: #2b7de9;
+}
+.lib-item.dimmed {
+  opacity: 0.55;
+}
+.fam-wrap {
+  overflow: auto;
+  max-height: 340px;
+  margin: 8px 0;
+}
+.fam-table {
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.fam-table th,
+.fam-table td {
+  padding: 3px 4px;
+  border-bottom: 1px solid var(--border, #e2e6ea);
+  text-align: left;
+}
+.fam-table .field-input {
+  width: 90px;
+}

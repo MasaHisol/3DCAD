@@ -361,6 +361,14 @@ export interface Material {
   color: string;
 }
 
+export interface FamilyTable {
+  /** Parameter names (table columns). */
+  columns: string[];
+  rows: { name: string; values: string[] }[];
+  /** Row applied last. */
+  active: number;
+}
+
 export interface PartDocument {
   format: "3dcad-part";
   version: 1;
@@ -372,6 +380,10 @@ export interface PartDocument {
   endOfPart: number;
   material: Material;
   iprops: Record<string, string>;
+  /** iLogic-style rules. */
+  rules?: import("../rules/engine").Rule[];
+  /** Family table (iPart / design table): parameter values per configuration. */
+  family?: FamilyTable;
   /** Sheet metal style (parameter names), present on sheet metal parts. */
   sheetMetal?: { thickness: string; radius: string; kFactor: string };
   /** 2D drawing sheets documenting this part. */

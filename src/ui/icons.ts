@@ -55,6 +55,7 @@ export const ICONS: Record<string, string> = {
   stress: I(`<path class="a" d="M3 17h18v3H3z"/><path d="M5 17c2-6 4-9 7-9s5 3 7 9"/><path class="b" d="M12 2v5M10 5l2 2 2-2" stroke-width="1.6"/>`),
   render: I(`<circle class="a" cx="11" cy="10" r="6"/><path d="M8 8a3.5 3.5 0 013-2"/><ellipse class="b" cx="12" cy="19.5" rx="7" ry="1.6" opacity=".6"/>`),
   image: I(`<path class="a" d="M3 5h18v14H3z"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.6"/>`),
+  rule: I(`<path class="a" d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4"/><path class="b" d="M9 11l-2 2 2 2M15 11l2 2-2 2M12.8 10.5l-1.6 5" stroke-width="1.5"/>`),
   play: I(`<path class="b" d="M7 4l13 8-13 8z"/>`),
   explode: I(`<path class="a" d="M9 9h6v6H9z"/><path d="M4 4h3v3H4zM17 4h3v3h-3zM4 17h3v3H4zM17 17h3v3h-3z"/><path class="b" d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2" stroke-dasharray="1.5 1.2"/>`),
   library: I(`<path class="a" d="M4 4h5v16H4z"/><path d="M10 4h4v16h-4z"/><path class="b" d="M15.5 5.2l3.9-1 3.6 14.6-3.9 1z"/>`),

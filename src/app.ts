@@ -25,6 +25,7 @@ import { Timeline } from "./ui/timeline";
 import { openCommandSearch } from "./ui/commandSearch";
 import { AssemblyEnv } from "./assembly/env";
 import { openLibrary } from "./library/dialog";
+import type { Rule, RuleContext, RuleResult } from "./rules/engine";
 import { DrawingEnv } from "./drawing/env";
 import { newAssembly, type AssemblyDocument } from "./assembly/types";
 
@@ -314,6 +315,7 @@ export class App {
 
   private onDocChanged(reason: string) {
     if (reason === "refs") return;
+    this.watchRules(reason);
     this.scheduleAutosave();
     if (this.mode === "sketch" && this.sketchEditor) {
       if (!this.store.feature(this.sketchEditor.sketchId)) {
@@ -1115,6 +1117,116 @@ export class App {
     ]);
   }
 
+  // --------------------------------------------------------------- rules ---
+
+  private rulesTrusted = false;
+  private paramsKey = "";
+  private ruleTimer = 0;
+
+  /** Parameter-change trigger: re-run rules after the user changed parameters. */
+  private watchRules(reason: string) {
+    const doc = this.store.doc;
+    const key = JSON.stringify(doc.params.map((p) => [p.name, p.expr]));
+    if (reason === "load") {
+      this.rulesTrusted = !doc.rules?.length;
+      this.paramsKey = key;
+      return;
+    }
+    if (reason === "preview" || reason.startsWith("ルール") || key === this.paramsKey) return;
+    this.paramsKey = key;
+    const rules = (doc.rules ?? []).filter((r) => r.enabled && r.trigger === "paramChange");
+    if (!rules.length || this.env !== "part") return;
+    clearTimeout(this.ruleTimer);
+    this.ruleTimer = window.setTimeout(() => void this.runRules(rules, false), 120);
+  }
+
+  /** Allow rules of an opened file to run (asked once per file). */
+  async trustRules(): Promise<boolean> {
+    if (this.rulesTrusted) return true;
+    const n = this.store.doc.rules?.length ?? 0;
+    this.rulesTrusted = await confirmDialog("ルールの実行", `このファイルには ${n} 件のルール (iLogic) が含まれています。作成者を信頼できる場合のみ実行を許可してください。`, "実行を許可");
+    return this.rulesTrusted;
+  }
+
+  markRulesTrusted() {
+    this.rulesTrusted = true;
+  }
+
+  /**
+   * Run rules in the sandbox worker and apply their changes as one undo
+   * step. Returns per-rule results (for the rule editor's output).
+   */
+  async runRules(rules: Rule[], explicit = true): Promise<{ name: string; result?: RuleResult; error?: string }[]> {
+    if (!rules.length) return [];
+    if (!(await this.trustRules())) return [];
+    const doc = this.store.doc;
+    const values = this.values();
+    const params: Record<string, number> = {};
+    for (const p of doc.params) {
+      const v = values.get(p.name);
+      if (v !== undefined && Number.isFinite(v)) params[p.name] = v;
+    }
+    let mass: number | undefined, volume: number | undefined;
+    if (this.bodies.length && rules.some((r) => /mass\(|volume\(/.test(r.code))) {
+      try {
+        const mp = await this.kernel.massProps();
+        volume = mp.volume;
+        mass = (mp.volume / 1000) * doc.material.density;
+      } catch {
+        /* no solid */
+      }
+    }
+    const ctx: RuleContext = {
+      params,
+      features: Object.fromEntries(doc.features.map((f) => [f.name, !!f.suppressed])),
+      iprops: { ...doc.iprops },
+      material: doc.material.name,
+      materials: MATERIALS.map((m) => m.name),
+      mass,
+      volume,
+    };
+    const w = new Worker(new URL("./rules/worker.ts", import.meta.url), { type: "module" });
+    let results: { name: string; result?: RuleResult; error?: string }[];
+    try {
+      results = await new Promise((resolve, reject) => {
+        const t = setTimeout(() => reject(new Error("ルールが 3 秒以内に終了しませんでした (無限ループ?)")), 3000);
+        w.onmessage = (e) => (clearTimeout(t), resolve(e.data));
+        w.onerror = (e) => (clearTimeout(t), reject(new Error(e.message)));
+        w.postMessage({ rules: rules.map((r) => ({ name: r.name, code: r.code })), ctx });
+      });
+    } catch (e) {
+      toast((e as Error).message, "error");
+      return [{ name: rules.map((r) => r.name).join(", "), error: (e as Error).message }];
+    } finally {
+      w.terminate();
+    }
+    const changes = results.filter((r) => r.result).map((r) => r.result!);
+    const any = changes.some((c) => Object.keys(c.params).length || Object.keys(c.suppress).length || Object.keys(c.iprops).length || c.material);
+    if (any)
+      this.store.mutate(`ルール: ${rules.map((r) => r.name).join(", ")}`, (d) => {
+        for (const c of changes) {
+          for (const [k, v] of Object.entries(c.params)) {
+            const p = d.params.find((x) => x.name === k);
+            if (p) p.expr = formatNumber(v, 6);
+          }
+          for (const [k, v] of Object.entries(c.suppress)) {
+            const f = d.features.find((x) => x.name === k);
+            if (f) f.suppressed = v;
+          }
+          Object.assign(d.iprops, c.iprops);
+          if (c.material) d.material = { ...MATERIALS.find((m) => m.name === c.material)! };
+        }
+      });
+    this.paramsKey = JSON.stringify(this.store.doc.params.map((p) => [p.name, p.expr]));
+    if (any) this.syncMaterial();
+    for (const r of results) {
+      if (r.error) toast(`ルール「${r.name}」: ${r.error}`, "error");
+      for (const m of r.result?.messages ?? []) toast(`${r.name}: ${m}`, "info", 5000);
+    }
+    if (explicit && !any && !results.some((r) => r.error || r.result?.messages.length)) toast("ルールを実行しました (変更なし)", "info", 2000);
+    return results;
+  }
+
   /** Studio rendering on/off (metal look for metallic materials). */
   toggleRealistic() {
     const metals = ["鋼", "ステンレス鋼", "アルミニウム 6061", "黄銅", "銅", "チタン"];
@@ -1271,6 +1383,8 @@ export class App {
       toast(`${name} を保存しました`, "ok", 2000);
       return;
     }
+    const pre = (this.store.doc.rules ?? []).filter((r) => r.enabled && r.trigger === "beforeSave");
+    if (pre.length) await this.runRules(pre, false);
     let name = this.store.fileHandleName ?? `${this.store.doc.name}.3dcp`;
     if (as) {
       const n = await promptDialog("名前を付けて保存", "ファイル名", name.replace(/\.3dcp$/, ""));

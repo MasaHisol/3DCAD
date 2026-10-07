@@ -1,6 +1,7 @@
 import type { App } from "../app";
 import type { SketchTool } from "../viewer/sketchEditor";
 import { openLibrary } from "../library/dialog";
+import { openFamily, openRules } from "../rules/ui";
 import { openFlatPattern, openSheetStyle } from "../sheetmetal/ui";
 import { openIProperties, openParameters, openShortcuts } from "./dialogs";
 import type { RibbonButton, RibbonTab } from "./ribbon";
@@ -207,6 +208,18 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
         {
           title: "パラメータ",
           items: [{ id: "params2", label: "パラメータ", icon: "params", tip: "パラメータ テーブルを開きます。", action: () => openParameters(app) }],
+        },
+        {
+          title: "iLogic",
+          items: [
+            { id: "rules", label: "ルール", icon: "rule", tip: "パラメータに応じて寸法・抑制・iProperty・マテリアルを自動で変えるルールを作成します (iLogic 相当)。", action: () => openRules(app) },
+            {
+              stack: [
+                { id: "rules-run", label: "ルールを実行", icon: "play", size: "small", tip: "有効なルールをすべて実行します。", action: () => void app.runRules((app.store.doc.rules ?? []).filter((r) => r.enabled)) },
+                { id: "family", label: "ファミリー表", icon: "rectPattern", size: "small", tip: "サイズ違いの構成をパラメータ表で管理します (iPart / デザイン テーブル)。", action: () => openFamily(app) },
+              ],
+            },
+          ],
         },
         {
           title: "コンテンツ",
