@@ -105,6 +105,52 @@ try {
   await page.evaluate(() => window.cad.leaveDrawingEnv());
   await settle();
 
+  // sheet metal: face from the 120x80 sketch, four flanges, flat pattern
+  await page.evaluate(() => window.cad.newDocument());
+  await page.locator(".modal-foot .btn", { hasText: "破棄して続行" }).click({ timeout: 2000 }).catch(() => {});
+  await settle();
+  await page.evaluate(() => window.cad.createSketch({ origin: [0, 0, 0], xDir: [1, 0, 0], normal: [0, 0, 1] }, "XY 平面"));
+  await page.waitForTimeout(700);
+  await page.keyboard.press("r");
+  await clickUV(0, 0);
+  const q = await S(60, 40);
+  await page.mouse.move(q.x, q.y);
+  await page.keyboard.type("120");
+  await page.keyboard.press("Tab");
+  await page.keyboard.type("80");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Control+Enter");
+  await settle();
+  await page.locator(".rb-tab", { hasText: "板金" }).click();
+  await page.locator('[data-cmd="sheetFace"]').click();
+  await settle();
+  await page.keyboard.press("Enter");
+  await settle();
+  const sm1 = await page.evaluate(() => window.cad.kernel.massProps());
+  check("sheet metal face", Math.abs(sm1.volume - 120 * 80 * 2) < 1e-3, `volume=${sm1.volume.toFixed(2)}`);
+  await page.evaluate(() => {
+    const st = window.cad.store;
+    const face = st.doc.features.find((f) => f.type === "sheetFace");
+    st.mutate("フランジ", (d) => {
+      d.params.push({ name: "d_fl", expr: "25", unit: "mm", kind: "model", owner: "fl1" }, { name: "a_fl", expr: "90", unit: "deg", kind: "model", owner: "fl1" });
+      d.features.push({ id: "fl1", type: "flange", name: "フランジ1", base: face.id, edges: [[60, 0], [120, 40], [60, 80], [0, 40]], height: "d_fl", angle: "a_fl", down: false });
+      d.endOfPart = d.features.length;
+    });
+  });
+  await settle();
+  const smErr = await page.evaluate(() => Object.values(window.cad.featureErrors));
+  check("sheet metal flanges", smErr.length === 0 && (await page.evaluate(() => window.cad.kernel.massProps())).bbox[1][2] > 24.99, JSON.stringify(smErr));
+  await page.locator('[data-cmd="sm-flat"]').click();
+  await page.waitForSelector(".flat-view svg");
+  const flatTxt = await page.locator(".modal .lib-spec").innerText();
+  const ba = (Math.PI / 2) * (2 + 0.44 * 2);
+  const want = (120 + 2 * (ba + 21)).toFixed(2);
+  check("flat pattern size", flatTxt.includes(want), `${flatTxt.split("\n")[0]} (expected ${want})`);
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/flat.png` });
+  await page.locator(".modal-foot .btn", { hasText: "閉じる" }).click();
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/sheetmetal.png` });
+
   // sample assembly: insert constraint seats the pin
   await page.evaluate(() => window.cad.loadSampleAssembly());
   await page.waitForFunction(() => window.cad.asm.bodyMap.length >= 3, null, { timeout: 60000 });

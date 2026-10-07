@@ -55,6 +55,16 @@ export type RFeature =
       /** Tapped hole: cosmetic thread on the drilled wall. */
       thread?: ThreadSpec;
     }
+  | {
+      id: string;
+      type: "flange";
+      /** Per edge: frame of the bend cross-section and the extrusion along the edge. */
+      specs: { origin: Vec3; out: Vec3; up: Vec3; along: Vec3; width: number }[];
+      thickness: number;
+      radius: number;
+      angle: number;
+      leg: number;
+    }
   | { id: string; type: "thread"; face: FaceRef; thread: ThreadSpec; offset: number; flip: boolean }
   | {
       id: string;

@@ -3,6 +3,7 @@ import type { App } from "../app";
 import { featureSketchRefs, ORIGIN_PLANES, uid } from "../core/document";
 import { formatNumber } from "../core/expr";
 import { holeCenterPoints, worldToPlane } from "../core/resolve";
+import { ensureSheetStyle, matchEdge, outerEdges, segPointDist, type SheetEdge } from "../sheetmetal/sheet";
 import { clearanceHole, counterbore, countersink, FAMILY_LABEL, FIT_LABEL, tapDrill, threadByName, threadsOf, type Fit, type ThreadFamily } from "../core/threads";
 import type {
   AxisRef,
@@ -13,6 +14,8 @@ import type {
   FilletFeature,
   HoleFeature,
   ThreadFeature,
+  SheetFaceFeature,
+  FlangeFeature,
   LoftFeature,
   PushPullFeature,
   SweepFeature,
@@ -291,6 +294,187 @@ class ExtrudeCommand extends FeatureCommand<ExtrudeFeature> {
 
   cancel() {
     super.cancel();
+  }
+}
+
+// ---------------------------------------------------------- sheet metal ---
+
+class SheetFaceCommand extends FeatureCommand<SheetFaceFeature> {
+  readonly id = "sheetFace";
+  private picker: ProfilePicker;
+  private profPick!: ReturnType<PropertyPanel["picker"]>;
+
+  constructor(app: App, existing: SheetFaceFeature | null) {
+    const sketches = profileSketches(app);
+    const preSel = [...app.browserSelection].find((id) => sketches.some((s) => s.id === id));
+    const auto = preSel ?? (sketches.length === 1 ? sketches[0].id : "");
+    super(app, existing, () => {
+      ensureSheetStyle(app.store.doc);
+      const st = auto ? app.sketchState(auto) : undefined;
+      const prof = st && st.regions.length ? [0] : [];
+      return {
+        id: uid("sf"),
+        type: "sheetFace",
+        name: app.store.nextFeatureName("sheetFace"),
+        sketch: auto,
+        profiles: prof,
+        profilePts: st ? prof.map((i) => regionSample(st.regions[i])) : [],
+        op: app.hasBodies() ? "join" : "new",
+        flip: false,
+      };
+    });
+    this.picker = new ProfilePicker(
+      app,
+      () => this.feature.sketch,
+      () => profileSketches(app, this.feature.sketch),
+      (sk, i, sample) => {
+        // a sheet metal face is a single region
+        this.update((f) => ((f.sketch = sk), (f.profiles = [i]), (f.profilePts = [sample])));
+        this.picker.selected = this.feature.profiles;
+        this.picker.draw();
+        this.profPick.setCount(1, "1 個のプロファイル");
+      },
+    );
+    this.picker.selected = this.feature.profiles;
+    this.handler = {
+      cursor: "pointer",
+      onPointerMove: (e) => this.picker.move(e),
+      onPointerDown: (e) => {
+        if (e.button === 0) this.picker.click(e);
+      },
+    };
+    const f = this.feature;
+    this.openPanel(this.editing ? `面: ${f.name}` : "面 (板金)", "smFace");
+    const p = this.panel;
+    const inp = p.section("プロファイル");
+    this.profPick = p.picker(inp, "プロファイル", "sketch", () => {});
+    this.profPick.setActive(true);
+    this.profPick.setCount(f.profiles.length, f.profiles.length ? "1 個のプロファイル" : "選択してください");
+    p.checkbox(inp, "厚みの方向を反転", f.flip, (v) => this.update((x) => (x.flip = v)));
+    const sty = p.section("板金スタイル");
+    const sm = app.store.doc.sheetMetal!;
+    const v = app.values();
+    p.note(sty, `板厚 ${formatNumber(v.get(sm.thickness) ?? 0, 3)} mm / 曲げ半径 ${formatNumber(v.get(sm.radius) ?? 0, 3)} mm / K係数 ${formatNumber(v.get(sm.kFactor) ?? 0, 3)} — 「板金スタイル」で変更できます`);
+    this.picker.draw();
+    app.status("板金の面にする閉じたプロファイルをクリック");
+  }
+}
+
+class FlangeCommand extends FeatureCommand<FlangeFeature> {
+  readonly id = "flange";
+  private pick: ReturnType<PropertyPanel["picker"]>;
+
+  constructor(app: App, existing: FlangeFeature | null) {
+    const base = [...app.store.doc.features.slice(0, app.store.doc.endOfPart)].reverse().find((f): f is SheetFaceFeature => f.type === "sheetFace");
+    super(app, existing, () => {
+      const id = uid("fl");
+      return {
+        id,
+        type: "flange",
+        name: app.store.nextFeatureName("flange"),
+        base: base?.id ?? "",
+        edges: [],
+        height: app.store.addParam(app.store.doc, "20", "mm", id),
+        angle: app.store.addParam(app.store.doc, "90", "deg", id),
+        down: false,
+      };
+    });
+    const f = this.feature;
+    this.openPanel(this.editing ? `フランジ: ${f.name}` : "フランジ", "flange", true);
+    const p = this.panel;
+    const sec = p.section("エッジ");
+    this.pick = p.picker(sec, "エッジ", "edge", () => {});
+    this.pick.setActive(true);
+    p.note(sec, "板金の面の外周エッジ (直線) をクリック。複数選択できます (もう一度クリックで解除)。");
+    const shape = p.section("形状");
+    p.expr(shape, "高さ (外側)", this.expr(f.height), "mm", (e) => this.setParam(this.feature.height, e), f.height);
+    p.expr(shape, "曲げ角度", this.expr(f.angle), "deg", (e) => this.setParam(this.feature.angle, e), f.angle);
+    p.toggles(
+      shape,
+      "方向",
+      [
+        { value: "up", icon: "dirDefault", title: "スケッチ面から離れる側" },
+        { value: "down", icon: "dirFlip", title: "スケッチ面の側" },
+      ],
+      f.down ? "down" : "up",
+      (v) => this.update((x) => (x.down = v === "down")),
+    );
+    app.vp.pickKinds = new Set(["edge"]);
+    app.vp.pickFilter = (pk) => app.pickBodies[pk.body]?.edges[pk.index]?.type === "LINE";
+    this.handler = {
+      cursor: "pointer",
+      onPointerMove: (e, vp) => vp.setHover(vp.pick(e)),
+      onPointerDown: (e, vp) => {
+        if (e.button !== 0) return;
+        const pk = vp.pick(e);
+        if (pk) this.toggle(pk);
+      },
+      onContextMenu: () => {
+        this.app.finishCommand(this, true);
+        return true;
+      },
+    };
+    if (!base) toast("先に板金の「面」を作成してください", "warn");
+    this.syncHighlight();
+    app.status("フランジを付ける面のエッジをクリック");
+  }
+
+  captureBefore() {
+    return this.featureId;
+  }
+
+  private baseEdges(): { edges: SheetEdge[]; plane: PlaneDef; tol: number } | null {
+    const doc = this.app.store.doc;
+    const base = doc.features.find((x) => x.id === this.feature.base) as SheetFaceFeature | undefined;
+    const sk = base && this.app.store.feature<SketchFeature>(base.sketch);
+    const st = sk && this.app.sketchState(sk.id);
+    if (!base || !sk || !st) return null;
+    const sample = base.profilePts?.[0];
+    const region = (sample && st.regions.find((r) => pointInRegion(sample, r))) ?? st.regions[base.profiles[0]];
+    if (!region) return null;
+    const t = this.app.values().get(doc.sheetMetal?.thickness ?? "") ?? 1;
+    return { edges: outerEdges(region.outer), plane: sk.plane, tol: Math.max(1e-3, t * 0.5) };
+  }
+
+  private toggle(pk: Pick) {
+    const e = this.app.pickBodies[pk.body]?.edges[pk.index];
+    const be = this.baseEdges();
+    if (!e || !be) return;
+    const uv = worldToPlane(be.plane, e.mid);
+    const m = matchEdge(be.edges, uv, be.tol);
+    if (!m || Math.abs(worldToPlaneDist(be.plane, e.mid)) > be.tol * 4 + 1e-6) {
+      toast("板金の面の外周エッジを選択してください", "warn");
+      return;
+    }
+    const mid: Vec2 = [(m.a[0] + m.b[0]) / 2, (m.a[1] + m.b[1]) / 2];
+    this.update((f) => {
+      const k = f.edges.findIndex((x) => Math.hypot(x[0] - mid[0], x[1] - mid[1]) < 1e-6);
+      if (k >= 0) f.edges.splice(k, 1);
+      else f.edges.push(mid);
+    });
+    this.syncHighlight();
+  }
+
+  private syncHighlight() {
+    const be = this.baseEdges();
+    const sel: Pick[] = [];
+    if (be) {
+      const chosen = this.feature.edges.map((p) => matchEdge(be.edges, p, be.tol)).filter((x): x is SheetEdge => !!x);
+      this.app.pickBodies.forEach((b, bi) =>
+        b.edges.forEach((e, ei) => {
+          if (e.type !== "LINE" || Math.abs(worldToPlaneDist(be.plane, e.mid)) > be.tol * 4 + 1e-6) return;
+          const uv = worldToPlane(be.plane, e.mid);
+          if (chosen.some((c) => segPointDist(uv, c.a, c.b) < 1e-4)) sel.push({ kind: "edge", body: bi, index: ei, point: e.mid });
+        }),
+      );
+    }
+    this.app.vp.setSelection(sel);
+    this.pick.setCount(this.feature.edges.length, this.feature.edges.length ? `${this.feature.edges.length} 本のエッジ` : "エッジを選択");
+  }
+
+  onRegen() {
+    super.onRegen();
+    this.syncHighlight();
   }
 }
 
@@ -1582,6 +1766,8 @@ export function buildCommands(app: App): CommandRegistry {
     shell: { id: "shell", label: "シェル", icon: "shell" },
     hole: { id: "hole", label: "穴", icon: "hole" },
     thread: { id: "thread", label: "ねじ", icon: "thread" },
+    sheetFace: { id: "sheetFace", label: "面 (板金)", icon: "smFace" },
+    flange: { id: "flange", label: "フランジ", icon: "flange" },
     rectPattern: { id: "rectPattern", label: "矩形状パターン", icon: "rectPattern" },
     circPattern: { id: "circPattern", label: "円形状パターン", icon: "circPattern" },
     mirror: { id: "mirror", label: "ミラー", icon: "mirror" },
@@ -1617,6 +1803,10 @@ export function buildCommands(app: App): CommandRegistry {
         return new HoleCommand(app, f as HoleFeature | null);
       case "thread":
         return new ThreadCommand(app, f as ThreadFeature | null);
+      case "sheetFace":
+        return new SheetFaceCommand(app, f as SheetFaceFeature | null);
+      case "flange":
+        return new FlangeCommand(app, f as FlangeFeature | null);
       case "rectPattern":
         return new RectPatternCommand(app, f as PatternFeature | null);
       case "circPattern":
@@ -1637,8 +1827,8 @@ export function buildCommands(app: App): CommandRegistry {
     }
     return null;
   };
-  const needsProfile = new Set(["extrude", "revolve", "loft", "sweep"]);
-  const needsBody = new Set(["fillet", "chamfer", "shell", "hole", "move", "pushpull", "thread"]);
+  const needsProfile = new Set(["extrude", "revolve", "loft", "sweep", "sheetFace"]);
+  const needsBody = new Set(["fillet", "chamfer", "shell", "hole", "move", "pushpull", "thread", "flange"]);
   return {
     get: (id) => info[id],
     run: (id) => {

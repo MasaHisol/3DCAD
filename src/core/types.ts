@@ -235,6 +235,31 @@ export interface HoleFeature extends FeatureBase {
   threadFull?: boolean;
 }
 
+/** Sheet metal base face: a closed profile thickened by the sheet thickness. */
+export interface SheetFaceFeature extends FeatureBase {
+  type: "sheetFace";
+  sketch: string;
+  profiles: number[];
+  profilePts?: Vec2[];
+  op: BoolOp;
+  /** Thicken to the other side of the sketch plane. */
+  flip: boolean;
+}
+
+/** Bent flange(s) on straight outer edges of a sheet metal face. */
+export interface FlangeFeature extends FeatureBase {
+  type: "flange";
+  /** The sheet metal face feature the flange is attached to. */
+  base: string;
+  /** Edge references: points on the edges, in the base sketch's coordinates. */
+  edges: Vec2[];
+  /** Outside height, measured perpendicular to the face. */
+  height: string;
+  angle: string;
+  /** Bend towards the sketch plane side instead of away from it. */
+  down: boolean;
+}
+
 /** Cosmetic thread on a cylindrical face (Inventor "Thread"). */
 export interface ThreadFeature extends FeatureBase {
   type: "thread";
@@ -319,6 +344,8 @@ export type Feature =
   | ShellFeature
   | HoleFeature
   | ThreadFeature
+  | SheetFaceFeature
+  | FlangeFeature
   | PatternFeature
   | MirrorFeature
   | PrimitiveFeature
@@ -345,6 +372,8 @@ export interface PartDocument {
   endOfPart: number;
   material: Material;
   iprops: Record<string, string>;
+  /** Sheet metal style (parameter names), present on sheet metal parts. */
+  sheetMetal?: { thickness: string; radius: string; kFactor: string };
   /** 2D drawing sheets documenting this part. */
   drawing?: import("../drawing/types").DrawingDoc;
 }

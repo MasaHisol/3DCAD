@@ -16,6 +16,8 @@ export const FEATURE_LABELS: Record<FeatureType, string> = {
   sweep: "スイープ",
   pushpull: "プレス/プル",
   thread: "ねじ",
+  sheetFace: "面",
+  flange: "フランジ",
   fillet: "フィレット",
   chamfer: "面取り",
   shell: "シェル",

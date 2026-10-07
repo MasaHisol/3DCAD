@@ -1,6 +1,7 @@
 import type { App } from "../app";
 import type { SketchTool } from "../viewer/sketchEditor";
 import { openLibrary } from "../library/dialog";
+import { openFlatPattern, openSheetStyle } from "../sheetmetal/ui";
 import { openIProperties, openParameters, openShortcuts } from "./dialogs";
 import type { RibbonButton, RibbonTab } from "./ribbon";
 
@@ -150,6 +151,32 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
         {
           title: "終了",
           items: [{ id: "sk-finish", label: "スケッチを終了", icon: "finish", shortcut: "Ctrl+Enter", tip: "スケッチ環境を終了して 3D モデルに戻ります。", action: () => app.exitSketch(true) }],
+        },
+      ],
+    },
+    {
+      id: "sheetmetal",
+      label: "板金",
+      visible: isPart,
+      panels: [
+        {
+          title: "セットアップ",
+          items: [{ id: "sm-style", label: "板金スタイル", icon: "smStyle", tip: "板厚・曲げ半径・K係数を設定します (パーツを板金として扱います)。", action: () => openSheetStyle(app) }],
+        },
+        {
+          title: "作成",
+          items: [
+            cmd("sheetFace", "面", "smFace", undefined, "閉じたスケッチ プロファイルから板厚一定の板金の面を作成します。"),
+            cmd("flange", "フランジ", "flange", undefined, "面の外周エッジに曲げ (内 R = 曲げ半径) 付きのフランジを付けます。複数エッジで箱形状を作れます。"),
+          ],
+        },
+        {
+          title: "修正",
+          items: [{ ...cmd("extrude", "切り抜き", "extrude", undefined, "スケッチを「切り取り」で押し出して穴・切り欠きを作成します (押し出しコマンド)。"), id: "sm-cut" }],
+        },
+        {
+          title: "展開",
+          items: [{ id: "sm-flat", label: "展開パターン", icon: "unfold", tip: "K係数から展開形状を計算し、展開寸法・曲げ線を表示します。DXF (レーザー加工・タレパン用) に書き出せます。", action: () => openFlatPattern(app) }],
         },
       ],
     },

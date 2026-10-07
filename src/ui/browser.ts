@@ -14,6 +14,8 @@ export const FEATURE_ICONS: Record<string, string> = {
   shell: "shell",
   hole: "hole",
   thread: "thread",
+  sheetFace: "smFace",
+  flange: "flange",
   rectPattern: "rectPattern",
   circPattern: "circPattern",
   mirror: "mirror",

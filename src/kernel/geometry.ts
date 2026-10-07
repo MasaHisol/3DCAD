@@ -591,6 +591,29 @@ async function evalShape(f: RFeature, st: State, entry: CacheEntry): Promise<Sta
     case "move": {
       return { bodies: bodies.map((b) => transformShape(b, f.transform)), tools };
     }
+    case "flange": {
+      const T = f.thickness, Rr = f.radius, th = (f.angle * Math.PI) / 180;
+      const C: P2 = [0, T + Rr];
+      const at = (r: number, a: number): P2 => [C[0] + r * Math.sin(a), C[1] - r * Math.cos(a)];
+      const fwd = (p: P2, l: number): P2 => [p[0] + l * Math.cos(th), p[1] + l * Math.sin(th)];
+      const parts: Shape[] = [];
+      for (const sp of f.specs) {
+        const P2i = at(Rr, th), P5 = at(Rr + T, th);
+        let pen = R.draw([0, 0]).lineTo([0, T]);
+        if (Rr > 1e-6) pen = pen.threePointsArcTo(P2i, at(Rr, th / 2));
+        if (f.leg > 1e-6) pen = pen.lineTo(fwd(P2i, f.leg)).lineTo(fwd(P5, f.leg));
+        pen = pen.lineTo(P5);
+        const profile = pen.threePointsArcTo([0, 0], at(Rr + T, th / 2)).close();
+        const normal = cross(sp.out, sp.up);
+        const reversed = dot(normal, sp.along) < 0;
+        const origin = reversed ? add(sp.origin, scale(sp.along, sp.width)) : sp.origin;
+        const sk = profile.sketchOnPlane(new R.Plane(origin, sp.out, normal)) as R.Sketch;
+        parts.push(sk.extrude(sp.width));
+      }
+      const tool = fuseAll(parts);
+      tools.set(f.id, { shape: tool, op: "join" });
+      return { bodies: applyOp(bodies, tool, "join"), tools };
+    }
     case "thread": {
       const { perBody, updated } = resolveFaces(bodies, [f.face], diag);
       entry.refs = { faces: updated };

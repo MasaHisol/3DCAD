@@ -4,10 +4,11 @@
 
 import type { PathSeg, RFeature, ThreadSpec, Transform } from "../kernel/protocol";
 import { threadByName } from "./threads";
+import { flangeSpecs, legLength, matchEdge, outerEdges, sheetStyle, type SheetEdge } from "../sheetmetal/sheet";
 import { findRegions, pointInRegion, type Region } from "../sketch/profiles";
 import { solve, type SolveResult } from "../sketch/solver";
 import { evalWith } from "./params";
-import type { AxisRef, Feature, PartDocument, PlaneDef, SketchFeature, SkLine, SkPoint, Vec2, Vec3, WorkPlaneFeature } from "./types";
+import type { AxisRef, Feature, PartDocument, PlaneDef, SheetFaceFeature, SketchFeature, SkLine, SkPoint, Vec2, Vec3, WorkPlaneFeature } from "./types";
 
 export interface SketchState {
   regions: Region[];
@@ -107,7 +108,7 @@ export function resolveDocument(doc: PartDocument, values: Map<string, number>, 
   for (const f of active) {
     if (f.suppressed || f.type === "sketch" || f.type === "workplane") continue;
     try {
-      const rf = resolveFeature(doc, f, sketches, num);
+      const rf = resolveFeature(doc, f, sketches, num, values);
       if (rf) out.push(rf);
     } catch (e) {
       errors[f.id] = (e as Error).message;
@@ -121,6 +122,7 @@ function resolveFeature(
   f: Feature,
   sketches: Map<string, SketchState>,
   num: (f: Feature, expr: string, label: string) => number,
+  values: Map<string, number>,
 ): RFeature | null {
   const sketchOf = (id: string) => {
     if (!id) throw new Error("プロファイルを選択してください");
@@ -233,6 +235,36 @@ function resolveFeature(
         csAngle: f.holeType === "countersink" ? num(f, f.csAngle, "皿角度") : 90,
         flip: f.flip,
         thread: f.standard === "tapped" ? threadSpec(f.size ?? "", f.threadFull !== false || !f.threadLength ? 0 : num(f, f.threadLength, "ねじ長さ"), f.threadFull !== false || !f.threadLength) : undefined,
+      };
+    }
+    case "sheetFace": {
+      const { sk, st } = sketchOf(f.sketch);
+      const sm = sheetStyle(doc, values);
+      return { id: f.id, type: "extrude", plane: sk.plane, regions: regionsOf(st, f.profiles, f.profilePts), op: f.op, from: 0, to: sm.thickness, through: false, flip: f.flip };
+    }
+    case "flange": {
+      const base = doc.features.find((x) => x.id === f.base) as SheetFaceFeature | undefined;
+      if (!base || base.type !== "sheetFace") throw new Error("板金の面が見つかりません");
+      const { sk, st } = sketchOf(base.sketch);
+      const sm = sheetStyle(doc, values);
+      const region = regionsOf(st, base.profiles, base.profilePts)[0];
+      const edges = outerEdges(region.outer);
+      const picked = f.edges.map((p) => matchEdge(edges, p, Math.max(1e-3, sm.thickness)));
+      if (!picked.length) throw new Error("エッジを選択してください");
+      if (picked.some((e) => !e)) throw new Error("参照エッジが見つかりません (面のスケッチが変更されました)");
+      const angle = num(f, f.angle, "角度");
+      if (!(angle > 0 && angle <= 150)) throw new Error("角度は 0〜150° で指定してください");
+      const height = num(f, f.height, "高さ");
+      const leg = legLength(height, angle, sm);
+      if (!(leg >= 0)) throw new Error("高さが曲げ部 (板厚 + 曲げ半径) より小さすぎます");
+      return {
+        id: f.id,
+        type: "flange",
+        specs: flangeSpecs(base, sk.plane, picked as SheetEdge[], f.down, sm),
+        thickness: sm.thickness,
+        radius: sm.radius,
+        angle,
+        leg,
       };
     }
     case "thread":
