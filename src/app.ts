@@ -1626,6 +1626,11 @@ export class App {
         h("span", {}, `アセンブリ「${asm.name}」内でパーツ「${d.name}」を編集中`),
         h("button", { class: "btn primary", onClick: () => this.returnToAssembly() }, iconEl("check"), "アセンブリに戻る"),
       );
+    if (this.env === "assembly") {
+      const t = this.asm.dofText();
+      this.statusDof.textContent = t.text;
+      this.statusDof.className = "st-dof " + t.cls;
+    } else if (this.mode !== "sketch") this.statusDof.textContent = "";
     const st = this.asmDoc ? this.asm.store : this.store;
     (document.getElementById("qat-undo") as HTMLButtonElement | null)?.toggleAttribute("disabled", !st.canUndo());
     (document.getElementById("qat-redo") as HTMLButtonElement | null)?.toggleAttribute("disabled", !st.canRedo());

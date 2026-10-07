@@ -52,6 +52,8 @@ export const ICONS: Record<string, string> = {
   flange: I(`<path class="a" d="M3 16l8-4.5 7 4-8 4.5z"/><path class="b" d="M18 15.5V6l-7-4v9.5" stroke-width="1.6"/><path d="M3 16v1.5l7 4 8-4.5V15.5"/>`),
   unfold: I(`<path class="a" d="M2 12h20v6H2z"/><path class="b" d="M8 12v6M16 12v6" stroke-dasharray="2 1.5"/><path d="M5 9l3-5h8l3 5"/>`),
   smStyle: I(`<path class="a" d="M3 14h18v3H3z"/><path d="M6 14V7M18 14V7"/><path class="b" d="M9 9h6M12 6v6" stroke-width="1.6"/>`),
+  play: I(`<path class="b" d="M7 4l13 8-13 8z"/>`),
+  explode: I(`<path class="a" d="M9 9h6v6H9z"/><path d="M4 4h3v3H4zM17 4h3v3h-3zM4 17h3v3H4zM17 17h3v3h-3z"/><path class="b" d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2" stroke-dasharray="1.5 1.2"/>`),
   library: I(`<path class="a" d="M4 4h5v16H4z"/><path d="M10 4h4v16h-4z"/><path class="b" d="M15.5 5.2l3.9-1 3.6 14.6-3.9 1z"/>`),
   search: I(`<circle cx="10" cy="10" r="6"/><path d="M15 15l6 6"/>`),
   timeline: I(`<path d="M2 12h20"/><rect class="a" x="4" y="8" width="4" height="8" rx="1"/><rect class="a" x="10" y="8" width="4" height="8" rx="1"/><path class="x" d="M18 6v12" stroke-width="2"/>`),

@@ -12,6 +12,8 @@ import { confirmDialog, contextMenu, download, h, iconEl, markingMenu, modal, pi
 import { PropertyPanel } from "../ui/panel";
 import type { RibbonTab } from "../ui/ribbon";
 import type { Pick, ToolHandler } from "../viewer/viewport";
+import { analyzeDof, explodeOffsets, type DofReport } from "./motion";
+import { startDrive, startExplode } from "./motionUi";
 import { constraintError, solveAssembly, type SolverConstraint } from "./solver";
 import { IDENTITY, newAssembly, type AsmComponent, type AsmConstraint, type AsmConstraintType, type AssemblyDocument, type GeoRef } from "./types";
 
@@ -43,12 +45,17 @@ export class AssemblyEnv {
   selected = new Set<string>();
   command: { id: string; cancel(): void; ok(): void; onEscape?(): boolean } | null = null;
   solveError = 0;
+  /** Remaining degrees of freedom after the last solve. */
+  dof: DofReport | null = null;
+  /** Exploded view factor (0 = assembled) and trail lines. */
+  explode = 0;
+  trails = true;
   private updating: Promise<void> | null = null;
   private pendingUpdate = false;
   /** Part currently opened for editing (in-place). */
   editingPart: string | null = null;
 
-  constructor(private app: App) {
+  constructor(readonly app: App) {
     this.store.on((r) => this.onChange(r));
   }
 
@@ -192,7 +199,37 @@ export class AssemblyEnv {
       return { ...c, matrix: arr };
     });
     if (changed) this.store.patch((d) => (d.components = next), "solve");
+    try {
+      this.dof = analyzeDof(this.doc.components, this.solverConstraints());
+    } catch {
+      this.dof = null;
+    }
     return rep;
+  }
+
+  /** Status bar text for the assembly DOF (Inventor: 自由度). */
+  dofText(): { text: string; cls: string } {
+    if (this.solveError) return { text: "⚠ 拘束を満たせません", cls: "bad" };
+    if (!this.dof) return { text: "", cls: "" };
+    const free = this.doc.components.filter((c) => (this.dof!.perComp.get(c.id)?.dof ?? 0) > 0).length;
+    return this.dof.total === 0 ? { text: "✓ 全コンポーネント完全拘束", cls: "ok" } : { text: `自由度 ${this.dof.total} (未拘束 ${free} 個)`, cls: "" };
+  }
+
+  /** World bounding box centre / size of a component (for exploded views). */
+  compBox(c: AsmComponent): { center: Vec3; size: number } {
+    const box = new THREE.Box3();
+    const m = m4(c.matrix);
+    for (const b of this.parts.get(c.partId)?.bodies ?? []) box.union(new THREE.Box3(new THREE.Vector3(...b.bbox[0]), new THREE.Vector3(...b.bbox[1])).applyMatrix4(m));
+    if (box.isEmpty()) return { center: [c.matrix[12], c.matrix[13], c.matrix[14]], size: 1 };
+    const ctr = box.getCenter(new THREE.Vector3());
+    return { center: [ctr.x, ctr.y, ctr.z], size: box.getSize(new THREE.Vector3()).length() };
+  }
+
+  /** Display offsets of the exploded view. */
+  explodeMap(): Map<string, Vec3> {
+    if (!this.explode) return new Map();
+    const comps = this.doc.components.map((c) => ({ id: c.id, matrix: c.matrix, grounded: c.grounded, ...this.compBox(c) }));
+    return explodeOffsets(comps, this.solverConstraints(), this.explode);
   }
 
   render() {
@@ -201,21 +238,31 @@ export class AssemblyEnv {
     const colors: (string | undefined)[] = [];
     const mats: THREE.Matrix4[] = [];
     this.bodyMap = [];
+    const ex = this.explodeMap();
+    const trails: [Vec3, Vec3][] = [];
     this.doc.components.forEach((c) => {
       if (c.visible === false) return;
       const cache = this.parts.get(c.partId);
       if (!cache) return;
       const color = this.partColor(c.partId);
+      const off = ex.get(c.id);
+      const m = m4(c.matrix);
+      if (off && Math.hypot(...off) > 1e-9) {
+        m.premultiply(new THREE.Matrix4().makeTranslation(off[0], off[1], off[2]));
+        const ctr = this.compBox(c).center;
+        if (this.trails) trails.push([ctr, [ctr[0] + off[0], ctr[1] + off[1], ctr[2] + off[2]]]);
+      }
       cache.bodies.forEach((b, i) => {
         bodies.push(b);
         colors.push(color);
-        mats.push(m4(c.matrix));
+        mats.push(m.clone());
         this.bodyMap.push({ comp: c.id, local: i });
       });
     });
     vp.setBodies(bodies, undefined, colors, mats);
+    vp.setTrails(trails);
     this.highlightSelection();
-    this.app.browser.render();
+    this.app.refreshUI();
   }
 
   partColor(partId: string): string {
@@ -466,10 +513,12 @@ export class AssemblyEnv {
       const part = doc.parts.find((p) => p.id === c.partId);
       const err = this.parts.get(c.partId)?.error;
       const vis = c.visible !== false;
+      const df = this.dof?.perComp.get(c.id);
       const trailing = h(
         "span",
         { class: "br-trail" },
         c.grounded ? h("span", { class: "br-pin", title: "接地" }, iconEl("fix")) : "",
+        df && df.dof > 0 ? h("span", { class: "br-dof", title: `残りの自由度: 並進 ${df.trans} / 回転 ${df.rot}` }, `${df.dof}`) : "",
         h(
           "button",
           {
@@ -532,6 +581,7 @@ export class AssemblyEnv {
       const c = cons[0];
       items.push(
         { label: "拘束を編集", icon: "edit", action: () => this.startConstraint(c) },
+        { label: "拘束を駆動…", icon: "play", action: () => startDrive(this, c.id) },
         { label: c.suppressed ? "抑制を解除" : "抑制", action: () => this.store.mutate("抑制", (d) => (d.constraints.find((x) => x.id === c.id)!.suppressed = !c.suppressed)) },
       );
     }
@@ -633,6 +683,11 @@ export class AssemblyEnv {
     if (this.doc.components.length < 2) {
       toast("拘束には 2 つ以上のコンポーネントが必要です", "warn");
       return;
+    }
+    if (this.explode) {
+      // constraints are picked on the assembled positions
+      this.explode = 0;
+      this.render();
     }
     const cmd = new ConstraintCommand(this, this.app, existing ?? null, existing?.type ?? type);
     this.command = cmd;
@@ -786,6 +841,20 @@ export class AssemblyEnv {
                 { id: "asm-axis", label: "軸合わせ", icon: "c-axis", size: "small", action: () => this.startConstraint(undefined, "axis") },
               ],
             },
+          ],
+        },
+        {
+          title: "モーション",
+          items: [
+            {
+              id: "asm-drive",
+              label: "拘束を駆動",
+              icon: "play",
+              tip: "角度 / オフセット拘束の値を連続的に変化させて機構の動きを確認します (干渉で停止できます)。",
+              action: () => startDrive(this, [...this.selected].find((id) => this.doc.constraints.some((c) => c.id === id))),
+              active: () => this.command?.id === "drive",
+            },
+            { id: "asm-explode", label: "分解", icon: "explode", tip: "コンポーネントを拘束の軸方向に分解して表示します (プレゼンテーション)。", action: () => startExplode(this), active: () => this.command?.id === "explode" || this.explode > 0 },
           ],
         },
         {

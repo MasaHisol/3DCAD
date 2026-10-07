@@ -159,6 +159,24 @@ try {
   check("assembly insert constraint", Math.abs(pin[0]) < 1e-6 && Math.abs(pin[1] - 35) < 1e-6 && Math.abs(pin[2]) < 1e-6, JSON.stringify(pin));
   const hits = await page.evaluate(() => window.cad.kernel.interference(window.cad.asm.placements()));
   check("no interference", hits.length === 0);
+  // degrees of freedom: the inserted pin can only spin, the loose pin is free
+  const dof = await page.evaluate(() => ({ c2: window.cad.asm.dof.perComp.get("c2").dof, c3: window.cad.asm.dof.perComp.get("c3").dof, status: document.querySelector(".st-dof").textContent }));
+  check("assembly DOF", dof.c2 === 1 && dof.c3 === 6 && dof.status.includes("自由度 7"), JSON.stringify(dof));
+  // drive the insert offset: the pin slides out and comes back on cancel
+  await page.locator('[data-cmd="asm-drive"]').click();
+  await page.locator(".drive-btns .btn", { hasText: "▶▶" }).click();
+  await page.waitForFunction(() => Math.abs(window.cad.asm.doc.components.find((c) => c.id === "c2").matrix[13] - 55) < 1e-6, null, { timeout: 20000 });
+  check("drive constraint", true);
+  await page.keyboard.press("Escape");
+  await settle();
+  check("drive restores", Math.abs((await page.evaluate(() => window.cad.asm.doc.components.find((c) => c.id === "c2").matrix[13])) - 35) < 1e-6);
+  await page.locator('[data-cmd="asm-explode"]').click();
+  await settle();
+  const ex = await page.evaluate(() => ({ trails: window.cad.vp.trailLayer.children.length, y: window.cad.asm.doc.components.find((c) => c.id === "c2").matrix[13] }));
+  check("exploded view", ex.trails === 1 && Math.abs(ex.y - 35) < 1e-6, JSON.stringify(ex));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/explode.png` });
+  await page.keyboard.press("Escape");
+  await settle();
   await page.evaluate(() => window.cad.openDrawingEnv());
   await page.waitForFunction(() => window.cad.env === "drawing" && document.querySelectorAll(".dw-stage .dview").length >= 4, null, { timeout: 60000 });
   await settle();

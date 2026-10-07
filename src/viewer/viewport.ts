@@ -85,6 +85,7 @@ export class Viewport {
   readonly sketchLayer = new THREE.Group();
   /** Cosmetic threads drawn as helices on their cylinders. */
   readonly threadLayer = new THREE.Group();
+  readonly trailLayer = new THREE.Group();
   readonly refLayer = new THREE.Group();
   readonly triadScene = new THREE.Scene();
   readonly triadCam = new THREE.OrthographicCamera(-1.6, 1.6, 1.6, -1.6, -10, 10);
@@ -161,7 +162,7 @@ export class Viewport {
     });
     this.backMaterial = new THREE.MeshBasicMaterial({ color: "#e0a458", side: THREE.BackSide });
 
-    this.scene.add(this.model, this.threadLayer, this.refLayer, this.sketchLayer, this.overlay);
+    this.scene.add(this.model, this.threadLayer, this.trailLayer, this.refLayer, this.sketchLayer, this.overlay);
     this.overlay.add(this.hoverObj, this.selectObj);
     this.buildTriad();
     this.setStandardView([1, 1, 1], false);
@@ -406,6 +407,21 @@ export class Viewport {
     this.placeView(v, m.clone());
     if (this.pickViews !== this.bodies && this.pickViews[i]) this.placeView(this.pickViews[i], m.clone());
     this.refreshHighlights();
+  }
+
+  /** Dashed trail lines (exploded views). */
+  setTrails(segs: [Vec3, Vec3][]) {
+    for (const c of [...this.trailLayer.children]) {
+      this.trailLayer.remove(c);
+      (c as THREE.LineSegments).geometry.dispose();
+    }
+    if (segs.length) {
+      const g = new THREE.BufferGeometry().setFromPoints(segs.flat().map((p) => new THREE.Vector3(...p)));
+      const l = new THREE.LineSegments(g, new THREE.LineDashedMaterial({ color: 0x2b7de9, dashSize: 3, gapSize: 2 }));
+      l.computeLineDistances();
+      this.trailLayer.add(l);
+    }
+    this.invalidate();
   }
 
   setThreads(threads: ThreadInfo[]) {

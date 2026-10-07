@@ -67,3 +67,21 @@ describe("assembly solver", () => {
     expect(Math.acos(x.x) * 180 / Math.PI).toBeCloseTo(30, 3);
   });
 });
+
+describe("assembly motion", () => {
+  it("counts remaining degrees of freedom", async () => {
+    const { analyzeDof } = await import("../src/assembly/motion");
+    const { sampleAssembly } = await import("../src/samples");
+    const doc = sampleAssembly();
+    const cons = doc.constraints.map((c) => ({ type: c.type, a: c.a, b: c.b, value: Number(c.offset), flip: c.flip }));
+    const rep = analyzeDof(doc.components, cons);
+    expect(rep.perComp.get("c1")!.dof).toBe(0);
+    // insert: only the spin about the pin axis remains
+    expect(rep.perComp.get("c2")).toEqual({ dof: 1, trans: 0, rot: 1 });
+    expect(rep.perComp.get("c3")!.dof).toBe(6);
+    // a mate alone leaves 2 translations + 1 rotation
+    const mate = { type: "mate" as const, a: { comp: "c1", geom: "plane" as const, point: [0, 10, 0] as [number, number, number], dir: [0, 1, 0] as [number, number, number] }, b: { comp: "c3", geom: "plane" as const, point: [0, 0, 0] as [number, number, number], dir: [0, -1, 0] as [number, number, number] }, value: 0 };
+    const comps = doc.components.map((c) => (c.id === "c3" ? { ...c, matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 50, 10, 0, 1] } : c));
+    expect(analyzeDof(comps, [...cons, mate]).perComp.get("c3")).toEqual({ dof: 3, trans: 2, rot: 1 });
+  });
+});
