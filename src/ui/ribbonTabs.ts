@@ -1,6 +1,6 @@
 import type { App } from "../app";
 import type { SketchTool } from "../viewer/sketchEditor";
-import { openDrawing, openIProperties, openParameters, openShortcuts } from "./dialogs";
+import { openIProperties, openParameters, openShortcuts } from "./dialogs";
 import type { RibbonButton, RibbonTab } from "./ribbon";
 
 export function buildRibbonTabs(app: App): RibbonTab[] {
@@ -194,7 +194,7 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
         },
         {
           title: "図面",
-          items: [{ id: "drawing", label: "図面ビュー", icon: "drawing", tip: "正面・平面・側面・等角ビューの 2D 図面 (隠れ線付き) を作成します。", action: () => openDrawing(app) }],
+          items: [{ id: "drawing", label: "図面ビュー", icon: "drawing", tip: "正面・平面・側面・等角ビューの 2D 図面 (隠れ線付き) を作成します。", action: () => app.openDrawingEnv() }],
         },
       ],
     },

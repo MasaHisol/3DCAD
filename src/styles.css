@@ -1861,3 +1861,54 @@ kbd {
 .settings .field {
   margin-bottom: 8px;
 }
+
+/* ---------------------------------------------------------- drawing --- */
+.dw-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  background: var(--bg-2, #6b7280);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 1px);
+  background-size: 16px 16px;
+  outline: none;
+  cursor: default;
+  touch-action: none;
+}
+.dw-stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+.dw-stage > svg {
+  display: block;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  overflow: visible;
+}
+.dw-stage .dview,
+.dw-stage .anno {
+  cursor: move;
+}
+.dw-stage .dview:hover > .visible-lines,
+.dw-stage .anno:hover {
+  filter: drop-shadow(0 0 0.6px #2b7de9);
+}
+.dw-stage .sel,
+.dw-stage .sel * {
+  stroke: #1f6fe0 !important;
+}
+.dw-stage text.sel,
+.dw-stage .sel text {
+  fill: #1f6fe0 !important;
+}
+.dw-stage .dw-preview {
+  pointer-events: none;
+  stroke: #e9822b;
+  fill: none;
+}
+.viewport.drawing-mode .viewcube,
+.viewport.drawing-mode .nav-bar,
+.viewport.drawing-mode .vp-overlay {
+  display: none;
+}

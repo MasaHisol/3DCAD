@@ -17,13 +17,14 @@ import { SketchEditor, type SketchTool } from "./viewer/sketchEditor";
 import { SketchRenderer } from "./viewer/sketchRender";
 import { ViewCube } from "./viewer/viewcube";
 import { samePick, Viewport, type Pick, type ToolHandler, type VisualStyle } from "./viewer/viewport";
-import { openDrawing, openIProperties, openParameters, openShortcuts } from "./ui/dialogs";
+import { openIProperties, openParameters, openShortcuts } from "./ui/dialogs";
 import { sampleAssembly, sampleDocument } from "./samples";
 import { exportMeshes, objToStl, parseDxf, sketchToDxf, type MeshFormat } from "./io/formats";
 import { NAV_PRESETS, type NavPreset } from "./viewer/viewport";
 import { Timeline } from "./ui/timeline";
 import { openCommandSearch } from "./ui/commandSearch";
 import { AssemblyEnv } from "./assembly/env";
+import { DrawingEnv } from "./drawing/env";
 import { newAssembly, type AssemblyDocument } from "./assembly/types";
 
 const AUTOSAVE_KEY = "3dcad.autosave.v2";
@@ -45,7 +46,8 @@ export class App {
   commands!: CommandRegistry;
 
   /** Active environment: part modelling or assembly. */
-  env: "part" | "assembly" = "part";
+  env: "part" | "assembly" | "drawing" = "part";
+  drawing!: DrawingEnv;
   asm!: AssemblyEnv;
   private asmBanner!: HTMLElement;
   mode: "model" | "sketch" = "model";
@@ -125,8 +127,13 @@ export class App {
     root.append(titlebar, ribbonHost, main, status);
 
     this.asm = new AssemblyEnv(this);
+    this.drawing = new DrawingEnv(this);
     this.browser = new ModelBrowser(main, {
       customRender: (list) => {
+        if (this.env === "drawing") {
+          this.drawing.renderBrowser(list);
+          return true;
+        }
         if (this.env !== "assembly") return false;
         this.asm.renderBrowser(list);
         return true;
@@ -171,9 +178,17 @@ export class App {
     this.buildNavBar(vpEl);
 
     this.commands = buildCommands(this);
-    this.ribbon = new Ribbon(ribbonHost, buildRibbonTabs(this), (a) => this.fileMenu(a));
+    this.ribbon = new Ribbon(ribbonHost, [...buildRibbonTabs(this), this.drawing.ribbonTab()], (a) => this.fileMenu(a));
 
     this.store.on((reason) => this.onDocChanged(reason));
+    const dwChange = (r: string) => {
+      if (this.env !== "drawing" || r === "drawing-silent" || r === "refs") return;
+      // undoing past the drawing's creation closes it
+      if (!this.drawing.store.doc.drawing) return void this.leaveDrawingEnv();
+      void this.drawing.refresh();
+    };
+    this.store.on(dwChange);
+    this.asm.store.on(dwChange);
     this.setModelTool();
     this.installKeys();
     window.addEventListener("beforeunload", (e) => {
@@ -814,6 +829,7 @@ export class App {
   // ------------------------------------------------------------- editing ---
 
   undo() {
+    if (this.env === "drawing") return void (this.drawing.store.canUndo() && this.drawing.store.undo());
     if (this.env === "assembly") {
       this.cancelAsmCommand();
       this.asm.store.undo();
@@ -824,6 +840,7 @@ export class App {
   }
 
   redo() {
+    if (this.env === "drawing") return void this.drawing.store.redo();
     if (this.env === "assembly") {
       this.cancelAsmCommand();
       this.asm.store.redo();
@@ -835,6 +852,58 @@ export class App {
 
   // ------------------------------------------------------------ assembly ---
 
+  /** True when the open document is an assembly (also while drawing it). */
+  get asmDoc(): boolean {
+    return this.env === "assembly" || (this.env === "drawing" && this.drawing.source === "assembly");
+  }
+
+  // ------------------------------------------------------------- drawing ---
+
+  /** Open the 2D drawing of the current part / assembly. */
+  openDrawingEnv() {
+    if (this.env === "drawing") return;
+    void this.drawing.open();
+  }
+
+  enterDrawingEnv(dw: DrawingEnv) {
+    if (this.asm.editingPart) this.returnToAssembly();
+    this.cancelAsmCommand();
+    this.env = "drawing";
+    this.vp.renderer.domElement.style.visibility = "hidden";
+    this.timeline?.el.classList.add("hidden");
+    this.vp.el.classList.add("drawing-mode");
+    this.ribbon.setActive("drawing");
+    void dw;
+    this.refreshUI();
+  }
+
+  leaveDrawingEnv() {
+    if (this.env !== "drawing") return;
+    this.drawing.hide();
+    this.vp.renderer.domElement.style.visibility = "";
+    this.timeline?.el.classList.remove("hidden");
+    this.vp.el.classList.remove("drawing-mode");
+    this.env = this.drawing.source;
+    if (this.drawing.source === "assembly") this.activateAssembly();
+    else {
+      this.setModelTool();
+      this.ribbon.setActive("model");
+      this.scheduleRegen(0);
+      this.refreshUI();
+    }
+  }
+
+  /** Rebuild the part in the kernel while the drawing environment is shown. */
+  async regenModelForDrawing() {
+    const prev = this.env;
+    this.env = "part";
+    try {
+      await this.regenNow();
+    } finally {
+      this.env = prev;
+    }
+  }
+
   cancelAsmCommand() {
     this.asm.command?.cancel();
     this.asm.command = null;
@@ -842,6 +911,7 @@ export class App {
 
   /** Switch the UI to the assembly environment. */
   activateAssembly() {
+    this.leaveDrawingEnv();
     this.env = "assembly";
     if (this.command) this.finishCommand(this.command, false);
     if (this.sketchEditor) this.exitSketch(false);
@@ -930,7 +1000,7 @@ export class App {
   }
 
   private async confirmDiscard(): Promise<boolean> {
-    const dirty = this.env === "assembly" || this.asm.editingPart ? this.asm.store.dirty || this.store.dirty : this.store.dirty && this.store.doc.features.length > 0;
+    const dirty = this.asmDoc || this.asm.editingPart ? this.asm.store.dirty || this.store.dirty : this.store.dirty && this.store.doc.features.length > 0;
     if (!dirty) return true;
     return confirmDialog("変更の破棄", "保存されていない変更があります。破棄して続行しますか?", "破棄して続行");
   }
@@ -1036,7 +1106,7 @@ export class App {
       { label: "エクスポート…", icon: "export", action: () => this.exportMenu(r.left + 240, r.bottom + 2) },
       { label: "オプション…", icon: "settings", action: () => this.openSettings() },
       { separator: true, label: "" },
-      { label: "図面を作成…", icon: "drawing", action: () => openDrawing(this) },
+      { label: "図面を作成…", icon: "drawing", action: () => this.openDrawingEnv() },
       { label: "iProperties…", icon: "iprops", action: () => openIProperties(this) },
     ]);
   }
@@ -1052,6 +1122,7 @@ export class App {
 
   /** Back to plain part modelling (drops the assembly context). */
   private leaveAssembly() {
+    this.leaveDrawingEnv();
     if (this.env === "assembly" || this.asm.editingPart) {
       this.cancelAsmCommand();
       this.asm.editingPart = null;
@@ -1141,7 +1212,7 @@ export class App {
   }
 
   async save(as = false) {
-    if (this.env === "assembly" || this.asm.editingPart) {
+    if (this.asmDoc || this.asm.editingPart) {
       if (this.asm.editingPart) {
         const doc = structuredClone(this.store.doc);
         const id = this.asm.editingPart;
@@ -1180,7 +1251,7 @@ export class App {
   }
 
   async exportFile(format: "step" | "stl") {
-    if (this.env === "assembly") {
+    if (this.asmDoc) {
       if (format === "step") return this.asm.exportStep();
       try {
         download(`${this.asm.doc.name}.stl`, await this.kernel.exportAssembly("stl", this.asm.placements()), "model/stl");
@@ -1244,7 +1315,7 @@ export class App {
   async exportMesh(format: MeshFormat) {
     let bodies: Parameters<typeof exportMeshes>[1];
     let name: string;
-    if (this.env === "assembly") {
+    if (this.asmDoc) {
       name = this.asm.doc.name;
       bodies = this.asm.bodyMap.map((m, i) => {
         const c = this.asm.doc.components.find((x) => x.id === m.comp)!;
@@ -1357,7 +1428,7 @@ export class App {
     clearTimeout(this.autosaveTimer);
     this.autosaveTimer = window.setTimeout(() => {
       try {
-        const asmActive = this.env === "assembly" || !!this.asm.editingPart;
+        const asmActive = this.asmDoc || !!this.asm.editingPart;
         localStorage.setItem(
           AUTOSAVE_KEY,
           JSON.stringify({ env: asmActive ? "assembly" : "part", part: asmActive ? null : this.store.doc, asm: asmActive ? this.asm.doc : null }),
@@ -1453,6 +1524,11 @@ export class App {
       if (k === "F8" || k === "F9") return void (e.preventDefault(), this.toggleConstraintGlyphs());
       if (k === "F2" && this.browserSelection.size === 1 && this.mode === "model") return void (e.preventDefault(), this.browser.startRename([...this.browserSelection][0]));
       if (["F2", "F3", "F4"].includes(k)) return void e.preventDefault();
+      if (this.env === "drawing") {
+        if (k === "Escape") closeMenus();
+        if (this.drawing.key(e)) e.preventDefault();
+        return;
+      }
       if (this.env === "assembly") {
         if (k === "Escape") {
           closeMenus();
@@ -1515,14 +1591,18 @@ export class App {
   refreshUI() {
     const d = this.store.doc;
     const asm = this.asm.doc;
-    if (this.env === "assembly") {
+    if (this.env === "drawing") {
+      const n = this.drawing.source === "assembly" ? asm.name : d.name;
+      this.titleEl.textContent = `${n}${this.drawing.store.dirty ? " *" : ""} (図面)`;
+      document.title = `${n} 図面 — 3DCAD Studio`;
+    } else if (this.env === "assembly") {
       this.titleEl.textContent = `${asm.name}${this.asm.store.dirty ? " *" : ""} (アセンブリ)`;
       document.title = `${asm.name} — 3DCAD Studio`;
     } else {
       this.titleEl.textContent = `${d.name}${this.store.dirty ? " *" : ""}${this.asm.editingPart ? ` — ${asm.name} 内で編集中` : ""}${this.mode === "sketch" && this.sketchEditor ? ` — ${this.sketchEditor.sk?.name ?? ""} を編集中` : ""}`;
       document.title = `${d.name} — 3DCAD Studio`;
     }
-    this.materialSel.closest(".qat-field")!.classList.toggle("hidden", this.env === "assembly");
+    this.materialSel.closest(".qat-field")!.classList.toggle("hidden", this.env !== "part");
     this.asmBanner.innerHTML = "";
     this.asmBanner.classList.toggle("show", !!this.asm.editingPart && this.env === "part");
     if (this.asm.editingPart && this.env === "part")
@@ -1531,7 +1611,7 @@ export class App {
         h("span", {}, `アセンブリ「${asm.name}」内でパーツ「${d.name}」を編集中`),
         h("button", { class: "btn primary", onClick: () => this.returnToAssembly() }, iconEl("check"), "アセンブリに戻る"),
       );
-    const st = this.env === "assembly" ? this.asm.store : this.store;
+    const st = this.asmDoc ? this.asm.store : this.store;
     (document.getElementById("qat-undo") as HTMLButtonElement | null)?.toggleAttribute("disabled", !st.canUndo());
     (document.getElementById("qat-redo") as HTMLButtonElement | null)?.toggleAttribute("disabled", !st.canRedo());
     this.browser.render();

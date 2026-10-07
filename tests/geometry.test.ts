@@ -147,3 +147,24 @@ describe("press/pull", () => {
     expect(eng.massProps().volume).toBeCloseTo(600, 3);
   }, 60000);
 });
+
+describe("drawing views", () => {
+  it("projects edges, circles and hatched section faces", async () => {
+    const { drawView } = await import("../src/kernel/geometry");
+    const eng = new GeometryEngine();
+    await eng.rebuild([
+      { id: "e", type: "extrude", plane: XY, regions: [rect(40, 20)], op: "new", from: 0, to: 10, through: false, flip: false },
+      { id: "h", type: "hole", plane: { ...XY, origin: [0, 0, 10] }, points: [[20, 10]], holeType: "simple", diameter: 10, depth: 0, through: true, cbDiameter: 0, cbDepth: 0, csDiameter: 0, csAngle: 90, flip: false },
+    ]);
+    const top = drawView([{ shape: eng.bodies[0], tag: 0 }], { dir: [0, 0, 1], xAxis: [1, 0, 0] });
+    expect(top.visible.filter((s) => s.t === "line").length).toBe(4);
+    const circ = top.visible.find((s) => s.t === "circle")!;
+    expect(circ.t === "circle" && circ.r).toBeCloseTo(5, 6);
+    expect(top.bounds).toEqual([0, 0, 40, 20].map((x) => expect.closeTo(x, 6)) as never);
+    // section through the hole centre, viewed from the front
+    const sec = drawView([{ shape: eng.bodies[0], tag: 0 }], { dir: [0, -1, 0], xAxis: [1, 0, 0], section: { origin: [20, 10, 0], normal: [0, -1, 0] } });
+    expect(sec.hatch.length).toBe(2); // material left and right of the hole
+    const area = sec.hatch.reduce((s, f) => s + Math.abs(f[0].reduce((a, p, i, r) => a + (p[0] * r[(i + 1) % r.length][1] - r[(i + 1) % r.length][0] * p[1]) / 2, 0)), 0);
+    expect(area).toBeCloseTo(40 * 10 - 10 * 10, 3);
+  }, 60000);
+});

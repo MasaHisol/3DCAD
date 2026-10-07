@@ -141,6 +141,29 @@ export interface MeasureResult {
   radius?: number;
 }
 
+/** 2D drawing geometry in view coordinates (mm at 1:1, y up). `tag` = source body/placement. */
+export type Seg2 =
+  | { t: "line"; a: [number, number]; b: [number, number]; tag: number }
+  | { t: "circle"; c: [number, number]; r: number; tag: number }
+  | { t: "arc"; c: [number, number]; r: number; a0: number; a1: number; tag: number }
+  | { t: "poly"; pts: [number, number][]; tag: number };
+
+export interface ViewSpec {
+  dir: Vec3;
+  xAxis: Vec3;
+  /** Section: keep the material behind the plane (opposite `normal`), hatch the cut faces. */
+  section?: { origin: Vec3; normal: Vec3 };
+  hidden?: boolean;
+}
+
+export interface ViewGeometry {
+  visible: Seg2[];
+  hidden: Seg2[];
+  /** Cut faces of a section view: rings (outer + holes) per face. */
+  hatch: [number, number][][][];
+  bounds: [number, number, number, number];
+}
+
 export interface ProjectionView {
   name: string;
   visible: string[];
@@ -172,6 +195,7 @@ export type WorkerRequest =
   | { kind: "projection"; views: { name: string; dir: Vec3; xAxis: Vec3 }[]; key?: string; placements?: Placement[] }
   | { kind: "exportAssembly"; format: "step" | "stl"; placements: Placement[] }
   | { kind: "interference"; placements: Placement[] }
-  | { kind: "dropEngine"; key: string };
+  | { kind: "dropEngine"; key: string }
+  | { kind: "drawViews"; key?: string; placements?: Placement[]; views: ViewSpec[] };
 
 export type WorkerResponse = { id: number; ok: true; result: unknown } | { id: number; ok: false; error: string };

@@ -183,6 +183,24 @@ if (!app.requestSingleInstanceLock()) {
         return new Response("not found", { status: 404 });
       }
     });
+    ipcMain.handle("print-pdf", async (e, { html, w, h, name }) => {
+      const parent = BrowserWindow.fromWebContents(e.sender);
+      const res = await dialog.showSaveDialog(parent, { defaultPath: name, filters: [{ name: "PDF", extensions: ["pdf"] }] });
+      if (res.canceled || !res.filePath) return false;
+      const win = new BrowserWindow({ show: false, webPreferences: { offscreen: true, javascript: false } });
+      try {
+        await win.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(html));
+        const pdf = await win.webContents.printToPDF({
+          printBackground: true,
+          margins: { marginType: "none" },
+          pageSize: { width: w / 25.4, height: h / 25.4 },
+        });
+        await fs.promises.writeFile(res.filePath, pdf);
+        return true;
+      } finally {
+        win.destroy();
+      }
+    });
     ipcMain.on("renderer-ready", () => {
       rendererReady = true;
       const files = pendingFiles;

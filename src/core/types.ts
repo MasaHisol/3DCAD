@@ -325,4 +325,6 @@ export interface PartDocument {
   endOfPart: number;
   material: Material;
   iprops: Record<string, string>;
+  /** 2D drawing sheets documenting this part. */
+  drawing?: import("../drawing/types").DrawingDoc;
 }

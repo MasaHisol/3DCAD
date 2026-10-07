@@ -59,6 +59,7 @@ export interface AssemblyDocument {
   constraints: AsmConstraint[];
   params: Parameter[];
   iprops: Record<string, string>;
+  drawing?: import("../drawing/types").DrawingDoc;
 }
 
 export function newAssembly(name = "アセンブリ1"): AssemblyDocument {

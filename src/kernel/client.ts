@@ -1,6 +1,6 @@
 // Promise-based RPC to the geometry worker. Rebuild requests are coalesced:
 // while one is running only the latest pending request is kept.
-import type { Interference, MassProps, MeasureResult, PickRef, Placement, ProjectionView, RebuildResult, RFeature, WorkerRequest, WorkerResponse } from "./protocol";
+import type { ViewGeometry, ViewSpec, Interference, MassProps, MeasureResult, PickRef, Placement, ProjectionView, RebuildResult, RFeature, WorkerRequest, WorkerResponse } from "./protocol";
 
 export class KernelClient {
   private worker: Worker;
@@ -45,6 +45,9 @@ export class KernelClient {
   }
   interference(placements: Placement[]): Promise<Interference[]> {
     return this.call({ kind: "interference", placements });
+  }
+  drawViews(views: ViewSpec[], placements?: Placement[]): Promise<ViewGeometry[]> {
+    return this.call({ kind: "drawViews", views, placements });
   }
   massPropsKey(key: string): Promise<MassProps> {
     return this.call({ kind: "massProps", key });

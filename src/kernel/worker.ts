@@ -3,7 +3,7 @@
 import opencascade from "replicad-opencascadejs";
 import wasmUrl from "replicad-opencascadejs/wasm?url";
 import { setOC } from "replicad";
-import { exportPlaced, GeometryEngine, interferences, placeShape } from "./geometry";
+import { drawView, exportPlaced, GeometryEngine, interferences, placeShape } from "./geometry";
 import type { BodyMesh, Placement, WorkerRequest, WorkerResponse } from "./protocol";
 
 const engines = new Map<string, GeometryEngine>();
@@ -45,6 +45,12 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
     case "dropEngine":
       engines.delete(req.key);
       return { result: true, transfer: [] };
+    case "drawViews": {
+      const items = req.placements
+        ? placed(req.placements).map((x) => ({ shape: x.shape, tag: x.index }))
+        : eng.bodies.map((shape, i) => ({ shape, tag: i }));
+      return { result: req.views.map((v) => drawView(items, v)), transfer: [] };
+    }
     case "exportAssembly": {
       const buf = await exportPlaced(placed(req.placements), req.format).arrayBuffer();
       return { result: buf, transfer: [buf] };

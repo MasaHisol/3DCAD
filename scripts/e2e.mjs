@@ -68,6 +68,23 @@ try {
   const bb = (await page.evaluate(() => window.cad.kernel.massProps())).bbox;
   check("parameter drives model", Math.abs(bb[1][0] - bb[0][0] - 110) < 1e-6 && (await page.evaluate(() => Object.keys(window.cad.featureErrors).length)) === 0);
 
+  // 2D drawing of the part: standard views, automatic dimensions, DXF/SVG output
+  await page.evaluate(() => window.cad.openDrawingEnv());
+  await page.waitForFunction(() => window.cad.env === "drawing" && document.querySelectorAll(".dw-stage .dview").length >= 4, null, { timeout: 60000 });
+  await settle();
+  const dw = await page.evaluate(() => ({
+    views: document.querySelectorAll(".dw-stage .dview").length,
+    lines: [...document.querySelectorAll(".dw-stage .visible-lines")].reduce((n, e) => n + (e.getAttribute("d") || "").length, 0),
+    dims: window.cad.store.doc.drawing.sheets[0].annos.filter((a) => a.type === "dim").length,
+  }));
+  check("part drawing", dw.views >= 4 && dw.lines > 200 && dw.dims > 0, JSON.stringify(dw));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/drawing.png` });
+  await page.keyboard.press("Control+z");
+  await page.keyboard.press("Control+y");
+  await page.evaluate(() => window.cad.leaveDrawingEnv());
+  await settle();
+  check("back to model", (await page.evaluate(() => window.cad.env)) === "part");
+
   // sample assembly: insert constraint seats the pin
   await page.evaluate(() => window.cad.loadSampleAssembly());
   await page.waitForFunction(() => window.cad.asm.bodyMap.length >= 3, null, { timeout: 60000 });
@@ -76,6 +93,11 @@ try {
   check("assembly insert constraint", Math.abs(pin[0]) < 1e-6 && Math.abs(pin[1] - 35) < 1e-6 && Math.abs(pin[2]) < 1e-6, JSON.stringify(pin));
   const hits = await page.evaluate(() => window.cad.kernel.interference(window.cad.asm.placements()));
   check("no interference", hits.length === 0);
+  await page.evaluate(() => window.cad.openDrawingEnv());
+  await page.waitForFunction(() => window.cad.env === "drawing" && document.querySelectorAll(".dw-stage .dview").length >= 4, null, { timeout: 60000 });
+  await settle();
+  check("assembly drawing + parts list", (await page.evaluate(() => document.querySelectorAll(".dw-stage .partslist").length)) === 1);
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/asm-drawing.png` });
 } catch (e) {
   check("run", false, e.message);
 } finally {

@@ -143,11 +143,14 @@ class DxfWriter {
   arc(x: number, y: number, r: number, a0: number, a1: number, layer = "0") {
     this.add(0, "ARC", 8, layer, 10, x, 20, y, 30, 0, 40, r, 50, a0, 51, a1);
   }
+  text(x: number, y: number, h: number, s: string, rot = 0, layer = "TEXT") {
+    this.add(0, "TEXT", 8, layer, 10, x, 20, y, 30, 0, 40, h, 1, s, 50, rot);
+  }
   toString(): string {
     // R12 ASCII: readable by AutoCAD, Jw_cad, DraftSight, LibreCAD, Inventor, ...
     const head = ["0", "SECTION", "2", "HEADER", "9", "$ACADVER", "1", "AC1009", "9", "$INSUNITS", "70", "4", "0", "ENDSEC"];
     const tables = ["0", "SECTION", "2", "TABLES", "0", "TABLE", "2", "LAYER", "70", "3",
-      ...layer("0", 7, "CONTINUOUS"), ...layer("VISIBLE", 7, "CONTINUOUS"), ...layer("HIDDEN", 8, "CONTINUOUS"), ...layer("CONSTRUCTION", 8, "CONTINUOUS"),
+      ...layer("0", 7, "CONTINUOUS"), ...layer("VISIBLE", 7, "CONTINUOUS"), ...layer("HIDDEN", 8, "CONTINUOUS"), ...layer("CONSTRUCTION", 8, "CONTINUOUS"), ...layer("TEXT", 7, "CONTINUOUS"),
       "0", "ENDTAB", "0", "ENDSEC"];
     return [...head, ...tables, "0", "SECTION", "2", "ENTITIES", ...this.body, "0", "ENDSEC", "0", "EOF", ""].join("\r\n");
   }
@@ -182,8 +185,9 @@ export function sketchToDxf(sk: SketchFeature): string {
  */
 export function svgToDxf(svg: SVGSVGElement, heightMm: number): string {
   const w = new DxfWriter();
-  const paths = svg.querySelectorAll("path, rect, line");
+  const paths = svg.querySelectorAll("path, rect, line, circle, text");
   paths.forEach((el) => {
+    if (el.classList.contains("paper")) return;
     const hidden = !!el.closest("[stroke-dasharray]");
     const lay = hidden ? "HIDDEN" : "VISIBLE";
     const ctm = (el as SVGGraphicsElement).getCTM();
@@ -193,6 +197,26 @@ export function svgToDxf(svg: SVGSVGElement, heightMm: number): string {
       if (!m) return [x, heightMm - y];
       return [m.a * x + m.c * y + m.e, heightMm - (m.b * x + m.d * y + m.f)];
     };
+    if (el.closest("defs, clipPath, pattern")) return;
+    if (el instanceof SVGTextElement) {
+      const x = parseFloat(el.getAttribute("x") ?? "0"), y = parseFloat(el.getAttribute("y") ?? "0");
+      const size = parseFloat(el.getAttribute("font-size") ?? "3.5");
+      const s = el.textContent ?? "";
+      if (!s.trim()) return;
+      const anchor = el.getAttribute("text-anchor") ?? "start";
+      const rotM = /rotate\(([-0-9.]+)/.exec(el.getAttribute("transform") ?? "");
+      const rot = rotM ? -parseFloat(rotM[1]) : 0;
+      const wEst = s.length * size * 0.62 * (anchor === "middle" ? 0.5 : anchor === "end" ? 1 : 0);
+      const [px, py] = tp(x, y);
+      const r = (rot * Math.PI) / 180;
+      w.text(px - wEst * Math.cos(r), py - wEst * Math.sin(r), size, s, rot);
+      return;
+    }
+    if (el instanceof SVGCircleElement) {
+      const [cx, cy] = tp(el.cx.baseVal.value, el.cy.baseVal.value);
+      w.circle(cx, cy, el.r.baseVal.value * (m ? Math.hypot(m.a, m.b) : 1), lay);
+      return;
+    }
     if (el instanceof SVGRectElement) {
       const x = el.x.baseVal.value, y = el.y.baseVal.value, ww = el.width.baseVal.value, hh = el.height.baseVal.value;
       const c = [tp(x, y), tp(x + ww, y), tp(x + ww, y + hh), tp(x, y + hh)];

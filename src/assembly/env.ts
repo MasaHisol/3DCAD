@@ -9,7 +9,6 @@ import type { PartDocument, Vec3 } from "../core/types";
 import type { BodyMesh, EdgeInfo, FaceInfo, MassProps, Placement, RFeature } from "../kernel/protocol";
 import { confirmDialog, contextMenu, download, h, iconEl, markingMenu, modal, pickFile, toast, type MenuItem } from "../ui/dom";
 import { PropertyPanel } from "../ui/panel";
-import { openDrawing } from "../ui/dialogs";
 import type { RibbonTab } from "../ui/ribbon";
 import type { Pick, ToolHandler } from "../viewer/viewport";
 import { constraintError, solveAssembly, type SolverConstraint } from "./solver";
@@ -797,7 +796,7 @@ export class AssemblyEnv {
           title: "書き出し",
           items: [
             { id: "asm-step", label: "STEP 書き出し", icon: "export", tip: "アセンブリを STEP で書き出します (Inventor で開けます)。", action: () => this.exportStep() },
-            { id: "asm-drawing", label: "図面ビュー", icon: "drawing", tip: "アセンブリの 2D 図面ビューを作成します。", action: () => openDrawing(this.app) },
+            { id: "asm-drawing", label: "図面ビュー", icon: "drawing", tip: "アセンブリの 2D 図面ビューを作成します。", action: () => this.app.openDrawingEnv() },
           ],
         },
       ],

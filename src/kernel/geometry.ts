@@ -15,7 +15,10 @@ import type {
   RebuildResult,
   RFeature,
   RRegion,
+  Seg2,
   Transform,
+  ViewGeometry,
+  ViewSpec,
 } from "./protocol";
 
 type Shape = R.Shape3D;
@@ -670,6 +673,141 @@ export function importStl(bytes: Uint8Array): Shape {
       /* already gone */
     }
   }
+}
+
+// ---------------------------------------------------------- drawing views ---
+
+type P2 = [number, number];
+
+function circumcircle(a: P2, b: P2, c: P2): { c: P2; r: number } | null {
+  const d = 2 * (a[0] * (b[1] - c[1]) + b[0] * (c[1] - a[1]) + c[0] * (a[1] - b[1]));
+  if (Math.abs(d) < 1e-12) return null;
+  const a2 = a[0] ** 2 + a[1] ** 2, b2 = b[0] ** 2 + b[1] ** 2, c2 = c[0] ** 2 + c[1] ** 2;
+  const cx = (a2 * (b[1] - c[1]) + b2 * (c[1] - a[1]) + c2 * (a[1] - b[1])) / d;
+  const cy = (a2 * (c[0] - b[0]) + b2 * (a[0] - c[0]) + c2 * (b[0] - a[0])) / d;
+  return { c: [cx, cy], r: Math.hypot(a[0] - cx, a[1] - cy) };
+}
+
+/** Curve2D list of a projected Drawing -> simple segments. */
+function drawingSegments(d: R.Drawing, tag: number): Seg2[] {
+  const curves: R.Curve2D[] = [];
+  const walk = (s: unknown) => {
+    if (!s) return;
+    const o = s as { curves?: R.Curve2D[]; blueprints?: unknown[] };
+    if (o.curves) curves.push(...o.curves);
+    if (o.blueprints) o.blueprints.forEach(walk);
+  };
+  walk((d as unknown as { innerShape: unknown }).innerShape);
+  const out: Seg2[] = [];
+  for (const c of curves) {
+    const t = String(c.geomType);
+    const p0 = c.firstPoint as P2, p1 = c.lastPoint as P2;
+    const t0 = c.firstParameter, t1 = c.lastParameter;
+    if (t === "LINE") {
+      if (Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) > 1e-9) out.push({ t: "line", a: [p0[0], p0[1]], b: [p1[0], p1[1]], tag });
+    } else if (t === "CIRCLE") {
+      const pm = c.value(t0 + (t1 - t0) * 0.5) as P2, pq = c.value(t0 + (t1 - t0) * 0.25) as P2;
+      const full = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) < 1e-7;
+      const cc = circumcircle(p0, full ? pq : pm, full ? pm : p1);
+      if (!cc) continue;
+      if (full) out.push({ t: "circle", c: cc.c, r: cc.r, tag });
+      else {
+        const ang = (p: P2) => Math.atan2(p[1] - cc.c[1], p[0] - cc.c[0]);
+        const norm = (x: number) => ((x % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        let a0 = ang(p0), a1 = ang(p1);
+        // store counter-clockwise from a0 to a1, passing through the mid point
+        if (norm(ang(pm) - a0) > norm(a1 - a0)) [a0, a1] = [a1, a0];
+        out.push({ t: "arc", c: cc.c, r: cc.r, a0, a1, tag });
+      }
+    } else {
+      const pts: P2[] = [];
+      for (let i = 0; i <= 24; i++) {
+        const v = c.value(t0 + ((t1 - t0) * i) / 24) as P2;
+        pts.push([v[0], v[1]]);
+      }
+      out.push({ t: "poly", pts, tag });
+    }
+  }
+  return out;
+}
+
+function segBounds(segs: Seg2[], b: [number, number, number, number]) {
+  const add = (x: number, y: number) => {
+    b[0] = Math.min(b[0], x);
+    b[1] = Math.min(b[1], y);
+    b[2] = Math.max(b[2], x);
+    b[3] = Math.max(b[3], y);
+  };
+  for (const s of segs) {
+    if (s.t === "line") add(...s.a), add(...s.b);
+    else if (s.t === "poly") s.pts.forEach((p) => add(...p));
+    else add(s.c[0] - s.r, s.c[1] - s.r), add(s.c[0] + s.r, s.c[1] + s.r);
+  }
+}
+
+/** Projects shapes for a drawing view (optionally sectioned) into tagged 2D segments. */
+export function drawView(items: { shape: Shape; tag: number }[], v: ViewSpec): ViewGeometry {
+  const dir = normalize(v.dir), xAxis = normalize(v.xAxis);
+  const yAxis = cross(dir, xAxis);
+  const to2 = (p: Vec3): P2 => [dot(p, xAxis), dot(p, yAxis)];
+  let shapes = items;
+  const hatch: P2[][][] = [];
+  if (v.section) {
+    const n = normalize(v.section.normal);
+    const plane = new R.Plane(v.section.origin, perp(n), n);
+    shapes = [];
+    for (const it of items) {
+      const cut = it.shape.cutPlane(plane, 0, "negative");
+      if (!cut || isEmpty(cut as Shape)) continue;
+      shapes.push({ shape: cut as Shape, tag: it.tag });
+      for (const f of (cut as Shape).faces) {
+        if (String(f.geomType) !== "PLANE") continue;
+        const fn = normalize(tuple(f.normalAt(f.center)));
+        if (dot(fn, n) < 0.999 || Math.abs(dot(sub(tuple(f.center), v.section.origin), n)) > 1e-5) continue;
+        const ring = (w: R.Wire): P2[] => {
+          const pts: P2[] = [];
+          for (const e of w.edges) {
+            const k = String(e.geomType) === "LINE" ? 1 : 32;
+            const rev = e.orientation === "backward";
+            for (let i = 0; i < k; i++) pts.push(to2(tuple(e.pointAt(rev ? 1 - i / k : i / k))));
+          }
+          return pts;
+        };
+        try {
+          // outerWire()/innerWires() consume the face: work on clones
+          const inner = f.clone().innerWires();
+          hatch.push([ring(f.clone().outerWire()), ...inner.map(ring)]);
+        } catch {
+          /* skip odd faces */
+        }
+      }
+    }
+  }
+  const visible: Seg2[] = [], hidden: Seg2[] = [];
+  const cam = new R.ProjectionCamera([0, 0, 0], dir, xAxis);
+  if (shapes.length) {
+    const all = shapes.length === 1 ? shapes[0].shape : (R.makeCompound(shapes.map((s) => s.shape.clone())) as unknown as Shape);
+    const proj = R.drawProjection(all as never, cam);
+    visible.push(...drawingSegments(proj.visible, shapes.length === 1 ? shapes[0].tag : -1));
+    if (v.hidden !== false) hidden.push(...drawingSegments(proj.hidden, -1));
+    // assemblies: identify which placement each visible edge belongs to (balloons, parts lists)
+    if (shapes.length > 1) {
+      const key = (s: Seg2) => {
+        const p = s.t === "line" ? [(s.a[0] + s.b[0]) / 2, (s.a[1] + s.b[1]) / 2] : s.t === "poly" ? s.pts[12] : s.c;
+        return `${p[0].toFixed(3)},${p[1].toFixed(3)}`;
+      };
+      const owner = new Map<string, number>();
+      for (const s of shapes) {
+        const own = R.drawProjection(s.shape as never, cam);
+        for (const seg of drawingSegments(own.visible, s.tag)) owner.set(key(seg), s.tag);
+      }
+      for (const seg of visible) seg.tag = owner.get(key(seg)) ?? -1;
+    }
+  }
+  const bounds: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity];
+  segBounds(visible, bounds);
+  if (!Number.isFinite(bounds[0])) bounds.splice(0, 4, 0, 0, 0, 0);
+  return { visible, hidden, hatch, bounds };
 }
 
 /** Applies a column-major rigid 4x4 matrix to a shape (rotation + translation). */
