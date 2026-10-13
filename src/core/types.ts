@@ -260,6 +260,44 @@ export interface FlangeFeature extends FeatureBase {
   down: boolean;
 }
 
+/** Draft (taper) on faces, measured from a neutral planar face (Inventor 勾配). */
+export interface DraftFeature extends FeatureBase {
+  type: "draft";
+  faces: FaceRef[];
+  /** Planar face whose plane stays fixed; its normal is the pull direction. */
+  neutral: FaceRef | null;
+  angle: string;
+  flip: boolean;
+}
+
+/** Split bodies with a plane and keep one or both sides (Inventor 分割). */
+export interface SplitFeature extends FeatureBase {
+  type: "split";
+  /** Origin plane ("XY" | "YZ" | "XZ"), work plane feature id, or a planar face. */
+  tool: { kind: "origin"; key: "XY" | "YZ" | "XZ" } | { kind: "workplane"; id: string } | { kind: "face"; face: FaceRef };
+  keep: "positive" | "negative" | "both";
+}
+
+/** Rib (web) from open sketch lines, filled up to the existing material (Inventor リブ). */
+export interface RibFeature extends FeatureBase {
+  type: "rib";
+  sketch: string;
+  /** Line entity ids (empty = all non-construction lines). */
+  lines: string[];
+  thickness: string;
+  /** Fill to the other side of the lines. */
+  flip: boolean;
+}
+
+/** Thicken planar faces into a plate (Inventor 厚み付け / オフセット). */
+export interface ThickenFeature extends FeatureBase {
+  type: "thicken";
+  faces: FaceRef[];
+  distance: string;
+  flip: boolean;
+  op: BoolOp;
+}
+
 /** Cosmetic thread on a cylindrical face (Inventor "Thread"). */
 export interface ThreadFeature extends FeatureBase {
   type: "thread";
@@ -344,6 +382,10 @@ export type Feature =
   | ShellFeature
   | HoleFeature
   | ThreadFeature
+  | DraftFeature
+  | SplitFeature
+  | RibFeature
+  | ThickenFeature
   | SheetFaceFeature
   | FlangeFeature
   | PatternFeature

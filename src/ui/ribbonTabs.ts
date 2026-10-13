@@ -81,6 +81,19 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
           ],
         },
         {
+          title: "形状編集",
+          items: [
+            cmd("rib", "リブ", "rib", undefined, "スケッチした線分とボディの間を埋める補強リブを作成します。"),
+            {
+              stack: [
+                cmd("draft", "勾配", "draft", undefined, "成形品の抜き勾配: 固定面を基準に面を傾けます。", "small"),
+                cmd("split", "分割", "split", undefined, "平面でボディを分割し、片側または両方を残します。", "small"),
+                cmd("thicken", "厚み付け", "thicken", undefined, "平面に厚みをつけて板を追加 / 切り取りします。", "small"),
+              ],
+            },
+          ],
+        },
+        {
           title: "作業フィーチャ",
           items: [cmd("workplane", "平面", "workplane", undefined, "既存の平面または面からオフセットした作業平面を作成します。")],
         },

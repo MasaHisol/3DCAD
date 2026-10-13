@@ -82,6 +82,11 @@ function regionDrawing(r: RRegion): R.Drawing {
   return d;
 }
 
+function solidsOf(s: Shape): Shape[] {
+  const list = (s as unknown as { solids?: Shape[] }).solids;
+  return list?.length ? list : [s];
+}
+
 function fuseAll(shapes: Shape[]): Shape {
   let s = shapes[0];
   for (let i = 1; i < shapes.length; i++) s = s.fuse(shapes[i]);
@@ -613,6 +618,109 @@ async function evalShape(f: RFeature, st: State, entry: CacheEntry): Promise<Sta
       const tool = fuseAll(parts);
       tools.set(f.id, { shape: tool, op: "join" });
       return { bodies: applyOp(bodies, tool, "join"), tools };
+    }
+    case "draft": {
+      const all = resolveFaces(bodies, [...f.faces, f.neutral], diag);
+      entry.refs = { faces: all.updated.slice(0, f.faces.length) };
+      const nInfo = all.updated[f.faces.length];
+      if (nInfo.type !== "PLANE") throw new Error("中立面には平面を選択してください");
+      const dir = f.flip ? scale(nInfo.normal, -1) : nInfo.normal;
+      const plane = new R.Plane(nInfo.center, perp(dir), dir);
+      const { perBody } = resolveFaces(bodies, f.faces, diag);
+      const out = bodies.map((b, i) => {
+        const faces = perBody.get(i);
+        if (!faces?.length) return b;
+        return b.draft(f.angle, (fd) => fd.inList(faces), plane) as Shape;
+      });
+      return { bodies: out, tools };
+    }
+    case "split": {
+      let o: Vec3, n: Vec3;
+      if (f.face) {
+        const { updated } = resolveFaces(bodies, [f.face], diag);
+        entry.refs = { faces: updated };
+        if (updated[0].type !== "PLANE") throw new Error("分割には平面を選択してください");
+        (o = updated[0].center), (n = updated[0].normal);
+      } else (o = f.plane!.origin), (n = normalize(f.plane!.normal));
+      const big = diag * 4 + 100;
+      // half space on the negative side of the plane
+      const neg = R.drawRectangle(big * 2, big * 2)
+        .sketchOnPlane(new R.Plane(o, perp(n), n))
+        .extrude(-big) as Shape;
+      const out: Shape[] = [];
+      for (const b of bodies) {
+        if (f.keep !== "negative") {
+          const pos = b.cut(neg);
+          if (!isEmpty(pos)) out.push(...solidsOf(pos));
+        }
+        if (f.keep !== "positive") {
+          const ng = b.intersect(neg);
+          if (!isEmpty(ng)) out.push(...solidsOf(ng));
+        }
+      }
+      if (!out.length) throw new Error("分割後にボディが残りません");
+      return { bodies: out, tools };
+    }
+    case "rib": {
+      if (!bodies.length) throw new Error("リブを付けるボディがありません");
+      const n = normalize(f.plane.normal);
+      const y = cross(n, f.plane.xDir);
+      const w = (uv: Vec2): Vec3 => add(f.plane.origin, add(scale(f.plane.xDir, uv[0]), scale(y, uv[1])));
+      const body = fuseAll(bodies.map((b) => b.clone()));
+      const box = body.boundingBox.bounds as [Vec3, Vec3];
+      const ctr = scale(add(box[0], box[1]), 0.5);
+      const reach = diag * 2 + 10;
+      const ribs: Shape[] = [];
+      for (const [a2, b2] of f.segs) {
+        const A = w(a2), B = w(b2);
+        const along = normalize(sub(B, A));
+        const mid = scale(add(A, B), 0.5);
+        const len = dist(A, B);
+        const pl = new R.Plane(add(A, scale(n, -f.thickness / 2)), along, n);
+        const inPlane = normalize(cross(n, along));
+        /** Part of the strip on one side of the line that is enclosed by material, or null. */
+        const fill = (sign: number): Shape | null => {
+          const prism = R.drawRectangle(len, reach)
+            .translate(len / 2, (sign * reach) / 2)
+            .sketchOnPlane(pl)
+            .extrude(f.thickness) as Shape;
+          const pieces = solidsOf(prism.cut(body));
+          const probe = R.makeVertex(add(mid, scale(inPlane, sign * 1e-3)));
+          let best: Shape | null = null, bd = Infinity;
+          for (const p of pieces) {
+            const d = R.measureDistanceBetween(p as never, probe as never);
+            if (d < bd) (bd = d), (best = p);
+          }
+          if (!best || bd > 1e-2) return null;
+          // reaching the end of the strip means no material was met
+          const bb = best.boundingBox.bounds as [Vec3, Vec3];
+          if (dist(bb[0], bb[1]) > reach * 0.9) return null;
+          return best;
+        };
+        // default: the side facing the part's centre first; flip prefers the other side
+        let first = dot(inPlane, sub(ctr, mid)) >= 0 ? 1 : -1;
+        if (f.flip) first = -first;
+        const piece = fill(first) ?? (f.flip ? null : fill(-first));
+        if (!piece) throw new Error("リブがボディに当たりません (線の位置か方向を確認してください)");
+        ribs.push(piece);
+      }
+      const tool = fuseAll(ribs);
+      tools.set(f.id, { shape: tool, op: "join" });
+      return { bodies: applyOp(bodies, tool, "join"), tools };
+    }
+    case "thicken": {
+      const { perBody, updated } = resolveFaces(bodies, f.faces, diag);
+      entry.refs = { faces: updated };
+      const parts: Shape[] = [];
+      for (const faces of perBody.values())
+        for (const face of faces) {
+          if (String(face.geomType) !== "PLANE") throw new Error("厚み付けは平面にのみ使用できます");
+          const nn = normalize(tuple(face.normalAt(face.center)));
+          parts.push(R.basicFaceExtrusion(face, new R.Vector(scale(nn, f.flip ? -f.distance : f.distance))) as unknown as Shape);
+        }
+      const tool = fuseAll(parts);
+      tools.set(f.id, { shape: tool, op: f.op });
+      return { bodies: applyOp(bodies, tool, f.op), tools };
     }
     case "thread": {
       const { perBody, updated } = resolveFaces(bodies, [f.face], diag);

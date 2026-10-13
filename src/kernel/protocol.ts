@@ -65,6 +65,10 @@ export type RFeature =
       angle: number;
       leg: number;
     }
+  | { id: string; type: "draft"; faces: FaceRef[]; neutral: FaceRef; angle: number; flip: boolean }
+  | { id: string; type: "split"; plane?: PlaneDef; face?: FaceRef; keep: "positive" | "negative" | "both" }
+  | { id: string; type: "rib"; plane: PlaneDef; segs: [Vec2, Vec2][]; thickness: number; flip: boolean }
+  | { id: string; type: "thicken"; faces: FaceRef[]; distance: number; flip: boolean; op: BoolOp }
   | { id: string; type: "thread"; face: FaceRef; thread: ThreadSpec; offset: number; flip: boolean }
   | {
       id: string;

@@ -5,6 +5,7 @@
 import type { PathSeg, RFeature, ThreadSpec, Transform } from "../kernel/protocol";
 import { threadByName } from "./threads";
 import { flangeSpecs, legLength, matchEdge, outerEdges, sheetStyle, type SheetEdge } from "../sheetmetal/sheet";
+import { ORIGIN_PLANES } from "./document";
 import { findRegions, pointInRegion, type Region } from "../sketch/profiles";
 import { solve, type SolveResult } from "../sketch/solver";
 import { evalWith } from "./params";
@@ -236,6 +237,37 @@ function resolveFeature(
         flip: f.flip,
         thread: f.standard === "tapped" ? threadSpec(f.size ?? "", f.threadFull !== false || !f.threadLength ? 0 : num(f, f.threadLength, "ねじ長さ"), f.threadFull !== false || !f.threadLength) : undefined,
       };
+    }
+    case "draft": {
+      if (!f.faces.length) throw new Error("勾配をつける面を選択してください");
+      if (!f.neutral) throw new Error("固定する面 (中立面) を選択してください");
+      const angle = num(f, f.angle, "角度");
+      if (!(Math.abs(angle) > 0 && Math.abs(angle) < 45)) throw new Error("角度は 0〜45° で指定してください");
+      return { id: f.id, type: "draft", faces: f.faces, neutral: f.neutral, angle, flip: f.flip };
+    }
+    case "split": {
+      const t = f.tool;
+      if (t.kind === "face") return { id: f.id, type: "split", face: t.face, keep: f.keep };
+      let plane: PlaneDef | undefined;
+      if (t.kind === "origin") plane = ORIGIN_PLANES[t.key];
+      else plane = (doc.features.find((x) => x.id === t.id) as WorkPlaneFeature | undefined)?.plane;
+      if (!plane) throw new Error("分割する平面が見つかりません");
+      return { id: f.id, type: "split", plane, keep: f.keep };
+    }
+    case "rib": {
+      const { sk } = sketchOf(f.sketch);
+      const pts = new Map(sk.entities.filter((e): e is SkPoint => e.type === "point").map((p) => [p.id, [p.x, p.y] as Vec2]));
+      const lines = sk.entities.filter((e): e is SkLine => e.type === "line" && !e.construction && !e.ref && (!f.lines.length || f.lines.includes(e.id)));
+      if (!lines.length) throw new Error("リブのスケッチに線分がありません");
+      const t = num(f, f.thickness, "厚さ");
+      if (!(t > 0)) throw new Error("厚さは正の値にしてください");
+      return { id: f.id, type: "rib", plane: sk.plane, segs: lines.map((l) => [pts.get(l.p1)!, pts.get(l.p2)!]), thickness: t, flip: f.flip };
+    }
+    case "thicken": {
+      if (!f.faces.length) throw new Error("厚みをつける面を選択してください");
+      const d = num(f, f.distance, "厚さ");
+      if (!(d > 0)) throw new Error("厚さは正の値にしてください");
+      return { id: f.id, type: "thicken", faces: f.faces, distance: d, flip: f.flip, op: f.op };
     }
     case "sheetFace": {
       const { sk, st } = sketchOf(f.sketch);

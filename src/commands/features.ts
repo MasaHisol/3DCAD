@@ -14,6 +14,11 @@ import type {
   FilletFeature,
   HoleFeature,
   ThreadFeature,
+  FaceRef,
+  DraftFeature,
+  SplitFeature,
+  RibFeature,
+  ThickenFeature,
   SheetFaceFeature,
   FlangeFeature,
   LoftFeature,
@@ -1096,6 +1101,227 @@ class ThreadCommand extends FeatureCommand<ThreadFeature> {
   }
 }
 
+// ------------------------------------------------------ shape editing ---
+
+/** Face list helpers shared by the face-picking commands below. */
+function toggleFace(list: FaceRef[], r: FaceRef) {
+  const k = list.findIndex((x) => dist3(x.center, r.center) < 1e-6);
+  if (k >= 0) list.splice(k, 1);
+  else list.push(r);
+}
+function facePicks(app: App, refs: FaceRef[]): Pick[] {
+  const out: Pick[] = [];
+  app.pickBodies.forEach((b, bi) =>
+    b.faces.forEach((f, fi) => {
+      if (refs.some((r) => dist3(r.center, f.center) < 1e-4)) out.push({ kind: "face", body: bi, index: fi, point: f.center });
+    }),
+  );
+  return out;
+}
+
+class DraftCommand extends FeatureCommand<DraftFeature> {
+  readonly id = "draft";
+  private mode: "faces" | "neutral" = "faces";
+  private fp: ReturnType<PropertyPanel["picker"]>;
+  private np: ReturnType<PropertyPanel["picker"]>;
+
+  constructor(app: App, existing: DraftFeature | null) {
+    super(app, existing, () => {
+      const id = uid("df");
+      return { id, type: "draft", name: app.store.nextFeatureName("draft"), faces: [], neutral: null, angle: app.store.addParam(app.store.doc, "3", "deg", id), flip: false };
+    });
+    const f = this.feature;
+    this.openPanel(this.editing ? `勾配: ${f.name}` : "勾配 (ドラフト)", "draft");
+    const p = this.panel;
+    const sec = p.section("面");
+    this.fp = p.picker(sec, "勾配をつける面", "draft", () => this.setMode("faces"), () => (this.update((x) => (x.faces = [])), this.sync()));
+    this.np = p.picker(sec, "固定面 (中立面)", "fix", () => this.setMode("neutral"), () => (this.update((x) => (x.neutral = null)), this.sync()));
+    p.note(sec, "固定面の位置で形状が保たれ、型抜き方向 (固定面の法線) に向かって面が傾きます。");
+    const sh = p.section("勾配");
+    p.expr(sh, "角度", this.expr(f.angle), "deg", (e) => this.setParam(this.feature.angle, e), f.angle);
+    p.checkbox(sh, "型抜き方向を反転", f.flip, (v) => this.update((x) => (x.flip = v)));
+    app.vp.pickKinds = new Set(["face"]);
+    this.handler = {
+      cursor: "pointer",
+      onPointerMove: (e, vp) => vp.setHover(vp.pick(e)),
+      onPointerDown: (e, vp) => {
+        if (e.button !== 0) return;
+        const pk = vp.pick(e);
+        const r = pk && app.faceRef(pk);
+        if (!r) return;
+        if (this.mode === "neutral") {
+          if (app.pickBodies[pk!.body]?.faces[pk!.index]?.type !== "PLANE") return void toast("固定面には平面を選択してください", "warn");
+          this.update((x) => (x.neutral = r));
+          this.setMode("faces");
+        } else this.update((x) => toggleFace(x.faces, r));
+        this.sync();
+      },
+    };
+    this.setMode(f.faces.length && !f.neutral ? "neutral" : "faces");
+  }
+  private setMode(m: "faces" | "neutral") {
+    this.mode = m;
+    this.fp.setActive(m === "faces");
+    this.np.setActive(m === "neutral");
+    this.app.status(m === "faces" ? "勾配をつける面をクリック" : "固定する平面 (型の合わせ面・底面など) をクリック");
+    this.sync();
+  }
+  private sync() {
+    const f = this.feature;
+    this.fp.setCount(f.faces.length, f.faces.length ? `${f.faces.length} 面` : "面を選択");
+    this.np.setCount(f.neutral ? 1 : 0, f.neutral ? "平面" : "平面を選択");
+    this.app.vp.setSelection(facePicks(this.app, this.mode === "faces" ? f.faces : f.neutral ? [f.neutral] : []));
+  }
+  captureBefore() {
+    return this.featureId;
+  }
+  onRegen() {
+    super.onRegen();
+    this.sync();
+  }
+}
+
+class ThickenCommand extends FeatureCommand<ThickenFeature> {
+  readonly id = "thicken";
+  private fp: ReturnType<PropertyPanel["picker"]>;
+  constructor(app: App, existing: ThickenFeature | null) {
+    super(app, existing, () => {
+      const id = uid("tk");
+      return { id, type: "thicken", name: app.store.nextFeatureName("thicken"), faces: [], distance: app.store.addParam(app.store.doc, "2", "mm", id), flip: false, op: "join" };
+    });
+    const f = this.feature;
+    this.openPanel(this.editing ? `厚み付け: ${f.name}` : "厚み付け", "thicken", true);
+    const p = this.panel;
+    const sec = p.section("面");
+    this.fp = p.picker(sec, "面", "thicken", () => {}, () => (this.update((x) => (x.faces = [])), this.sync()));
+    this.fp.setActive(true);
+    p.expr(sec, "厚さ", this.expr(f.distance), "mm", (e) => this.setParam(this.feature.distance, e), f.distance);
+    p.checkbox(sec, "内側に厚みをつける", f.flip, (v) => this.update((x) => (x.flip = v)));
+    p.toggles(sec, "ブール演算", OPS, f.op, (v) => this.update((x) => (x.op = v as BoolOp)));
+    app.vp.pickKinds = new Set(["face"]);
+    app.vp.pickFilter = (pk) => app.pickBodies[pk.body]?.faces[pk.index]?.type === "PLANE";
+    this.handler = {
+      cursor: "pointer",
+      onPointerMove: (e, vp) => vp.setHover(vp.pick(e)),
+      onPointerDown: (e, vp) => {
+        if (e.button !== 0) return;
+        const pk = vp.pick(e);
+        const r = pk && app.faceRef(pk);
+        if (!r) return;
+        this.update((x) => toggleFace(x.faces, r));
+        this.sync();
+      },
+    };
+    this.sync();
+    app.status("厚みをつける平面をクリック");
+  }
+  private sync() {
+    const n = this.feature.faces.length;
+    this.fp.setCount(n, n ? `${n} 面` : "平面を選択");
+    this.app.vp.setSelection(facePicks(this.app, this.feature.faces));
+  }
+  captureBefore() {
+    return this.featureId;
+  }
+  onRegen() {
+    super.onRegen();
+    this.sync();
+  }
+}
+
+class SplitCommand extends FeatureCommand<SplitFeature> {
+  readonly id = "split";
+  private fp: ReturnType<PropertyPanel["picker"]>;
+  constructor(app: App, existing: SplitFeature | null) {
+    super(app, existing, () => ({ id: uid("sp"), type: "split", name: app.store.nextFeatureName("split"), tool: { kind: "origin", key: "YZ" }, keep: "positive" }));
+    const f = this.feature;
+    this.openPanel(this.editing ? `分割: ${f.name}` : "分割", "split");
+    const p = this.panel;
+    const sec = p.section("分割ツール");
+    const wps = app.store.doc.features.filter((x): x is WorkPlaneFeature => x.type === "workplane");
+    const opts = [
+      { value: "origin:YZ", label: "YZ 平面" },
+      { value: "origin:XZ", label: "XZ 平面" },
+      { value: "origin:XY", label: "XY 平面" },
+      ...wps.map((w) => ({ value: `wp:${w.id}`, label: w.name })),
+      { value: "face", label: "モデルの平面をクリック…" },
+    ];
+    const t = f.tool;
+    const cur = t.kind === "origin" ? `origin:${t.key}` : t.kind === "workplane" ? `wp:${t.id}` : "face";
+    p.select(sec, "平面", opts, cur, (v) => {
+      if (v.startsWith("origin:")) this.update((x) => (x.tool = { kind: "origin", key: v.slice(7) as "XY" }));
+      else if (v.startsWith("wp:")) this.update((x) => (x.tool = { kind: "workplane", id: v.slice(3) }));
+      this.fp.setActive(v === "face");
+      this.sync();
+    });
+    this.fp = p.picker(sec, "平面", "split", () => this.fp.setActive(true));
+    this.fp.setActive(cur === "face");
+    p.select(
+      sec,
+      "残す側",
+      [
+        { value: "positive", label: "法線の正の側" },
+        { value: "negative", label: "法線の負の側" },
+        { value: "both", label: "両方 (2 つのボディに分割)" },
+      ],
+      f.keep,
+      (v) => this.update((x) => (x.keep = v as SplitFeature["keep"])),
+    );
+    app.vp.pickKinds = new Set(["face"]);
+    app.vp.pickFilter = (pk) => app.pickBodies[pk.body]?.faces[pk.index]?.type === "PLANE";
+    this.handler = {
+      cursor: "pointer",
+      onPointerMove: (e, vp) => vp.setHover(vp.pick(e)),
+      onPointerDown: (e, vp) => {
+        if (e.button !== 0) return;
+        const pk = vp.pick(e);
+        const r = pk && app.faceRef(pk);
+        if (!r) return;
+        this.update((x) => (x.tool = { kind: "face", face: r }));
+        this.sync();
+      },
+    };
+    this.sync();
+    app.status("分割する平面を選択 (原点平面・作業平面・モデルの平面)");
+  }
+  private sync() {
+    const t = this.feature.tool;
+    this.fp.setCount(t.kind === "face" ? 1 : 0, t.kind === "face" ? "平面" : "—");
+    this.app.vp.setSelection(t.kind === "face" ? facePicks(this.app, [t.face]) : []);
+  }
+  captureBefore() {
+    return this.featureId;
+  }
+}
+
+class RibCommand extends FeatureCommand<RibFeature> {
+  readonly id = "rib";
+  constructor(app: App, existing: RibFeature | null) {
+    const doc = app.store.doc;
+    const consumed = new Set(doc.features.flatMap(featureSketchRefs));
+    const withLines = doc.features.filter((x): x is SketchFeature => x.type === "sketch" && x.entities.some((e) => e.type === "line" && !e.construction && !e.ref));
+    const pre = [...app.browserSelection].find((id) => withLines.some((s) => s.id === id)) ?? withLines.filter((s) => !consumed.has(s.id)).at(-1)?.id ?? "";
+    super(app, existing, () => {
+      const id = uid("rb");
+      return { id, type: "rib", name: app.store.nextFeatureName("rib"), sketch: pre, lines: [], thickness: app.store.addParam(app.store.doc, "3", "mm", id), flip: false };
+    });
+    const f = this.feature;
+    this.openPanel(this.editing ? `リブ: ${f.name}` : "リブ", "rib");
+    const p = this.panel;
+    const sec = p.section("プロファイル");
+    p.select(sec, "スケッチ", [{ value: "", label: "— 選択 —" }, ...withLines.map((s) => ({ value: s.id, label: s.name }))], f.sketch, (v) => this.update((x) => (x.sketch = v)));
+    p.note(sec, "開いた線分 (L 字の内側に引いた斜線など) から、線とボディの間を埋める補強リブを作ります。リブはスケッチ平面に対して対称の厚みになります。");
+    const sh = p.section("形状");
+    p.expr(sh, "厚さ", this.expr(f.thickness), "mm", (e) => this.setParam(this.feature.thickness, e), f.thickness);
+    p.checkbox(sh, "反対側を埋める", f.flip, (v) => this.update((x) => (x.flip = v)));
+    if (!withLines.length) toast("線分を含むスケッチがありません。リブの線をスケッチしてください", "warn");
+    app.status("リブのスケッチを選択して厚さを入力");
+  }
+  captureBefore() {
+    return this.featureId;
+  }
+}
+
 // ---------------------------------------------------------------- hole ---
 
 class HoleCommand extends FeatureCommand<HoleFeature> {
@@ -1767,6 +1993,10 @@ export function buildCommands(app: App): CommandRegistry {
     shell: { id: "shell", label: "シェル", icon: "shell" },
     hole: { id: "hole", label: "穴", icon: "hole" },
     thread: { id: "thread", label: "ねじ", icon: "thread" },
+    draft: { id: "draft", label: "勾配", icon: "draft" },
+    split: { id: "split", label: "分割", icon: "split" },
+    rib: { id: "rib", label: "リブ", icon: "rib" },
+    thicken: { id: "thicken", label: "厚み付け", icon: "thicken" },
     sheetFace: { id: "sheetFace", label: "面 (板金)", icon: "smFace" },
     flange: { id: "flange", label: "フランジ", icon: "flange" },
     rectPattern: { id: "rectPattern", label: "矩形状パターン", icon: "rectPattern" },
@@ -1805,6 +2035,14 @@ export function buildCommands(app: App): CommandRegistry {
         return new HoleCommand(app, f as HoleFeature | null);
       case "thread":
         return new ThreadCommand(app, f as ThreadFeature | null);
+      case "draft":
+        return new DraftCommand(app, f as DraftFeature | null);
+      case "split":
+        return new SplitCommand(app, f as SplitFeature | null);
+      case "rib":
+        return new RibCommand(app, f as RibFeature | null);
+      case "thicken":
+        return new ThickenCommand(app, f as ThickenFeature | null);
       case "sheetFace":
         return new SheetFaceCommand(app, f as SheetFaceFeature | null);
       case "flange":
@@ -1832,7 +2070,7 @@ export function buildCommands(app: App): CommandRegistry {
     return null;
   };
   const needsProfile = new Set(["extrude", "revolve", "loft", "sweep", "sheetFace"]);
-  const needsBody = new Set(["stress", "fillet", "chamfer", "shell", "hole", "move", "pushpull", "thread", "flange"]);
+  const needsBody = new Set(["draft", "split", "rib", "thicken", "stress", "fillet", "chamfer", "shell", "hole", "move", "pushpull", "thread", "flange"]);
   return {
     get: (id) => info[id],
     run: (id) => {

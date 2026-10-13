@@ -59,6 +59,26 @@ try {
   const v = (await page.evaluate(() => window.cad.kernel.massProps())).volume;
   check("sketch + extrude", Math.abs(v - 40 * 25 * 12) < 1e-3, `volume=${v.toFixed(2)}`);
 
+  // shape editing: thicken the top face by 2 mm, then split the block in two with a work-plane-free origin plane
+  await page.evaluate(() => window.cad.commands.run("thicken"));
+  await page.evaluate(() => {
+    const faces = window.cad.bodies[0].faces;
+    const i = faces.findIndex((f) => f.type === "PLANE" && f.normal[2] > 0.99);
+    const r = window.cad.faceRef({ kind: "face", body: 0, index: i, point: faces[i].center });
+    window.cad.command.update((x) => x.faces.push(r));
+  });
+  await settle();
+  await page.keyboard.press("Enter");
+  await settle();
+  const vt = (await page.evaluate(() => window.cad.kernel.massProps())).volume;
+  check("thicken", Math.abs(vt - 40 * 25 * 14) < 1e-3, `volume=${vt.toFixed(1)}`);
+  await page.evaluate(() => window.cad.commands.run("split"));
+  await page.evaluate(() => window.cad.command.update((x) => ((x.tool = { kind: "origin", key: "XY" }), (x.keep = "both"))));
+  await settle();
+  await page.keyboard.press("Enter");
+  await settle();
+  check("split", (await page.evaluate(() => window.cad.bodies.length)) >= 1 && Object.keys(await page.evaluate(() => window.cad.featureErrors)).length === 0);
+
   // sample part rebuilds without feature errors and follows a parameter change
   await page.evaluate(() => window.cad.loadSample());
   await settle();
