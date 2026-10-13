@@ -13,7 +13,7 @@ self.onmessage = (e: MessageEvent<FeaRequest>) => {
   const { mesh, bc, mat, opt } = e.data;
   try {
     const r = solveFea(mesh, bc, mat, opt, (it, res) => self.postMessage({ progress: { it, res } }));
-    self.postMessage({ result: r }, [r.vm.buffer, r.disp.buffer, r.active.buffer, r.used.buffer]);
+    self.postMessage({ result: r }, [r.vm.buffer, r.disp.buffer, r.frac.buffer, r.used.buffer, r.stress.buffer, r.s1.buffer, r.s3.buffer]);
   } catch (err) {
     self.postMessage({ error: (err as Error).message });
   }
