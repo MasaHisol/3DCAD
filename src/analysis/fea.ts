@@ -65,6 +65,8 @@ export interface FeaBoundary {
   loads: FeaLoad[];
   /** Self weight: density (g/cm³) and gravity direction (unit, × 9.81 m/s²). */
   gravity?: { density: number; dir: [number, number, number] };
+  /** Thermal strain: nodal temperatures on the same grid (°C), reference temperature, expansion (1/K). */
+  thermal?: { T: Float32Array; Tref: number; alpha: number };
 }
 
 export interface FeaOptions {
@@ -87,6 +89,8 @@ export interface FeaOptions {
   recovery?: "auto" | "extrapolate" | "mean";
   maxIter?: number;
   tol?: number;
+  /** Keep the Gauss-point stresses in the result (needed for buckling). */
+  keepGauss?: boolean;
 }
 
 export interface FeaResult {
@@ -121,6 +125,8 @@ export interface FeaResult {
   loadedNodes: number;
   /** Solid volume of the mesh (mm³). */
   volume: number;
+  /** Gauss-point stresses (ne × 8 × 6), when requested (buckling). */
+  gaussStress?: Float32Array;
 }
 
 import { Multigrid } from "./mg";
@@ -180,13 +186,13 @@ export function cellFractions(mesh: FeaMesh, origin: number[], h: number, dims: 
 
 // ---------------------------------------------------------- element ---
 
-const CORNERS = [
+export const CORNERS = [
   [0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0],
   [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1],
 ];
 const G = 1 / Math.sqrt(3);
 /** Gauss points (local [0,1]³), ordered like CORNERS. */
-const GAUSS = CORNERS.map((c) => c.map((s) => 0.5 + (s ? 0.5 : -0.5) * G));
+export const GAUSS = CORNERS.map((c) => c.map((s) => 0.5 + (s ? 0.5 : -0.5) * G));
 
 export function dMatrix(m: FeaMaterial): number[][] {
   const { E, nu } = m;
@@ -374,7 +380,8 @@ function pointTriDist2(p: number[], a: number[], b: number[], c: number[]): numb
 }
 
 
-export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: FeaOptions, progress?: (it: number, res: number) => void): FeaResult {
+/** Voxel grid of a part: elements, solid fractions, nodes and boundary lookup. */
+export function buildGrid(mesh: FeaMesh, opt: FeaOptions) {
   const P = mesh.positions, I = mesh.indices;
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < P.length; i += 3)
@@ -456,6 +463,86 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
         }
     return out;
   };
+  return { P, I, h, origin, dims, nx, ny, nz, NX, NY, NZ, nodeId, nNodes, used, elems, phi, ne, conn, volume, frac, nodePos, tri, near };
+}
+export type FeaGrid = ReturnType<typeof buildGrid>;
+
+/** Stiffness operator (matrix-free) with its preconditioner and a PCG solver. */
+export function buildOperator(G: FeaGrid, mat: FeaMaterial, opt: FeaOptions, fixed: Uint8Array) {
+  const { h, dims, nNodes, used, elems, phi, ne, conn } = G;
+  const el = elementData(mat, h, opt.element ?? "h11");
+  const KE = el.K;
+  const N3 = nNodes * 3;
+  const free = new Uint8Array(N3);
+  for (let n = 0; n < nNodes; n++) if (used[n] && !fixed[n]) free[n * 3] = free[n * 3 + 1] = free[n * 3 + 2] = 1;
+  const diag = new Float64Array(N3);
+  for (let e = 0; e < ne; e++) for (let a = 0; a < 24; a++) diag[conn[e * 8 + ((a / 3) | 0)] * 3 + (a % 3)] += KE[a * 25] * phi[e];
+  const ue = new Float64Array(24);
+  const Kx = (x: Float64Array, y: Float64Array, mask = true) => {
+    y.fill(0);
+    for (let e = 0; e < ne; e++) {
+      const c = e * 8, s = phi[e];
+      for (let n = 0; n < 8; n++) {
+        const g = conn[c + n] * 3;
+        ue[n * 3] = x[g];
+        ue[n * 3 + 1] = x[g + 1];
+        ue[n * 3 + 2] = x[g + 2];
+      }
+      for (let a = 0; a < 24; a++) {
+        let sum = 0;
+        const row = a * 24;
+        for (let b = 0; b < 24; b++) sum += KE[row + b] * ue[b];
+        y[conn[c + ((a / 3) | 0)] * 3 + (a % 3)] += sum * s;
+      }
+    }
+    if (mask) for (let i = 0; i < N3; i++) if (!free[i]) y[i] = 0;
+  };
+  const mg = opt.solver === "jacobi" ? null : new Multigrid({ dims, elems, KE, phi, fixed, used });
+  const prec = (r: Float64Array, z: Float64Array) => {
+    if (mg) mg.precondition(r, z);
+    else for (let i = 0; i < N3; i++) z[i] = free[i] && diag[i] ? r[i] / diag[i] : 0;
+  };
+  const solve = (F: Float64Array, progress?: (it: number, res: number) => void, tolOverride?: number) => {
+    const u = new Float64Array(N3), r = new Float64Array(N3), z = new Float64Array(N3), p = new Float64Array(N3), q = new Float64Array(N3);
+    for (let i = 0; i < N3; i++) r[i] = free[i] ? F[i] : 0;
+    const bnorm = Math.sqrt(r.reduce((s, v) => s + v * v, 0)) || 1;
+    prec(r, z);
+    p.set(z);
+    let rz = r.reduce((s, v, i) => s + v * z[i], 0);
+    const maxIter = opt.maxIter ?? 8000, tol = tolOverride ?? opt.tol ?? 1e-8;
+    let it = 0, res = 1;
+    for (; it < maxIter; it++) {
+      Kx(p, q);
+      let pq = 0;
+      for (let i = 0; i < N3; i++) pq += p[i] * q[i];
+      if (!(pq > 0)) break;
+      const alpha = rz / pq;
+      let rr = 0;
+      for (let i = 0; i < N3; i++) {
+        u[i] += alpha * p[i];
+        r[i] -= alpha * q[i];
+        rr += r[i] * r[i];
+      }
+      res = Math.sqrt(rr) / bnorm;
+      if (progress && it % 50 === 0) progress(it, res);
+      if (res < tol) break;
+      prec(r, z);
+      let rz2 = 0;
+      for (let i = 0; i < N3; i++) rz2 += r[i] * z[i];
+      const beta = rz2 / rz;
+      rz = rz2;
+      for (let i = 0; i < N3; i++) p[i] = z[i] + beta * p[i];
+    }
+
+    return { u, it, res, converged: res < (tolOverride ?? opt.tol ?? 1e-8) };
+  };
+  return { el, KE, N3, free, diag, Kx, mg, prec, solve };
+}
+export type FeaOperator = ReturnType<typeof buildOperator>;
+
+export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: FeaOptions, progress?: (it: number, res: number) => void): FeaResult {
+  const G = buildGrid(mesh, opt);
+  const { tri, h, origin, dims, nx, ny, nz, nodeId, nNodes, used, elems, phi, ne, conn, volume, frac, nodePos, near } = G;
   const fixed = new Uint8Array(nNodes);
   let fixedNodes = 0;
   for (const f of bc.fixed) for (const n of near(f)) if (!fixed[n]) (fixed[n] = 1), fixedNodes++;
@@ -531,73 +618,55 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
     const w = h * h * h * g.density * 9.81e-6; // N per full cell
     for (let e = 0; e < ne; e++) for (let n = 0; n < 8; n++) for (let k = 0; k < 3; k++) F[conn[e * 8 + n] * 3 + k] += (w * phi[e] * g.dir[k]) / 8;
   }
-  if (!loadedNodes && !bc.gravity) throw new Error("荷重の面に節点がありません");
+  // thermal expansion: equivalent nodal forces ∫ Bᵀ D ε0 (bubble part condensed with T)
+  const el0 = elementData(mat, h, opt.element ?? "h11");
+  const D0 = dMatrix(mat);
+  const gaussDT = (e: number, g: number): number => {
+    const th = bc.thermal!;
+    let t = 0;
+    const [gx, gy, gz] = GAUSS[g];
+    for (let n = 0; n < 8; n++) {
+      const [cx, cy, cz] = CORNERS[n];
+      t += (cx ? gx : 1 - gx) * (cy ? gy : 1 - gy) * (cz ? gz : 1 - gz) * th.T[conn[e * 8 + n]];
+    }
+    return t - th.Tref;
+  };
+  if (bc.thermal) {
+    const w = (h * h * h) / 8;
+    const nc = el0.T ? 33 : 24;
+    const fe = new Float64Array(33);
+    for (let e = 0; e < ne; e++) {
+      fe.fill(0);
+      for (let g = 0; g < 8; g++) {
+        const e0 = bc.thermal.alpha * gaussDT(e, g);
+        if (!e0) continue;
+        // D ε0 = e0 · (row sums of the normal block)
+        const sig = [0, 1, 2, 3, 4, 5].map((k) => (D0[k][0] + D0[k][1] + D0[k][2]) * e0);
+        const B = el0.Bg[g];
+        for (let j = 0; j < nc; j++) {
+          let s2 = 0;
+          for (let k = 0; k < 6; k++) s2 += B[k][j] * sig[k];
+          fe[j] += s2 * w * phi[e];
+        }
+      }
+      for (let a = 0; a < 24; a++) {
+        let v = fe[a];
+        if (el0.T) for (let b = 0; b < 9; b++) v += el0.T[b][a] * fe[24 + b];
+        F[conn[e * 8 + ((a / 3) | 0)] * 3 + (a % 3)] += v;
+      }
+    }
+  }
+  if (!loadedNodes && !bc.gravity && !bc.thermal) throw new Error("荷重の面に節点がありません");
   const applied: [number, number, number] = [0, 0, 0];
   for (let n = 0; n < nNodes; n++) for (let k = 0; k < 3; k++) applied[k] += F[n * 3 + k];
 
-  // ---- solve K u = F (matrix-free PCG)
-  const el = elementData(mat, h, opt.element ?? "h11");
-  const KE = el.K;
-  const N3 = nNodes * 3;
-  const free = new Uint8Array(N3);
-  for (let n = 0; n < nNodes; n++) if (used[n] && !fixed[n]) free[n * 3] = free[n * 3 + 1] = free[n * 3 + 2] = 1;
-  const diag = new Float64Array(N3);
-  for (let e = 0; e < ne; e++) for (let a = 0; a < 24; a++) diag[conn[e * 8 + ((a / 3) | 0)] * 3 + (a % 3)] += KE[a * 25] * phi[e];
-  const ue = new Float64Array(24);
-  const Kx = (x: Float64Array, y: Float64Array, mask = true) => {
-    y.fill(0);
-    for (let e = 0; e < ne; e++) {
-      const c = e * 8, s = phi[e];
-      for (let n = 0; n < 8; n++) {
-        const g = conn[c + n] * 3;
-        ue[n * 3] = x[g];
-        ue[n * 3 + 1] = x[g + 1];
-        ue[n * 3 + 2] = x[g + 2];
-      }
-      for (let a = 0; a < 24; a++) {
-        let sum = 0;
-        const row = a * 24;
-        for (let b = 0; b < 24; b++) sum += KE[row + b] * ue[b];
-        y[conn[c + ((a / 3) | 0)] * 3 + (a % 3)] += sum * s;
-      }
-    }
-    if (mask) for (let i = 0; i < N3; i++) if (!free[i]) y[i] = 0;
-  };
-  const mg = opt.solver === "jacobi" ? null : new Multigrid({ dims, elems, KE, phi, fixed, used });
-  const prec = (r: Float64Array, z: Float64Array) => {
-    if (mg) mg.precondition(r, z);
-    else for (let i = 0; i < N3; i++) z[i] = free[i] && diag[i] ? r[i] / diag[i] : 0;
-  };
-  const u = new Float64Array(N3), r = new Float64Array(N3), z = new Float64Array(N3), p = new Float64Array(N3), q = new Float64Array(N3);
-  for (let i = 0; i < N3; i++) r[i] = free[i] ? F[i] : 0;
-  const bnorm = Math.sqrt(r.reduce((s, v) => s + v * v, 0)) || 1;
-  prec(r, z);
-  p.set(z);
-  let rz = r.reduce((s, v, i) => s + v * z[i], 0);
-  const maxIter = opt.maxIter ?? 8000, tol = opt.tol ?? 1e-8;
-  let it = 0, res = 1;
-  for (; it < maxIter; it++) {
-    Kx(p, q);
-    let pq = 0;
-    for (let i = 0; i < N3; i++) pq += p[i] * q[i];
-    if (!(pq > 0)) break;
-    const alpha = rz / pq;
-    let rr = 0;
-    for (let i = 0; i < N3; i++) {
-      u[i] += alpha * p[i];
-      r[i] -= alpha * q[i];
-      rr += r[i] * r[i];
-    }
-    res = Math.sqrt(rr) / bnorm;
-    if (progress && it % 50 === 0) progress(it, res);
-    if (res < tol) break;
-    prec(r, z);
-    let rz2 = 0;
-    for (let i = 0; i < N3; i++) rz2 += r[i] * z[i];
-    const beta = rz2 / rz;
-    rz = rz2;
-    for (let i = 0; i < N3; i++) p[i] = z[i] + beta * p[i];
-  }
+  // ---- solve K u = F (matrix-free, multigrid preconditioned CG)
+  const op = buildOperator(G, mat, opt, fixed);
+  const { el, N3, Kx } = op;
+  const q = new Float64Array(N3);
+  const sol = op.solve(F, progress);
+  const { u, it, res } = sol;
+  const tol = opt.tol ?? 1e-8;
 
   // ---- reactions at the supports (equilibrium check)
   Kx(u, q, false);
@@ -627,6 +696,7 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
   // auto: contributions of stair-step elements, used only where no regular element touches the node
   const accX = new Float64Array(nNodes * 6), wsumX = new Float64Array(nNodes);
   const full = new Float64Array(33);
+  const gaussStress = opt.keepGauss ? new Float32Array(ne * 48) : undefined;
   const sg: number[][] = Array.from({ length: 8 }, () => new Array(6).fill(0));
   for (let e = 0; e < ne; e++) {
     for (let n = 0; n < 8; n++) for (let k = 0; k < 3; k++) full[n * 3 + k] = u[conn[e * 8 + n] * 3 + k];
@@ -640,7 +710,14 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
         for (let j = 0; j < nc; j++) s += B[k][j] * full[j];
         eps[k] = s;
       }
+      if (bc.thermal) {
+        const e0 = bc.thermal.alpha * gaussDT(e, g);
+        eps[0] -= e0;
+        eps[1] -= e0;
+        eps[2] -= e0;
+      }
       for (let k = 0; k < 6; k++) sg[g][k] = D[k].reduce((s, v, j) => s + v * eps[j], 0);
+      if (gaussStress) for (let k = 0; k < 6; k++) gaussStress[(e * 8 + g) * 6 + k] = sg[g][k];
     }
     const w = phi[e];
     const mode = opt.recovery ?? "auto";
@@ -687,14 +764,22 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
   return {
     h, origin, dims, frac, disp, stress, vm, s1, s3, used,
     maxVm, maxS1, minS3, maxDisp, applied, reaction, equilibriumError,
-    elements: ne, iterations: it, converged: res < tol, fixedNodes, loadedNodes, volume,
+    elements: ne, iterations: it, converged: res < tol, fixedNodes, loadedNodes, volume, gaussStress,
   };
 }
 
 // ------------------------------------------------------- sampling ---
 
 /** Trilinear interpolation of a nodal field (only nodes of the solid count). */
-export function sampleNodal(r: FeaResult, field: Float32Array, comps: number, p: ArrayLike<number>): number[] {
+/** Anything defined on the analysis grid (static, modal, buckling, thermal results). */
+export interface GridLike {
+  h: number;
+  origin: [number, number, number];
+  dims: [number, number, number];
+  used: Uint8Array;
+}
+
+export function sampleNodal(r: GridLike, field: Float32Array, comps: number, p: ArrayLike<number>): number[] {
   const [nx, ny, nz] = r.dims;
   const NX = nx + 1, NY = ny + 1;
   const fx = Math.min(nx, Math.max(0, (p[0] - r.origin[0]) / r.h));

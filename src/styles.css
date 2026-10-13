@@ -2148,3 +2148,16 @@ kbd {
 .fam-table .field-input {
   width: 90px;
 }
+.mode-row {
+  flex-wrap: wrap;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 3px 4px;
+}
+.mode-row small {
+  width: 100%;
+}
+.mode-row:hover,
+.mode-row.on {
+  background: var(--accent-soft, rgba(31, 111, 224, 0.15));
+}

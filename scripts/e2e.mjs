@@ -102,8 +102,8 @@ try {
       if (f.type === "PLANE" && f.normal[1] < -0.99 && f.center[1] <= faces[lo].center[1]) lo = i;
       if (f.type === "PLANE" && f.normal[1] > 0.99 && f.center[1] >= faces[hi].center[1]) hi = i;
     });
-    cmd.fixed.push({ kind: "face", body: 0, index: lo, point: faces[lo].center });
-    cmd.loaded.push({ kind: "face", body: 0, index: hi, point: faces[hi].center });
+    cmd.sets.fixed.push({ kind: "face", body: 0, index: lo, point: faces[lo].center });
+    cmd.sets.load.push({ kind: "face", body: 0, index: hi, point: faces[hi].center });
   });
   await page.locator('[data-k="mesh"]').selectOption("5000");
   await page.locator(".pp-body .btn", { hasText: "解析を実行" }).click();
@@ -116,6 +116,33 @@ try {
   await page.locator('[data-k="show"]').selectOption("s1");
   await page.locator('[data-k="deform"]').selectOption("auto");
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/stress.png` });
+  // modal analysis keeps the selected supports
+  await page.locator('[data-k="kind"]').selectOption("modal");
+  await page.locator('[data-k="mesh"]').selectOption("5000");
+  await page.locator('[data-k="modes"]').selectOption("3");
+  await page.locator(".pp-body .btn", { hasText: "解析を実行" }).click();
+  await page.waitForFunction(() => document.querySelectorAll(".mode-row").length === 3, null, { timeout: 180000 });
+  check("modal analysis", true, (await page.locator(".mode-row").first().innerText()).replace(/\s+/g, " "));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/modal.png` });
+  // thermal: hold the base at 20 °C, 5 W into the boss top
+  await page.locator('[data-k="kind"]').selectOption("thermal");
+  await page.evaluate(() => {
+    const cmd = window.cad.command;
+    const faces = window.cad.bodies[0].faces;
+    let lo = 0, hi = 0;
+    faces.forEach((f, i) => {
+      if (f.type === "PLANE" && f.normal[1] < -0.99 && f.center[1] <= faces[lo].center[1]) lo = i;
+      if (f.type === "PLANE" && f.normal[1] > 0.99 && f.center[1] >= faces[hi].center[1]) hi = i;
+    });
+    cmd.sets.temp = [{ kind: "face", body: 0, index: lo, point: faces[lo].center }];
+    cmd.sets.flux = [{ kind: "face", body: 0, index: hi, point: faces[hi].center }];
+  });
+  await page.locator('[data-k="mesh"]').selectOption("5000");
+  await page.locator(".pp-body .btn", { hasText: "解析を実行" }).click();
+  await page.waitForFunction(() => document.querySelector(".measure-out")?.textContent.includes("最高温度"), null, { timeout: 180000 });
+  const th = await page.locator(".measure-out").innerText();
+  check("thermal analysis", /最高温度\s*[\d.]+ °C/.test(th), th.split("\n").slice(0, 2).join(" "));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/thermal.png` });
   await page.keyboard.press("Escape");
   await settle();
 
