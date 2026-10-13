@@ -2181,3 +2181,16 @@ kbd {
   max-width: 100%;
   max-height: 100%;
 }
+.logo-ctl {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.logo-prev {
+  max-width: 90px;
+  max-height: 28px;
+  border: 1px solid var(--border, #d0d5dc);
+}
+.logo-prev:not([src]) {
+  display: none;
+}

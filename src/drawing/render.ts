@@ -360,7 +360,7 @@ export function baseScale(s: Sheet): number {
 }
 
 function titleBlock(ctx: RenderCtx, w: number, h: number): string {
-  const t = ctx.doc.title;
+  const t = { ...ctx.doc.title, ...ctx.sheet.title };
   const m = 10;
   const tbW = 180, rowH = 8;
   const x0 = w - m - tbW, y0 = h - m - rowH * 5;
@@ -386,12 +386,13 @@ function titleBlock(ctx: RenderCtx, w: number, h: number): string {
   out += cell(x0, y0 + rowH * 4, 110, rowH, "普通公差", t.generalTol);
   out += cell(x0 + 110, y0 + rowH * 4, 70, rowH, "会社", t.company);
   out += text(w - m - 1, y0 - 1.5, `シート ${ctx.sheetIndex + 1}/${ctx.doc.sheets.length}`, 2.5, "end");
+  if (t.logo) out += `<image class="logo" href="${esc(t.logo)}" x="${f(x0)}" y="${f(y0 - 16)}" width="50" height="14" preserveAspectRatio="xMinYMax meet"/>`;
   return out + "</g>";
 }
 
 function partsList(ctx: RenderCtx): string {
   const pl = ctx.sheet.partsList;
-  if (!pl || !ctx.bom.length) return "";
+  if (!pl || !ctx.bom.length || ctx.sheet.part) return "";
   const cols: [string, number][] = [
     ["品番", 12],
     ["品名", 52],

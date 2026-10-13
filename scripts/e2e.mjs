@@ -303,6 +303,21 @@ try {
   await page.evaluate(() => window.cad.openDrawingEnv());
   await page.waitForFunction(() => window.cad.env === "drawing" && document.querySelectorAll(".dw-stage .dview").length >= 4, null, { timeout: 60000 });
   await settle();
+  // drawing set: assembly sheet + one detail sheet per part, with dimensions and balloons
+  await page.locator('[data-cmd="dw-set"]').click();
+  await page.waitForFunction(() => window.cad.asm.doc.drawing.sheets.length >= 3, null, { timeout: 120000 });
+  await settle();
+  const set = await page.evaluate(() => {
+    const sh = window.cad.asm.doc.drawing.sheets;
+    return { sheets: sh.length, detail: sh.filter((s) => s.part).length, dims: sh.filter((s) => s.part).map((s) => s.annos.filter((a) => a.type === "dim").length), balloons: sh[0].annos.filter((a) => a.type === "balloon").length };
+  });
+  check("drawing set + auto dimensions + balloons", set.detail >= 2 && set.dims.every((n) => n >= 2) && set.balloons >= 2, JSON.stringify(set));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/drawing-set.png` });
+  await page.evaluate(() => window.cad.drawing.switchSheet?.(1));
+  await settle();
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/detail-sheet.png` });
+  await page.evaluate(() => window.cad.drawing.switchSheet(0));
+  await settle();
   check("assembly drawing + parts list", (await page.evaluate(() => document.querySelectorAll(".dw-stage .partslist").length)) === 1);
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/asm-drawing.png` });
 } catch (e) {

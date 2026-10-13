@@ -143,6 +143,8 @@ export interface TitleBlock {
   revision: string;
   /** Free general tolerance / notes line. */
   generalTol: string;
+  /** Company logo (image data URL), drawn above the title block. */
+  logo?: string;
 }
 
 export interface Sheet {
@@ -154,6 +156,10 @@ export interface Sheet {
   annos: Anno[];
   /** Parts list table position (assembly drawings), top-left in sheet mm. */
   partsList?: { x: number; y: number } | null;
+  /** Detail drawing of one part of the assembly (part id): views show only that part, in its own coordinates. */
+  part?: string;
+  /** Title block entries overriding the drawing's (part number, name, material of a detail sheet). */
+  title?: Partial<TitleBlock>;
 }
 
 export interface DrawingDoc {

@@ -5,7 +5,8 @@ import type { Store } from "../core/store";
 import type { Vec2 } from "../core/types";
 import type { ViewGeometry } from "../kernel/protocol";
 import { encodeDxf, svgToDxf } from "../io/formats";
-import { confirmDialog, contextMenu, download, h, iconEl, modal, promptDialog, toast, type MenuItem } from "../ui/dom";
+import { IDENTITY } from "../assembly/types";
+import { confirmDialog, contextMenu, download, h, iconEl, modal, pickFile, promptDialog, toast, type MenuItem } from "../ui/dom";
 import type { RibbonTab } from "../ui/ribbon";
 import { dimValue, linearPoints, projectedFrame, resnap, sectionFrame, snapAt, toSheet, toView, viewBox, viewSpec, type Snap } from "./geom";
 import { renderSheet, type BomRow } from "./render";
@@ -25,6 +26,7 @@ import {
   type Sheet,
   type StdOrient,
   type Tolerance,
+  type TitleBlock,
 } from "./types";
 
 type Tool =
@@ -156,21 +158,10 @@ export class DrawingEnv {
     const src = this.store.doc;
     const iprops = src.iprops ?? {};
     const material = this.source === "part" ? this.app.store.doc.material.name : "—";
-    const sheet = this.newSheet("A3");
-    const base: DView = { id: uid("v"), kind: "base", ...ORIENTS.front, label: ORIENTS.front.label, scale: 1, x: 120, y: 160, hidden: true, centerMarks: true };
-    const mk = (side: "top" | "right" | "iso"): DView => ({
-      id: uid("v"),
-      label: side === "iso" ? "等角図" : "",
-      kind: "projected",
-      parent: base.id,
-      ...projectedFrame(base, side, 1, 1),
-      scale: 1,
-      x: 0,
-      y: 0,
-      hidden: side !== "iso",
-      centerMarks: side !== "iso",
-    });
-    sheet.views.push(base, mk("top"), mk("right"), mk("iso"));
+    const tpl = loadTemplate();
+    const sheet = this.newSheet(tpl.size ?? "A3");
+    if (tpl.landscape !== undefined) sheet.landscape = tpl.landscape;
+    sheet.views.push(...standardViews());
     if (this.source === "assembly") sheet.partsList = { x: 0, y: 0 };
     return {
       sheets: [sheet],
@@ -186,11 +177,156 @@ export class DrawingEnv {
         company: iprops["会社"] ?? "",
         revision: "A",
         generalTol: "JIS B 0405-m",
+        ...tpl.title,
       },
     };
   }
 
-  private newSheet(size: PaperSize): Sheet {
+  // ---------------------------------------------------------- automation ---
+
+  /**
+   * Automatic dimensions (Inventor 「モデル寸法を取得」/ SOLIDWORKS 「自動寸法」):
+   * overall sizes, hole notes grouped by size, hole positions as baseline
+   * dimensions from the left / bottom edges, one radius per fillet size.
+   */
+  autoDimension(sheetIndex = this.activeSheet) {
+    const sh = this.doc.sheets[sheetIndex];
+    const add: DimAnno[] = [];
+    const exists = (view: string, kind: DimKind, value: number) =>
+      [...sh.annos, ...add].some((a) => a.type === "dim" && a.view === view && a.kind === kind && Math.abs(dimValue(a) - value) < 1e-4);
+    for (const v of sh.views) {
+      if (v.kind !== "base" && v.kind !== "projected") continue;
+      if (v.label === "等角図") continue;
+      const g = this.geom.get(v.id);
+      if (!g) continue;
+      const [x0, y0, x1, y1] = g.bounds;
+      const s = v.scale, off = (k: number) => (10 + 7 * k) / s;
+      // edge lines to measure from (fall back to the bounding box corner)
+      const lines = g.visible.filter((q) => q.t === "line") as Extract<ViewGeometry["visible"][number], { t: "line" }>[];
+      const vline = lines.filter((q) => Math.abs(q.a[0] - x0) < 1e-6 && Math.abs(q.b[0] - x0) < 1e-6).sort((a, b) => Math.abs(b.a[1] - b.b[1]) - Math.abs(a.a[1] - a.b[1]))[0];
+      const hline = lines.filter((q) => Math.abs(q.a[1] - y0) < 1e-6 && Math.abs(q.b[1] - y0) < 1e-6).sort((a, b) => Math.abs(b.a[0] - b.b[0]) - Math.abs(a.a[0] - a.b[0]))[0];
+      const left: GRef = vline ? { kind: "line", p: vline.a, p2: vline.b } : { kind: "point", p: [x0, y0] };
+      const bottom: GRef = hline ? { kind: "line", p: hline.a, p2: hline.b } : { kind: "point", p: [x0, y0] };
+      let kb = 0, kl = 0;
+      const isTop = v.kind === "projected" && Math.abs(v.dir[1] - 1) < 1e-6;
+      const isRight = v.kind === "projected" && Math.abs(v.dir[0] - 1) < 1e-6;
+      // overall size: width + height on the base view, depth on the top (or right) view
+      if (v.kind === "base") {
+        if (!exists(v.id, "horizontal", x1 - x0)) add.push({ id: uid("a"), type: "dim", view: v.id, kind: "horizontal", refs: [{ kind: "point", p: [x0, y0] }, { kind: "point", p: [x1, y0] }], pos: [(x0 + x1) / 2, y0 - off(kb++)] });
+        else kb++;
+        if (!exists(v.id, "vertical", y1 - y0)) add.push({ id: uid("a"), type: "dim", view: v.id, kind: "vertical", refs: [{ kind: "point", p: [x1, y0] }, { kind: "point", p: [x1, y1] }], pos: [x1 + off(0), (y0 + y1) / 2] });
+      } else if (isTop && !exists(v.id, "vertical", y1 - y0)) add.push({ id: uid("a"), type: "dim", view: v.id, kind: "vertical", refs: [{ kind: "point", p: [x1, y0] }, { kind: "point", p: [x1, y1] }], pos: [x1 + off(0), (y0 + y1) / 2] });
+      if (isRight) continue;
+      // holes: one note per size, positions from the left / bottom edges
+      const circles = g.visible.filter((q) => q.t === "circle") as Extract<ViewGeometry["visible"][number], { t: "circle" }>[];
+      const bySize = new Map<string, typeof circles>();
+      for (const c of circles) {
+        const k = c.r.toFixed(3);
+        if (!bySize.has(k)) bySize.set(k, []);
+        bySize.get(k)!.push(c);
+      }
+      let n = 0;
+      for (const group of bySize.values()) {
+        if (n++ > 5) break;
+        const c = group.sort((a, b) => b.c[0] + b.c[1] - (a.c[0] + a.c[1]))[0];
+        if (!exists(v.id, "hole", c.r * 2)) add.push({ id: uid("a"), type: "dim", view: v.id, kind: "hole", refs: [{ kind: "circle", p: c.c, r: c.r }], pos: [c.c[0] + c.r + 8 / s, c.c[1] + c.r + 8 / s] });
+      }
+      const uniq = (vals: number[]) => [...new Set(vals.map((x) => +x.toFixed(4)))].sort((a, b) => a - b);
+      const xs = uniq(circles.map((c) => c.c[0])).filter((x) => x - x0 > 1e-3).slice(0, 6);
+      const ys = uniq(circles.map((c) => c.c[1])).filter((y) => y - y0 > 1e-3).slice(0, 6);
+      for (const x of xs) {
+        const c = circles.find((q) => Math.abs(q.c[0] - x) < 1e-3)!;
+        if (exists(v.id, "horizontal", x - x0)) continue;
+        add.push({ id: uid("a"), type: "dim", view: v.id, kind: "horizontal", refs: [left, { kind: "circle", p: c.c, r: c.r }], pos: [(x0 + x) / 2, y0 - off(kb++)] });
+      }
+      for (const y of ys) {
+        const c = circles.find((q) => Math.abs(q.c[1] - y) < 1e-3)!;
+        if (exists(v.id, "vertical", y - y0)) continue;
+        add.push({ id: uid("a"), type: "dim", view: v.id, kind: "vertical", refs: [bottom, { kind: "circle", p: c.c, r: c.r }], pos: [x0 - off(kl++), (y0 + y) / 2] });
+      }
+      // fillet / corner radii: one dimension per size
+      const arcs = g.visible.filter((q) => q.t === "arc") as Extract<ViewGeometry["visible"][number], { t: "arc" }>[];
+      const radii = new Map<string, (typeof arcs)[number]>();
+      for (const a of arcs) if (!radii.has(a.r.toFixed(3)) && radii.size < 3) radii.set(a.r.toFixed(3), a);
+      for (const a of radii.values()) {
+        if (exists(v.id, "radius", a.r)) continue;
+        const mid = (a.a0 + a.a1) / 2 + (a.a1 < a.a0 ? Math.PI : 0);
+        const d = a.r + 8 / s;
+        add.push({ id: uid("a"), type: "dim", view: v.id, kind: "radius", refs: [{ kind: "circle", p: a.c, r: a.r }], pos: [a.c[0] + Math.cos(mid) * d, a.c[1] + Math.sin(mid) * d] });
+      }
+    }
+    if (add.length) this.mutate("自動寸法", (d) => d.sheets[sheetIndex].annos.push(...add));
+    return add.length;
+  }
+
+  /** Balloons for every part in the parts list, spread around the view (assembly drawings). */
+  autoBalloon() {
+    if (this.source !== "assembly") return void toast("風船はアセンブリ図面で使用します", "info");
+    const sh = this.sheet;
+    const v = sh.views.find((x) => x.label === "等角図") ?? sh.views.find((x) => x.kind === "base");
+    const g = v && this.geom.get(v.id);
+    if (!v || !g) return;
+    const [x0, y0, x1, y1] = g.bounds;
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    const R = Math.hypot(x1 - x0, y1 - y0) / 2 + 12 / v.scale;
+    const items = new Map<number, { p: Vec2; tag: number; d: number }>();
+    for (const seg of g.visible) {
+      if (seg.tag < 0) continue;
+      const item = this.itemOfTag(seg.tag);
+      if (!item) continue;
+      const p: Vec2 = seg.t === "line" ? [(seg.a[0] + seg.b[0]) / 2, (seg.a[1] + seg.b[1]) / 2] : seg.t === "poly" ? seg.pts[Math.floor(seg.pts.length / 2)] : [seg.c[0] + seg.r, seg.c[1]];
+      const d = Math.hypot(p[0] - cx, p[1] - cy);
+      const cur = items.get(item);
+      if (!cur || d > cur.d) items.set(item, { p, tag: seg.tag, d });
+    }
+    // spread the balloons by angle, at least 360/n apart where possible
+    const list = [...items.entries()].map(([item, x]) => ({ item, ...x, ang: Math.atan2(x.p[1] - cy, x.p[0] - cx) })).sort((a, b) => a.ang - b.ang);
+    const minSep = Math.min((2 * Math.PI) / Math.max(list.length, 1), 0.45);
+    for (let i = 1; i < list.length; i++) if (list[i].ang - list[i - 1].ang < minSep) list[i].ang = list[i - 1].ang + minSep;
+    const annos: Anno[] = list.map((b) => ({ id: uid("a"), type: "balloon", view: v.id, p: b.p, pos: [cx + Math.cos(b.ang) * R, cy + Math.sin(b.ang) * R], tag: b.tag }));
+    this.mutate("自動風船", (d) => {
+      const s = d.sheets[this.activeSheet];
+      s.annos = s.annos.filter((a) => !(a.type === "balloon" && a.view === v.id)).concat(annos);
+    });
+    toast(`${annos.length} 個の風船を配置しました`, "ok");
+  }
+
+  /** Assembly drawing + one detail sheet per part (layout, dimensions, title block per part). */
+  async drawingSet() {
+    if (this.source !== "assembly") return void toast("図面セットはアセンブリから作成します (アセンブリ図面 + 部品図)", "info");
+    const asm = this.app.asm.doc;
+    const parts = asm.parts.filter((p) => asm.components.some((c) => c.partId === p.id) && !this.doc.sheets.some((s) => s.part === p.id));
+    if (!parts.length) return void toast("すべての部品図が作成済みです", "info");
+    const tpl = loadTemplate();
+    this.mutate("図面セット", (d) => {
+      for (const p of parts) {
+        const sh: Sheet = { ...this.newSheet(tpl.size ?? "A3"), name: p.doc?.iprops["パーツ番号"] || p.name, part: p.id, views: standardViews() };
+        if (tpl.landscape !== undefined) sh.landscape = tpl.landscape;
+        sh.title = {
+          title: p.name,
+          number: p.doc?.iprops["パーツ番号"] ?? "",
+          material: p.kind === "step" ? "—" : (p.doc?.material ?? MATERIALS[0]).name,
+          designer: p.doc?.iprops["設計者"] || this.doc.title.designer,
+        };
+        d.sheets.push(sh);
+      }
+    });
+    const start = this.doc.sheets.length - parts.length;
+    for (let i = start; i < this.doc.sheets.length; i++) {
+      this.activeSheet = i;
+      await this.refresh(true);
+      this.autoLayout();
+      await this.refresh(true);
+      this.autoDimension(i);
+    }
+    this.activeSheet = 0;
+    await this.refresh(true);
+    this.autoBalloon();
+    this.fit();
+    toast(`組立図 + 部品図 ${parts.length} 枚を作成しました — PDF で全シートを書き出せます`, "ok");
+  }
+
+  newSheet(size: PaperSize): Sheet {
     return { id: uid("sh"), name: `シート${(this.store.doc.drawing?.sheets.length ?? 0) + 1}`, size, landscape: true, views: [], annos: [] };
   }
 
@@ -365,14 +501,19 @@ export class DrawingEnv {
   }
 
   private async computeViews(sheet: Sheet) {
-    const placements = this.source === "assembly" ? this.app.asm.placements() : undefined;
+    let placements = this.source === "assembly" ? this.app.asm.placements() : undefined;
     if (this.source === "assembly") this.placements = this.app.asm.doc.components.filter((c) => c.visible !== false).map((c) => c.id);
+    if (this.source === "assembly" && sheet.part) {
+      // detail sheet: the part alone, in its own coordinates
+      const comp = this.app.asm.doc.components.find((c) => c.partId === sheet.part);
+      placements = [{ key: `asm:${sheet.part}`, matrix: IDENTITY, name: comp?.name ?? "" }];
+    }
     const views = sheet.views;
     const todo: DView[] = [];
     for (const v of views) {
       const parent = views.find((p) => p.id === v.parent);
       const spec = viewSpec(v, parent);
-      const key = JSON.stringify([this.modelVersion, spec]);
+      const key = JSON.stringify([this.modelVersion, spec, sheet.part ?? ""]);
       if (this.geomKey.get(v.id) !== key || !this.geom.has(v.id)) todo.push(v);
     }
     if (!todo.length) return;
@@ -384,7 +525,7 @@ export class DrawingEnv {
       todo.forEach((v, i) => {
         // detail views reuse their parent's projection (clipped)
         this.geom.set(v.id, res[i]);
-        this.geomKey.set(v.id, JSON.stringify([this.modelVersion, viewSpec(v, views.find((p) => p.id === v.parent))]));
+        this.geomKey.set(v.id, JSON.stringify([this.modelVersion, viewSpec(v, views.find((p) => p.id === v.parent)), sheet.part ?? ""]));
       });
     } catch (e) {
       toast(`ビューを計算できませんでした: ${(e as Error).message}`, "error");
@@ -1120,7 +1261,28 @@ export class DrawingEnv {
       ["company", "会社"],
       ["generalTol", "普通公差"],
     ];
-    const inputs = fields.map(([k]) => h("input", { class: "field-input", value: t[k] }));
+    const inputs = fields.map(([k]) => h("input", { class: "field-input", value: (t as unknown as Record<string, string>)[k] ?? "" }) as HTMLInputElement);
+    let logo = t.logo ?? "";
+    const logoImg = h("img", { class: "logo-prev", src: logo || undefined, alt: "" }) as HTMLImageElement;
+    const logoBtn = h(
+      "button",
+      {
+        class: "btn",
+        onClick: async () => {
+          const f = await pickFile("image/png,image/jpeg,image/svg+xml");
+          if (!f) return;
+          if (f.size > 400_000) return void toast("ロゴ画像は 400 KB 以下にしてください", "warn");
+          logo = await new Promise<string>((res) => {
+            const r = new FileReader();
+            r.onload = () => res(String(r.result));
+            r.readAsDataURL(f);
+          });
+          logoImg.src = logo;
+        },
+      },
+      "ロゴ画像…",
+    );
+    const logoClear = h("button", { class: "btn", onClick: () => ((logo = ""), logoImg.removeAttribute("src")) }, "クリア");
     const body = h(
       "div",
       { class: "settings" },
@@ -1130,6 +1292,7 @@ export class DrawingEnv {
       h("label", { class: "field" }, h("span", { class: "field-label" }, "向き"), h("span", { class: "field-ctl" }, orient)),
       h("h3", {}, "表題欄"),
       ...fields.map(([, l], i) => h("label", { class: "field" }, h("span", { class: "field-label" }, l), h("span", { class: "field-ctl" }, inputs[i]))),
+      h("div", { class: "field" }, h("span", { class: "field-label" }, "会社ロゴ"), h("span", { class: "field-ctl logo-ctl" }, logoImg, logoBtn, logoClear)),
     );
     modal({
       title: "シートと表題欄",
@@ -1146,10 +1309,23 @@ export class DrawingEnv {
               sh.size = size.value as PaperSize;
               sh.landscape = orient.value === "l";
               sh.name = name.value || sh.name;
-              fields.forEach(([k], i) => (d.title[k] = inputs[i].value));
+              fields.forEach(([k], i) => ((d.title as unknown as Record<string, string>)[k] = inputs[i].value));
+              d.title.logo = logo || undefined;
             });
             this.render();
             this.fit();
+          },
+        },
+        {
+          label: "テンプレートとして保存",
+          onClick: () => {
+            const keep = ["company", "designer", "checker", "approver", "generalTol"] as const;
+            const title: Partial<TitleBlock> = {};
+            for (const k of keep) title[k] = inputs[fields.findIndex(([f]) => f === k)].value;
+            if (logo) title.logo = logo;
+            saveTemplate({ size: size.value as PaperSize, landscape: orient.value === "l", title });
+            toast("図面テンプレートを保存しました (新しい図面に適用されます)", "ok");
+            return false;
           },
         },
         { label: "キャンセル" },
@@ -1295,6 +1471,22 @@ export class DrawingEnv {
           ],
         },
         {
+          title: "自動化",
+          items: [
+            { id: "dw-autodim", label: "自動寸法", icon: "dimension", tip: "外形寸法・穴の位置と径 (同径はまとめて 4×φ6.6 など)・R を自動で記入します。", action: () => {
+              const n = this.autoDimension();
+              this.render();
+              toast(n ? `${n} 個の寸法を追加しました` : "追加する寸法はありません", n ? "ok" : "info");
+            } },
+            {
+              stack: [
+                { id: "dw-autoballoon", label: "自動風船", icon: "circPattern", size: "small", tip: "部品表の品番に合わせて風船を自動配置します (アセンブリ)。", action: () => this.autoBalloon() },
+                { id: "dw-set", label: "図面セット", icon: "drawing", size: "small", tip: "組立図に加えて、部品ごとの部品図 (寸法付き) をシートとして一括作成します。", action: () => void this.drawingSet() },
+              ],
+            },
+          ],
+        },
+        {
           title: "シート",
           items: [
             { id: "dw-sheet", label: "シート設定", icon: "settings", tip: "用紙サイズ・向き・表題欄を設定します。", action: () => this.sheetSettings() },
@@ -1432,4 +1624,46 @@ function gdtDialog(init?: { symbol: string; value: string; datums: string }): Pr
       onClose: () => resolve(result),
     });
   });
+}
+
+// ------------------------------------------------------------ templates ---
+
+interface DrawingTemplate {
+  size?: PaperSize;
+  landscape?: boolean;
+  title?: Partial<TitleBlock>;
+}
+const TEMPLATE_KEY = "3dcad.drawingTemplate";
+
+function loadTemplate(): DrawingTemplate {
+  try {
+    return JSON.parse(localStorage.getItem(TEMPLATE_KEY) ?? "{}") as DrawingTemplate;
+  } catch {
+    return {};
+  }
+}
+function saveTemplate(t: DrawingTemplate) {
+  try {
+    localStorage.setItem(TEMPLATE_KEY, JSON.stringify(t));
+  } catch {
+    toast("テンプレートを保存できませんでした (ストレージ容量)", "error");
+  }
+}
+
+/** Base front view with top, right and isometric projections. */
+function standardViews(): DView[] {
+  const base: DView = { id: uid("v"), kind: "base", ...ORIENTS.front, label: ORIENTS.front.label, scale: 1, x: 120, y: 160, hidden: true, centerMarks: true };
+  const mk = (side: "top" | "right" | "iso"): DView => ({
+    id: uid("v"),
+    label: side === "iso" ? "等角図" : "",
+    kind: "projected",
+    parent: base.id,
+    ...projectedFrame(base, side, 1, 1),
+    scale: 1,
+    x: 0,
+    y: 0,
+    hidden: side !== "iso",
+    centerMarks: side !== "iso",
+  });
+  return [base, mk("top"), mk("right"), mk("iso")];
 }
