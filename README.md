@@ -174,16 +174,18 @@ npm run app        # デスクトップ アプリとして起動
 | 形式 | 読込 | 書出 | 主な相手先 |
 | --- | :-: | :-: | --- |
 | STEP (.stp/.step, AP214) | ✓ | ✓ | Inventor / SOLIDWORKS / Fusion 360 / CATIA / Creo / NX / Onshape / FreeCAD (形状 = B-rep ソリッド。アセンブリは部品名付き) |
-| DXF (R12) | ✓ (スケッチとして) | ✓ (スケッチ / 図面) | AutoCAD / Jw_cad / DraftSight / LibreCAD — 線分・円・円弧・ポリライン (バルジ付き) |
+| DXF (R12) | ✓ (スケッチとして) | ✓ (スケッチ / 図面 / 展開図) | AutoCAD / Jw_cad / DraftSight / LibreCAD / BricsCAD — 読込: 線分・円・円弧・ポリライン (バルジ)・楕円・スプライン (NURBS)・ブロック挿入、UTF-8 / Shift_JIS 自動判別。書出: JIS 風の画層 (外形線 VISIBLE / かくれ線 HIDDEN / 中心線 CENTER / 細線 / 寸法 / 文字 / ハッチング / 図枠) と線種、日本語は Shift_JIS ($DWGCODEPAGE ANSI_932)、断面ハッチングは 45° の線 |
 | STL | ✓ | ✓ | 3D プリンタ、スキャナ |
-| 3MF | | ✓ | Bambu Studio / PrusaSlicer / Cura / Windows 3D ビューアー |
+| 3MF | ✓ | ✓ | Bambu Studio / PrusaSlicer / Cura / Windows 3D ビューアー (ビルド配置・単位を反映) |
 | OBJ | ✓ | ✓ | Blender / Rhino / メッシュ系ツール |
-| GLB (glTF) | | ✓ | Web・AR・プレゼン |
-| PLY | | ✓ | 点群 / メッシュ ツール |
+| GLB (glTF) | ✓ | ✓ | Web・AR・プレゼン (ノード変換を反映、m → mm) |
+| PLY | ✓ | ✓ | 点群 / メッシュ ツール (ASCII / バイナリ) |
+| BREP | | ✓ | FreeCAD / OpenCascade 系ツール (ネイティブ B-rep) |
+| Inventor (.ipt/.iam/.idw/.ipn)・旧 SOLIDWORKS | iProperties・プレビュー | | 形状は非公開形式のため STEP 経由 (読み取った iProperties は現在のパーツに取り込み可能) |
 | CSV | ✓ | ✓ | Excel (パラメータ = デザイン テーブル) |
 | SVG / PDF (印刷) | | ✓ | 図面 |
 
-メッシュ形式 (STL / OBJ) の読み込みは三角形を縫合してソリッド化します (編集はできますが面は多面体になります)。
+メッシュ形式 (STL / OBJ / 3MF / GLB / PLY) の読み込みは三角形を縫合してソリッド化します (編集はできますが面は多面体になります)。
 
 ## Inventor との互換性について
 
@@ -229,3 +231,7 @@ npm run build && npm run e2e   # ブラウザでの E2E (スケッチ→押し�
 ## ライセンス
 
 OpenCascade (replicad-opencascadejs) は LGPL-2.1、replicad は MIT、three.js は MIT ライセンスです。
+
+### 対応していない形式
+
+IGES・Parasolid (x_t)・DWG・Inventor / SOLIDWORKS の形状データは、仕様が非公開か、ブラウザで使える変換ライブラリがないため対応していません。いずれも STEP (形状) または DXF (2D) を経由してください。

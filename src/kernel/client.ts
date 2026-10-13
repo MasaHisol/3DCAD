@@ -84,7 +84,7 @@ export class KernelClient {
     }
   }
 
-  exportFile(format: "step" | "stl", name: string): Promise<ArrayBuffer> {
+  exportFile(format: "step" | "stl" | "brep", name: string): Promise<ArrayBuffer> {
     return this.call({ kind: "export", format, name });
   }
   massProps(): Promise<MassProps> {

@@ -4,7 +4,7 @@ import { evaluate, formatNumber, references } from "../core/expr";
 import { createsCycle, evaluateParams, PARAM_NAME_RE } from "../core/params";
 import type { ParamUnit, Vec3 } from "../core/types";
 import { download, h, iconEl, modal, pickFile, toast } from "./dom";
-import { csvToParams, paramsToCsv, svgToDxf } from "../io/formats";
+import { csvToParams, encodeDxf, paramsToCsv, svgToDxf } from "../io/formats";
 
 // ------------------------------------------------------------ parameters ---
 
@@ -318,7 +318,7 @@ export async function openDrawing(app: App) {
         label: "DXF を書き出し",
         onClick: () => {
           const svg = holder.querySelector("svg");
-          if (svg) download(`${asm ? app.asm.doc.name : app.store.doc.name}.dxf`, svgToDxf(svg as SVGSVGElement, 297), "application/dxf");
+          if (svg) download(`${asm ? app.asm.doc.name : app.store.doc.name}.dxf`, encodeDxf(svgToDxf(svg as SVGSVGElement, 297)) as BlobPart, "application/dxf");
           return false;
         },
       },

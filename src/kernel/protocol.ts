@@ -238,7 +238,7 @@ export interface Interference {
 export type WorkerRequest =
   | { kind: "init" }
   | { kind: "rebuild"; features: RFeature[]; captureBefore?: string; key?: string }
-  | { kind: "export"; format: "step" | "stl"; name: string; key?: string }
+  | { kind: "export"; format: "step" | "stl" | "brep"; name: string; key?: string }
   | { kind: "massProps"; key?: string }
   | { kind: "measure"; a: PickRef; b?: PickRef; key?: string }
   | { kind: "projection"; views: { name: string; dir: Vec3; xAxis: Vec3 }[]; key?: string; placements?: Placement[] }

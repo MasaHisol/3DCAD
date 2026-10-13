@@ -808,8 +808,18 @@ export class GeometryEngine {
     return { bodies, before: beforeMeshes, errors, updatedRefs, timeMs: performance.now() - t0, threads: this.threads };
   }
 
-  exportFile(format: "step" | "stl", name: string): Blob {
+  exportFile(format: "step" | "stl" | "brep", name: string): Blob {
     if (!this.bodies.length) throw new Error("エクスポートするボディがありません");
+    if (format === "brep") {
+      // OpenCascade native B-rep (FreeCAD, Salome, CAD Exchanger, OCCT tools)
+      const oc = R.getOC() as unknown as { BRepTools: { Write(s: unknown, f: string, p: unknown): boolean }; Message_ProgressRange: new () => unknown; FS: { readFile(f: string): Uint8Array; unlink(f: string): void } };
+      const shape = this.bodies.length === 1 ? this.bodies[0] : (R.makeCompound(this.bodies) as unknown as Shape);
+      const file = `/tmp/export_${Date.now()}.brep`;
+      if (!oc.BRepTools.Write((shape as unknown as { wrapped: unknown }).wrapped, file, new oc.Message_ProgressRange())) throw new Error("BREP の書き出しに失敗しました");
+      const data = oc.FS.readFile(file);
+      oc.FS.unlink(file);
+      return new Blob([data as BlobPart], { type: "application/octet-stream" });
+    }
     if (format === "step") {
       return R.exportSTEP(
         this.bodies.map((shape, i) => ({ shape, name: this.bodies.length > 1 ? `${name}_${i + 1}` : name })),

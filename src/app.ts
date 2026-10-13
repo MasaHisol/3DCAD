@@ -19,12 +19,14 @@ import { ViewCube } from "./viewer/viewcube";
 import { samePick, Viewport, type Pick, type ToolHandler, type VisualStyle } from "./viewer/viewport";
 import { openIProperties, openParameters, openShortcuts } from "./ui/dialogs";
 import { sampleAssembly, sampleDocument } from "./samples";
-import { exportMeshes, objToStl, parseDxf, sketchToDxf, type MeshFormat } from "./io/formats";
+import { decodeDxf, encodeDxf, exportMeshes, objToStl, parseDxf, sketchToDxf, type MeshFormat } from "./io/formats";
 import { NAV_PRESETS, type NavPreset } from "./viewer/viewport";
 import { Timeline } from "./ui/timeline";
 import { openCommandSearch } from "./ui/commandSearch";
 import { AssemblyEnv } from "./assembly/env";
 import { openLibrary } from "./library/dialog";
+import { read3mf, readGlb, readPly } from "./io/meshin";
+import { openNativeInfo } from "./io/nativeDialog";
 import type { Rule, RuleContext, RuleResult } from "./rules/engine";
 import { DrawingEnv } from "./drawing/env";
 import { newAssembly, type AssemblyDocument } from "./assembly/types";
@@ -1298,12 +1300,12 @@ export class App {
   }
 
   async openFile() {
-    const f = await pickFile(".3dcp,.3dca,.json,.step,.stp,.stl,.obj,.dxf");
+    const f = await pickFile(".3dcp,.3dca,.json,.step,.stp,.stl,.obj,.3mf,.glb,.ply,.dxf,.ipt,.iam,.idw,.ipn,.sldprt,.sldasm,.slddrw");
     if (f) this.openOrImport(f);
   }
 
   async importFile() {
-    const f = await pickFile(".step,.stp,.stl,.obj,.dxf");
+    const f = await pickFile(".step,.stp,.stl,.obj,.3mf,.glb,.ply,.dxf");
     if (f) this.openOrImport(f);
   }
 
@@ -1329,11 +1331,13 @@ export class App {
         this.asm.store.mutate("配置", (d) => d.parts.push({ id, name: f.name.replace(/\.[^.]+$/, ""), kind: "step", step, fileName: f.name }));
         await this.asm.placeInstance(id);
       } else if (ext === "dxf") {
-        this.importDxf(f.name, await f.text());
-      } else if (ext === "step" || ext === "stp" || ext === "stl" || ext === "obj") {
+        this.importDxf(f.name, decodeDxf(new Uint8Array(await f.arrayBuffer())));
+      } else if (["step", "stp", "stl", "obj", "3mf", "glb", "ply"].includes(ext)) {
         let data: string;
-        if (ext === "stl" || ext === "obj") {
-          const bytes = ext === "obj" ? objToStl(await f.text()) : new Uint8Array(await f.arrayBuffer());
+        const mesh = ext !== "step" && ext !== "stp";
+        if (mesh) {
+          const raw = new Uint8Array(await f.arrayBuffer());
+          const bytes = ext === "obj" ? objToStl(new TextDecoder().decode(raw)) : ext === "3mf" ? await read3mf(raw) : ext === "glb" ? readGlb(raw) : ext === "ply" ? readPly(raw) : raw;
           let bin = "";
           for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
           data = btoa(bin);
@@ -1343,15 +1347,15 @@ export class App {
             id: uid("im"),
             type: "import",
             name: f.name.replace(/\.[^.]+$/, ""),
-            format: ext === "stl" || ext === "obj" ? "stl" : "step",
+            format: mesh ? "stl" : "step",
             fileName: f.name,
             data,
           }),
         );
         if (!this.store.doc.features.some((x) => x.type !== "import")) this.firstFit = true;
         toast(`${f.name} をインポートしました (ベース フィーチャ)`, "ok");
-      } else if (ext === "ipt" || ext === "iam" || ext === "idw") {
-        toast("Inventor ネイティブ形式 (.ipt/.iam) は非公開形式のため直接開けません。Inventor から STEP (*.stp) で書き出してインポートしてください", "warn", 9000);
+      } else if (["ipt", "iam", "idw", "ipn", "sldprt", "sldasm", "slddrw"].includes(ext)) {
+        openNativeInfo(this, f.name, new Uint8Array(await f.arrayBuffer()));
       } else toast("サポートされていないファイル形式です", "error");
     } catch (e) {
       toast(`ファイルを開けませんでした: ${(e as Error).message}`, "error");
@@ -1399,9 +1403,10 @@ export class App {
     toast(`${name} を保存しました`, "ok", 2000);
   }
 
-  async exportFile(format: "step" | "stl") {
+  async exportFile(format: "step" | "stl" | "brep") {
     if (this.asmDoc) {
       if (format === "step") return this.asm.exportStep();
+      if (format === "brep") return void toast("BREP はパーツから書き出します", "info");
       try {
         download(`${this.asm.doc.name}.stl`, await this.kernel.exportAssembly("stl", this.asm.placements()), "model/stl");
       } catch (e) {
@@ -1415,8 +1420,8 @@ export class App {
     }
     try {
       const buf = await this.kernel.exportFile(format, this.store.doc.name);
-      const name = `${this.store.doc.name}.${format === "step" ? "stp" : "stl"}`;
-      download(name, buf, format === "step" ? "application/step" : "model/stl");
+      const name = `${this.store.doc.name}.${format === "step" ? "stp" : format}`;
+      download(name, buf, format === "step" ? "application/step" : format === "stl" ? "model/stl" : "application/octet-stream");
       toast(`${name} をエクスポートしました${format === "step" ? " — Inventor で開けます" : ""}`, "ok");
     } catch (e) {
       toast(`エクスポートに失敗しました: ${(e as Error).message}`, "error");
@@ -1457,7 +1462,7 @@ export class App {
   exportSketchDxf(id: string) {
     const sk = this.store.feature<SketchFeature>(id);
     if (!sk) return;
-    download(`${sk.name}.dxf`, sketchToDxf(sk), "application/dxf");
+    download(`${sk.name}.dxf`, encodeDxf(sketchToDxf(sk)) as BlobPart, "application/dxf");
     toast(`${sk.name}.dxf を書き出しました (AutoCAD 等で開けます)`, "ok");
   }
 
@@ -1491,6 +1496,7 @@ export class App {
     contextMenu(x, y, [
       { label: "STEP (AP214) — Inventor / SOLIDWORKS / Fusion / CATIA / Creo", icon: "export", action: () => this.exportFile("step") },
       { label: "STL — 3D プリンタ", icon: "export", action: () => this.exportFile("stl") },
+      { label: "BREP — FreeCAD / OpenCascade (B-rep)", icon: "export", action: () => this.exportFile("brep") },
       { label: "3MF — 3D プリンタ (Bambu / Prusa / Cura)", icon: "export", action: () => this.exportMesh("3mf") },
       { label: "OBJ — Blender / Rhino / 汎用メッシュ", icon: "export", action: () => this.exportMesh("obj") },
       { label: "GLB (glTF) — Web / AR / プレゼン", icon: "export", action: () => this.exportMesh("glb") },

@@ -69,4 +69,12 @@ describe("shape editing features", () => {
     expect(r.errors).toEqual({});
     expect(eng.massProps().volume).toBeCloseTo(40 * 20 * 13, 3);
   }, 60000);
+
+  it("exports OpenCascade BREP", async () => {
+    const eng = new GeometryEngine();
+    await eng.rebuild(lBracket);
+    const txt = await eng.exportFile("brep", "L").text();
+    expect(txt.startsWith("DBRep_DrawableShape")).toBe(true);
+    expect(txt).toContain("CASCADE Topology");
+  }, 60000);
 });

@@ -4,7 +4,7 @@ import { formatNumber } from "../core/expr";
 import type { Store } from "../core/store";
 import type { Vec2 } from "../core/types";
 import type { ViewGeometry } from "../kernel/protocol";
-import { svgToDxf } from "../io/formats";
+import { encodeDxf, svgToDxf } from "../io/formats";
 import { confirmDialog, contextMenu, download, h, iconEl, modal, promptDialog, toast, type MenuItem } from "../ui/dom";
 import type { RibbonTab } from "../ui/ribbon";
 import { dimValue, linearPoints, projectedFrame, resnap, sectionFrame, snapAt, toSheet, toView, viewBox, viewSpec, type Snap } from "./geom";
@@ -1196,7 +1196,7 @@ export class DrawingEnv {
     document.body.appendChild(holder);
     const svg = holder.querySelector("svg") as SVGSVGElement;
     const [, hh] = sheetSize(this.sheet);
-    download(`${this.doc.title.title || "drawing"}_${this.sheet.name}.dxf`, svgToDxf(svg, hh), "application/dxf");
+    download(`${this.doc.title.title || "drawing"}_${this.sheet.name}.dxf`, encodeDxf(svgToDxf(svg, hh)) as BlobPart, "application/dxf");
     holder.remove();
     toast("DXF を書き出しました (AutoCAD / Jw_cad で開けます)", "ok");
   }

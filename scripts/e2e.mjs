@@ -186,6 +186,11 @@ try {
   }));
   check("part drawing", dw.views >= 4 && dw.lines > 200 && dw.dims > 0, JSON.stringify(dw));
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/drawing.png` });
+  // DXF export: JIS layers, line types, Shift_JIS title block text
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.locator('[data-cmd="dw-dxf"]').click()]);
+  const dxfBytes = await (await import("node:fs/promises")).readFile(await dl.path());
+  const dxfText = new TextDecoder("shift_jis").decode(dxfBytes);
+  check("drawing DXF (layers, Shift_JIS)", /ANSI_932/.test(dxfText) && /\nVISIBLE\r?\n/.test(dxfText.replace(/\r/g, "")) && dxfText.includes("HIDDEN") && dxfText.includes("CENTER") && dxfText.includes("ブラケット"), `${Math.round(dxfBytes.length / 1024)} KB`);
   await page.keyboard.press("Control+z");
   await page.keyboard.press("Control+y");
   await page.evaluate(() => window.cad.leaveDrawingEnv());
