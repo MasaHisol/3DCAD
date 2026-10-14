@@ -48,6 +48,12 @@ export const FEA_MATERIALS: Record<string, FeaMaterial> = {
 export interface FeaMesh {
   positions: Float32Array | number[];
   indices: Uint32Array | number[];
+  /**
+   * Assemblies: closed triangle groups (first triangle, count) with their
+   * stiffness relative to the analysis material and density (g/cm³). Parts
+   * that touch are bonded.
+   */
+  parts?: { start: number; count: number; stiff: number; density: number }[];
 }
 
 export interface FeaLoad {
@@ -427,31 +433,62 @@ export function buildGrid(mesh: FeaMesh, opt: FeaOptions) {
   const origin: [number, number, number] = [0, 1, 2].map((k) => lo[k] + size[k] / 2 - (dims[k] * h) / 2) as [number, number, number];
   const [nx, ny, nz] = dims;
   const partial = opt.partialVolume !== false;
-  const frac = partial ? cellFractions(mesh, origin, h, dims, 4) : Float32Array.from(voxelize(mesh, origin, h, dims));
+  const sub = (p: { start: number; count: number }): FeaMesh => ({ positions: mesh.positions, indices: Array.from(mesh.indices).slice(p.start * 3, (p.start + p.count) * 3) });
+  const cells = (m: FeaMesh) => (partial ? cellFractions(m, origin, h, dims, 4) : Float32Array.from(voxelize(m, origin, h, dims)));
+  let frac: Float32Array;
+  // per-cell material mix of assemblies
+  let stiffMix: Float32Array | null = null, rhoMix: Float32Array | null = null;
+  if (mesh.parts?.length) {
+    frac = new Float32Array(dims[0] * dims[1] * dims[2]);
+    stiffMix = new Float32Array(frac.length);
+    rhoMix = new Float32Array(frac.length);
+    for (const part of mesh.parts) {
+      const f = cells(sub(part));
+      for (let i = 0; i < f.length; i++)
+        if (f[i]) {
+          frac[i] += f[i];
+          stiffMix[i] += f[i] * part.stiff;
+          rhoMix[i] += f[i] * part.density;
+        }
+    }
+    for (let i = 0; i < frac.length; i++)
+      if (frac[i]) {
+        stiffMix[i] /= frac[i];
+        rhoMix[i] /= frac[i];
+        frac[i] = Math.min(1, frac[i]);
+      }
+  } else frac = cells(mesh);
   const MIN_FRAC = 0.15;
   const NX = nx + 1, NY = ny + 1, NZ = nz + 1;
   const nodeId = (i: number, j: number, k: number) => (k * NY + j) * NX + i;
   const nNodes = NX * NY * NZ;
   const used = new Uint8Array(nNodes);
   const elems: number[] = [];
-  const phi: number[] = [];
+  /** Stiffness weight (solid fraction × relative modulus), solid fraction, relative modulus, density. */
+  const phi: number[] = [], solid: number[] = [], eratio: number[] = [], rho: number[] = [];
   for (let k = 0; k < nz; k++)
     for (let j = 0; j < ny; j++)
       for (let i = 0; i < nx; i++) {
-        const f = frac[(k * ny + j) * nx + i];
+        const c = (k * ny + j) * nx + i;
+        const f = frac[c];
         if (f < MIN_FRAC) {
-          frac[(k * ny + j) * nx + i] = 0;
+          frac[c] = 0;
           continue;
         }
         elems.push(i, j, k);
-        phi.push(partial ? Math.min(1, f) : 1);
+        const sf = partial ? Math.min(1, f) : 1;
+        const er = stiffMix ? stiffMix[c] : 1;
+        solid.push(sf);
+        eratio.push(er);
+        rho.push(rhoMix ? rhoMix[c] : NaN);
+        phi.push(sf * er);
         for (const [a, b, c] of CORNERS) used[nodeId(i + a, j + b, k + c)] = 1;
       }
   const ne = elems.length / 3;
   if (!ne) throw new Error("解析メッシュを作成できません (ソリッドが薄すぎるか解像度が粗すぎます)");
   const conn = new Int32Array(ne * 8);
   for (let e = 0; e < ne; e++) for (let n = 0; n < 8; n++) conn[e * 8 + n] = nodeId(elems[e * 3] + CORNERS[n][0], elems[e * 3 + 1] + CORNERS[n][1], elems[e * 3 + 2] + CORNERS[n][2]);
-  const volume = phi.reduce((s, f) => s + f, 0) * h * h * h;
+  const volume = solid.reduce((s, f) => s + f, 0) * h * h * h;
 
   // ---- boundary nodes: solid nodes close to the selected faces
   const nodePos = (n: number) => {
@@ -482,7 +519,7 @@ export function buildGrid(mesh: FeaMesh, opt: FeaOptions) {
         }
     return out;
   };
-  return { P, I, h, origin, dims, nx, ny, nz, NX, NY, NZ, nodeId, nNodes, used, elems, phi, ne, conn, volume, frac, nodePos, tri, near, cut };
+  return { P, I, h, origin, dims, nx, ny, nz, NX, NY, NZ, nodeId, nNodes, used, elems, phi, solid, eratio, rho, ne, conn, volume, frac, nodePos, tri, near, cut };
 }
 export type FeaGrid = ReturnType<typeof buildGrid>;
 
@@ -649,8 +686,11 @@ export function assembleLoads(G: FeaGrid, bc: FeaBoundary, mat: FeaMaterial, opt
   }
   if (bc.gravity) {
     const g = bc.gravity;
-    const w = h * h * h * g.density * 9.81e-6; // N per full cell
-    for (let e = 0; e < ne; e++) for (let n = 0; n < 8; n++) for (let k = 0; k < 3; k++) F[conn[e * 8 + n] * 3 + k] += (w * phi[e] * g.dir[k]) / 8;
+    const cell = h * h * h * 9.81e-6; // N per full cell per g/cm³
+    for (let e = 0; e < ne; e++) {
+      const m = cell * G.solid[e] * (Number.isNaN(G.rho[e]) ? g.density : G.rho[e]);
+      for (let n = 0; n < 8; n++) for (let k = 0; k < 3; k++) F[conn[e * 8 + n] * 3 + k] += (m * g.dir[k]) / 8;
+    }
   }
   // thermal expansion: equivalent nodal forces ∫ Bᵀ D ε0 (bubble part condensed with T)
   const el0 = elementData(mat, h, opt.element ?? "h11");
@@ -696,7 +736,7 @@ export function assembleLoads(G: FeaGrid, bc: FeaBoundary, mat: FeaMaterial, opt
 
 export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: FeaOptions, progress?: (it: number, res: number) => void): FeaResult {
   const G = buildGrid(mesh, opt);
-  const { h, origin, dims, nx, ny, nz, nNodes, used, elems, phi, ne, conn, volume, frac } = G;
+  const { h, origin, dims, nx, ny, nz, nNodes, used, elems, ne, conn, volume, frac } = G;
   const { fixed, fixedNodes, F, loadedNodes, gaussDT, prescribed } = assembleLoads(G, bc, mat, opt);
   const applied: [number, number, number] = [0, 0, 0];
   for (let n = 0; n < nNodes; n++) for (let k = 0; k < 3; k++) applied[k] += F[n * 3 + k];
@@ -729,7 +769,7 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
   // element on a stair-stepped (not grid aligned) boundary: partial, or with an exposed edge/corner neighbour
   const isActive = (i: number, j: number, k: number) => i >= 0 && j >= 0 && k >= 0 && i < nx && j < ny && k < nz && frac[(k * ny + j) * nx + i] > 0;
   const exposed = (e: number) => {
-    if (phi[e] < 0.999) return true;
+    if (G.solid[e] < 0.999) return true;
     const i = elems[e * 3], j = elems[e * 3 + 1], k = elems[e * 3 + 2];
     // a flat, grid-aligned surface leaves its face neighbours missing only in one direction per axis;
     // a step has a missing diagonal neighbour while both face neighbours exist
@@ -766,10 +806,10 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
         eps[1] -= e0;
         eps[2] -= e0;
       }
-      for (let k = 0; k < 6; k++) sg[g][k] = D[k].reduce((s, v, j) => s + v * eps[j], 0);
+      for (let k = 0; k < 6; k++) sg[g][k] = D[k].reduce((s, v, j) => s + v * eps[j], 0) * G.eratio[e];
       if (gaussStress) for (let k = 0; k < 6; k++) gaussStress[(e * 8 + g) * 6 + k] = sg[g][k];
     }
-    const w = phi[e];
+    const w = G.solid[e];
     const mode = opt.recovery ?? "auto";
     const exp = mode === "auto" && exposed(e);
     const useMean = mode === "mean" || exp;

@@ -507,7 +507,7 @@ export class App {
   setModelTool() {
     this.vp.pickKinds = new Set(["face", "edge"]);
     this.vp.pickFilter = null;
-    this.vp.tool = this.modelTool;
+    this.vp.tool = this.env === "assembly" ? this.asm.tool : this.modelTool;
     this.vp.renderer.domElement.style.cursor = "default";
   }
 

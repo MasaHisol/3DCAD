@@ -93,7 +93,7 @@ export function solveModal(mesh: FeaMesh, fixedTris: number[][], mat: FeaMateria
   const cell = G.h ** 3 * density * 1e-9;
   let totalMass = 0;
   for (let e = 0; e < G.ne; e++) {
-    const m = (cell * G.phi[e]) / 8;
+    const m = (cell * G.solid[e] * (Number.isNaN(G.rho[e]) ? 1 : G.rho[e] / density)) / 8;
     totalMass += m * 8;
     for (let n = 0; n < 8; n++) for (let k = 0; k < 3; k++) M[G.conn[e * 8 + n] * 3 + k] += m;
   }

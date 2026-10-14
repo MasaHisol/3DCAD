@@ -12,6 +12,7 @@ import { confirmDialog, contextMenu, download, h, iconEl, markingMenu, modal, pi
 import { PropertyPanel } from "../ui/panel";
 import type { RibbonTab } from "../ui/ribbon";
 import type { Pick, ToolHandler } from "../viewer/viewport";
+import { StressCommand } from "../analysis/ui";
 import { analyzeDof, explodeOffsets, type DofReport } from "./motion";
 import { startDrive, startExplode } from "./motionUi";
 import { constraintError, solveAssembly, type SolverConstraint } from "./solver";
@@ -223,6 +224,36 @@ export class AssemblyEnv {
     if (box.isEmpty()) return { center: [c.matrix[12], c.matrix[13], c.matrix[14]], size: 1 };
     const ctr = box.getCenter(new THREE.Vector3());
     return { center: [ctr.x, ctr.y, ctr.z], size: box.getSize(new THREE.Vector3()).length() };
+  }
+
+  /** Visible bodies in assembly coordinates (same order as the viewport bodies), with their materials. */
+  worldBodies(): { mesh: BodyMesh; material: { name: string; density: number } }[] {
+    const out: { mesh: BodyMesh; material: { name: string; density: number } }[] = [];
+    for (const c of this.doc.components) {
+      if (c.visible === false) continue;
+      const cache = this.parts.get(c.partId);
+      if (!cache) continue;
+      const part = this.doc.parts.find((p) => p.id === c.partId);
+      const material = part?.doc?.material ?? MATERIALS[1];
+      const m = m4(c.matrix);
+      const nm = new THREE.Matrix3().getNormalMatrix(m);
+      const v = new THREE.Vector3();
+      for (const b of cache.bodies) {
+        const positions = new Float32Array(b.positions.length), normals = new Float32Array(b.normals.length);
+        for (let i = 0; i < b.positions.length; i += 3) {
+          v.set(b.positions[i], b.positions[i + 1], b.positions[i + 2]).applyMatrix4(m);
+          positions.set([v.x, v.y, v.z], i);
+          v.set(b.normals[i], b.normals[i + 1], b.normals[i + 2]).applyMatrix3(nm).normalize();
+          normals.set([v.x, v.y, v.z], i);
+        }
+        const faces = b.faces.map((f) => {
+          const c3 = new THREE.Vector3(...f.center).applyMatrix4(m), n3 = new THREE.Vector3(...f.normal).applyMatrix3(nm).normalize();
+          return { ...f, center: [c3.x, c3.y, c3.z] as Vec3, normal: [n3.x, n3.y, n3.z] as Vec3 };
+        });
+        out.push({ mesh: { ...b, positions, normals, faces }, material: { name: material.name, density: material.density } });
+      }
+    }
+    return out;
   }
 
   /** Display offsets of the exploded view. */
@@ -853,6 +884,17 @@ export class AssemblyEnv {
               tip: "角度 / オフセット拘束の値を連続的に変化させて機構の動きを確認します (干渉で停止できます)。",
               action: () => startDrive(this, [...this.selected].find((id) => this.doc.constraints.some((c) => c.id === id))),
               active: () => this.command?.id === "drive",
+            },
+            {
+              id: "asm-analysis",
+              label: "構造解析",
+              icon: "stress",
+              tip: "アセンブリを部品同士接着として応力・固有値・座屈解析します (部品ごとの材料を反映)。",
+              action: () => {
+                this.app.cancelAsmCommand();
+                if (this.explode) (this.explode = 0), this.render();
+                this.app.startCommand(new StressCommand(this.app));
+              },
             },
             { id: "asm-explode", label: "分解", icon: "explode", tip: "コンポーネントを拘束の軸方向に分解して表示します (プレゼンテーション)。", action: () => startExplode(this), active: () => this.command?.id === "explode" || this.explode > 0 },
           ],

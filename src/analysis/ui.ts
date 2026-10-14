@@ -6,6 +6,7 @@ import { evalWith } from "../core/params";
 import { download, h, iconEl, toast } from "../ui/dom";
 import { PropertyPanel } from "../ui/panel";
 import type { Pick, ToolHandler } from "../viewer/viewport";
+import type { BodyMesh } from "../kernel/protocol";
 import { trisToStl } from "../io/meshin";
 import type { TopoResult } from "./topo";
 import { THERMAL_MATERIALS, type BucklingResult, type ModalResult, type ThermalBoundary, type ThermalResult } from "./advanced";
@@ -122,7 +123,19 @@ export class StressCommand implements Command {
   private convBtn: HTMLButtonElement | null = null;
   private lastTime = 0;
 
+  /** Analysed bodies (part bodies, or assembly bodies in assembly coordinates) and their materials. */
+  private B: BodyMesh[];
+  private mats: { name: string; density: number }[];
+
   constructor(private app: App) {
+    if (app.env === "assembly") {
+      const wb = app.asm.worldBodies();
+      this.B = wb.map((b) => b.mesh);
+      this.mats = wb.map((b) => b.material);
+    } else {
+      this.B = app.bodies;
+      this.mats = app.bodies.map(() => app.store.doc.material);
+    }
     app.vp.pickKinds = new Set(["face"]);
     app.vp.pickFilter = null;
     this.legend = h("div", { class: "fea-legend" });
@@ -177,7 +190,7 @@ export class StressCommand implements Command {
     const thermalKind = this.kind === "thermal" || this.kind === "thermalStress";
     p.note(
       ks,
-      `${app.store.doc.material.name}: E ${formatNumber(mat.E, 0)} MPa / ν ${mat.nu} / 降伏 ${formatNumber(mat.yield, 0)} MPa / 密度 ${app.store.doc.material.density} g/cm³` +
+      `${this.app.env === "assembly" ? `アセンブリ (部品ごとの材料、基準 ${this.matName()})` : this.matName()}: E ${formatNumber(mat.E, 0)} MPa / ν ${mat.nu} / 降伏 ${formatNumber(mat.yield, 0)} MPa / 密度 ${this.refDensity()} g/cm³` +
         (thermalKind ? ` / 熱伝導率 ${tm.k} W/(m·K) / 線膨張係数 ${formatNumber(tm.alpha * 1e6, 1)}×10⁻⁶/K` : ""),
     );
     const bc = p.section("境界条件");
@@ -274,11 +287,18 @@ export class StressCommand implements Command {
     }
   }
 
+  /** Reference material: the part's, or the first assembly body's. */
   private material() {
-    return FEA_MATERIALS[this.app.store.doc.material.name] ?? FEA_MATERIALS["汎用"];
+    return FEA_MATERIALS[this.matName()] ?? FEA_MATERIALS["汎用"];
+  }
+  private matName() {
+    return this.mats[0]?.name ?? this.app.store.doc.material.name;
+  }
+  private refDensity() {
+    return this.mats[0]?.density ?? this.app.store.doc.material.density;
   }
   private thermalMat() {
-    return THERMAL_MATERIALS[this.app.store.doc.material.name] ?? THERMAL_MATERIALS["汎用"];
+    return THERMAL_MATERIALS[this.matName()] ?? THERMAL_MATERIALS["汎用"];
   }
 
   private setActive(k: SetKey) {
@@ -300,7 +320,7 @@ export class StressCommand implements Command {
 
   /** All bodies as one triangle soup with outward winding; face picks -> triangle ids. */
   private buildMesh(): { mesh: FeaMesh; tris: (p: Pick) => number[] } {
-    const bodies = this.app.bodies;
+    const bodies = this.B;
     let nv = 0, nt = 0;
     for (const b of bodies) (nv += b.positions.length / 3), (nt += b.indices.length / 3);
     const positions = new Float32Array(nv * 3), indices = new Uint32Array(nt * 3);
@@ -332,11 +352,22 @@ export class StressCommand implements Command {
       for (let k = 0; k < n; k += 3) out.push(tOff[p.body] + (s + k) / 3);
       return out;
     };
-    return { mesh: { positions, indices }, tris };
+    // assemblies: one closed group per body, with its own modulus / density
+    const multi = new Set(this.mats.map((m) => m.name)).size > 1 || this.app.env === "assembly";
+    const ref = this.material();
+    const parts = multi
+      ? this.B.map((b, i) => ({
+          start: tOff[i],
+          count: b.indices.length / 3,
+          stiff: (FEA_MATERIALS[this.mats[i].name] ?? FEA_MATERIALS["汎用"]).E / ref.E,
+          density: this.mats[i].density,
+        }))
+      : undefined;
+    return { mesh: { positions, indices, parts }, tris };
   }
 
   private faceArea(p: Pick): number {
-    const b = this.app.bodies[p.body];
+    const b = this.B[p.body];
     const s = b.faceRanges[p.index * 2], n = b.faceRanges[p.index * 2 + 1];
     let a = 0;
     const P = b.positions, I = b.indices;
@@ -365,7 +396,7 @@ export class StressCommand implements Command {
         const areas = S.load.map((p) => this.faceArea(p));
         const total = areas.reduce((a, b) => a + b, 0) || 1;
         bc.loads = S.load.map((p, i) => {
-          const f = this.app.bodies[p.body].faces[p.index];
+          const f = this.B[p.body].faces[p.index];
           const share = (F * areas[i]) / total;
           const d = this.dir;
           const vec: [number, number, number] =
@@ -374,7 +405,7 @@ export class StressCommand implements Command {
         });
       }
     }
-    if (this.gravity) bc.gravity = { density: this.app.store.doc.material.density, dir: axisVec(this.gdir) };
+    if (this.gravity) bc.gravity = { density: this.refDensity(), dir: axisVec(this.gdir) };
     return bc;
   }
 
@@ -406,7 +437,7 @@ export class StressCommand implements Command {
     if (k === "modal") {
       if (!this.sets.fixed.length) throw new Error("固定拘束の面を選択してください");
       req.bc = { fixed: this.sets.fixed.map(tris), loads: [] };
-      req.density = this.app.store.doc.material.density;
+      req.density = this.refDensity();
       req.modes = this.nModes;
     }
     if (k === "thermal" || k === "thermalStress") {
@@ -556,7 +587,7 @@ export class StressCommand implements Command {
       const btns = h(
         "div",
         { class: "drive-btns" },
-        h("button", { class: "btn", onClick: () => download(`${this.app.store.doc.name}_最適化.stl`, trisToStl(t.surface.positions, t.surface.indices) as BlobPart, "model/stl") }, iconEl("export"), "STL 書き出し"),
+        h("button", { class: "btn", onClick: () => download(`${this.app.env === "assembly" ? this.app.asm.doc.name : this.app.store.doc.name}_最適化.stl`, trisToStl(t.surface.positions, t.surface.indices) as BlobPart, "model/stl") }, iconEl("export"), "STL 書き出し"),
         h("button", { class: "btn", onClick: () => this.addTopoBody(t) }, iconEl("import"), "モデルに追加"),
       );
       this.out.appendChild(btns);
@@ -648,7 +679,7 @@ export class StressCommand implements Command {
     this.stopAnim();
     const r = this.result;
     if (!r) return;
-    const bodies = this.app.bodies;
+    const bodies = this.B;
     const size = this.app.vp.modelBounds().getSize(new THREE.Vector3()).length();
     const kind = this.resultKind;
     if (kind !== "topology") this.app.vp.setPreviewMesh(null);
@@ -760,7 +791,7 @@ export class StressCommand implements Command {
   private report() {
     const r = this.result;
     if (!r) return void toast("先に解析を実行してください", "warn");
-    const doc = this.app.store.doc;
+    const doc = { name: this.app.env === "assembly" ? this.app.asm.doc.name : this.app.store.doc.name, material: { name: this.app.env === "assembly" ? `部品ごと (基準 ${this.matName()})` : this.matName(), density: this.refDensity() } };
     const mat = this.material();
     const kindLabel = KINDS.find((k) => k.value === this.resultKind)!.label;
     const lines = [`# ${kindLabel} レポート — ${doc.name}`, ``, `## 条件`, ``, `| 項目 | 値 |`, `|---|---|`, `| 材料 | ${doc.material.name} (E=${mat.E} MPa, ν=${mat.nu}, 降伏 ${mat.yield} MPa, 密度 ${doc.material.density} g/cm³) |`];

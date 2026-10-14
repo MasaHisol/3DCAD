@@ -173,4 +173,23 @@ describe("stress analysis accuracy (vs. closed-form solutions)", () => {
     expect(Math.abs(ktSub - 2.512)).toBeLessThan(Math.abs(ktCoarse - 2.512));
     expect(Math.abs(ktSub / 2.512 - 1)).toBeLessThan(0.02);
   }, 120000);
+
+  it("assembly: two bonded bars of different materials in series", () => {
+    // steel 0..50 and aluminium 50..100 along x, 10×10 section, pulled at the free end
+    const a = box(50, 10, 10), b = box(50, 10, 10);
+    const pos = [...a.mesh.positions, ...Array.from(b.mesh.positions as number[]).map((v, i) => (i % 3 === 0 ? v + 50 : v))];
+    const idx = [...(a.mesh.indices as number[]), ...(b.mesh.indices as number[]).map((i) => i + 8)];
+    const alu = FEA_MATERIALS["アルミニウム 6061"];
+    const mesh = { positions: pos, indices: idx, parts: [{ start: 0, count: 12, stiff: 1, density: 7.85 }, { start: 12, count: 12, stiff: alu.E / steel.E, density: 2.7 }] };
+    const F = 1000;
+    const r = solveFea(mesh, { fixed: [a.faces.xmin], loads: [{ tris: b.faces.xmax.map((t) => t + 12), force: [F, 0, 0] }] }, steel, { resolution: 50 });
+    // series springs: F L/(E A) for each half
+    const theory = (F * 50) / (steel.E * 100) + (F * 50) / (alu.E * 100);
+    const tip = sampleDisp(r, [100, 5, 5])[0];
+    expect(tip / theory).toBeGreaterThan(0.97);
+    expect(tip / theory).toBeLessThan(1.01);
+    // same stress F/A in both materials
+    expect(sampleVm(r, [25, 5, 5])).toBeCloseTo(10, 0);
+    expect(sampleVm(r, [75, 5, 5])).toBeCloseTo(10, 0);
+  }, 60000);
 });

@@ -294,6 +294,27 @@ try {
   await page.keyboard.press("Escape");
   await settle();
   check("drive restores", Math.abs((await page.evaluate(() => window.cad.asm.doc.components.find((c) => c.id === "c2").matrix[13])) - 35) < 1e-6);
+  // assembly structural analysis: bracket base fixed, inserted pin pushed down (bonded parts, per-part materials)
+  await page.locator('[data-cmd="asm-analysis"]').click();
+  await page.evaluate(() => {
+    const cmd = window.cad.command;
+    const B = cmd.B;
+    let lo = null, hi = null;
+    B.forEach((b, bi) => b.faces.forEach((f, i) => {
+      if (f.type !== "PLANE") return;
+      if (f.normal[1] < -0.99 && (!lo || f.center[1] < B[lo[0]].faces[lo[1]].center[1])) lo = [bi, i];
+      if (f.normal[1] > 0.99 && (!hi || f.center[1] > B[hi[0]].faces[hi[1]].center[1])) hi = [bi, i];
+    }));
+    cmd.sets.fixed = [{ kind: "face", body: lo[0], index: lo[1], point: B[lo[0]].faces[lo[1]].center }];
+    cmd.sets.load = [{ kind: "face", body: hi[0], index: hi[1], point: B[hi[0]].faces[hi[1]].center }];
+  });
+  await page.locator('[data-k="mesh"]').selectOption("5000");
+  await page.locator(".pp-body .btn", { hasText: "解析を実行" }).click();
+  await page.waitForFunction(() => document.querySelector(".measure-out")?.textContent.includes("最大ミーゼス応力"), null, { timeout: 240000 });
+  check("assembly structural analysis", /最大ミーゼス応力\s*[\d.]+ MPa/.test(await page.locator(".measure-out").innerText()));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/asm-stress.png` });
+  await page.keyboard.press("Escape");
+  await settle();
   await page.locator('[data-cmd="asm-explode"]').click();
   await settle();
   const ex = await page.evaluate(() => ({ trails: window.cad.vp.trailLayer.children.length, y: window.cad.asm.doc.components.find((c) => c.id === "c2").matrix[13] }));
