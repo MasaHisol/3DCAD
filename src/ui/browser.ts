@@ -17,6 +17,8 @@ export const FEATURE_ICONS: Record<string, string> = {
   draft: "draft",
   split: "split",
   rib: "rib",
+  frame: "frame",
+  weld: "weld",
   thicken: "thicken",
   sheetFace: "smFace",
   flange: "flange",

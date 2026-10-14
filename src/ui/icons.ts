@@ -58,6 +58,8 @@ export const ICONS: Record<string, string> = {
   rule: I(`<path class="a" d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4"/><path class="b" d="M9 11l-2 2 2 2M15 11l2 2-2 2M12.8 10.5l-1.6 5" stroke-width="1.5"/>`),
   draft: I(`<path class="a" d="M6 20l3-14h6l3 14z"/><path class="b" d="M4 20h16" stroke-width="1.8"/><path d="M12 3v3" stroke-dasharray="1.5 1.2"/>`),
   split: I(`<path class="a" d="M4 6h7v12H4z"/><path d="M13 6h7v12h-7z"/><path class="b" d="M12 2v20" stroke-width="1.6" stroke-dasharray="2.5 1.5"/>`),
+  frame: I(`<path class="a" d="M3 4h18v3H3zM4 7h3v13H4zM17 7h3v13h-3z"/>`),
+  weld: I(`<path class="a" d="M3 20h18v-3H3zM10 4h4v13h-4z"/><path class="b" d="M14 17l4 0-4-4zM10 17l-4 0 4-4z"/>`),
   rib: I(`<path class="a" d="M4 20V4h4v12h12v4z"/><path class="b" d="M8 8l8 8H8z"/>`),
   thicken: I(`<path class="a" d="M3 15l9-5 9 5-9 5z"/><path d="M3 15v-3l9-5 9 5v3"/><path class="b" d="M12 2v5M10 4l2-2 2 2" stroke-width="1.6"/>`),
   play: I(`<path class="b" d="M7 4l13 8-13 8z"/>`),

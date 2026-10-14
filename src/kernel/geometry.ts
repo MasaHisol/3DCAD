@@ -5,6 +5,7 @@ import * as R from "replicad";
 import type { EdgeRef, FaceRef, PlaneDef, Vec2, Vec3 } from "../core/types";
 import type { LoopSeg } from "../sketch/profiles";
 import { THREADS } from "../core/threads";
+import { frameJoints } from "../library/steel";
 import type {
   BodyMesh,
   EdgeInfo,
@@ -16,6 +17,7 @@ import type {
   RebuildResult,
   RFeature,
   RRegion,
+  SecLoop,
   Seg2,
   ThreadInfo,
   ThreadSpec,
@@ -660,6 +662,95 @@ async function evalShape(f: RFeature, st: State, entry: CacheEntry): Promise<Sta
       }
       if (!out.length) throw new Error("分割後にボディが残りません");
       return { bodies: out, tools };
+    }
+    case "frame": {
+      const joints = frameJoints(f.members);
+      const loopDraw = (l: SecLoop): R.Drawing => {
+        if ("r" in l) return R.drawCircle(l.r);
+        let d = R.draw(l.pts[0]) as R.DrawingPen;
+        for (const p of l.pts.slice(1)) d = d.lineTo(p);
+        return d.close();
+      };
+      let section = loopDraw(f.outer);
+      for (const h of f.holes) section = section.cut(loopDraw(h));
+      const span = "r" in f.outer ? f.outer.r * 2 : Math.max(...f.outer.pts.map((p) => Math.hypot(p[0], p[1]))) * 2;
+      const ext = span * 3;
+      const rot = (f.rotate * Math.PI) / 180;
+      const out = bodies.slice();
+      f.members.forEach((m, i) => {
+        const L = dist(m.a, m.b);
+        if (L < 1e-6) return;
+        const w = normalize(sub(m.b, m.a));
+        let up = m.up;
+        if (Math.abs(dot(up, w)) > 0.99) up = Math.abs(w[2]) < 0.9 ? [0, 0, 1] : [0, 1, 0];
+        const y0 = normalize(sub(up, scale(w, dot(up, w))));
+        const x0 = cross(y0, w);
+        const x = add(scale(x0, Math.cos(rot)), scale(y0, Math.sin(rot)));
+        const js = f.miter ? joints[i] : [];
+        const e0 = js.some((j) => j.end === 0) ? ext : 0, e1 = js.some((j) => j.end === 1) ? ext : 0;
+        let solid = section.clone().sketchOnPlane(new R.Plane(sub(m.a, scale(w, e0)), x, w)).extrude(L + e0 + e1) as Shape;
+        for (const j of js) {
+          const P = j.end ? m.b : m.a;
+          const o = f.members[j.other];
+          const d1 = normalize(sub(j.end ? m.a : m.b, P)), d2 = normalize(sub(j.otherEnd ? o.a : o.b, P));
+          let n = sub(d1, d2);
+          if (Math.hypot(...n) < 1e-9) continue;
+          n = normalize(n);
+          // remove the half-space behind the bisector plane
+          const big = (L + ext) * 4;
+          const px = Math.abs(n[2]) < 0.9 ? normalize(cross(n, [0, 0, 1])) : normalize(cross(n, [1, 0, 0]));
+          const cutter = R.drawRectangle(big, big).sketchOnPlane(new R.Plane(P, px, scale(n, -1))).extrude(big) as Shape;
+          solid = solid.cut(cutter);
+        }
+        out.push(solid);
+      });
+      if (out.length === bodies.length) throw new Error("フレーム部材を作成できませんでした");
+      return { bodies: out, tools };
+    }
+    case "weld": {
+      const { perBody, updated } = resolveEdges(bodies, f.edges, diag);
+      entry.refs = { edges: updated };
+      const a = f.size;
+      const beads: Shape[] = [];
+      const inside = (p: Vec3) => {
+        const v = R.makeVertex(p);
+        return bodies.some((b) => R.measureDistanceBetween(b as never, v as never) < 1e-6);
+      };
+      for (const [bi, edges] of perBody) {
+        const body = bodies[bi];
+        for (const e of edges) {
+          if (String(e.geomType) !== "LINE") throw new Error("溶接は直線エッジにのみ使用できます");
+          const A = tuple(e.startPoint), B = tuple(e.endPoint);
+          const L = dist(A, B);
+          const w = normalize(sub(B, A));
+          const mid = scale(add(A, B), 0.5);
+          const mv = R.makeVertex(mid);
+          const faces = body.faces.filter((fc) => R.measureDistanceBetween(fc as never, mv as never) < 1e-6).slice(0, 2);
+          if (faces.length < 2) throw new Error("エッジに隣接する面が見つかりません");
+          const [n1, n2] = faces.map((fc) => normalize(tuple(fc.normalAt(mid))));
+          // convex edge against another body: the leg runs along that body (probe beyond the contact face)
+          const eps = Math.min(a * 0.05, 0.05);
+          let legs: [Vec3, Vec3] | null = null;
+          for (const [ni, nj] of [[n1, n2], [n2, n1]] as [Vec3, Vec3][]) {
+            if (inside(add(add(mid, scale(nj, eps)), scale(ni, a / 2)))) {
+              legs = [ni, scale(nj, -1)];
+              break;
+            }
+          }
+          // concave corner of one body: the bead fills the corner
+          if (!legs) legs = [n1, n2];
+          const pl = new R.Plane(A, legs[0], w);
+          const yv = cross(w, legs[0]);
+          const q: Vec2 = [dot(legs[1], legs[0]) * a, dot(legs[1], yv) * a];
+          if (Math.abs(q[1]) < 1e-6) throw new Error("この角には溶接できません (面が平行です)");
+          const tri = R.draw([0, 0]).lineTo([a, 0]).lineTo(q).close();
+          beads.push(tri.sketchOnPlane(pl).extrude(L) as Shape);
+        }
+      }
+      if (!beads.length) throw new Error("溶接するエッジを選択してください");
+      const tool = fuseAll(beads);
+      tools.set(f.id, { shape: tool, op: "new" });
+      return { bodies: [...bodies, tool], tools };
     }
     case "rib": {
       if (!bodies.length) throw new Error("リブを付けるボディがありません");

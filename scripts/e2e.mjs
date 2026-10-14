@@ -203,6 +203,28 @@ try {
   const dxfBytes = await (await import("node:fs/promises")).readFile(await dl.path());
   const dxfText = new TextDecoder("shift_jis").decode(dxfBytes);
   check("drawing DXF (layers, Shift_JIS)", /ANSI_932/.test(dxfText) && /\nVISIBLE\r?\n/.test(dxfText.replace(/\r/g, "")) && dxfText.includes("HIDDEN") && dxfText.includes("CENTER") && dxfText.includes("ブラケット"), `${Math.round(dxfBytes.length / 1024)} KB`);
+  // hole table, ordinate dimensions, overlap-free dimension text
+  await page.locator('[data-cmd="dw-holetable"]').click();
+  await page.locator('[data-cmd="dw-style-ord"]').click();
+  await page.evaluate(() => {
+    const d = window.cad.store.doc.drawing.sheets[0];
+    window.cad.drawing.mutate("clear", (x) => (x.sheets[0].annos = x.sheets[0].annos.filter((a) => a.type !== "dim")));
+    void d;
+  });
+  await page.locator('[data-cmd="dw-autodim"]').click();
+  await settle();
+  const dw2 = await page.evaluate(() => {
+    const boxes = [...document.querySelectorAll(".dw-stage .anno.dim text")].map((t) => t.getBoundingClientRect());
+    let overlaps = 0;
+    for (let i = 0; i < boxes.length; i++)
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i], b = boxes[j];
+        if (a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1) overlaps++;
+      }
+    return { table: document.querySelectorAll(".dw-stage .holetable text").length, ord: document.querySelectorAll(".dw-stage .ordinate text").length, dims: boxes.length, overlaps };
+  });
+  check("hole table + ordinate dims, no overlapping text", dw2.table >= 8 && dw2.ord >= 4 && dw2.overlaps === 0, JSON.stringify(dw2));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/drawing-ordinate.png` });
   await page.keyboard.press("Control+z");
   await page.keyboard.press("Control+y");
   await page.evaluate(() => window.cad.leaveDrawingEnv());
@@ -228,6 +250,35 @@ try {
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/nut-drawing.png` });
   await page.evaluate(() => window.cad.leaveDrawingEnv());
   await settle();
+
+  // frame generator: square tube along a 400×300 rectangle, cut list
+  await page.evaluate(() => void window.cad.newDocument());
+  await page.locator(".modal-foot .btn", { hasText: "破棄して続行" }).click({ timeout: 2000 }).catch(() => {});
+  await settle();
+  await page.evaluate(() => window.cad.createSketch({ origin: [0, 0, 0], xDir: [1, 0, 0], normal: [0, 0, 1] }, "XY 平面"));
+  await page.waitForTimeout(700);
+  await page.keyboard.press("r");
+  await clickUV(0, 0);
+  {
+    const q2 = await S(60, 40);
+    await page.mouse.move(q2.x, q2.y);
+  }
+  await page.keyboard.type("400");
+  await page.keyboard.press("Tab");
+  await page.keyboard.type("300");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Control+Enter");
+  await settle();
+  await page.locator('[data-cmd="frame"]').click();
+  await settle();
+  const cut = await page.locator('[data-k="cutlist-total"]').innerText();
+  await page.keyboard.press("Enter");
+  await settle();
+  const fr = await page.evaluate(() => ({ errors: Object.keys(window.cad.featureErrors).length }));
+  const frVol = await page.evaluate(() => window.cad.kernel.massProps());
+  check("frame generator + cut list", fr.errors === 0 && cut.includes("4 本") && cut.includes("1400 mm") && Math.abs(frVol.volume / ((50 * 50 - 45.4 * 45.4) * 1400) - 1) < 1e-3, `${cut} vol=${frVol.volume?.toFixed(0)}`);
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/frame.png` });
 
   // sheet metal: face from the 120x80 sketch, four flanges, flat pattern
   await page.evaluate(() => void window.cad.newDocument());
@@ -291,6 +342,11 @@ try {
   await page.locator(".drive-btns .btn", { hasText: "▶▶" }).click();
   await page.waitForFunction(() => Math.abs(window.cad.asm.doc.components.find((c) => c.id === "c2").matrix[13] - 55) < 1e-6, null, { timeout: 20000 });
   check("drive constraint", true);
+  // motion study: 20 mm in 1 s -> 20 mm/s, clearance reported
+  await page.locator('[data-k="motion-run"]').click();
+  await page.waitForSelector('[data-k="vmax"]', { timeout: 60000 });
+  const mo = await page.evaluate(() => ({ v: parseFloat(document.querySelector('[data-k="vmax"]').textContent), c: document.querySelector('[data-k="minclear"]')?.textContent, charts: document.querySelectorAll(".motion-chart").length }));
+  check("motion study", Math.abs(mo.v - 20) < 0.5 && mo.c != null && mo.charts >= 3, JSON.stringify(mo));
   await page.keyboard.press("Escape");
   await settle();
   check("drive restores", Math.abs((await page.evaluate(() => window.cad.asm.doc.components.find((c) => c.id === "c2").matrix[13])) - 35) < 1e-6);

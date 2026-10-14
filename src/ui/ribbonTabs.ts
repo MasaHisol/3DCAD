@@ -86,6 +86,12 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
             cmd("rib", "リブ", "rib", undefined, "スケッチした線分とボディの間を埋める補強リブを作成します。"),
             {
               stack: [
+                cmd("frame", "フレーム", "frame", undefined, "スケッチの線分に沿って規格鋼材 (角パイプ・H 形鋼・山形鋼 など) を配置し、部材表を作成します。", "small"),
+                cmd("weld", "溶接", "weld", undefined, "選択したエッジに隅肉溶接ビードを作成します。", "small"),
+              ],
+            },
+            {
+              stack: [
                 cmd("draft", "勾配", "draft", undefined, "成形品の抜き勾配: 固定面を基準に面を傾けます。", "small"),
                 cmd("split", "分割", "split", undefined, "平面でボディを分割し、片側または両方を残します。", "small"),
                 cmd("thicken", "厚み付け", "thicken", undefined, "平面に厚みをつけて板を追加 / 切り取りします。", "small"),

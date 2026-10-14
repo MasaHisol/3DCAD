@@ -129,7 +129,32 @@ export interface CenterlineAnno {
   b: Vec2;
 }
 
-export type Anno = DimAnno | NoteAnno | SurfaceAnno | GdtAnno | DatumAnno | BalloonAnno | CenterlineAnno;
+/** Hole table (Inventor 穴テーブル): tags at the holes + coordinate table. */
+export interface HoleTableAnno {
+  id: string;
+  type: "holetable";
+  view: string;
+  /** Datum (X0, Y0) in view coordinates. */
+  origin: Vec2;
+  /** Table top-left, sheet mm. */
+  x: number;
+  y: number;
+}
+
+/** Ordinate (coordinate) dimensions along one axis from a datum. */
+export interface OrdinateAnno {
+  id: string;
+  type: "ordinate";
+  view: string;
+  axis: "x" | "y";
+  origin: Vec2;
+  /** Feature points (view coordinates). */
+  pts: Vec2[];
+  /** Baseline coordinate (view): y for axis "x", x for axis "y". */
+  pos: number;
+}
+
+export type Anno = DimAnno | NoteAnno | SurfaceAnno | GdtAnno | DatumAnno | BalloonAnno | CenterlineAnno | HoleTableAnno | OrdinateAnno;
 
 export interface TitleBlock {
   title: string;

@@ -67,6 +67,16 @@ export type RFeature =
     }
   | { id: string; type: "draft"; faces: FaceRef[]; neutral: FaceRef; angle: number; flip: boolean }
   | { id: string; type: "split"; plane?: PlaneDef; face?: FaceRef; keep: "positive" | "negative" | "both" }
+  | {
+      id: string;
+      type: "frame";
+      members: { a: Vec3; b: Vec3; up: Vec3 }[];
+      outer: SecLoop;
+      holes: SecLoop[];
+      miter: boolean;
+      rotate: number;
+    }
+  | { id: string; type: "weld"; edges: EdgeRef[]; size: number }
   | { id: string; type: "rib"; plane: PlaneDef; segs: [Vec2, Vec2][]; thickness: number; flip: boolean }
   | { id: string; type: "thicken"; faces: FaceRef[]; distance: number; flip: boolean; op: BoolOp }
   | { id: string; type: "thread"; face: FaceRef; thread: ThreadSpec; offset: number; flip: boolean }
@@ -79,6 +89,8 @@ export type RFeature =
   | { id: string; type: "primitive"; shape: "box" | "cylinder" | "sphere" | "torus"; plane: PlaneDef; center: Vec2; a: number; b: number; c: number; op: BoolOp }
   | { id: string; type: "import"; format: "step" | "stl"; data: string }
   | { id: string; type: "move"; transform: Transform };
+
+export type SecLoop = { pts: Vec2[] } | { r: number };
 
 export type PathSeg = { t: "line"; a: Vec3; b: Vec3 } | { t: "arc"; a: Vec3; m: Vec3; b: Vec3 };
 

@@ -9,6 +9,7 @@ import { ORIGIN_PLANES } from "./document";
 import { findRegions, pointInRegion, type Region } from "../sketch/profiles";
 import { solve, type SolveResult } from "../sketch/solver";
 import { evalWith } from "./params";
+import { findSize, sectionShape } from "../library/steel";
 import type { AxisRef, Feature, PartDocument, PlaneDef, SheetFaceFeature, SketchFeature, SkLine, SkPoint, Vec2, Vec3, WorkPlaneFeature } from "./types";
 
 export interface SketchState {
@@ -253,6 +254,26 @@ function resolveFeature(
       else plane = (doc.features.find((x) => x.id === t.id) as WorkPlaneFeature | undefined)?.plane;
       if (!plane) throw new Error("分割する平面が見つかりません");
       return { id: f.id, type: "split", plane, keep: f.keep };
+    }
+    case "frame": {
+      const size = findSize(f.section, f.size);
+      if (!size) throw new Error("断面サイズを選択してください");
+      const members: { a: Vec3; b: Vec3; up: Vec3 }[] = [];
+      for (const id of f.sketches) {
+        const { sk } = sketchOf(id);
+        const pts = new Map(sk.entities.filter((e): e is SkPoint => e.type === "point").map((p) => [p.id, [p.x, p.y] as Vec2]));
+        for (const e of sk.entities)
+          if (e.type === "line" && !e.construction && !e.ref) members.push({ a: planeToWorld(sk.plane, pts.get(e.p1)!), b: planeToWorld(sk.plane, pts.get(e.p2)!), up: sk.plane.normal });
+      }
+      if (!members.length) throw new Error("フレームのスケッチに線分がありません");
+      const sec = sectionShape(f.section, size.d);
+      return { id: f.id, type: "frame", members, outer: sec.outer, holes: sec.holes, miter: f.miter, rotate: num(f, f.rotate, "回転") };
+    }
+    case "weld": {
+      if (!f.edges.length) throw new Error("溶接するエッジを選択してください");
+      const a = num(f, f.size, "脚長");
+      if (!(a > 0)) throw new Error("脚長は正の値にしてください");
+      return { id: f.id, type: "weld", edges: f.edges, size: a };
     }
     case "rib": {
       const { sk } = sketchOf(f.sketch);

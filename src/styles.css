@@ -2194,3 +2194,12 @@ kbd {
 .logo-prev:not([src]) {
   display: none;
 }
+.motion-out { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.motion-sum { font-size: 12px; line-height: 1.6; }
+.motion-chart svg { display: block; }
+.motion-chart .mc-bg { fill: var(--bg-2, #1d2128); stroke: var(--border, #3a3f48); }
+.motion-chart .mc-t { font-size: 10px; fill: var(--fg-dim, #aab); }
+.motion-chart .mc-l { fill: none; stroke: #4aa3ff; stroke-width: 1.5; }
+.cutlist-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.cutlist-table th, .cutlist-table td { border: 1px solid var(--border, #3a3f48); padding: 2px 4px; text-align: center; }
+.cutlist-sum { font-size: 11px; margin: 4px 0; }

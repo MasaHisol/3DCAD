@@ -3,6 +3,8 @@
 
 import type { Vec2 } from "../core/types";
 import type { Seg2, ViewGeometry } from "../kernel/protocol";
+import { holeTable } from "./annolayout";
+import { formatNumber } from "../core/expr";
 import { dimText, dimValue, holeThread, linearPoints, sameCircles, toSheet } from "./geom";
 import { scaleText, sheetSize, type Anno, type DimAnno, type DrawingDoc, type DView, type Sheet } from "./types";
 
@@ -261,6 +263,59 @@ function renderAnno(a: Anno, views: Map<string, DView>, ctx: RenderCtx): string 
       let out = open("balloon");
       out += `<path d="M${f(q[0] + (dx / l) * R)} ${f(q[1] + (dy / l) * R)}L${f(p[0])} ${f(p[1])}"/><circle cx="${f(p[0])}" cy="${f(p[1])}" r="0.6" fill="#000"/>`;
       out += `<circle cx="${f(q[0])}" cy="${f(q[1])}" r="${R}"/>` + text(q[0], q[1] + 1.5, item ? String(item) : "?", 4.2);
+      return out + "</g>";
+    }
+    case "holetable": {
+      const v = views.get(a.view), g = ctx.geom.get(a.view);
+      if (!v || !g) return "";
+      const rows = holeTable(g, a.origin);
+      let out = open("holetable");
+      // datum mark + tags at the holes
+      const o = toSheet(v, a.origin);
+      out += `<path d="M${f(o[0] - 3)} ${f(o[1])}H${f(o[0] + 3)}M${f(o[0])} ${f(o[1] - 3)}V${f(o[1] + 3)}"/><circle cx="${f(o[0])}" cy="${f(o[1])}" r="1.2"/>`;
+      for (const r of rows) {
+        const c = toSheet(v, r.c);
+        const rr = (r.d / 2) * v.scale;
+        out += text(c[0] + rr * 0.75 + 0.6, c[1] - rr * 0.75 - 0.6, r.tag, 2.5, "start");
+      }
+      const cols: [string, number][] = [["記号", 12], ["X", 18], ["Y", 18], ["サイズ", 20]];
+      const rowH = 6;
+      const data = [cols.map((c) => c[0]), ...rows.map((r) => [r.tag, formatNumber(r.x, 2), formatNumber(r.y, 2), `φ${formatNumber(r.d, 2)}`])];
+      data.forEach((row, ri) => {
+        let x = a.x;
+        row.forEach((cell, ci) => {
+          out += `<rect x="${f(x)}" y="${f(a.y + ri * rowH)}" width="${cols[ci][1]}" height="${rowH}" stroke-width="${W.thin}"${ri === 0 ? ` fill="#f0f0f0"` : ""}/>`;
+          out += text(x + cols[ci][1] / 2, a.y + ri * rowH + 4.3, cell, 2.8);
+          x += cols[ci][1];
+        });
+      });
+      return out + "</g>";
+    }
+    case "ordinate": {
+      const v = views.get(a.view);
+      if (!v) return "";
+      const ax = a.axis === "x" ? 0 : 1;
+      const base = toSheet(v, a.axis === "x" ? [a.origin[0], a.pos] : [a.pos, a.origin[1]]);
+      // spread the labels at least 4 mm apart (jogged extension lines)
+      const items = a.pts
+        .map((p) => ({ p, s: toSheet(v, p), val: p[ax] - a.origin[ax] }))
+        .sort((p, q) => p.s[ax] - q.s[ax]);
+      const pos = items.map((it) => it.s[ax]);
+      for (let i = 1; i < pos.length; i++) pos[i] = Math.max(pos[i], pos[i - 1] + 4);
+      let out = open("ordinate");
+      const b = base[1 - ax];
+      const sgn = a.axis === "x" ? (b > items[0]?.s[1] ? 1 : -1) : b > items[0]?.s[0] ? 1 : -1;
+      items.forEach((it, i) => {
+        const P = it.s, t = pos[i];
+        const knee = b - sgn * 3;
+        if (a.axis === "x") {
+          out += `<path d="M${f(P[0])} ${f(P[1] + sgn * 1)}L${f(P[0])} ${f(knee - sgn * 2)}L${f(t)} ${f(knee)}L${f(t)} ${f(b)}"/>`;
+          out += text(t + 1, b + sgn * 1.5, formatNumber(Math.abs(it.val) < 1e-9 ? 0 : it.val, 2), 3.2, sgn > 0 ? "end" : "start", -90);
+        } else {
+          out += `<path d="M${f(P[0] + sgn * 1)} ${f(P[1])}L${f(knee - sgn * 2)} ${f(P[1])}L${f(knee)} ${f(t)}L${f(b)} ${f(t)}"/>`;
+          out += text(b + sgn * 1.5, t + 1.1, formatNumber(Math.abs(it.val) < 1e-9 ? 0 : it.val, 2), 3.2, sgn > 0 ? "start" : "end");
+        }
+      });
       return out + "</g>";
     }
     case "centerline": {

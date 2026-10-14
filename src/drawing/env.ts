@@ -8,6 +8,7 @@ import { encodeDxf, svgToDxf } from "../io/formats";
 import { IDENTITY } from "../assembly/types";
 import { confirmDialog, contextMenu, download, h, iconEl, modal, pickFile, promptDialog, toast, type MenuItem } from "../ui/dom";
 import type { RibbonTab } from "../ui/ribbon";
+import { arrangeDims, findChamfers, holeTable } from "./annolayout";
 import { dimValue, linearPoints, projectedFrame, resnap, sectionFrame, snapAt, toSheet, toView, viewBox, viewSpec, type Snap } from "./geom";
 import { renderSheet, type BomRow } from "./render";
 import {
@@ -191,7 +192,7 @@ export class DrawingEnv {
    */
   autoDimension(sheetIndex = this.activeSheet) {
     const sh = this.doc.sheets[sheetIndex];
-    const add: DimAnno[] = [];
+    const add: Anno[] = [];
     const exists = (view: string, kind: DimKind, value: number) =>
       [...sh.annos, ...add].some((a) => a.type === "dim" && a.view === view && a.kind === kind && Math.abs(dimValue(a) - value) < 1e-4);
     for (const v of sh.views) {
@@ -234,6 +235,42 @@ export class DrawingEnv {
       const uniq = (vals: number[]) => [...new Set(vals.map((x) => +x.toFixed(4)))].sort((a, b) => a - b);
       const xs = uniq(circles.map((c) => c.c[0])).filter((x) => x - x0 > 1e-3).slice(0, 6);
       const ys = uniq(circles.map((c) => c.c[1])).filter((y) => y - y0 > 1e-3).slice(0, 6);
+      if (circles.length && this.dimStyle === "ordinate") {
+        // coordinate dimensions from the bottom-left corner
+        const origin: Vec2 = [x0, y0];
+        const has = (axis: "x" | "y") => [...sh.annos, ...add].some((a) => a.type === "ordinate" && a.view === v.id && a.axis === axis);
+        const pick = (vals: number[], axis: 0 | 1) => vals.map((c) => circles.find((q) => Math.abs(q.c[axis] - c) < 1e-3)!.c);
+        if (!has("x")) add.push({ id: uid("a"), type: "ordinate", view: v.id, axis: "x", origin, pts: [origin, ...pick(xs, 0), [x1, y0]], pos: y0 - off(kb++) - 4 / s });
+        if (!has("y")) add.push({ id: uid("a"), type: "ordinate", view: v.id, axis: "y", origin, pts: [origin, ...pick(ys, 1), [x0, y1]], pos: x0 - off(kl++) - 4 / s });
+        xs.length = 0;
+        ys.length = 0;
+      } else if (circles.length && this.dimStyle === "chain") {
+        // chain (series) dimensions: one row, each hole from the previous one
+        let px: GRef = left, prev = x0;
+        for (const x of xs) {
+          const c = circles.find((q) => Math.abs(q.c[0] - x) < 1e-3)!;
+          add.push({ id: uid("a"), type: "dim", view: v.id, kind: "horizontal", refs: [px, { kind: "circle", p: c.c, r: c.r }], pos: [(prev + x) / 2, y0 - off(kb)] });
+          px = { kind: "point", p: c.c };
+          prev = x;
+        }
+        if (xs.length) kb++;
+        let py: GRef = bottom, prevY = y0;
+        for (const y of ys) {
+          const c = circles.find((q) => Math.abs(q.c[1] - y) < 1e-3)!;
+          add.push({ id: uid("a"), type: "dim", view: v.id, kind: "vertical", refs: [py, { kind: "circle", p: c.c, r: c.r }], pos: [x0 - off(kl), (prevY + y) / 2] });
+          py = { kind: "point", p: c.c };
+          prevY = y;
+        }
+        xs.length = 0;
+        ys.length = 0;
+      }
+      // chamfers: one "n×C" note per size
+      for (const ch of findChamfers(g)) {
+        const txt = `${ch.n > 1 ? `${ch.n}×` : ""}C${formatNumber(ch.c, 2)}`;
+        if ([...sh.annos, ...add].some((a) => a.type === "dim" && a.view === v.id && a.text === txt)) continue;
+        const at = ch.at;
+        add.push({ id: uid("a"), type: "dim", view: v.id, kind: "radius", text: txt, refs: [{ kind: "circle", p: at, r: 0 }], pos: [at[0] + (ch.dir[0] * 10) / s, at[1] + (ch.dir[1] * 10) / s] } as DimAnno);
+      }
       for (const x of xs) {
         const c = circles.find((q) => Math.abs(q.c[0] - x) < 1e-3)!;
         if (exists(v.id, "horizontal", x - x0)) continue;
@@ -256,7 +293,57 @@ export class DrawingEnv {
       }
     }
     if (add.length) this.mutate("自動寸法", (d) => d.sheets[sheetIndex].annos.push(...add));
+    if (add.length) this.arrangeDimensions(sheetIndex, true);
     return add.length;
+  }
+
+  /** Dimension placement style used by 自動寸法 for hole positions. */
+  dimStyle: "baseline" | "chain" | "ordinate" = "baseline";
+
+  /** Re-stacks linear dimensions into non-overlapping rows and pushes leader labels apart (寸法を整列). */
+  arrangeDimensions(sheetIndex = this.activeSheet, silent = false) {
+    const sh = this.doc.sheets[sheetIndex];
+    const moves = new Map<string, Vec2>();
+    for (const v of sh.views) {
+      const g = this.geom.get(v.id);
+      if (!g) continue;
+      const dims = sh.annos.filter((a): a is DimAnno => a.type === "dim" && a.view === v.id);
+      for (const [id, p] of arrangeDims(dims, g.bounds, v.scale)) moves.set(id, p);
+    }
+    const changed = [...moves].filter(([id, p]) => {
+      const a = sh.annos.find((x) => x.id === id) as DimAnno;
+      return Math.hypot(a.pos[0] - p[0], a.pos[1] - p[1]) > 1e-6;
+    });
+    if (changed.length)
+      this.mutate("寸法を整列", (d) => {
+        for (const [id, p] of changed) {
+          const a = d.sheets[sheetIndex].annos.find((x) => x.id === id) as DimAnno | undefined;
+          if (a) a.pos = p;
+        }
+      });
+    if (!silent) toast(changed.length ? `${changed.length} 個の寸法を整列しました` : "重なっている寸法はありません", changed.length ? "ok" : "info");
+    return changed.length;
+  }
+
+  /** Hole table for the base view (datum at the bottom-left corner). */
+  addHoleTable() {
+    const sh = this.sheet;
+    // selected view, otherwise the (non-isometric) view showing the most holes
+    const holesIn = (id: string) => this.geom.get(id)?.visible.filter((q) => q.t === "circle").length ?? 0;
+    const cands = sh.views.filter((x) => x.label !== "等角図" && (x.kind === "base" || x.kind === "projected"));
+    const v = sh.views.find((x) => this.selected.has(x.id)) ?? cands.sort((a, b) => holesIn(b.id) - holesIn(a.id))[0];
+    const g = v && this.geom.get(v.id);
+    if (!v || !g) return void toast("ビューがありません", "warn");
+    const rows = holeTable(g, [g.bounds[0], g.bounds[1]]);
+    if (!rows.length) return void toast("このビューに穴がありません", "info");
+    const [w] = sheetSize(sh);
+    this.mutate("穴テーブル", (d) => {
+      const s = d.sheets[this.activeSheet];
+      s.annos = s.annos.filter((a) => !(a.type === "holetable" && a.view === v.id));
+      s.annos.push({ id: uid("a"), type: "holetable", view: v.id, origin: [g.bounds[0], g.bounds[1]], x: w - 10 - 68 - 4, y: 14 });
+    });
+    this.render();
+    toast(`穴テーブル (${rows.length} 個の穴) を配置しました`, "ok");
   }
 
   /** Balloons for every part in the parts list, spread around the view (assembly drawings). */
@@ -1480,6 +1567,19 @@ export class DrawingEnv {
             } },
             {
               stack: [
+                { id: "dw-style-base", label: "並列寸法", icon: "dimension", size: "small", tip: "自動寸法の穴位置を基準面からの並列寸法で記入します。", active: () => this.dimStyle === "baseline", action: () => (this.dimStyle = "baseline") },
+                { id: "dw-style-chain", label: "直列寸法", icon: "dimension", size: "small", tip: "自動寸法の穴位置を直列 (前の穴から) で記入します。", active: () => this.dimStyle === "chain", action: () => (this.dimStyle = "chain") },
+                { id: "dw-style-ord", label: "座標寸法", icon: "dimension", size: "small", tip: "自動寸法の穴位置を原点からの座標寸法 (累進) で記入します。", active: () => this.dimStyle === "ordinate", action: () => (this.dimStyle = "ordinate") },
+              ],
+            },
+            {
+              stack: [
+                { id: "dw-arrange", label: "寸法を整列", icon: "rectPattern", size: "small", tip: "重なった寸法を段に並べ替え、引出し寸法の文字を離します。", action: () => (this.arrangeDimensions(), this.render()) },
+                { id: "dw-holetable", label: "穴テーブル", icon: "hole", size: "small", tip: "穴に記号 (A1, B1 …) を付け、原点からの座標と径の表を配置します。", action: () => this.addHoleTable() },
+              ],
+            },
+            {
+              stack: [
                 { id: "dw-autoballoon", label: "自動風船", icon: "circPattern", size: "small", tip: "部品表の品番に合わせて風船を自動配置します (アセンブリ)。", action: () => this.autoBalloon() },
                 { id: "dw-set", label: "図面セット", icon: "drawing", size: "small", tip: "組立図に加えて、部品ごとの部品図 (寸法付き) をシートとして一括作成します。", action: () => void this.drawingSet() },
               ],
@@ -1596,6 +1696,13 @@ function moveAnno(sh: Sheet, id: string, o: Anno, dx: number, dy: number) {
       break;
     case "surface":
       a.p = [(o as typeof a).p[0] + dv[0], (o as typeof a).p[1] + dv[1]];
+      break;
+    case "holetable":
+      a.x = (o as typeof a).x + dx;
+      a.y = (o as typeof a).y + dy;
+      break;
+    case "ordinate":
+      a.pos = (o as typeof a).pos + (a.axis === "x" ? dv[1] : dv[0]);
       break;
     case "centerline":
       break;

@@ -2,7 +2,7 @@ import * as THREE from "three";
 import type { App } from "../app";
 import { featureSketchRefs, ORIGIN_PLANES, uid } from "../core/document";
 import { formatNumber } from "../core/expr";
-import { holeCenterPoints, worldToPlane } from "../core/resolve";
+import { holeCenterPoints, planeToWorld, worldToPlane } from "../core/resolve";
 import { ensureSheetStyle, matchEdge, outerEdges, segPointDist, type SheetEdge } from "../sheetmetal/sheet";
 import { clearanceHole, counterbore, countersink, FAMILY_LABEL, FIT_LABEL, tapDrill, threadByName, threadsOf, type Fit, type ThreadFamily } from "../core/threads";
 import type {
@@ -18,6 +18,8 @@ import type {
   DraftFeature,
   SplitFeature,
   RibFeature,
+  FrameFeature,
+  WeldFeature,
   ThickenFeature,
   SheetFaceFeature,
   FlangeFeature,
@@ -39,7 +41,8 @@ import type {
   WorkPlaneFeature,
 } from "../core/types";
 import { pointInRegion, type Region } from "../sketch/profiles";
-import { h, iconEl, toast } from "../ui/dom";
+import { download, h, iconEl, toast } from "../ui/dom";
+import { cutList, findSize, sectionShape, STEEL, unitMass, type SectionKind } from "../library/steel";
 import { PropertyPanel } from "../ui/panel";
 import { StressCommand } from "../analysis/ui";
 import { pointMap } from "../viewer/sketchRender";
@@ -813,7 +816,7 @@ class SweepCommand extends FeatureCommand<SweepFeature> {
 
 // ------------------------------------------------- fillet / chamfer / shell ---
 
-abstract class TopoCommand<F extends FilletFeature | ChamferFeature | ShellFeature> extends FeatureCommand<F> {
+abstract class TopoCommand<F extends FilletFeature | ChamferFeature | ShellFeature | WeldFeature> extends FeatureCommand<F> {
   protected pick!: ReturnType<PropertyPanel["picker"]>;
   protected abstract kind: "edge" | "face";
 
@@ -936,6 +939,99 @@ class ChamferCommand extends TopoCommand<ChamferFeature> {
     setTimeout(() => d.input.focus(), 50);
     this.setup();
     app.status("面取りするエッジを選択");
+  }
+}
+
+class WeldCommand extends TopoCommand<WeldFeature> {
+  readonly id = "weld";
+  protected kind = "edge" as const;
+  constructor(app: App, existing: WeldFeature | null) {
+    super(app, existing, () => {
+      const id = uid("wd");
+      return { id, type: "weld", name: app.store.nextFeatureName("weld"), edges: [], size: app.store.addParam(app.store.doc, "4", "mm", id) };
+    });
+    this.openPanel(this.editing ? `溶接: ${this.feature.name}` : "溶接 (隅肉)", "weld", true);
+    const sec = this.panel.section("エッジ");
+    this.pick = this.panel.picker(sec, "エッジ", "weld", () => {}, () => this.update((f) => (f.edges = [])));
+    this.pick.setActive(true);
+    this.panel.expr(sec, "脚長", this.expr(this.feature.size), "mm", (e) => this.setParam(this.feature.size, e), this.feature.size);
+    this.panel.note(sec, "部材が接する直線エッジ (T 継手・角継手の根元) か、ボディの入隅エッジを選択します。断面が直角三角形の隅肉溶接ビードを別ボディとして作成します (質量・図面に反映)。");
+    this.setup();
+    app.status("溶接するエッジを選択");
+  }
+}
+
+class FrameCommand extends FeatureCommand<FrameFeature> {
+  readonly id = "frame";
+  private listHost!: HTMLElement;
+  constructor(app: App, existing: FrameFeature | null) {
+    const doc = app.store.doc;
+    const consumed = new Set(doc.features.flatMap(featureSketchRefs));
+    const withLines = doc.features.filter((x): x is SketchFeature => x.type === "sketch" && x.entities.some((e) => e.type === "line" && !e.construction && !e.ref));
+    const sel = [...app.browserSelection].filter((id) => withLines.some((s) => s.id === id));
+    const pre = sel.length ? sel : withLines.filter((s) => !consumed.has(s.id)).slice(-1).map((s) => s.id);
+    super(app, existing, () => {
+      const id = uid("fr");
+      return { id, type: "frame", name: app.store.nextFeatureName("frame"), sketches: pre, section: "sqtube", size: STEEL[0].sizes[3].name, miter: true, rotate: app.store.addParam(app.store.doc, "0", "deg", id) };
+    });
+    const f = this.feature;
+    this.openPanel(this.editing ? `フレーム: ${f.name}` : "フレーム ジェネレータ", "frame");
+    const p = this.panel;
+    const sk = p.section("骨組み");
+    for (const s of withLines) p.checkbox(sk, s.name, this.feature.sketches.includes(s.id), (v) => this.update((x) => (x.sketches = v ? [...x.sketches, s.id] : x.sketches.filter((k) => k !== s.id))));
+    p.note(sk, "スケッチの線分 (構築線以外) が部材の中心線になります。複数のスケッチで立体的な骨組みも作れます。");
+    const sec = p.section("断面");
+    let sizeSel: HTMLSelectElement;
+    const sizes = () => STEEL.find((s) => s.kind === this.feature.section)!.sizes.map((z) => ({ value: z.name, label: z.name }));
+    p.select(sec, "規格", STEEL.map((s) => ({ value: s.kind, label: `${s.label} (${s.std})` })), f.section, (v) => {
+      const first = STEEL.find((s) => s.kind === v)!.sizes[2]?.name ?? "";
+      this.update((x) => ((x.section = v as SectionKind), (x.size = first)));
+      sizeSel.innerHTML = "";
+      for (const o of sizes()) sizeSel.appendChild(h("option", { value: o.value, selected: o.value === first }, o.label));
+    });
+    sizeSel = p.select(sec, "サイズ", sizes(), f.size, (v) => this.update((x) => (x.size = v)));
+    p.expr(sec, "断面の回転", this.expr(f.rotate), "deg", (e) => this.setParam(this.feature.rotate, e), f.rotate);
+    p.checkbox(sec, "端部を留め継ぎ (マイター)", f.miter, (v) => this.update((x) => (x.miter = v)));
+    const cl = p.section("部材表 (切断リスト)");
+    this.listHost = h("div", { class: "cutlist" });
+    cl.appendChild(this.listHost);
+    this.renderList();
+    if (!withLines.length) toast("線分を含むスケッチがありません。骨組みの線をスケッチしてください", "warn");
+    app.status("骨組みのスケッチと鋼材の断面を選択");
+  }
+  protected update(fn: (f: FrameFeature) => void) {
+    super.update(fn);
+    this.renderList?.();
+  }
+  private renderList() {
+    if (!this.listHost) return;
+    const f = this.feature;
+    const doc = this.app.store.doc;
+    const z = findSize(f.section, f.size);
+    this.listHost.innerHTML = "";
+    if (!z) return;
+    const members = f.sketches.flatMap((id) => {
+      const s = doc.features.find((x) => x.id === id) as SketchFeature | undefined;
+      if (!s) return [];
+      const pts = new Map(s.entities.filter((e): e is SkPoint => e.type === "point").map((q) => [q.id, [q.x, q.y] as Vec2]));
+      return s.entities.filter((e): e is SkLine => e.type === "line" && !e.construction && !e.ref).map((l) => ({ a: planeToWorld(s.plane, pts.get(l.p1)!), b: planeToWorld(s.plane, pts.get(l.p2)!) }));
+    });
+    const area = sectionShape(f.section, z.d).area;
+    const rows = cutList(members, f.size, area, f.miter);
+    const total = rows.reduce((s, r) => s + r.mass, 0), totalL = rows.reduce((s, r) => s + r.length * r.qty, 0);
+    const tbl = h("table", { class: "cutlist-table" }, h("tr", {}, h("th", {}, "断面"), h("th", {}, "長さ"), h("th", {}, "端部角度"), h("th", {}, "数量"), h("th", {}, "質量 kg")));
+    for (const r of rows) tbl.appendChild(h("tr", {}, h("td", {}, r.section), h("td", {}, formatNumber(r.length, 1)), h("td", {}, r.angles.map((a) => (a ? `${a}°` : "直角")).join(" / ")), h("td", {}, String(r.qty)), h("td", {}, formatNumber(r.mass, 2))));
+    this.listHost.append(
+      tbl,
+      h("div", { class: "cutlist-sum", "data-k": "cutlist-total" }, `合計: ${members.length} 本 / 総延長 ${formatNumber(totalL, 0)} mm / ${formatNumber(total, 2)} kg (単位質量 ${formatNumber(unitMass(area), 2)} kg/m)`),
+      h("button", { class: "btn", onClick: () => {
+        const lines = ["section,length_mm,end1_deg,end2_deg,qty,mass_kg", ...rows.map((r) => [r.section, r.length, r.angles[0], r.angles[1], r.qty, r.mass.toFixed(3)].join(","))];
+        download(`${doc.name}_部材表.csv`, "\ufeff" + lines.join("\n"), "text/csv");
+      } }, "CSV 書き出し"),
+    );
+  }
+  captureBefore() {
+    return this.featureId;
   }
 }
 
@@ -1996,6 +2092,8 @@ export function buildCommands(app: App): CommandRegistry {
     draft: { id: "draft", label: "勾配", icon: "draft" },
     split: { id: "split", label: "分割", icon: "split" },
     rib: { id: "rib", label: "リブ", icon: "rib" },
+    frame: { id: "frame", label: "フレーム", icon: "frame" },
+    weld: { id: "weld", label: "溶接", icon: "weld" },
     thicken: { id: "thicken", label: "厚み付け", icon: "thicken" },
     sheetFace: { id: "sheetFace", label: "面 (板金)", icon: "smFace" },
     flange: { id: "flange", label: "フランジ", icon: "flange" },
@@ -2041,6 +2139,10 @@ export function buildCommands(app: App): CommandRegistry {
         return new SplitCommand(app, f as SplitFeature | null);
       case "rib":
         return new RibCommand(app, f as RibFeature | null);
+      case "frame":
+        return new FrameCommand(app, f as FrameFeature | null);
+      case "weld":
+        return new WeldCommand(app, f as WeldFeature | null);
       case "thicken":
         return new ThickenCommand(app, f as ThickenFeature | null);
       case "sheetFace":
@@ -2070,7 +2172,7 @@ export function buildCommands(app: App): CommandRegistry {
     return null;
   };
   const needsProfile = new Set(["extrude", "revolve", "loft", "sweep", "sheetFace"]);
-  const needsBody = new Set(["draft", "split", "rib", "thicken", "stress", "fillet", "chamfer", "shell", "hole", "move", "pushpull", "thread", "flange"]);
+  const needsBody = new Set(["draft", "split", "rib", "thicken", "stress", "fillet", "chamfer", "shell", "hole", "move", "pushpull", "thread", "flange", "weld"]);
   return {
     get: (id) => info[id],
     run: (id) => {

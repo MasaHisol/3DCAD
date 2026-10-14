@@ -19,6 +19,8 @@ export const FEATURE_LABELS: Record<FeatureType, string> = {
   draft: "勾配",
   split: "分割",
   rib: "リブ",
+  frame: "フレーム",
+  weld: "溶接",
   thicken: "厚み付け",
   sheetFace: "面",
   flange: "フランジ",

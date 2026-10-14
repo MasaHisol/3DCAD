@@ -289,6 +289,28 @@ export interface RibFeature extends FeatureBase {
   flip: boolean;
 }
 
+/** Frame generator (Inventor フレーム ジェネレータ): steel sections along sketch lines. */
+export interface FrameFeature extends FeatureBase {
+  type: "frame";
+  /** Sketches whose (non-construction) lines become members. */
+  sketches: string[];
+  section: import("../library/steel").SectionKind;
+  /** Size name from the steel table (e.g. "□50×50×2.3"). */
+  size: string;
+  /** Miter the ends where two members meet. */
+  miter: boolean;
+  /** Rotate the section about the member axis (deg). */
+  rotate: string;
+}
+
+/** Fillet weld bead along edges (Inventor 溶接ビード, 隅肉). */
+export interface WeldFeature extends FeatureBase {
+  type: "weld";
+  edges: EdgeRef[];
+  /** Leg length (脚長). */
+  size: string;
+}
+
 /** Thicken planar faces into a plate (Inventor 厚み付け / オフセット). */
 export interface ThickenFeature extends FeatureBase {
   type: "thicken";
@@ -393,7 +415,9 @@ export type Feature =
   | PrimitiveFeature
   | WorkPlaneFeature
   | ImportFeature
-  | MoveFeature;
+  | MoveFeature
+  | FrameFeature
+  | WeldFeature;
 
 export type FeatureType = Feature["type"];
 
