@@ -102,6 +102,8 @@ export interface FeaOptions {
   tol?: number;
   /** Keep the Gauss-point stresses in the result (needed for buckling). */
   keepGauss?: boolean;
+  /** Per-element stiffness factor (same element order as the grid), for nonlinear iterations. */
+  elementScale?: Float32Array;
   /** Mesh only this box of the part (sub-model / zoom analysis). */
   region?: { lo: [number, number, number]; hi: [number, number, number] };
 }
@@ -485,6 +487,12 @@ export function buildGrid(mesh: FeaMesh, opt: FeaOptions) {
         for (const [a, b, c] of CORNERS) used[nodeId(i + a, j + b, k + c)] = 1;
       }
   const ne = elems.length / 3;
+  // per-element secant / damage factor (nonlinear material iterations)
+  if (opt.elementScale && opt.elementScale.length === ne)
+    for (let e = 0; e < ne; e++) {
+      phi[e] *= opt.elementScale[e];
+      eratio[e] *= opt.elementScale[e];
+    }
   if (!ne) throw new Error("解析メッシュを作成できません (ソリッドが薄すぎるか解像度が粗すぎます)");
   const conn = new Int32Array(ne * 8);
   for (let e = 0; e < ne; e++) for (let n = 0; n < 8; n++) conn[e * 8 + n] = nodeId(elems[e * 3] + CORNERS[n][0], elems[e * 3 + 1] + CORNERS[n][1], elems[e * 3 + 2] + CORNERS[n][2]);

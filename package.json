@@ -1,6 +1,6 @@
 {
   "name": "3dcad-studio",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
   "description": "パラメトリック 3D CAD (Inventor スタイルのワークフロー、STEP 互換)",
   "type": "module",
@@ -133,5 +133,8 @@
       "syncDesktopName": true
     }
   },
-  "desktopName": "3dcad-studio.desktop"
+  "desktopName": "3dcad-studio.desktop",
+  "dependencies": {
+    "clipper-lib": "^6.4.2"
+  }
 }

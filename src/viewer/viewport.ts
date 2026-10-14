@@ -542,6 +542,35 @@ export class Viewport {
     this.invalidate();
   }
 
+  private toolpath: THREE.Group | null = null;
+
+  /** Toolpath overlay: cutting (solid) and rapid (dashed) line segments in world mm; null clears. */
+  setToolpath(cut: Float32Array | null, rapid?: Float32Array) {
+    if (this.toolpath) {
+      this.scene.remove(this.toolpath);
+      for (const c of this.toolpath.children as THREE.LineSegments[]) {
+        c.geometry.dispose();
+        (c.material as THREE.Material).dispose();
+      }
+      this.toolpath = null;
+    }
+    if (cut) {
+      this.toolpath = new THREE.Group();
+      const mk = (pos: Float32Array, mat: THREE.LineBasicMaterial | THREE.LineDashedMaterial) => {
+        const g = new THREE.BufferGeometry();
+        g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+        const l = new THREE.LineSegments(g, mat);
+        l.computeLineDistances();
+        l.renderOrder = 10;
+        this.toolpath!.add(l);
+      };
+      mk(cut, new THREE.LineBasicMaterial({ color: 0x1f6fe0, depthTest: false, transparent: true, opacity: 0.9 }));
+      if (rapid?.length) mk(rapid, new THREE.LineDashedMaterial({ color: 0xd04040, dashSize: 2, gapSize: 1.5, depthTest: false, transparent: true, opacity: 0.7 }));
+      this.scene.add(this.toolpath);
+    }
+    this.invalidate();
+  }
+
   /** Dashed trail lines (exploded views). */
   setTrails(segs: [Vec3, Vec3][]) {
     for (const c of [...this.trailLayer.children]) {

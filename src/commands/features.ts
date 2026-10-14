@@ -46,6 +46,7 @@ import { cutList, findSize, sectionShape, STEEL, unitMass, type SectionKind } fr
 import { PropertyPanel } from "../ui/panel";
 import { StressCommand } from "../analysis/ui";
 import { PrintCheckCommand } from "../analysis/printui";
+import { CamCommand } from "../cam/camUi";
 import { pointMap } from "../viewer/sketchRender";
 import { samePick, type Pick, type ToolHandler } from "../viewer/viewport";
 import { FeatureCommand, type Command } from "./command";
@@ -2109,6 +2110,7 @@ export function buildCommands(app: App): CommandRegistry {
     move: { id: "move", label: "ボディを移動", icon: "move" },
     measure: { id: "measure", label: "測定", icon: "measure" },
     stress: { id: "stress", label: "応力解析", icon: "stress" },
+    cam: { id: "cam", label: "CAM", icon: "cam" },
     printcheck: { id: "printcheck", label: "3D プリント チェック", icon: "printcheck" },
   };
   const make = (id: string, f: Feature | null): Command | null => {
@@ -2172,6 +2174,8 @@ export function buildCommands(app: App): CommandRegistry {
         return new StressCommand(app);
       case "printcheck":
         return new PrintCheckCommand(app);
+      case "cam":
+        return new CamCommand(app);
     }
     return null;
   };

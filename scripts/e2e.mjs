@@ -172,6 +172,20 @@ try {
   const th = await page.locator(".measure-out").innerText();
   check("thermal analysis", /最高温度\s*[\d.]+ °C/.test(th), th.split("\n").slice(0, 2).join(" "));
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/thermal.png` });
+  // elasto-plastic and dynamic response analyses with the same supports / load
+  await page.locator('[data-k="kind"]').selectOption("plastic");
+  await page.locator('[data-k="mesh"]').selectOption("5000");
+  await page.locator(".pp-body .btn", { hasText: "解析を実行" }).click();
+  await page.waitForFunction(() => document.querySelector(".measure-out")?.textContent.includes("降伏した体積"), null, { timeout: 300000 });
+  const pl = await page.locator(".measure-out").innerText();
+  check("elasto-plastic analysis", /判定\s*(弾性範囲内|局所的に降伏|塑性崩壊)/.test(pl) && (await page.locator(".measure-out .motion-chart").count()) === 1, pl.split("\n").slice(0, 2).join(" "));
+  await page.locator('[data-k="kind"]').selectOption("dynamic");
+  await page.locator('[data-k="mesh"]').selectOption("5000");
+  await page.locator(".pp-body .btn", { hasText: "解析を実行" }).click();
+  await page.waitForFunction(() => document.querySelector(".measure-out")?.textContent.includes("応答倍率"), null, { timeout: 300000 });
+  const dy = await page.locator(".measure-out").innerText();
+  check("dynamic response analysis", /応答倍率 \(動的 \/ 静的\)\s*[\d.]+ 倍/.test(dy), dy.split("\n").slice(0, 3).join(" "));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/dynamic.png` });
   // topology optimisation with the structural supports chosen above
   await page.locator('[data-k="kind"]').selectOption("topology");
   await page.locator('[data-k="mesh"]').selectOption("5000");
@@ -321,6 +335,16 @@ try {
   const revTxt = await page.locator('[data-k="rev-pending"]').innerText();
   check("revision record + change list", (await page.evaluate(() => window.cad.store.doc.revisions?.[0]?.rev)) === "A" && revTxt.includes("寸法変更"), revTxt);
   await page.locator(".modal-foot .btn", { hasText: "閉じる" }).click();
+  // 2.5D CAM: pocket inside the frame sketch, G-code export
+  await page.locator(".rb-tab", { hasText: "検査" }).click();
+  await page.locator('[data-cmd="cam"]').click();
+  await page.waitForSelector('[data-k="cam-result"]', { timeout: 30000 });
+  const camTxt = await page.locator('[data-k="cam-result"]').innerText();
+  const [nc] = await Promise.all([page.waitForEvent("download"), page.locator('[data-k="cam-gcode"]').click()]);
+  const gcode = await (await import("node:fs/promises")).readFile(await nc.path(), "utf8");
+  check("CAM pocket + G-code", /切削長さ\t[\d,]+ mm/.test(camTxt) && gcode.includes("T1 M06") && gcode.includes("Z-5.") && gcode.split("\n").length > 100, `${camTxt.replace(/\n/g, " | ")} lines=${gcode.split("\n").length}`);
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/cam.png` });
+  await page.keyboard.press("Escape");
 
   // sheet metal: face from the 120x80 sketch, four flanges, flat pattern
   await page.evaluate(() => void window.cad.newDocument());

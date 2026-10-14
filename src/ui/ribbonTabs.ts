@@ -216,6 +216,7 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
           items: [
             cmd("stress", "応力解析", "stress", undefined, "固定面と荷重を指定して線形静解析を行い、ミーゼス応力・変位・安全率を色分け表示します。"),
             { id: "tolstack", label: "公差累積", icon: "measure", tip: "寸法の連鎖からすき間のワーストケース・統計的 (RSS)・モンテカルロのばらつきを計算します。", action: () => openToleranceStack(app.store.doc.name, app.values()) },
+            cmd("cam", "CAM", "cam", undefined, "スケッチのプロファイルからポケット・輪郭・穴あけの工具経路を作成し、G コードを書き出します (2.5 軸)。"),
             cmd("printcheck", "3D プリント", "printcheck", undefined, "オーバーハング・薄肉・開いたエッジを色分けし、材料・造形時間の目安を表示します。"),
           ],
         },

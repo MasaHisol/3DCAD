@@ -228,7 +228,7 @@ export function startDrive(env: AssemblyEnv, constraintId?: string) {
 }
 
 /** Small SVG line chart. */
-function chart(title: string, x: number[], y: number[]): HTMLElement {
+export function chart(title: string, x: number[], y: number[]): HTMLElement {
   const W = 260, H = 90, L = 4, R = 4, T = 14, B = 4;
   const fin = y.filter((v) => isFinite(v));
   const lo = Math.min(0, ...fin), hi = Math.max(...fin, lo + 1e-9);

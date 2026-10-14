@@ -2,9 +2,11 @@
 // Analyses run off the UI thread.
 import { buildGrid, solveFea, type FeaBoundary, type FeaMaterial, type FeaMesh, type FeaOptions } from "./fea";
 import { solveTopology, type TopoOptions } from "./topo";
+import { solvePlastic } from "./nonlinear";
+import { solveDynamic, type DynamicOptions } from "./dynamic";
 import { solveBuckling, solveModal, solveThermal, type ThermalBoundary, type ThermalMaterial } from "./advanced";
 
-export type AnalysisKind = "static" | "modal" | "buckling" | "thermal" | "thermalStress" | "topology";
+export type AnalysisKind = "static" | "modal" | "buckling" | "thermal" | "thermalStress" | "topology" | "plastic" | "dynamic";
 
 export interface FeaRequest {
   kind?: AnalysisKind;
@@ -16,6 +18,7 @@ export interface FeaRequest {
   modes?: number;
   thermal?: { bc: ThermalBoundary; mat: ThermalMaterial; Tref: number };
   topo?: TopoOptions;
+  dynamic?: DynamicOptions;
 }
 
 const transfer = (o: unknown, out: Transferable[] = []): Transferable[] => {
@@ -33,7 +36,15 @@ self.onmessage = (e: MessageEvent<FeaRequest>) => {
     if (kind === "static") result = solveFea(mesh, bc, mat, opt, progress);
     else if (kind === "modal") result = solveModal(mesh, bc.fixed, mat, e.data.density ?? 7.85, opt, e.data.modes ?? 6, progress);
     else if (kind === "buckling") result = solveBuckling(mesh, bc, mat, opt, progress);
-    else if (kind === "topology") result = solveTopology(mesh, bc, mat, opt, e.data.topo ?? { volFrac: 0.4 }, progress);
+    else if (kind === "plastic") {
+      const pl = solvePlastic(mesh, bc, mat, opt, {}, (s, it) => progress(s * 100 + it, 0));
+      const { result: r, ...meta } = pl;
+      result = { ...r, gaussStress: undefined, plastic: meta };
+    } else if (kind === "dynamic") {
+      const d = solveDynamic(mesh, bc, mat, e.data.density ?? 7.85, opt, e.data.dynamic ?? { kind: "harmonic", damping: 0.02 }, progress);
+      const { staticResult, ...meta } = d;
+      result = { ...staticResult, dynamic: meta };
+    } else if (kind === "topology") result = solveTopology(mesh, bc, mat, opt, e.data.topo ?? { volFrac: 0.4 }, progress);
     else {
       const th = e.data.thermal!;
       const t = solveThermal(mesh, th.bc, th.mat, opt, progress);

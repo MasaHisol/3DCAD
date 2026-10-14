@@ -1,4 +1,7 @@
 import { reportHtml } from "./reportHtml";
+import type { PlasticResult } from "./nonlinear";
+import type { DynamicResult } from "./dynamic";
+import { chart } from "../assembly/motionUi";
 import * as THREE from "three";
 import type { App } from "../app";
 import type { Command } from "../commands/command";
@@ -46,6 +49,8 @@ const KINDS: { value: AnalysisKind; label: string }[] = [
   { value: "thermal", label: "熱伝導解析 (定常)" },
   { value: "thermalStress", label: "熱応力解析" },
   { value: "topology", label: "トポロジー最適化 (軽量化形状)" },
+  { value: "plastic", label: "弾塑性解析 (材料非線形)" },
+  { value: "dynamic", label: "動的応答解析 (周波数応答・過渡応答)" },
 ];
 
 type SetKey = "fixed" | "load" | "temp" | "flux" | "conv";
@@ -58,6 +63,8 @@ const KIND_SETS: Record<AnalysisKind, SetKey[]> = {
   thermal: ["temp", "flux", "conv"],
   thermalStress: ["fixed", "load", "temp", "flux", "conv"],
   topology: ["fixed", "load"],
+  plastic: ["fixed", "load"],
+  dynamic: ["fixed", "load"],
 };
 
 const eqText = (e: number) => (e < 1e-5 ? "< 0.001%" : `${(e * 100).toPrecision(2)}%`);
@@ -108,6 +115,9 @@ export class StressCommand implements Command {
   private sub: { r: FeaResult; lo: number[]; hi: number[] } | null = null;
   private topoIters = 40;
   private nModes = 6;
+  private dynKind: "harmonic" | "transient" = "harmonic";
+  private damping = "2";
+  private pulse: "step" | "halfsine" | "sine" = "step";
   private target = 20000;
   private result: AnyResult | null = null;
   private resultKind: AnalysisKind = "static";
@@ -235,6 +245,15 @@ export class StressCommand implements Command {
       const ti = p.select(bc, "反復回数", ["20", "40", "60"].map((v) => ({ value: v, label: `${v} 回` })), String(this.topoIters), (v) => (this.topoIters = Number(v)));
       ti.dataset.k = "topoIters";
       p.note(bc, "固定面と荷重面の近くは必ず残し、指定した体積で最も剛性の高い (変形しにくい) 形状を探します。結果はメッシュとして STL 書き出し・モデルへの追加ができます。");
+    }
+    if (this.kind === "plastic")
+      p.note(bc, "完全弾塑性 (降伏後は応力一定) の材料で、荷重を 50% → 100% と段階的に加えます (割線剛性法)。荷重を支えきれない場合は「塑性崩壊」と表示し、支えられた荷重の割合を示します。");
+    if (this.kind === "dynamic") {
+      const dk = p.select(bc, "解析", [{ value: "harmonic", label: "周波数応答 (正弦波荷重)" }, { value: "transient", label: "過渡応答 (時刻歴)" }], this.dynKind, (v) => (this.dynKind = v as "harmonic" | "transient"));
+      dk.dataset.k = "dynKind";
+      p.select(bc, "荷重の時間変化 (過渡)", [{ value: "step", label: "ステップ (急に加わる)" }, { value: "halfsine", label: "半正弦パルス (衝撃)" }, { value: "sine", label: "正弦波 (1 次固有振動数)" }], this.pulse, (v) => (this.pulse = v as "step" | "halfsine" | "sine"));
+      p.expr(bc, "減衰比", this.damping, "%", (e) => (this.damping = e));
+      p.note(bc, "固有モードの重ね合わせ (高次モードは静的補正) で、荷重点付近の最大変位点の応答を計算します。応力のピークは静解析の応力 × 応答倍率の目安です。");
     }
     if (this.kind === "modal") {
       const ms = p.select(bc, "モード数", ["3", "6", "10"].map((v) => ({ value: v, label: `${v} 次まで` })), String(this.nModes), (v) => (this.nModes = Number(v)));
@@ -436,6 +455,16 @@ export class StressCommand implements Command {
       req.opt.targetElements = Math.min(target, 12000);
       req.topo = { volFrac: evalWith(this.app.values(), this.volFrac) / 100, iterations: this.topoIters };
     }
+    if (k === "plastic") {
+      req.bc = this.structural(tris, true);
+      req.opt.targetElements = Math.min(target, 30000);
+    }
+    if (k === "dynamic") {
+      req.bc = this.structural(tris, true);
+      req.opt.targetElements = Math.min(target, 40000);
+      req.density = this.refDensity();
+      req.dynamic = { kind: this.dynKind, damping: evalWith(this.app.values(), this.damping) / 100, pulse: this.pulse, nModes: 8 };
+    }
     if (k === "modal") {
       if (!this.sets.fixed.length) throw new Error("固定拘束の面を選択してください");
       req.bc = { fixed: this.sets.fixed.map(tris), loads: [] };
@@ -631,7 +660,25 @@ export class StressCommand implements Command {
       row("計算", `${t.elements.toLocaleString()} 要素 / ${t.iterations} 反復${time}${t.converged ? "" : " (未収束)"}`, t.converged ? "" : "warn");
       return;
     }
-    const s = r as FeaResult & { thermal?: ThermalResult };
+    const s = r as FeaResult & { thermal?: ThermalResult; plastic?: Omit<PlasticResult, "result">; dynamic?: Omit<DynamicResult, "staticResult"> };
+    if (s.plastic) {
+      const p = s.plastic;
+      row("判定", p.collapsed ? `塑性崩壊 (荷重の ${Math.round(p.loadFactor * 100)} % まで支持)` : p.plasticFraction > 0 ? "局所的に降伏 (荷重は支持)" : "弾性範囲内", p.collapsed ? "bad" : p.plasticFraction > 0 ? "warn" : "ok");
+      row("降伏した体積", `${formatNumber(p.plasticFraction * 100, 2)} %`);
+      row("相当塑性ひずみ (最大, 目安)", `${formatNumber(p.maxPlasticStrain * 100, 3)} %`);
+      row("最大変位 / 線形解析", `${formatNumber(s.maxDisp, 4)} / ${formatNumber(p.linearDisp * p.loadFactor, 4)} mm`, "", "同じ荷重レベルでの線形解析との比較");
+      this.out.appendChild(chart("荷重割合 – 最大変位 mm", p.curve.map((c) => c.load), p.curve.map((c) => c.disp)));
+    }
+    if (s.dynamic) {
+      const d = s.dynamic;
+      const harmonic = d.kind === "harmonic";
+      row(harmonic ? "応答のピーク周波数" : "ピーク時刻", harmonic ? `${formatNumber(d.peakAt, 1)} Hz` : `${formatNumber(d.peakAt * 1000, 2)} ms`);
+      row("応答倍率 (動的 / 静的)", `${formatNumber(d.amplification, 2)} 倍`, d.amplification > 5 ? "bad" : d.amplification > 2 ? "warn" : "ok");
+      row("最大ミーゼス応力 (動的, 目安)", `${formatNumber(d.peakVm, 2)} MPa (安全率 ${formatNumber(mat.yield / Math.max(d.peakVm, 1e-12), 2)})`, d.peakVm > mat.yield ? "bad" : "");
+      row("固有振動数", d.freqs.slice(0, 4).map((f) => `${formatNumber(f, 1)}`).join(" / ") + " Hz");
+      this.out.appendChild(chart(harmonic ? "振幅 mm – 周波数 Hz" : "変位 mm – 時間 s", d.x, d.y.map(Math.abs)));
+      this.out.appendChild(h("div", { class: "muted" }, "以下は静的な荷重 (振幅 1 倍) の結果です。"));
+    }
     const sf = s.maxVm > 0 ? mat.yield / s.maxVm : Infinity;
     if (s.thermal) row("温度範囲", `${formatNumber(s.thermal.minT, 1)} 〜 ${formatNumber(s.thermal.maxT, 1)} °C`);
     row("最大ミーゼス応力", `${formatNumber(s.maxVm, 2)} MPa`);
