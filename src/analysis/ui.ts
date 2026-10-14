@@ -102,6 +102,8 @@ export class StressCommand implements Command {
   private convAmb = "20";
   private tref = "20";
   private volFrac = "40";
+  /** Zoomed (sub-model) result around the stress peak. */
+  private sub: { r: FeaResult; lo: number[]; hi: number[] } | null = null;
   private topoIters = 40;
   private nModes = 6;
   private target = 20000;
@@ -447,6 +449,7 @@ export class StressCommand implements Command {
       this.result = await this.solve(req, (s) => (this.out.textContent = s));
       this.resultKind = this.kind;
       this.convergence = null;
+      this.sub = null;
       this.modeIndex = 0;
       this.lastTime = (performance.now() - t0) / 1000;
       this.summary();
@@ -459,6 +462,50 @@ export class StressCommand implements Command {
   }
 
   /** Solve again with 2.5× the elements and compare the key results. */
+  /** Sub-model around the von Mises peak (away from support edges), ~10× finer. */
+  private async zoom() {
+    const r = this.result as FeaResult | null;
+    if (!r || this.resultKind !== "static") return;
+    const [nx, ny, nz] = r.dims;
+    const NX = nx + 1, NY = ny + 1, NZ = nz + 1;
+    // supports' neighbourhood (2 cells) is singular by nature: skip it
+    const near = new Uint8Array(r.vm.length);
+    if (r.fixedMask)
+      for (let n = 0; n < r.fixedMask.length; n++) {
+        if (!r.fixedMask[n]) continue;
+        const i = n % NX, j = Math.floor(n / NX) % NY, k = Math.floor(n / (NX * NY));
+        for (let dk = -2; dk <= 2; dk++)
+          for (let dj = -2; dj <= 2; dj++)
+            for (let di = -2; di <= 2; di++) {
+              const a = i + di, b = j + dj, c = k + dk;
+              if (a >= 0 && b >= 0 && c >= 0 && a < NX && b < NY && c < NZ) near[(c * NY + b) * NX + a] = 1;
+            }
+      }
+    let best = -1, bv = -1;
+    for (let n = 0; n < r.vm.length; n++) if (r.used[n] && !near[n] && r.vm[n] > bv) (bv = r.vm[n]), (best = n);
+    if (best < 0) return void toast("詳細解析する箇所が見つかりません", "warn");
+    const c = [best % NX, Math.floor(best / NX) % NY, Math.floor(best / (NX * NY))].map((v, k) => r.origin[k] + v * r.h);
+    const half = r.h * 4;
+    const lo = c.map((v) => v - half) as [number, number, number], hi = c.map((v) => v + half) as [number, number, number];
+    this.setBusy(true);
+    const keep = this.out.innerHTML;
+    this.out.textContent = "最大応力部を詳細解析中…";
+    try {
+      const req = this.request(this.target);
+      req.opt = { targetElements: Math.max(this.target, 20000), region: { lo, hi } };
+      req.bc = { ...req.bc, submodel: { h: r.h, origin: r.origin, dims: r.dims, used: r.used, disp: r.disp } };
+      const z = (await this.solve(req, (s) => (this.out.textContent = `詳細解析: ${s}`))) as FeaResult;
+      this.sub = { r: z, lo, hi };
+      this.summary();
+      this.display();
+    } catch (e) {
+      this.out.innerHTML = keep;
+      toast(`詳細解析に失敗しました: ${(e as Error).message}`, "error");
+    } finally {
+      this.setBusy(false);
+    }
+  }
+
   private async convergenceCheck() {
     if (!this.result) await this.run();
     const base = this.result as FeaResult | null;
@@ -474,6 +521,7 @@ export class StressCommand implements Command {
         elems: fine.elements,
       };
       this.result = fine;
+      this.sub = null;
       this.summary();
       this.display();
     } catch (e) {
@@ -568,6 +616,15 @@ export class StressCommand implements Command {
       const ok = c.dVm < 0.05 && c.dDisp < 0.02;
       row("メッシュ収束", `応力 ${(c.dVm * 100).toFixed(1)}% / 変位 ${(c.dDisp * 100).toFixed(1)}% の変化`, ok ? "ok" : "warn", ok ? "十分に収束しています" : "変化が大きいため、さらに細かいメッシュを推奨します");
     }
+    if (this.sub) {
+      const z = this.sub.r;
+      row("詳細解析: 最大ミーゼス応力", `${formatNumber(z.maxVm, 2)} MPa (要素 ${formatNumber(z.h, 2)} mm)`, "", "最大応力部の周囲を細かいメッシュで再解析した値 (サブモデル法)");
+      row("詳細解析: 最大主応力", `${formatNumber(z.maxS1, 2)} MPa / 安全率 ${formatNumber(mat.yield / Math.max(z.maxVm, 1e-12), 2)}`);
+    }
+    if (this.resultKind === "static" && !s.thermal)
+      this.out.appendChild(
+        h("div", { class: "drive-btns" }, h("button", { class: "btn", title: "最大応力部の周囲だけを約 10 倍細かいメッシュで再解析します (固定面の縁の特異点は除外)", onClick: () => void this.zoom() }, iconEl("search"), "最大応力部を詳細解析")),
+      );
     if (sf < 1) toast("降伏応力を超えています (安全率 < 1)", "warn");
   }
 
@@ -665,6 +722,11 @@ export class StressCommand implements Command {
       hi = m;
     } else hi = 15;
     const field = show === "s1" ? s.s1 : show === "s3" ? s.s3 : s.vm;
+    const z = this.sub;
+    const zfield = z ? (show === "s1" ? z.r.s1 : show === "s3" ? z.r.s3 : z.r.vm) : null;
+    /** Inside the zoom box the refined result is shown. */
+    const src = (p: ArrayLike<number>): [FeaResult, Float32Array] =>
+      z && [0, 1, 2].every((k) => p[k] >= z.lo[k] && p[k] <= z.hi[k]) ? [z.r, zfield!] : [s, field];
     const per = bodies.map((b) => {
       const n = b.positions.length / 3;
       const colors = new Float32Array(n * 3);
@@ -672,11 +734,12 @@ export class StressCommand implements Command {
       for (let i = 0; i < n; i++) {
         const p = b.positions.subarray(i * 3, i * 3 + 3);
         let val: number;
-        if (show === "disp") val = Math.hypot(...sampleDisp(s, p));
+        const [rs, fs] = src(p);
+        if (show === "disp") val = Math.hypot(...sampleDisp(rs, p));
         else if (show === "sf") {
-          const v = sampleNodal(s, s.vm, 1, p)[0];
+          const v = sampleNodal(rs, rs.vm, 1, p)[0];
           val = Math.min(15, v > 0 ? mat.yield / v : 15);
-        } else val = sampleNodal(s, field, 1, p)[0];
+        } else val = sampleNodal(rs, fs, 1, p)[0];
         const t = show === "sf" ? 1 - val / 15 : (val - lo) / (hi - lo || 1);
         colors.set(colormap(t), i * 3);
         if (pos) {

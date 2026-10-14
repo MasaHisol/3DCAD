@@ -65,6 +65,11 @@ export interface FeaBoundary {
   loads: FeaLoad[];
   /** Self weight: density (g/cm³) and gravity direction (unit, × 9.81 m/s²). */
   gravity?: { density: number; dir: [number, number, number] };
+  /**
+   * Sub-model: displacements of a coarse global analysis, prescribed on the
+   * cut faces of opt.region (the faces where the region lies inside the part).
+   */
+  submodel?: { h: number; origin: [number, number, number]; dims: [number, number, number]; used: Uint8Array; disp: Float32Array };
   /** Thermal strain: nodal temperatures on the same grid (°C), reference temperature, expansion (1/K). */
   thermal?: { T: Float32Array; Tref: number; alpha: number };
 }
@@ -91,6 +96,8 @@ export interface FeaOptions {
   tol?: number;
   /** Keep the Gauss-point stresses in the result (needed for buckling). */
   keepGauss?: boolean;
+  /** Mesh only this box of the part (sub-model / zoom analysis). */
+  region?: { lo: [number, number, number]; hi: [number, number, number] };
 }
 
 export interface FeaResult {
@@ -125,6 +132,8 @@ export interface FeaResult {
   loadedNodes: number;
   /** Solid volume of the mesh (mm³). */
   volume: number;
+  /** Supported nodes (fixed faces), to skip their singular corners when looking for peaks. */
+  fixedMask?: Uint8Array;
   /** Gauss-point stresses (ne × 8 × 6), when requested (buckling). */
   gaussStress?: Float32Array;
 }
@@ -389,9 +398,19 @@ export function buildGrid(mesh: FeaMesh, opt: FeaOptions) {
       lo[k] = Math.min(lo[k], P[i + k]);
       hi[k] = Math.max(hi[k], P[i + k]);
     }
+  // which sides of the region cut through the part (prescribed boundaries of a sub-model)
+  const cut = [false, false, false, false, false, false];
+  if (opt.region) {
+    for (let k = 0; k < 3; k++) {
+      if (opt.region.lo[k] > lo[k] + 1e-9) (lo[k] = opt.region.lo[k]), (cut[k * 2] = true);
+      if (opt.region.hi[k] < hi[k] - 1e-9) (hi[k] = opt.region.hi[k]), (cut[k * 2 + 1] = true);
+    }
+    if (hi.some((v, k) => v <= lo[k])) throw new Error("詳細解析の範囲がパーツの外です");
+  }
   const size = [hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]];
   let h: number;
-  if (opt.targetElements) {
+  if (opt.targetElements && opt.region) h = Math.cbrt((size[0] * size[1] * size[2]) / opt.targetElements);
+  else if (opt.targetElements) {
     // signed volume of the closed triangle mesh (divergence theorem)
     let vol = 0;
     for (let t = 0; t < I.length; t += 3) {
@@ -463,7 +482,7 @@ export function buildGrid(mesh: FeaMesh, opt: FeaOptions) {
         }
     return out;
   };
-  return { P, I, h, origin, dims, nx, ny, nz, NX, NY, NZ, nodeId, nNodes, used, elems, phi, ne, conn, volume, frac, nodePos, tri, near };
+  return { P, I, h, origin, dims, nx, ny, nz, NX, NY, NZ, nodeId, nNodes, used, elems, phi, ne, conn, volume, frac, nodePos, tri, near, cut };
 }
 export type FeaGrid = ReturnType<typeof buildGrid>;
 
@@ -546,6 +565,21 @@ export function assembleLoads(G: FeaGrid, bc: FeaBoundary, mat: FeaMaterial, opt
   const fixed = new Uint8Array(nNodes);
   let fixedNodes = 0;
   for (const f of bc.fixed) for (const n of near(f)) if (!fixed[n]) (fixed[n] = 1), fixedNodes++;
+  // sub-model: the coarse displacements hold the cut faces
+  const prescribed = new Float64Array(nNodes * 3);
+  if (bc.submodel) {
+    const { cut, NX, NY, NZ, used } = G as FeaGrid;
+    for (let k = 0; k < NZ; k++)
+      for (let j = 0; j < NY; j++)
+        for (let i = 0; i < NX; i++) {
+          const onCut = (cut[0] && i === 0) || (cut[1] && i === NX - 1) || (cut[2] && j === 0) || (cut[3] && j === NY - 1) || (cut[4] && k === 0) || (cut[5] && k === NZ - 1);
+          const n = (k * NY + j) * NX + i;
+          if (!onCut || !used[n]) continue;
+          const d = sampleNodal(bc.submodel, bc.submodel.disp, 3, nodePos(n));
+          prescribed.set(d, n * 3);
+          if (!fixed[n]) (fixed[n] = 1), fixedNodes++;
+        }
+  }
   if (!fixedNodes) throw new Error("固定拘束の面に節点がありません (解像度を上げてください)");
 
   // ---- loads: integrate the traction over each triangle and lump it on the nearest face nodes
@@ -656,14 +690,14 @@ export function assembleLoads(G: FeaGrid, bc: FeaBoundary, mat: FeaMaterial, opt
       }
     }
   }
-  if (!loadedNodes && !bc.gravity && !bc.thermal) throw new Error("荷重の面に節点がありません");
-  return { fixed, fixedNodes, F, loadedNodes, gaussDT };
+  if (!loadedNodes && !bc.gravity && !bc.thermal && !bc.submodel) throw new Error("荷重の面に節点がありません");
+  return { fixed, fixedNodes, F, loadedNodes, gaussDT, prescribed };
 }
 
 export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: FeaOptions, progress?: (it: number, res: number) => void): FeaResult {
   const G = buildGrid(mesh, opt);
   const { h, origin, dims, nx, ny, nz, nNodes, used, elems, phi, ne, conn, volume, frac } = G;
-  const { fixed, fixedNodes, F, loadedNodes, gaussDT } = assembleLoads(G, bc, mat, opt);
+  const { fixed, fixedNodes, F, loadedNodes, gaussDT, prescribed } = assembleLoads(G, bc, mat, opt);
   const applied: [number, number, number] = [0, 0, 0];
   for (let n = 0; n < nNodes; n++) for (let k = 0; k < 3; k++) applied[k] += F[n * 3 + k];
 
@@ -671,8 +705,17 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
   const op = buildOperator(G, mat, opt, fixed);
   const { el, N3, Kx } = op;
   const q = new Float64Array(N3);
-  const sol = op.solve(F, progress);
-  const { u, it, res } = sol;
+  let rhs = F;
+  if (bc.submodel) {
+    // lift the prescribed displacements: K u_free = F - K u_p
+    const ku = new Float64Array(N3);
+    Kx(prescribed, ku, false);
+    rhs = Float64Array.from(F, (f, i) => f - ku[i]);
+  }
+  const sol = op.solve(rhs, progress);
+  const { it, res } = sol;
+  const u = sol.u;
+  if (bc.submodel) for (let i = 0; i < N3; i++) if (!op.free[i]) u[i] = prescribed[i];
   const tol = opt.tol ?? 1e-8;
 
   // ---- reactions at the supports (equilibrium check)
@@ -771,7 +814,7 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
   return {
     h, origin, dims, frac, disp, stress, vm, s1, s3, used,
     maxVm, maxS1, minS3, maxDisp, applied, reaction, equilibriumError,
-    elements: ne, iterations: it, converged: res < tol, fixedNodes, loadedNodes, volume, gaussStress,
+    elements: ne, iterations: it, converged: res < tol, fixedNodes, loadedNodes, volume, gaussStress, fixedMask: bc.submodel ? undefined : fixed,
   };
 }
 

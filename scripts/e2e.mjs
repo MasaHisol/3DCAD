@@ -133,6 +133,9 @@ try {
   await page.locator(".pp-body .btn", { hasText: "収束確認" }).click();
   await page.waitForFunction(() => document.querySelector(".measure-out")?.textContent.includes("メッシュ収束"), null, { timeout: 180000 });
   check("mesh convergence check", true, (await page.locator(".measure-out").innerText()).split("\n").filter((l) => l.includes("収束") || l.includes("要素")).join(" "));
+  await page.locator(".pp-body .btn", { hasText: "最大応力部を詳細解析" }).click();
+  await page.waitForFunction(() => document.querySelector(".measure-out")?.textContent.includes("詳細解析: 最大ミーゼス応力"), null, { timeout: 240000 });
+  check("sub-model zoom analysis", true, (await page.locator(".measure-out").innerText()).split("\n").filter((l) => l.includes("詳細")).join(" "));
   await page.locator('[data-k="show"]').selectOption("s1");
   await page.locator('[data-k="deform"]').selectOption("auto");
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/stress.png` });

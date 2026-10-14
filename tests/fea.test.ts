@@ -155,4 +155,22 @@ describe("stress analysis accuracy (vs. closed-form solutions)", () => {
     expect(principal([0, 0, 0, 50, 0, 0])).toEqual([50, 0, -50].map((x) => expect.closeTo(x, 9)) as never);
     expect(vonMises([0, 0, 0, 50, 0, 0])).toBeCloseTo(50 * Math.sqrt(3), 9);
   });
+
+  it("sub-model: refining around the hole recovers the stress concentration of a coarse model", () => {
+    const W = 50, t = 5, dh = 10, Ft = 10000;
+    const p = plateWithHole(150, W, t, dh);
+    const bc = { fixed: [p.xmin], loads: [{ tris: p.xmax, force: [Ft, 0, 0] as [number, number, number] }] };
+    const coarse = solveFea(p.mesh, bc, steel, { resolution: 75 });
+    const snet = Ft / ((W - dh) * t);
+    const ktCoarse = coarse.maxS1 / snet;
+    const sub = solveFea(
+      p.mesh,
+      { ...bc, submodel: { h: coarse.h, origin: coarse.origin, dims: coarse.dims, used: coarse.used, disp: coarse.disp } },
+      steel,
+      { targetElements: 30000, region: { lo: [60, 10, -1], hi: [90, 40, 6] } },
+    );
+    const ktSub = sub.maxS1 / snet;
+    expect(Math.abs(ktSub - 2.512)).toBeLessThan(Math.abs(ktCoarse - 2.512));
+    expect(Math.abs(ktSub / 2.512 - 1)).toBeLessThan(0.02);
+  }, 120000);
 });
