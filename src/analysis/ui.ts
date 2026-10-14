@@ -6,6 +6,8 @@ import { evalWith } from "../core/params";
 import { download, h, iconEl, toast } from "../ui/dom";
 import { PropertyPanel } from "../ui/panel";
 import type { Pick, ToolHandler } from "../viewer/viewport";
+import { trisToStl } from "../io/meshin";
+import type { TopoResult } from "./topo";
 import { THERMAL_MATERIALS, type BucklingResult, type ModalResult, type ThermalBoundary, type ThermalResult } from "./advanced";
 import { FEA_MATERIALS, sampleDisp, sampleNodal, type FeaBoundary, type FeaMesh, type FeaResult, type GridLike } from "./fea";
 import type { AnalysisKind, FeaRequest } from "./worker";
@@ -41,6 +43,7 @@ const KINDS: { value: AnalysisKind; label: string }[] = [
   { value: "buckling", label: "座屈解析" },
   { value: "thermal", label: "熱伝導解析 (定常)" },
   { value: "thermalStress", label: "熱応力解析" },
+  { value: "topology", label: "トポロジー最適化 (軽量化形状)" },
 ];
 
 type SetKey = "fixed" | "load" | "temp" | "flux" | "conv";
@@ -52,12 +55,13 @@ const KIND_SETS: Record<AnalysisKind, SetKey[]> = {
   buckling: ["fixed", "load"],
   thermal: ["temp", "flux", "conv"],
   thermalStress: ["fixed", "load", "temp", "flux", "conv"],
+  topology: ["fixed", "load"],
 };
 
 const eqText = (e: number) => (e < 1e-5 ? "< 0.001%" : `${(e * 100).toPrecision(2)}%`);
 
 type Show = "vm" | "s1" | "s3" | "disp" | "sf" | "temp";
-type AnyResult = FeaResult | ModalResult | BucklingResult | ThermalResult | (FeaResult & { thermal: ThermalResult });
+type AnyResult = TopoResult | FeaResult | ModalResult | BucklingResult | ThermalResult | (FeaResult & { thermal: ThermalResult });
 
 /** Blue → cyan → green → yellow → red (Inventor style result legend). */
 export function colormap(t: number): [number, number, number] {
@@ -97,6 +101,8 @@ export class StressCommand implements Command {
   private convH = "10";
   private convAmb = "20";
   private tref = "20";
+  private volFrac = "40";
+  private topoIters = 40;
   private nModes = 6;
   private target = 20000;
   private result: AnyResult | null = null;
@@ -159,6 +165,7 @@ export class StressCommand implements Command {
       this.result = null;
       this.stopAnim();
       this.app.vp.setResult(null);
+      this.app.vp.setPreviewMesh(null);
       this.legend.classList.remove("show");
       if (!KIND_SETS[this.kind].includes(this.active)) this.active = KIND_SETS[this.kind][0];
       this.buildPanel();
@@ -207,6 +214,12 @@ export class StressCommand implements Command {
       }
     }
     if (this.kind === "thermalStress") p.expr(bc, "基準温度 (応力ゼロ)", this.tref, "°C", (e) => (this.tref = e));
+    if (this.kind === "topology") {
+      p.expr(bc, "残す体積の割合", this.volFrac, "%", (e) => (this.volFrac = e));
+      const ti = p.select(bc, "反復回数", ["20", "40", "60"].map((v) => ({ value: v, label: `${v} 回` })), String(this.topoIters), (v) => (this.topoIters = Number(v)));
+      ti.dataset.k = "topoIters";
+      p.note(bc, "固定面と荷重面の近くは必ず残し、指定した体積で最も剛性の高い (変形しにくい) 形状を探します。結果はメッシュとして STL 書き出し・モデルへの追加ができます。");
+    }
     if (this.kind === "modal") {
       const ms = p.select(bc, "モード数", ["3", "6", "10"].map((v) => ({ value: v, label: `${v} 次まで` })), String(this.nModes), (v) => (this.nModes = Number(v)));
       ms.dataset.k = "modes";
@@ -383,6 +396,11 @@ export class StressCommand implements Command {
       req.bc = this.structural(tris, true);
       req.opt.targetElements = Math.min(target, 60000);
     }
+    if (k === "topology") {
+      req.bc = this.structural(tris, true);
+      req.opt.targetElements = Math.min(target, 12000);
+      req.topo = { volFrac: evalWith(this.app.values(), this.volFrac) / 100, iterations: this.topoIters };
+    }
     if (k === "modal") {
       if (!this.sets.fixed.length) throw new Error("固定拘束の面を選択してください");
       req.bc = { fixed: this.sets.fixed.map(tris), loads: [] };
@@ -481,6 +499,21 @@ export class StressCommand implements Command {
     this.out.innerHTML = "";
     const row = (k: string, v: string, cls = "", title = "") => this.out.appendChild(h("div", { class: "mo-row " + cls, title }, h("span", {}, k), h("b", {}, v)));
     const time = this.lastTime ? ` / ${formatNumber(this.lastTime, 1)} 秒` : "";
+    if (this.resultKind === "topology") {
+      const t = r as TopoResult;
+      row("体積", `${(t.volumeFraction * 100).toFixed(1)} % (元形状比)`);
+      row("剛性", `元形状の ${(t.stiffnessRatio * 100).toFixed(1)} %`, "", "同じ荷重での変形のしにくさ (コンプライアンスの逆数) の比");
+      row("材料あたりの剛性", `${(t.stiffnessRatio / t.volumeFraction).toFixed(2)} 倍`, t.stiffnessRatio / t.volumeFraction > 0.6 ? "ok" : "", "体積を減らした割に剛性がどれだけ残ったか");
+      row("計算", `${t.elements.toLocaleString()} 要素 / ${t.iterations} 反復${time}${t.converged ? "" : " (反復上限)"}`);
+      const btns = h(
+        "div",
+        { class: "drive-btns" },
+        h("button", { class: "btn", onClick: () => download(`${this.app.store.doc.name}_最適化.stl`, trisToStl(t.surface.positions, t.surface.indices) as BlobPart, "model/stl") }, iconEl("export"), "STL 書き出し"),
+        h("button", { class: "btn", onClick: () => this.addTopoBody(t) }, iconEl("import"), "モデルに追加"),
+      );
+      this.out.appendChild(btns);
+      return;
+    }
     if (this.resultKind === "modal") {
       const m = r as ModalResult;
       m.freqs.forEach((f, i) => {
@@ -561,6 +594,13 @@ export class StressCommand implements Command {
     const bodies = this.app.bodies;
     const size = this.app.vp.modelBounds().getSize(new THREE.Vector3()).length();
     const kind = this.resultKind;
+    if (kind !== "topology") this.app.vp.setPreviewMesh(null);
+    if (kind === "topology") {
+      this.app.vp.setResult(null);
+      this.app.vp.setPreviewMesh((r as TopoResult).surface);
+      this.legend.classList.remove("show");
+      return;
+    }
     if (kind === "modal" || kind === "buckling") {
       const grid = r as GridLike;
       const mode = kind === "modal" ? (r as ModalResult).modes[this.modeIndex] : (r as BucklingResult).mode;
@@ -700,10 +740,23 @@ export class StressCommand implements Command {
     download(`${doc.name}_${kindLabel.replace(/ .*/, "")}.md`, lines.join("\n"), "text/markdown");
   }
 
+  /** The optimised shape as a mesh body (import feature), for reference or further modelling. */
+  private addTopoBody(t: TopoResult) {
+    const stl = trisToStl(t.surface.positions, t.surface.indices);
+    let bin = "";
+    for (let i = 0; i < stl.length; i += 0x8000) bin += String.fromCharCode(...stl.subarray(i, i + 0x8000));
+    const store = this.app.store;
+    store.mutate("最適化形状を追加", (d) =>
+      store.insertFeature(d, { id: `im${Date.now().toString(36)}`, type: "import", name: "最適化形状", format: "stl", fileName: "topology.stl", data: btoa(bin) }),
+    );
+    toast("最適化形状をボディとして追加しました (元のボディは「パーツの終わり」や抑制で非表示にできます)", "ok", 6000);
+  }
+
   private close() {
     this.stopAnim();
     this.worker?.terminate();
     this.app.vp.setResult(null);
+    this.app.vp.setPreviewMesh(null);
     this.legend.remove();
     this.panel.close();
   }

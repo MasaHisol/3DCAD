@@ -163,6 +163,15 @@ try {
   const th = await page.locator(".measure-out").innerText();
   check("thermal analysis", /最高温度\s*[\d.]+ °C/.test(th), th.split("\n").slice(0, 2).join(" "));
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/thermal.png` });
+  // topology optimisation with the structural supports chosen above
+  await page.locator('[data-k="kind"]').selectOption("topology");
+  await page.locator('[data-k="mesh"]').selectOption("5000");
+  await page.locator('[data-k="topoIters"]').selectOption("20");
+  await page.locator(".pp-body .btn", { hasText: "解析を実行" }).click();
+  await page.waitForFunction(() => document.querySelector(".measure-out")?.textContent.includes("材料あたりの剛性"), null, { timeout: 300000 });
+  const topo = await page.locator(".measure-out").innerText();
+  check("topology optimisation", /体積\s*[\d.]+ %/.test(topo), topo.split("\n").slice(0, 4).join(" "));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/topology.png` });
   await page.keyboard.press("Escape");
   await settle();
 

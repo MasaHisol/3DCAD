@@ -517,6 +517,31 @@ export class Viewport {
     this.invalidate();
   }
 
+  private preview: THREE.Mesh | null = null;
+
+  /** Show a separate mesh (e.g. an optimised shape) instead of the bodies; null restores. */
+  setPreviewMesh(m: { positions: Float32Array; indices: Uint32Array } | null, color = "#6aa7e8") {
+    if (this.preview) {
+      this.scene.remove(this.preview);
+      this.preview.geometry.dispose();
+      (this.preview.material as THREE.Material).dispose();
+      this.preview = null;
+    }
+    for (const b of this.bodies) {
+      b.mesh.visible = !m && this.style !== "wireframe";
+      b.edges.visible = !m && this.style !== "shaded";
+    }
+    if (m) {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.BufferAttribute(m.positions, 3));
+      g.setIndex(new THREE.BufferAttribute(m.indices, 1));
+      g.computeVertexNormals();
+      this.preview = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.05, side: THREE.DoubleSide }));
+      this.scene.add(this.preview);
+    }
+    this.invalidate();
+  }
+
   /** Dashed trail lines (exploded views). */
   setTrails(segs: [Vec3, Vec3][]) {
     for (const c of [...this.trailLayer.children]) {

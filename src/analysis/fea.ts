@@ -540,9 +540,9 @@ export function buildOperator(G: FeaGrid, mat: FeaMaterial, opt: FeaOptions, fix
 }
 export type FeaOperator = ReturnType<typeof buildOperator>;
 
-export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: FeaOptions, progress?: (it: number, res: number) => void): FeaResult {
-  const G = buildGrid(mesh, opt);
-  const { tri, h, origin, dims, nx, ny, nz, nodeId, nNodes, used, elems, phi, ne, conn, volume, frac, nodePos, near } = G;
+/** Supports and load vector (forces, pressure, self weight, thermal strain) on a grid. */
+export function assembleLoads(G: FeaGrid, bc: FeaBoundary, mat: FeaMaterial, opt: FeaOptions) {
+  const { tri, h, origin, nx, ny, nz, nodeId, nNodes, phi, ne, conn, nodePos, near } = G;
   const fixed = new Uint8Array(nNodes);
   let fixedNodes = 0;
   for (const f of bc.fixed) for (const n of near(f)) if (!fixed[n]) (fixed[n] = 1), fixedNodes++;
@@ -657,6 +657,13 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
     }
   }
   if (!loadedNodes && !bc.gravity && !bc.thermal) throw new Error("荷重の面に節点がありません");
+  return { fixed, fixedNodes, F, loadedNodes, gaussDT };
+}
+
+export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: FeaOptions, progress?: (it: number, res: number) => void): FeaResult {
+  const G = buildGrid(mesh, opt);
+  const { h, origin, dims, nx, ny, nz, nNodes, used, elems, phi, ne, conn, volume, frac } = G;
+  const { fixed, fixedNodes, F, loadedNodes, gaussDT } = assembleLoads(G, bc, mat, opt);
   const applied: [number, number, number] = [0, 0, 0];
   for (let n = 0; n < nNodes; n++) for (let k = 0; k < 3; k++) applied[k] += F[n * 3 + k];
 
