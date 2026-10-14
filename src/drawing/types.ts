@@ -35,6 +35,8 @@ export interface DView {
   section?: { a: Vec2; b: Vec2; flip: boolean };
   /** Detail: circle in the parent view (view mm). */
   detail?: { c: Vec2; r: number };
+  /** Broken view (破断図): ranges (view mm along the view x / y axis) removed from the display. */
+  breaks?: { axis: "x" | "y"; a: number; b: number }[];
 }
 
 /** Reference to drawing geometry in view coordinates (re-snapped on update). */

@@ -4,6 +4,8 @@ import { openLibrary } from "../library/dialog";
 import { openFamily, openRules } from "../rules/ui";
 import { openFlatPattern, openSheetStyle } from "../sheetmetal/ui";
 import { openIProperties, openParameters, openShortcuts } from "./dialogs";
+import { openToleranceStack } from "../analysis/toleranceUi";
+import { openRevisions } from "./revisionsUi";
 import type { RibbonButton, RibbonTab } from "./ribbon";
 
 export function buildRibbonTabs(app: App): RibbonTab[] {
@@ -211,7 +213,11 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
         },
         {
           title: "解析",
-          items: [cmd("stress", "応力解析", "stress", undefined, "固定面と荷重を指定して線形静解析を行い、ミーゼス応力・変位・安全率を色分け表示します。")],
+          items: [
+            cmd("stress", "応力解析", "stress", undefined, "固定面と荷重を指定して線形静解析を行い、ミーゼス応力・変位・安全率を色分け表示します。"),
+            { id: "tolstack", label: "公差累積", icon: "measure", tip: "寸法の連鎖からすき間のワーストケース・統計的 (RSS)・モンテカルロのばらつきを計算します。", action: () => openToleranceStack(app.store.doc.name, app.values()) },
+            cmd("printcheck", "3D プリント", "printcheck", undefined, "オーバーハング・薄肉・開いたエッジを色分けし、材料・造形時間の目安を表示します。"),
+          ],
         },
         {
           title: "プロパティ",
@@ -226,7 +232,10 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
       panels: [
         {
           title: "パラメータ",
-          items: [{ id: "params2", label: "パラメータ", icon: "params", tip: "パラメータ テーブルを開きます。", action: () => openParameters(app) }],
+          items: [
+            { id: "params2", label: "パラメータ", icon: "params", tip: "パラメータ テーブルを開きます。", action: () => openParameters(app) },
+            { id: "revisions", label: "改訂履歴", icon: "iprops", tip: "版 (A, B, C …) を記録し、変更点の一覧・比較・復元を行います。図面の表題欄と改訂表に反映されます。", action: () => openRevisions(app) },
+          ],
         },
         {
           title: "iLogic",

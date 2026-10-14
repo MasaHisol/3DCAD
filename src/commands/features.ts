@@ -45,6 +45,7 @@ import { download, h, iconEl, toast } from "../ui/dom";
 import { cutList, findSize, sectionShape, STEEL, unitMass, type SectionKind } from "../library/steel";
 import { PropertyPanel } from "../ui/panel";
 import { StressCommand } from "../analysis/ui";
+import { PrintCheckCommand } from "../analysis/printui";
 import { pointMap } from "../viewer/sketchRender";
 import { samePick, type Pick, type ToolHandler } from "../viewer/viewport";
 import { FeatureCommand, type Command } from "./command";
@@ -2108,6 +2109,7 @@ export function buildCommands(app: App): CommandRegistry {
     move: { id: "move", label: "ボディを移動", icon: "move" },
     measure: { id: "measure", label: "測定", icon: "measure" },
     stress: { id: "stress", label: "応力解析", icon: "stress" },
+    printcheck: { id: "printcheck", label: "3D プリント チェック", icon: "printcheck" },
   };
   const make = (id: string, f: Feature | null): Command | null => {
     switch (id) {
@@ -2168,11 +2170,13 @@ export function buildCommands(app: App): CommandRegistry {
         return new MeasureCommand(app);
       case "stress":
         return new StressCommand(app);
+      case "printcheck":
+        return new PrintCheckCommand(app);
     }
     return null;
   };
   const needsProfile = new Set(["extrude", "revolve", "loft", "sweep", "sheetFace"]);
-  const needsBody = new Set(["draft", "split", "rib", "thicken", "stress", "fillet", "chamfer", "shell", "hole", "move", "pushpull", "thread", "flange", "weld"]);
+  const needsBody = new Set(["draft", "split", "rib", "thicken", "stress", "fillet", "chamfer", "shell", "hole", "move", "pushpull", "thread", "flange", "weld", "printcheck"]);
   return {
     get: (id) => info[id],
     run: (id) => {

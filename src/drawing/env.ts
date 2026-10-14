@@ -325,6 +325,57 @@ export class DrawingEnv {
     return changed.length;
   }
 
+  /** Broken view: remove the middle of the longer direction (dialog with range). */
+  async breakView() {
+    const sh = this.sheet;
+    const v = sh.views.find((x) => this.selected.has(x.id) && (x.kind === "base" || x.kind === "projected")) ?? sh.views.find((x) => x.kind === "base");
+    const g = v && this.geom.get(v.id);
+    if (!v || !g) return void toast("基準ビューまたは投影ビューを選択してください", "warn");
+    const [x0, y0, x1, y1] = g.bounds;
+    const horiz = x1 - x0 >= y1 - y0;
+    const lo = horiz ? x0 : y0, hi = horiz ? x1 : y1;
+    const axis = h("select", { class: "field-input" }, h("option", { value: "x", selected: horiz }, "水平方向 (左右を詰める)"), h("option", { value: "y", selected: !horiz }, "垂直方向 (上下を詰める)"));
+    const from = h("input", { class: "field-input", value: formatNumber(lo + (hi - lo) * 0.3, 1) });
+    const to = h("input", { class: "field-input", value: formatNumber(lo + (hi - lo) * 0.7, 1) });
+    const body = h(
+      "div",
+      { class: "form-grid" },
+      h("label", { class: "field" }, h("span", {}, "方向"), axis),
+      h("label", { class: "field" }, h("span", {}, "省略の開始 (mm)"), from),
+      h("label", { class: "field" }, h("span", {}, "省略の終了 (mm)"), to),
+      h("p", { class: "muted" }, `ビュー座標 ${formatNumber(lo, 1)} 〜 ${formatNumber(hi, 1)} mm のうち、指定範囲を省略します。`),
+    );
+    modal({
+      title: `破断: ${v.label || "ビュー"}`,
+      icon: "split",
+      body,
+      buttons: [
+        {
+          label: "破断を解除",
+          onClick: () => {
+            this.mutate("破断を解除", (d) => delete d.sheets[this.activeSheet].views.find((x) => x.id === v.id)!.breaks);
+            this.render();
+          },
+        },
+        {
+          label: "OK",
+          primary: true,
+          onClick: () => {
+            let a = Number(from.value), b = Number(to.value);
+            if (!(isFinite(a) && isFinite(b)) || Math.abs(b - a) < 1e-6) return void toast("範囲を正しく入力してください", "warn");
+            if (a > b) [a, b] = [b, a];
+            const ax = axis.value as "x" | "y";
+            this.mutate("破断", (d) => {
+              const view = d.sheets[this.activeSheet].views.find((x) => x.id === v.id)!;
+              view.breaks = [...(view.breaks ?? []).filter((x) => x.axis !== ax || x.b < a || x.a > b), { axis: ax, a, b }];
+            });
+            this.render();
+          },
+        },
+      ],
+    });
+  }
+
   /** Hole table for the base view (datum at the bottom-left corner). */
   addHoleTable() {
     const sh = this.sheet;
@@ -662,15 +713,20 @@ export class DrawingEnv {
     return this.app.asm.doc.parts.findIndex((p) => p.id === comp.partId) + 1 || undefined;
   };
 
+  /** Revision rows for the 改訂表 (part drawings). */
+  private revisions() {
+    return this.source === "part" ? (this.app.store.doc.revisions ?? []).map((r) => ({ rev: r.rev, date: r.date, note: r.note, author: r.author })) : [];
+  }
+
   svgFor(sheetIndex: number): string {
     const sheet = this.doc.sheets[sheetIndex];
-    return renderSheet({ doc: this.doc, sheet, geom: this.geom, bom: this.bom(), itemOfTag: this.itemOfTag, sheetIndex });
+    return renderSheet({ doc: this.doc, sheet, geom: this.geom, bom: this.bom(), itemOfTag: this.itemOfTag, sheetIndex, revisions: this.revisions() });
   }
 
   render() {
     if (!this.store.doc.drawing) return;
     if (!this.stage) return;
-    const ctx = { doc: this.doc, sheet: this.sheet, geom: this.geom, bom: this.bom(), itemOfTag: this.itemOfTag, selected: this.selected, sheetIndex: this.activeSheet };
+    const ctx = { doc: this.doc, sheet: this.sheet, geom: this.geom, bom: this.bom(), itemOfTag: this.itemOfTag, selected: this.selected, sheetIndex: this.activeSheet, revisions: this.revisions() };
     let svg = renderSheet(ctx);
     if (this.preview) svg = svg.replace("</svg>", `<g class="dw-preview">${this.preview}</g></svg>`);
     // on screen 1 sheet mm = 1 CSS px before zoom (fit / pan math relies on it)
@@ -1540,6 +1596,7 @@ export class DrawingEnv {
             t("projected", "投影", "lookAt", "親ビューから投影ビュー (第三角法) / 等角図を作成します。"),
             t("section", "断面", "section", "切断線を引いて断面図 (A-A) を作成します。切断面にはハッチングが入ります。"),
             t("detail", "詳細", "search", "円で囲んだ部分を拡大した詳細図を作成します。"),
+            { id: "dw-break", label: "破断", icon: "split", tip: "長い部品の中間を省略した破断図にします (寸法は実寸で表示)。ビューを選択してから実行します。", action: () => void this.breakView() },
           ],
         },
         {

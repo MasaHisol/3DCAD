@@ -130,6 +130,12 @@ try {
   await page.waitForFunction(() => document.querySelector(".measure-out")?.textContent.includes("最大ミーゼス"), null, { timeout: 120000 });
   const fea = await page.locator(".measure-out").innerText();
   check("stress analysis", /最大ミーゼス応力\s*[\d.]+ MPa/.test(fea) && /つり合い誤差 < 0\.001%/.test(fea) && (await page.locator(".fea-legend.show").count()) === 1, fea.split("\n").slice(0, 2).join(" "));
+  // PDF report: printable HTML with the result image (popup in the browser build)
+  const [rep] = await Promise.all([page.waitForEvent("popup"), page.locator(".pp-body .btn", { hasText: "PDF レポート" }).click()]);
+  await rep.waitForLoadState();
+  const repInfo = await rep.evaluate(() => ({ tables: document.querySelectorAll("table").length, img: document.querySelector("img")?.src.length ?? 0, h1: document.querySelector("h1")?.textContent }));
+  await rep.close();
+  check("PDF analysis report", repInfo.tables >= 2 && repInfo.img > 10000 && /レポート/.test(repInfo.h1 ?? ""), JSON.stringify({ ...repInfo, img: Math.round(repInfo.img / 1024) + " KB" }));
   await page.locator(".pp-body .btn", { hasText: "収束確認" }).click();
   await page.waitForFunction(() => document.querySelector(".measure-out")?.textContent.includes("メッシュ収束"), null, { timeout: 180000 });
   check("mesh convergence check", true, (await page.locator(".measure-out").innerText()).split("\n").filter((l) => l.includes("収束") || l.includes("要素")).join(" "));
@@ -225,6 +231,14 @@ try {
   });
   check("hole table + ordinate dims, no overlapping text", dw2.table >= 8 && dw2.ord >= 4 && dw2.overlaps === 0, JSON.stringify(dw2));
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/drawing-ordinate.png` });
+  // broken view: the base view is shortened, dimensions keep the true length
+  const w0 = await page.evaluate(() => document.querySelector(".dw-stage .dview").getBBox().width);
+  await page.locator('[data-cmd="dw-break"]').click();
+  await page.locator(".modal-foot .btn.primary").click();
+  await settle();
+  const brk = await page.evaluate(() => ({ lines: document.querySelectorAll(".dw-stage .break-line").length, w: document.querySelector(".dw-stage .dview").getBBox().width }));
+  check("broken view", brk.lines === 2 && brk.w < w0 - 10, JSON.stringify({ ...brk, w0 }));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/drawing-break.png` });
   await page.keyboard.press("Control+z");
   await page.keyboard.press("Control+y");
   await page.evaluate(() => window.cad.leaveDrawingEnv());
@@ -279,6 +293,34 @@ try {
   const frVol = await page.evaluate(() => window.cad.kernel.massProps());
   check("frame generator + cut list", fr.errors === 0 && cut.includes("4 本") && cut.includes("1400 mm") && Math.abs(frVol.volume / ((50 * 50 - 45.4 * 45.4) * 1400) - 1) < 1e-3, `${cut} vol=${frVol.volume?.toFixed(0)}`);
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/frame.png` });
+  // 3D print check on the frame (no overhang when lying flat), tolerance stack-up, revisions
+  await page.locator(".rb-tab", { hasText: "検査" }).click();
+  await page.locator('[data-cmd="printcheck"]').click();
+  await page.waitForSelector('[data-k="pc-result"]', { timeout: 30000 });
+  const pc = await page.locator('[data-k="pc-result"]').innerText();
+  check("3D print check", pc.includes("開いたエッジ\t0") && pc.includes("造形高さ\t50"), pc.replace(/\n/g, " | "));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/printcheck.png` });
+  await page.keyboard.press("Escape");
+  await page.locator('[data-cmd="tolstack"]').click();
+  const tol = await page.locator('[data-k="tol-result"]').innerText();
+  check("tolerance stack-up", tol.includes("0.5") && tol.includes("RSS"), tol.split("\n").slice(0, 3).join(" | "));
+  await page.locator(".modal-foot .btn", { hasText: "閉じる" }).click();
+  await page.locator(".rb-tab", { hasText: "管理" }).click();
+  await page.locator('[data-cmd="revisions"]').click();
+  await page.locator(".modal-foot .btn", { hasText: "改訂を記録" }).click();
+  await page.locator(".modal-foot .btn.primary").last().click();
+  await page.waitForSelector('[data-k="rev-pending"]');
+  await page.locator(".modal-foot .btn", { hasText: "閉じる" }).click();
+  await page.evaluate(() => {
+    const st = window.cad.store;
+    const p = st.doc.params.find((x) => x.kind === "model");
+    st.mutate("edit", (d) => (d.params.find((x) => x.name === p.name).expr = "350"));
+  });
+  await settle();
+  await page.locator('[data-cmd="revisions"]').click();
+  const revTxt = await page.locator('[data-k="rev-pending"]').innerText();
+  check("revision record + change list", (await page.evaluate(() => window.cad.store.doc.revisions?.[0]?.rev)) === "A" && revTxt.includes("寸法変更"), revTxt);
+  await page.locator(".modal-foot .btn", { hasText: "閉じる" }).click();
 
   // sheet metal: face from the 120x80 sketch, four flanges, flat pattern
   await page.evaluate(() => void window.cad.newDocument());

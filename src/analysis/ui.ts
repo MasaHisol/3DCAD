@@ -1,3 +1,4 @@
+import { reportHtml } from "./reportHtml";
 import * as THREE from "three";
 import type { App } from "../app";
 import type { Command } from "../commands/command";
@@ -279,7 +280,8 @@ export class StressCommand implements Command {
       defSel.dataset.k = "deform";
     }
     if (this.kind === "modal" || this.kind === "buckling") p.checkbox(rs, "モード形状をアニメーション", this.animate, (v) => ((this.animate = v), this.display()));
-    rs.appendChild(h("button", { class: "btn", onClick: () => this.report() }, iconEl("export"), "レポートを書き出し"));
+    rs.appendChild(h("button", { class: "btn", onClick: () => void this.report(true) }, iconEl("export"), "PDF レポート"));
+    rs.appendChild(h("button", { class: "btn", onClick: () => void this.report(false) }, iconEl("export"), "Markdown"));
     this.setActive(KIND_SETS[this.kind].includes(this.active) ? this.active : KIND_SETS[this.kind][0]);
     if (this.result) {
       this.summary();
@@ -788,7 +790,7 @@ export class StressCommand implements Command {
     else this.setLegend(title, lo, hi, show === "disp" ? 4 : 2, scale ? `変形倍率 ×${formatNumber(scale, 1)}` : "");
   }
 
-  private report() {
+  private async report(pdf: boolean) {
     const r = this.result;
     if (!r) return void toast("先に解析を実行してください", "warn");
     const doc = { name: this.app.env === "assembly" ? this.app.asm.doc.name : this.app.store.doc.name, material: { name: this.app.env === "assembly" ? `部品ごと (基準 ${this.matName()})` : this.matName(), density: this.refDensity() } };
@@ -831,7 +833,20 @@ export class StressCommand implements Command {
       ``,
       `解析手法: ボクセル六面体 H11 要素 (非適合モード)、境界の部分体積補正、マルチグリッド前処理付き共役勾配法 / LOBPCG (固有値) / 逆反復 (座屈)。理論解に対し、たわみ ±2%・応力集中 ±5%・固有振動数 ±3%・座屈荷重 ±5% を自動テストで確認済み。`,
     );
-    download(`${doc.name}_${kindLabel.replace(/ .*/, "")}.md`, lines.join("\n"), "text/markdown");
+    const file = `${doc.name}_${kindLabel.replace(/ .*/, "")}`;
+    if (!pdf) return download(`${file}.md`, lines.join("\n"), "text/markdown");
+    const legend = this.legend.textContent?.replace(/\s+/g, " ").trim();
+    const html = reportHtml(file, lines.join("\n"), this.app.vp.capture(2), legend);
+    const desktop = (window as unknown as { desktop?: { printPdf?: (html: string, w: number, h: number, name: string) => Promise<boolean> } }).desktop;
+    if (desktop?.printPdf) {
+      if (await desktop.printPdf(html, 210, 297, `${file}.pdf`)) toast("PDF レポートを保存しました", "ok");
+      return;
+    }
+    const win = window.open("", "_blank");
+    if (!win) return void download(`${file}.html`, html, "text/html");
+    win.document.write(html);
+    win.document.close();
+    setTimeout(() => win.print(), 400);
   }
 
   /** The optimised shape as a mesh body (import feature), for reference or further modelling. */

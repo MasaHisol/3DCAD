@@ -40,3 +40,18 @@ describe("drawing annotation layout", () => {
     expect(ch[0].dir[1]).toBeGreaterThan(0);
   });
 });
+
+import { breakBands, toSheet, toView } from "../src/drawing/geom";
+import type { DView } from "../src/drawing/types";
+
+describe("broken view mapping", () => {
+  const v = { id: "v", label: "", kind: "base", dir: [0, 0, 1], xAxis: [1, 0, 0], scale: 1, x: 0, y: 0, hidden: false, centerMarks: false, breaks: [{ axis: "x", a: 100, b: 900 }] } as DView;
+  it("shortens and round-trips", () => {
+    expect(toSheet(v, [50, 0])[0]).toBe(50);
+    expect(toSheet(v, [1000, 0])[0]).toBeCloseTo(1000 - 800 + 6, 9);
+    expect(toView(v, toSheet(v, [950, 3]))[0]).toBeCloseTo(950, 9);
+    expect(toView(v, toSheet(v, [950, 3]))[1]).toBeCloseTo(3, 9);
+    const [b] = breakBands(v);
+    expect([b.s0, b.s1]).toEqual([100, 106]);
+  });
+});

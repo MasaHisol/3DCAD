@@ -5,7 +5,7 @@ import type { Vec2 } from "../core/types";
 import type { Seg2, ViewGeometry } from "../kernel/protocol";
 import { holeTable } from "./annolayout";
 import { formatNumber } from "../core/expr";
-import { dimText, dimValue, holeThread, linearPoints, sameCircles, toSheet } from "./geom";
+import { breakBands, dimText, dimValue, holeThread, linearPoints, sameCircles, toSheet } from "./geom";
 import { scaleText, sheetSize, type Anno, type DimAnno, type DrawingDoc, type DView, type Sheet } from "./types";
 
 export interface BomRow {
@@ -25,6 +25,8 @@ export interface RenderCtx {
   itemOfTag: (tag: number) => number | undefined;
   selected?: Set<string>;
   sheetIndex: number;
+  /** Revision history (改訂表), oldest first. */
+  revisions?: { rev: string; date: string; note: string; author: string }[];
 }
 
 const W = { thick: 0.5, thin: 0.25, fine: 0.18, border: 0.7 };
@@ -334,8 +336,31 @@ function renderView(v: DView, ctx: RenderCtx, views: Map<string, DView>): string
   const sel = ctx.selected?.has(v.id) ? " sel" : "";
   let out = `<g class="dview${sel}" data-id="${v.id}" fill="none" stroke-linecap="round" stroke-linejoin="round">`;
   if (!g) return out + text(v.x, v.y, "計算中…", 3.5) + "</g>";
-  const clip = v.detail ? ` clip-path="url(#clip-${v.id})"` : "";
+  const bands = breakBands(v);
+  const clip = v.detail || bands.length ? ` clip-path="url(#clip-${v.id})"` : "";
   if (v.detail) out += `<clipPath id="clip-${v.id}"><circle cx="${f(v.x)}" cy="${f(v.y)}" r="${f(v.detail.r * v.scale)}"/></clipPath>`;
+  let breakLines = "";
+  if (bands.length) {
+    // keep everything except the gap bands (evenodd: outer box minus the bands)
+    const [bx0, by0, bx1, by1] = viewBounds(v, g);
+    const X0 = bx0 - 20, Y0 = by0 - 20, X1 = bx1 + 20, Y1 = by1 + 20;
+    let d = `M${f(X0)} ${f(Y0)}H${f(X1)}V${f(Y1)}H${f(X0)}Z`;
+    for (const b of bands) {
+      d += b.axis === "x" ? `M${f(b.s0)} ${f(Y0)}V${f(Y1)}H${f(b.s1)}V${f(Y0)}Z` : `M${f(X0)} ${f(b.s0)}H${f(X1)}V${f(b.s1)}H${f(X0)}Z`;
+      // JIS break lines: thin zig-zag on both edges of the gap
+      for (const s of [b.s0, b.s1]) {
+        const pts: string[] = [];
+        const lo = b.axis === "x" ? by0 - 2 : bx0 - 2, hi = b.axis === "x" ? by1 + 2 : bx1 + 2;
+        const n = Math.max(4, Math.round((hi - lo) / 4));
+        for (let i = 0; i <= n; i++) {
+          const t = lo + ((hi - lo) * i) / n, w = i % 2 ? 0.9 : -0.9;
+          pts.push(b.axis === "x" ? `${f(s + w)} ${f(t)}` : `${f(t)} ${f(s + w)}`);
+        }
+        breakLines += `<path d="M${pts.join("L")}" stroke="#000" stroke-width="${W.thin}" class="break-line"/>`;
+      }
+    }
+    out += `<clipPath id="clip-${v.id}"><path d="${d}" clip-rule="evenodd"/></clipPath>`;
+  }
   out += `<g${clip}>`;
   // section hatching (JIS: thin lines at 45°)
   if (g.hatch.length) {
@@ -359,7 +384,7 @@ function renderView(v: DView, ctx: RenderCtx, views: Map<string, DView>): string
     }
     if (cm.length) out += `<path d="${cm.join("")}" stroke="#000" stroke-width="${W.fine}" stroke-dasharray="6 1.2 1 1.2"/>`;
   }
-  out += "</g>";
+  out += "</g>" + breakLines;
   if (v.detail) out += `<circle cx="${f(v.x)}" cy="${f(v.y)}" r="${f(v.detail.r * v.scale)}" stroke="#000" stroke-width="${W.fine}"/>`;
   // cutting line / detail circle on this view for its children
   for (const c of views.values()) {
@@ -412,6 +437,24 @@ function viewBounds(v: DView, g: ViewGeometry): [number, number, number, number]
 
 export function baseScale(s: Sheet): number {
   return s.views.find((v) => v.kind === "base")?.scale ?? 1;
+}
+
+/** 改訂表 above the title block (latest 6 revisions, newest on top). */
+function revisionTable(ctx: RenderCtx, w: number, h: number): string {
+  const revs = (ctx.revisions ?? []).slice(-6).reverse();
+  if (!revs.length) return "";
+  const m = 10, rowH = 6, cols: [string, number][] = [["版", 12], ["日付", 26], ["内容", 112], ["担当", 30]];
+  const x0 = w - m - 180, y0 = h - m - 8 * 5 - rowH * (revs.length + 1);
+  let out = `<g class="revision-table" stroke="#000" stroke-width="${W.thin}" fill="none">`;
+  [["版", "日付", "内容", "担当"], ...revs.map((r) => [r.rev, r.date, r.note, r.author])].forEach((row, ri) => {
+    let x = x0;
+    row.forEach((c, ci) => {
+      out += `<rect x="${f(x)}" y="${f(y0 + ri * rowH)}" width="${cols[ci][1]}" height="${rowH}"${ri === 0 ? ` fill="#f0f0f0"` : ""}/>`;
+      out += text(ci === 2 ? x + 1.5 : x + cols[ci][1] / 2, y0 + ri * rowH + 4.2, c, 2.8, ci === 2 ? "start" : "middle");
+      x += cols[ci][1];
+    });
+  });
+  return out + "</g>";
 }
 
 function titleBlock(ctx: RenderCtx, w: number, h: number): string {
@@ -482,6 +525,7 @@ export function renderSheet(ctx: RenderCtx, opts: { forExport?: boolean } = {}):
   for (const v of ctx.sheet.views) out += renderView(v, ctx, views);
   for (const a of ctx.sheet.annos) out += renderAnno(a, views, ctx);
   out += partsList(ctx);
+  out += revisionTable(ctx, w, h);
   out += titleBlock(ctx, w, h);
   void opts;
   void dimValue;

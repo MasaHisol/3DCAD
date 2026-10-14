@@ -66,15 +66,52 @@ export function sectionFrame(parent: DView, a: Vec2, b: Vec2, flip: boolean): { 
 
 // ----------------------------------------------------------- view mapping ---
 
-/** View coords (mm, y up) -> sheet mm (y down). Detail views are centred on their circle. */
+/** Gap between the two sides of a break, in sheet mm. */
+export const BREAK_GAP = 6;
+
+/** Collapses broken ranges along one axis (view mm): kept coordinate, removed ranges shift the rest. */
+function breakMap(v: DView, axis: "x" | "y", t: number): number {
+  if (!v.breaks?.length) return t;
+  const gap = BREAK_GAP / v.scale;
+  let shift = 0;
+  for (const br of [...v.breaks].filter((b) => b.axis === axis).sort((a, b) => a.a - b.a)) {
+    if (t >= br.b) shift += br.b - br.a - gap;
+    else if (t > br.a) return br.a + gap / 2 - shift;
+  }
+  return t - shift;
+}
+
+function breakUnmap(v: DView, axis: "x" | "y", t: number): number {
+  if (!v.breaks?.length) return t;
+  const gap = BREAK_GAP / v.scale;
+  let shift = 0;
+  for (const br of [...v.breaks].filter((b) => b.axis === axis).sort((a, b) => a.a - b.a)) {
+    if (t + shift >= br.a + gap) shift += br.b - br.a - gap;
+    else break;
+  }
+  return t + shift;
+}
+
+/** Sheet-space bands (x or y ranges) hidden by the breaks of a view. */
+export function breakBands(v: DView): { axis: "x" | "y"; s0: number; s1: number }[] {
+  return (v.breaks ?? []).map((br) => {
+    const m = breakMap(v, br.axis, br.a);
+    const s = br.axis === "x" ? toSheet(v, [m, 0])[0] : toSheet(v, [0, m])[1];
+    const s2 = br.axis === "x" ? s + BREAK_GAP : s - BREAK_GAP;
+    return { axis: br.axis, s0: Math.min(s, s2), s1: Math.max(s, s2) };
+  });
+}
+
+/** View coords (mm, y up) -> sheet mm (y down). Detail views are centred on their circle; broken views are shortened. */
 export function toSheet(v: DView, p: Vec2): Vec2 {
   const o = v.detail ? v.detail.c : [0, 0];
-  return [v.x + (p[0] - o[0]) * v.scale, v.y - (p[1] - o[1]) * v.scale];
+  const x = breakMap(v, "x", p[0]), y = breakMap(v, "y", p[1]);
+  return [v.x + (x - o[0]) * v.scale, v.y - (y - o[1]) * v.scale];
 }
 
 export function toView(v: DView, s: Vec2): Vec2 {
   const o = v.detail ? v.detail.c : [0, 0];
-  return [(s[0] - v.x) / v.scale + o[0], -(s[1] - v.y) / v.scale + o[1]];
+  return [breakUnmap(v, "x", (s[0] - v.x) / v.scale + o[0]), breakUnmap(v, "y", -(s[1] - v.y) / v.scale + o[1])];
 }
 
 /** Sheet-space bounding box of a view's geometry. */

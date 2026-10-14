@@ -2203,3 +2203,11 @@ kbd {
 .cutlist-table { width: 100%; border-collapse: collapse; font-size: 11px; }
 .cutlist-table th, .cutlist-table td { border: 1px solid var(--border, #3a3f48); padding: 2px 4px; text-align: center; }
 .cutlist-sum { font-size: 11px; margin: 4px 0; }
+.tol-table { border-collapse: collapse; font-size: 12px; margin: 6px 0; }
+.tol-table th, .tol-table td { padding: 2px 4px; text-align: left; }
+.tol-dialog .row { display: flex; gap: 8px; align-items: center; margin: 6px 0; }
+.tol-result { margin-top: 8px; }
+.rev-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+.rev-table th, .rev-table td { border: 1px solid var(--border, #3a3f48); padding: 3px 5px; text-align: left; vertical-align: top; }
+.rev-changes { font-size: 11px; opacity: 0.85; }
+.rev-pending { font-size: 12px; margin: 4px 0; }

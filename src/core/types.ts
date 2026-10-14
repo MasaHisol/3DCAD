@@ -454,4 +454,6 @@ export interface PartDocument {
   sheetMetal?: { thickness: string; radius: string; kFactor: string };
   /** 2D drawing sheets documenting this part. */
   drawing?: import("../drawing/types").DrawingDoc;
+  /** Recorded revisions (oldest first). */
+  revisions?: import("./revisions").Revision[];
 }
