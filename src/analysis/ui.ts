@@ -663,7 +663,7 @@ export class StressCommand implements Command {
     const s = r as FeaResult & { thermal?: ThermalResult; plastic?: Omit<PlasticResult, "result">; dynamic?: Omit<DynamicResult, "staticResult"> };
     if (s.plastic) {
       const p = s.plastic;
-      row("判定", p.collapsed ? `塑性崩壊 (荷重の ${Math.round(p.loadFactor * 100)} % まで支持)` : p.plasticFraction > 0 ? "局所的に降伏 (荷重は支持)" : "弾性範囲内", p.collapsed ? "bad" : p.plasticFraction > 0 ? "warn" : "ok");
+      row("判定", p.collapsed ? `塑性崩壊 (荷重の ${Math.round(p.loadFactor * 100)} % まで支持)` : p.notConverged ? `収束せず (荷重の ${Math.round(p.loadFactor * 100)} % まで計算、メッシュや荷重を見直してください)` : p.plasticFraction > 0 ? "局所的に降伏 (荷重は支持)" : "弾性範囲内", p.collapsed ? "bad" : p.notConverged || p.plasticFraction > 0 ? "warn" : "ok");
       row("降伏した体積", `${formatNumber(p.plasticFraction * 100, 2)} %`);
       row("相当塑性ひずみ (最大, 目安)", `${formatNumber(p.maxPlasticStrain * 100, 3)} %`);
       row("最大変位 / 線形解析", `${formatNumber(s.maxDisp, 4)} / ${formatNumber(p.linearDisp * p.loadFactor, 4)} mm`, "", "同じ荷重レベルでの線形解析との比較");

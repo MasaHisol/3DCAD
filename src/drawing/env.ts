@@ -785,8 +785,21 @@ export class DrawingEnv {
           primary: true,
           onClick: () => {
             this.mutate("部品表を編集", (d) => {
-              d.bomEdits = {};
-              for (const i of inputs) d.bomEdits[i.id] = { item: Number(i.item.value) || undefined, name: i.name.value, material: i.material.value, note: i.note.value };
+              // store only values that differ from the model (untouched ones keep following the parts)
+              const edits = { ...(d.bomEdits ?? {}) };
+              for (const i of inputs) {
+                const p = asm.parts.find((x) => x.id === i.id)!;
+                const auto = { item: asm.parts.indexOf(p) + 1, name: p.doc?.iprops["パーツ番号"] || p.name, material: p.kind === "step" ? "—" : (p.doc?.material ?? MATERIALS[0]).name, note: p.doc?.iprops["説明"] ?? "" };
+                const e: { name?: string; note?: string; item?: number; material?: string } = {};
+                const item = Number(i.item.value);
+                if (Number.isInteger(item) && item > 0 && item !== auto.item) e.item = item;
+                if (i.name.value !== auto.name) e.name = i.name.value;
+                if (i.material.value !== auto.material) e.material = i.material.value;
+                if (i.note.value !== auto.note) e.note = i.note.value;
+                if (Object.keys(e).length) edits[i.id] = e;
+                else delete edits[i.id];
+              }
+              d.bomEdits = edits;
             });
             this.render();
           },
@@ -1370,7 +1383,7 @@ export class DrawingEnv {
               if (vv.section) {
                 const st = steps.value
                   .split("\n")
-                  .map((l) => l.split(/[,\s]+/).filter(Boolean).map(Number))
+                  .map((l) => (l.includes(",") ? l.split(",") : l.split(/\s+/)).map((x) => x.trim()).filter(Boolean).map(Number))
                   .filter((x) => x.length === 2 && x.every(Number.isFinite))
                   .map(([at, offset]) => ({ at, offset }));
                 if (st.length) vv.section.steps = st;

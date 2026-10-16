@@ -1,6 +1,7 @@
 import type { App } from "../app";
 import type { Command } from "../commands/command";
 import { formatNumber } from "../core/expr";
+import { evalWith } from "../core/params";
 import { holeCenterPoints, planeToWorld } from "../core/resolve";
 import type { SketchFeature, SkPoint, Vec2, Vec3 } from "../core/types";
 import { findRegions } from "../sketch/profiles";
@@ -44,24 +45,43 @@ export class CamCommand implements Command {
     app.vp.setSelection([]);
     this.run();
   }
+  /** Field value: number, expression or parameter name (NaN when invalid). */
+  private num(e: string): number {
+    try {
+      return evalWith(this.app.values(), e);
+    } catch {
+      return NaN;
+    }
+  }
+  /** Invalidate the previous toolpath so a stale path can never be exported. */
+  private fail(msg: string) {
+    this.res = null;
+    this.app.vp.setToolpath(null);
+    this.out.textContent = msg;
+  }
   private tool(): CamTool {
-    const n = Number;
+    const n = (e: string) => this.num(e);
     return { d: n(this.st.d), stepover: n(this.st.stepover) / 100, stepdown: n(this.st.stepdown), feed: n(this.st.feed), plunge: n(this.st.plunge), rpm: n(this.st.rpm) };
   }
   private run() {
     const sk = this.app.store.doc.features.find((x) => x.id === this.st.sketch) as SketchFeature | undefined;
-    if (!sk) return void (this.out.textContent = "スケッチを選択してください");
+    if (!sk) return this.fail("スケッチを選択してください");
     const tool = this.tool();
-    const vals = [tool.d, tool.stepover, tool.stepdown, tool.feed, tool.plunge, Number(this.st.depth), Number(this.st.safe)];
-    if (!vals.every((x) => x > 0)) return this.panel.setError("値は正の数にしてください");
+    const vals = [tool.d, tool.stepover, tool.stepdown, tool.feed, tool.plunge, this.num(this.st.depth), this.num(this.st.safe)];
+    const extra = [this.num(this.st.allowance), this.num(this.st.peck)];
+    if (!vals.every((x) => x > 0) || !extra.every((x) => x >= 0)) {
+      this.panel.setError("値は正の数 (仕上げ代・ペック量は 0 以上) にしてください");
+      return this.fail("条件を見直してください");
+    }
     this.panel.setError(null);
     const regions = findRegions(sk.entities).filter((g) => !g.island).map((g) => ({ outer: g.outerPoly, holes: g.holePolys }));
     const pts: Vec2[] = holeCenterPoints(sk).map((q) => [q.x, q.y]);
     const pmap = new Map(sk.entities.filter((e): e is SkPoint => e.type === "point").map((q) => [q.id, q]));
     for (const e of sk.entities) if (e.type === "circle" && !e.construction) { const c = pmap.get(e.c); if (c) pts.push([c.x, c.y]); }
-    const op: CamOp = { kind: this.st.kind, regions, points: pts, depth: Number(this.st.depth), outside: this.st.outside, allowance: Number(this.st.allowance) || 0, peck: Number(this.st.peck) || 0 };
-    if (op.kind === "pocket" && !regions.length) return void (this.out.textContent = "閉じたプロファイルがありません");
-    const res = generateToolpath(op, tool, Number(this.st.safe));
+    const op: CamOp = { kind: this.st.kind, regions, points: pts, depth: this.num(this.st.depth), outside: this.st.outside, allowance: extra[0], peck: extra[1] };
+    if ((op.kind === "pocket" || op.kind === "contour") && !regions.length) return this.fail("閉じたプロファイルがありません");
+    if (op.kind === "drill" && !pts.length) return this.fail("穴あけ位置 (スケッチの点・円) がありません");
+    const res = generateToolpath(op, tool, this.num(this.st.safe));
     this.res = res;
     // preview in world coordinates
     const W = (p: [number, number, number]): Vec3 => {
@@ -85,7 +105,7 @@ export class CamCommand implements Command {
   private exportGcode() {
     if (!this.res?.moves.length) return void toast("工具経路がありません", "warn");
     const label = { pocket: "ポケット", contour: "輪郭", drill: "穴あけ" }[this.st.kind];
-    const g = toGcode(this.app.store.doc.name, [{ label, res: this.res, tool: this.tool(), toolNo: 1 }], Number(this.st.safe));
+    const g = toGcode(this.app.store.doc.name, [{ label, res: this.res, tool: this.tool(), toolNo: 1 }], this.num(this.st.safe));
     download(`${this.app.store.doc.name}_${label}.nc`, g, "text/plain");
   }
   private close() {

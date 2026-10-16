@@ -102,6 +102,8 @@ function workAxisInPlane(doc: PartDocument, id: string, plane: PlaneDef): [Vec2,
   const n = plane.normal;
   const along = wa.dir[0] * n[0] + wa.dir[1] * n[1] + wa.dir[2] * n[2];
   if (Math.abs(along) > 1e-6) throw new Error("作業軸がスケッチ平面と平行ではありません");
+  const off = (wa.origin[0] - plane.origin[0]) * n[0] + (wa.origin[1] - plane.origin[1]) * n[1] + (wa.origin[2] - plane.origin[2]) * n[2];
+  if (Math.abs(off) > 1e-6) throw new Error(`作業軸がスケッチ平面上にありません (${Math.abs(off).toFixed(3)} mm 離れています)`);
   const o = worldToPlane(plane, wa.origin);
   const e = worldToPlane(plane, [wa.origin[0] + wa.dir[0], wa.origin[1] + wa.dir[1], wa.origin[2] + wa.dir[2]]);
   return [o, [e[0] - o[0], e[1] - o[1]]];
@@ -226,7 +228,8 @@ function resolveFeature(
           .split(/\n/)
           .map((l) => l.trim())
           .filter(Boolean)
-          .map((l) => l.split(/[,\s]+/).filter(Boolean).map((e) => evalWith(values, e)) as Vec3);
+          // commas separate the coordinates (expressions may contain spaces); without commas, spaces do
+          .map((l) => (l.includes(",") ? l.split(",") : l.split(/\s+/)).map((e) => e.trim()).filter(Boolean).map((e) => evalWith(values, e)) as Vec3);
         if (pts.length < 2 || pts.some((p) => p.length !== 3 || p.some((x) => !Number.isFinite(x)))) throw new Error("3D パスの点は「x, y, z」を 1 行に 1 点、2 点以上入力してください");
         const bend = f.bend ? num(f, f.bend, "曲げ半径") : 0;
         return { id: f.id, type: "sweep", plane: sk.plane, regions: regionsOf(st, f.profiles, f.profilePts), path: polylinePath(pts, bend), op: f.op };
@@ -458,6 +461,7 @@ export function polylinePath(pts: Vec3[], bend: number): PathSeg[] {
   };
   const at = (p: Vec3, d: Vec3, t: number): Vec3 => [p[0] + d[0] * t, p[1] + d[1] * t, p[2] + d[2] * t];
   const clean = pts.filter((p, i) => i === 0 || len(sub3(p, pts[i - 1])) > 1e-9);
+  if (clean.length < 2) throw new Error("3D パスには異なる 2 点以上が必要です");
   const out: PathSeg[] = [];
   let start = clean[0];
   for (let i = 1; i < clean.length - 1; i++) {
@@ -465,6 +469,7 @@ export function polylinePath(pts: Vec3[], bend: number): PathSeg[] {
     const u1 = unit(sub3(clean[i - 1], P)), u2 = unit(sub3(clean[i + 1], P));
     const cos = u1[0] * u2[0] + u1[1] * u2[1] + u1[2] * u2[2];
     const th = Math.acos(Math.max(-1, Math.min(1, cos))); // interior angle
+    if (th < 1e-6) throw new Error("3D パスが折り返しています (同じ線上を戻る点があります)");
     if (bend <= 0 || th > Math.PI - 1e-6) {
       out.push({ t: "line", a: start, b: P });
       start = P;

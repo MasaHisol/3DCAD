@@ -802,17 +802,24 @@ async function evalShape(f: RFeature, st: State, entry: CacheEntry): Promise<Sta
           const faces = body.faces.filter((fc) => R.measureDistanceBetween(fc as never, mv as never) < 1e-6).slice(0, 2);
           if (faces.length < 2) throw new Error("エッジに隣接する面が見つかりません");
           const [n1, n2] = faces.map((fc) => normalize(tuple(fc.normalAt(mid))));
-          // convex edge against another body: the leg runs along that body (probe beyond the contact face)
+          // a leg lies in a face plane (normal p), perpendicular to the edge, on the side of `hint`
+          const along = (p: Vec3, hint: Vec3): Vec3 => {
+            const d = normalize(cross(w, p));
+            return dot(d, hint) >= 0 ? d : scale(d, -1);
+          };
+          // convex edge against another body: one leg along that body's surface (the contact plane of face j),
+          // the other up face i; any corner angle, not only 90°
           const eps = Math.min(a * 0.05, 0.05);
           let legs: [Vec3, Vec3] | null = null;
           for (const [ni, nj] of [[n1, n2], [n2, n1]] as [Vec3, Vec3][]) {
-            if (inside(add(add(mid, scale(nj, eps)), scale(ni, a / 2)))) {
-              legs = [ni, scale(nj, -1)];
+            const onContact = along(nj, ni);
+            if (inside(add(add(mid, scale(nj, eps)), scale(onContact, a / 2)))) {
+              legs = [onContact, along(ni, scale(nj, -1))];
               break;
             }
           }
-          // concave corner of one body: the bead fills the corner
-          if (!legs) legs = [n1, n2];
+          // concave corner of one body: the bead fills the corner, legs along both faces
+          if (!legs) legs = [along(n1, n2), along(n2, n1)];
           const pl = new R.Plane(A, legs[0], w);
           const yv = cross(w, legs[0]);
           const q: Vec2 = [dot(legs[1], legs[0]) * a, dot(legs[1], yv) * a];

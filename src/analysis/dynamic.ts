@@ -73,6 +73,8 @@ export function solveDynamic(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, d
     const w = 2 * Math.PI * f;
     return { w, gain: (at * p) / (mm || 1e-300) }; // u_probe = Σ gain·q_i, q̈+2ζωq̇+ω²q = f(t)
   });
+  const wmax0 = Math.max(...modes.map((m) => m.w));
+  if (!modes.length || modes.some((m) => !(m.w > 1e-6 * wmax0) || !Number.isFinite(m.gain))) throw new Error("固定が不足しています (剛体モードがあります)。固定拘束を追加してください");
   // static part not represented by the modes (mode-acceleration correction)
   const modalStatic = modes.reduce((s, m) => s + m.gain / (m.w * m.w), 0);
   const residual = ust - modalStatic;

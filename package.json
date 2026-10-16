@@ -1,6 +1,6 @@
 {
   "name": "3dcad-studio",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "private": true,
   "description": "パラメトリック 3D CAD (Inventor スタイルのワークフロー、STEP 互換)",
   "type": "module",

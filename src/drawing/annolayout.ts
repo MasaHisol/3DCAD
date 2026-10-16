@@ -118,7 +118,7 @@ export function holeTable(g: ViewGeometry, origin: Vec2): HoleRow[] {
   sizes.forEach((d, si) => {
     const letter = String.fromCharCode(65 + (si % 26));
     holes
-      .filter((c) => Math.abs(2 * c.r - d) < 2e-3)
+      .filter((c) => +(2 * c.r).toFixed(3) === d)
       .sort((a, b) => a.c[1] - b.c[1] || a.c[0] - b.c[0])
       .forEach((c, i) => rows.push({ tag: `${letter}${i + 1}`, x: c.c[0] - origin[0], y: c.c[1] - origin[1], d, c: c.c }));
   });

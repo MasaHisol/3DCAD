@@ -194,13 +194,25 @@ export class AssemblyEnv {
     const doc = this.doc;
     const mats = new Map(doc.components.map((c) => [c.id, m4(c.matrix)]));
     const fixed = new Set(doc.components.filter((c) => c.grounded || c.patternOf).map((c) => c.id));
-    const rep = solveAssembly(mats, fixed, this.solverConstraints());
-    // pattern instances follow their (solved) source
-    for (const pt of doc.patterns ?? []) {
-      const src = mats.get(pt.source);
-      if (!src) continue;
-      const ms = patternMatrices(pt, src.toArray());
-      for (const c of doc.components) if (c.patternOf?.pattern === pt.id && ms[c.patternOf.index]) mats.set(c.id, m4(ms[c.patternOf.index]));
+    // pattern instances follow their source; constraints to an instance see its current position
+    const follow = () => {
+      for (const pt of doc.patterns ?? []) {
+        const src = mats.get(pt.source);
+        if (!src) continue;
+        const ms = patternMatrices(pt, src.toArray());
+        for (const c of doc.components) if (c.patternOf?.pattern === pt.id && ms[c.patternOf.index]) mats.set(c.id, m4(ms[c.patternOf.index]));
+      }
+    };
+    follow();
+    let rep = solveAssembly(mats, fixed, this.solverConstraints());
+    if (doc.patterns?.length) {
+      // the source may have moved: re-place the instances and settle the components attached to them
+      for (let k = 0; k < 5; k++) {
+        follow();
+        rep = solveAssembly(mats, fixed, this.solverConstraints());
+        if (rep.iterations <= 1) break;
+      }
+      follow();
     }
     this.solveError = rep.ok ? 0 : rep.error;
     let changed = false;
@@ -716,8 +728,15 @@ export class AssemblyEnv {
             if (ms.length > 500) return void toast("コピーが多すぎます (500 個まで)", "warn");
             this.store.mutate(existing ? "パターンを編集" : "コンポーネント パターン", (d) => {
               d.patterns = [...(d.patterns ?? []).filter((x) => x.id !== p.id), p];
+              // keep instance ids by index (constraints / drawings referring to them survive an edit)
+              const old = new Map(d.components.filter((c) => c.patternOf?.pattern === p.id).map((c) => [c.patternOf!.index, c]));
+              const removed = new Set([...old.values()].filter((c) => c.patternOf!.index >= ms.length).map((c) => c.id));
               d.components = d.components.filter((c) => c.patternOf?.pattern !== p.id);
-              ms.forEach((m, i) => d.components.push({ id: uid("c"), name: `${src.name}:${i + 2}`, partId: src.partId, matrix: m, grounded: false, patternOf: { pattern: p.id, index: i } }));
+              ms.forEach((m, i) => {
+                const prev = old.get(i);
+                d.components.push({ id: prev?.id ?? uid("c"), name: prev?.name ?? `${src.name}:${i + 2}`, partId: src.partId, matrix: m, grounded: false, visible: prev?.visible, patternOf: { pattern: p.id, index: i } });
+              });
+              d.constraints = d.constraints.filter((c) => !removed.has(c.a.comp) && !removed.has(c.b.comp));
             });
             this.solve();
             this.render();

@@ -85,12 +85,14 @@ export function startDrive(env: AssemblyEnv, constraintId?: string) {
     const c = env.doc.constraints.find((x) => x.id === target.id);
     if (c) {
       const end = c.offset;
+      // restore the original value and positions first, so the undo snapshot is consistent
       c.offset = original;
-      if (keep && end !== original) env.store.mutate("拘束を駆動", (d) => (d.constraints.find((x) => x.id === target.id)!.offset = end));
-      else {
+      env.solve();
+      if (keep && end !== original) {
+        env.store.mutate("拘束を駆動", (d) => (d.constraints.find((x) => x.id === target.id)!.offset = end));
         env.solve();
-        env.render();
       }
+      env.render();
     }
     panel.close();
     env.command = null;
