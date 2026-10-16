@@ -104,6 +104,7 @@ export const ICONS: Record<string, string> = {
   theme: I(`<path class="a" d="M12 3a9 9 0 100 18 7 7 0 010-18z"/>`),
   screenshot: I(`<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle class="a" cx="12" cy="13" r="3.5"/>`),
   drawing: I(`<path d="M3 4h18v16H3z"/><path d="M14 16h7M14 16v4"/><path class="a" d="M6 7h5v6H6zM6 15h5v2"/>`),
+  learn: I(`<path class="a" d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5M22 9v6"/>`),
   help: I(`<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 115 .5c0 1.5-2.5 2-2.5 3.5M12 17v.5"/>`),
   eye: I(`<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>`),
   eyeOff: I(`<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" opacity=".4"/><path d="M4 4l16 16"/>`),

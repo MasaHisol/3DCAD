@@ -475,6 +475,21 @@ try {
   await settle();
   check("assembly drawing + parts list", (await page.evaluate(() => document.querySelectorAll(".dw-stage .partslist").length)) === 1);
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/asm-drawing.png` });
+
+  // learning center: start lesson 1-2 on its sample part; a parameter change completes the step automatically
+  await page.evaluate(() => window.cad.leaveDrawingEnv());
+  await page.click(".tb-learn");
+  await page.locator(".ln-lesson", { hasText: "フィーチャ履歴" }).locator("button").click();
+  const discard = page.locator(".modal .btn.primary", { hasText: "破棄して続行" });
+  if (await discard.isVisible({ timeout: 1000 }).catch(() => false)) await discard.click();
+  await page.locator(".ln-coach .btn.primary", { hasText: "操作をはじめる" }).click();
+  await page.locator(".ln-coach .btn.primary", { hasText: "次へ" }).click();
+  const glow = await page.evaluate(() => [...document.querySelectorAll(".ln-glow")].map((e) => e.dataset.cmd));
+  await page.evaluate(() => window.cad.store.mutate("幅", (d) => (d.params.find((p) => p.name === "幅").expr = "100")));
+  await page.waitForFunction(() => document.querySelector(".ln-step.current")?.textContent.includes("板厚"), null, { timeout: 5000 }).catch(() => {});
+  const cur = await page.evaluate(() => document.querySelector(".ln-step.current")?.textContent ?? "");
+  check("learning: guided step auto-completes", glow.includes("params") && cur.includes("板厚"), JSON.stringify({ glow, cur: cur.slice(0, 30) }));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/learning.png` });
 } catch (e) {
   check("run", false, e.message);
 } finally {

@@ -1,4 +1,5 @@
 import type { App } from "../app";
+import { openLearningCenter } from "../learn/center";
 import { h, iconEl } from "./dom";
 
 interface Entry {
@@ -20,6 +21,7 @@ export function openCommandSearch(app: App) {
     { label: "保存", where: "ファイル", icon: "save", shortcut: "Ctrl+S", run: () => app.save() },
     { label: "インポート (STEP / STL / OBJ / DXF)", where: "ファイル", icon: "import", run: () => app.importFile() },
     { label: "エクスポート (STEP / STL / 3MF / OBJ / GLB / DXF)", where: "ファイル", icon: "export", run: () => app.exportMenu(window.innerWidth / 2 - 150, 120) },
+    { label: "学習センター (チュートリアル・用語集)", where: "ヘルプ", icon: "learn", run: () => openLearningCenter(app) },
     { label: "オプション (マウス操作)", where: "設定", icon: "settings", run: () => app.openSettings() },
     { label: "元に戻す", where: "編集", icon: "undo", shortcut: "Ctrl+Z", run: () => app.undo() },
     { label: "やり直し", where: "編集", icon: "redo", shortcut: "Ctrl+Y", run: () => app.redo() },
@@ -39,6 +41,7 @@ export function openCommandSearch(app: App) {
     pattern: "パターン", mirror: "ミラー", loft: "ロフト", sweep: "スイープ", measure: "測定", "press pull": "プレス/プル", pushpull: "プレス/プル",
     parameter: "パラメータ", section: "断面", constraint: "拘束", mate: "メイト", export: "エクスポート", import: "インポート", line: "線分",
     circle: "円", rectangle: "長方形", dimension: "寸法", trim: "トリム", plane: "平面", drawing: "図面", bom: "部品表",
+    learn: "学習", tutorial: "学習", lesson: "学習", help: "学習",
   };
   const update = () => {
     const q = input.value.trim().toLowerCase();
