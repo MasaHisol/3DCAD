@@ -81,10 +81,30 @@ export function prepareDocument(doc: PartDocument, values: Map<string, number>) 
       f.plane = { ...f.base, origin: f.base.origin.map((o, i) => o + f.base.normal[i] * off) as Vec3 };
     }
   for (const f of doc.features)
+    if (f.type === "workpoint") {
+      try {
+        f.pos = [evalWith(values, f.x), evalWith(values, f.y), evalWith(values, f.z)];
+      } catch {
+        f.pos = undefined;
+      }
+    }
+  for (const f of doc.features)
     if (f.type === "sketch" && f.planeRef) {
       const wp = doc.features.find((x) => x.id === f.planeRef) as WorkPlaneFeature | undefined;
       if (wp?.plane) f.plane = wp.plane;
     }
+}
+
+/** A work axis expressed in a sketch plane (it must lie in, or parallel to, the plane). */
+function workAxisInPlane(doc: PartDocument, id: string, plane: PlaneDef): [Vec2, Vec2] {
+  const wa = doc.features.find((x) => x.id === id);
+  if (!wa || wa.type !== "workaxis") throw new Error("作業軸が見つかりません");
+  const n = plane.normal;
+  const along = wa.dir[0] * n[0] + wa.dir[1] * n[1] + wa.dir[2] * n[2];
+  if (Math.abs(along) > 1e-6) throw new Error("作業軸がスケッチ平面と平行ではありません");
+  const o = worldToPlane(plane, wa.origin);
+  const e = worldToPlane(plane, [wa.origin[0] + wa.dir[0], wa.origin[1] + wa.dir[1], wa.origin[2] + wa.dir[2]]);
+  return [o, [e[0] - o[0], e[1] - o[1]]];
 }
 
 export function resolveDocument(doc: PartDocument, values: Map<string, number>, upto = doc.endOfPart): Resolved {
@@ -108,7 +128,7 @@ export function resolveDocument(doc: PartDocument, values: Map<string, number>, 
   }
 
   for (const f of active) {
-    if (f.suppressed || f.type === "sketch" || f.type === "workplane") continue;
+    if (f.suppressed || f.type === "sketch" || f.type === "workplane" || f.type === "workaxis" || f.type === "workpoint") continue;
     try {
       const rf = resolveFeature(doc, f, sketches, num, values);
       if (rf) out.push(rf);
@@ -169,6 +189,7 @@ function resolveFeature(
       const { sk, st } = sketchOf(f.sketch);
       let axisOrigin: Vec2 = [0, 0], axisDir: Vec2 = [1, 0];
       if (f.axis === "Y") axisDir = [0, 1];
+      else if (f.axis.startsWith("wa:")) [axisOrigin, axisDir] = workAxisInPlane(doc, f.axis.slice(3), sk.plane);
       else if (f.axis !== "X") {
         const l = sk.entities.find((e) => e.id === f.axis) as SkLine | undefined;
         if (!l) throw new Error("回転軸が見つかりません");
@@ -273,6 +294,7 @@ function resolveFeature(
       const { sk, st } = sketchOf(f.sketch);
       let axisOrigin: Vec2 = [0, 0], axisDir: Vec2 = [1, 0];
       if (f.axis === "Y") axisDir = [0, 1];
+      else if (f.axis.startsWith("wa:")) [axisOrigin, axisDir] = workAxisInPlane(doc, f.axis.slice(3), sk.plane);
       else if (f.axis !== "X") {
         const l = sk.entities.find((e) => e.id === f.axis) as SkLine | undefined;
         if (!l) throw new Error("コイルの軸を選択してください");

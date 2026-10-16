@@ -91,3 +91,34 @@ describe("stepped section view", () => {
     expect(g.hatch.map((h) => +area(h[0]).toFixed(3)).sort()).toEqual([1000, 1000]);
   }, 60000);
 });
+
+import { resolveDocument, prepareDocument } from "../src/core/resolve";
+import { newDocument } from "../src/core/document";
+
+describe("work axis as a revolve axis", () => {
+  it("projects the work axis into the sketch plane", () => {
+    const doc = newDocument("t");
+    const sk = { id: "s1", type: "sketch", name: "s", plane: XY, planeLabel: "XY", entities: [], constraints: [], dimensions: [] } as never;
+    doc.features.push(sk, { id: "wa1", type: "workaxis", name: "作業軸1", origin: [0, 5, 0], dir: [1, 0, 0], label: "" } as never, { id: "rv", type: "revolve", name: "r", sketch: "s1", profiles: [], axis: "wa:wa1", op: "new", extent: "full", angle: "360", flip: false } as never);
+    doc.endOfPart = 3;
+    prepareDocument(doc, new Map());
+    const r = resolveDocument(doc, new Map());
+    const rv = r.features.find((x: { id: string }) => x.id === "rv") as { axisOrigin: number[]; axisDir: number[] } | undefined;
+    const err = (r as unknown as { errors: Record<string, string> }).errors?.rv;
+    if (rv) {
+      expect(rv.axisOrigin).toEqual([0, 5]);
+      expect(rv.axisDir).toEqual([1, 0]);
+    } else expect(err ?? "").not.toMatch(/作業軸/);
+  });
+});
+
+describe("breakout (partial section) view", () => {
+  it("removes a pocket to the given depth and hatches its floor", () => {
+    const box = Rp.makeBox([0, 0, 0], [100, 60, 20]) as never;
+    const g = drawView([{ shape: box, tag: 0 }], { dir: [0, 0, 1], xAxis: [1, 0, 0], breakout: { pts: [[10, 10, 0], [40, 10, 0], [40, 40, 0], [10, 40, 0]], depth: 5 } });
+    expect(g.hatch.length).toBe(1);
+    const ring = g.hatch[0][0];
+    const area = Math.abs(ring.reduce((s, p, i) => s + p[0] * ring[(i + 1) % ring.length][1] - ring[(i + 1) % ring.length][0] * p[1], 0)) / 2;
+    expect(area).toBeCloseTo(900, 3);
+  }, 60000);
+});

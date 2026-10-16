@@ -46,6 +46,7 @@ export function projectedFrame(parent: DView, side: "right" | "left" | "top" | "
 /** Kernel request for a view (section planes are derived from the parent's cutting line). */
 export function viewSpec(v: DView, parent?: DView): ViewSpec {
   const spec: ViewSpec = { dir: v.dir, xAxis: v.xAxis, hidden: v.hidden };
+  if (v.breakout && v.breakout.pts.length >= 3) spec.breakout = { pts: v.breakout.pts.map((p) => viewTo3d(v, p)), depth: v.breakout.depth };
   if (v.kind === "section" && v.section && parent) {
     spec.section = { origin: viewTo3d(parent, v.section.a), normal: v.dir };
     if (v.section.steps?.length) {

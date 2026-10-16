@@ -328,6 +328,49 @@ export class DrawingEnv {
     return changed.length;
   }
 
+  /** Breakout (partial section) of the selected base / projected view: rectangle + depth. */
+  breakoutView() {
+    const sh = this.sheet;
+    const v = sh.views.find((x) => this.selected.has(x.id) && (x.kind === "base" || x.kind === "projected")) ?? sh.views.find((x) => x.kind === "base");
+    const g = v && this.geom.get(v.id);
+    if (!v || !g) return void toast("基準ビューまたは投影ビューを選択してください", "warn");
+    const [x0, y0, x1, y1] = g.bounds;
+    const cur = v.breakout?.pts;
+    const init = cur
+      ? [Math.min(...cur.map((p) => p[0])), Math.min(...cur.map((p) => p[1])), Math.max(...cur.map((p) => p[0])), Math.max(...cur.map((p) => p[1]))]
+      : [x0 + (x1 - x0) * 0.3, y0 + (y1 - y0) * 0.3, x0 + (x1 - x0) * 0.7, y0 + (y1 - y0) * 0.7];
+    const inp = (val: number) => h("input", { class: "field-input", value: formatNumber(val, 2) });
+    const ins = init.map(inp);
+    const depth = inp(v.breakout?.depth ?? 5);
+    depth.dataset.k = "breakout-depth";
+    const row = (l: string, e: HTMLElement) => h("label", { class: "field" }, h("span", {}, l), e);
+    modal({
+      title: `部分断面: ${v.label || "ビュー"}`,
+      icon: "section",
+      body: h("div", { class: "form-grid" }, row("範囲 X 最小", ins[0]), row("範囲 Y 最小", ins[1]), row("範囲 X 最大", ins[2]), row("範囲 Y 最大", ins[3]), row("深さ (手前から mm)", depth), h("p", { class: "muted" }, `ビュー座標 X ${formatNumber(x0, 1)}〜${formatNumber(x1, 1)}, Y ${formatNumber(y0, 1)}〜${formatNumber(y1, 1)} mm`)),
+      buttons: [
+        {
+          label: "解除",
+          onClick: () => {
+            this.mutate("部分断面を解除", (d) => delete d.sheets[this.activeSheet].views.find((x) => x.id === v.id)!.breakout);
+            void this.refresh(true);
+          },
+        },
+        {
+          label: "OK",
+          primary: true,
+          onClick: () => {
+            const [a, b, c, e] = ins.map((i) => Number(i.value));
+            const dep = Number(depth.value);
+            if (![a, b, c, e, dep].every(Number.isFinite) || !(dep > 0) || c <= a || e <= b) return void toast("範囲と深さを正しく入力してください", "warn");
+            this.mutate("部分断面", (d) => (d.sheets[this.activeSheet].views.find((x) => x.id === v.id)!.breakout = { pts: [[a, b], [c, b], [c, e], [a, e]], depth: dep }));
+            void this.refresh(true);
+          },
+        },
+      ],
+    });
+  }
+
   /** Broken view: remove the middle of the longer direction (dialog with range). */
   async breakView() {
     const sh = this.sheet;
@@ -698,22 +741,66 @@ export class DrawingEnv {
   bom(): BomRow[] {
     if (this.source !== "assembly") return [];
     const asm = this.app.asm.doc;
+    const ed = this.doc?.bomEdits ?? {};
     return asm.parts
       .map((p, i) => ({
-        item: i + 1,
-        name: p.doc?.iprops["パーツ番号"] || p.name,
+        item: ed[p.id]?.item ?? i + 1,
+        name: ed[p.id]?.name || p.doc?.iprops["パーツ番号"] || p.name,
         qty: asm.components.filter((c) => c.partId === p.id).length,
-        material: p.kind === "step" ? "—" : (p.doc?.material ?? MATERIALS[0]).name,
-        note: p.doc?.iprops["説明"] ?? "",
+        material: ed[p.id]?.material || (p.kind === "step" ? "—" : (p.doc?.material ?? MATERIALS[0]).name),
+        note: ed[p.id]?.note ?? p.doc?.iprops["説明"] ?? "",
       }))
-      .filter((r) => r.qty > 0);
+      .filter((r) => r.qty > 0)
+      .sort((a, b) => a.item - b.item);
+  }
+
+  /** Edit the parts list (品番・品名・材質・備考); quantities follow the assembly. */
+  editPartsList() {
+    if (this.source !== "assembly") return;
+    const asm = this.app.asm.doc;
+    const parts = asm.parts.filter((p) => asm.components.some((c) => c.partId === p.id));
+    const ed = this.doc.bomEdits ?? {};
+    const inputs = parts.map((p) => {
+      const mk = (v: string | number, w = 120) => h("input", { class: "field-input", style: `width:${w}px`, value: String(v) });
+      const idx = asm.parts.indexOf(p) + 1;
+      return {
+        id: p.id,
+        item: mk(ed[p.id]?.item ?? idx, 50),
+        name: mk(ed[p.id]?.name || p.doc?.iprops["パーツ番号"] || p.name, 150),
+        material: mk(ed[p.id]?.material || (p.kind === "step" ? "—" : (p.doc?.material ?? MATERIALS[0]).name), 110),
+        note: mk(ed[p.id]?.note ?? p.doc?.iprops["説明"] ?? "", 140),
+        qty: asm.components.filter((c) => c.partId === p.id).length,
+      };
+    });
+    const tbl = h("table", { class: "ptable", "data-k": "bom-edit" }, h("tr", {}, ...["品番", "品名", "数量", "材質", "備考"].map((t) => h("th", {}, t))), ...inputs.map((i) => h("tr", {}, h("td", {}, i.item), h("td", {}, i.name), h("td", {}, String(i.qty)), h("td", {}, i.material), h("td", {}, i.note))));
+    modal({
+      title: "部品表を編集",
+      icon: "rectPattern",
+      width: 680,
+      body: h("div", {}, tbl, h("p", { class: "muted" }, "数量はアセンブリから自動で数えます。品番を変えると風船の番号も変わります。")),
+      buttons: [
+        { label: "キャンセル" },
+        {
+          label: "OK",
+          primary: true,
+          onClick: () => {
+            this.mutate("部品表を編集", (d) => {
+              d.bomEdits = {};
+              for (const i of inputs) d.bomEdits[i.id] = { item: Number(i.item.value) || undefined, name: i.name.value, material: i.material.value, note: i.note.value };
+            });
+            this.render();
+          },
+        },
+      ],
+    });
   }
 
   private itemOfTag = (tag: number): number | undefined => {
     const compId = this.placements[tag];
     const comp = this.app.asm.doc.components.find((c) => c.id === compId);
     if (!comp) return undefined;
-    return this.app.asm.doc.parts.findIndex((p) => p.id === comp.partId) + 1 || undefined;
+    const ed = this.doc?.bomEdits?.[comp.partId]?.item;
+    return ed ?? (this.app.asm.doc.parts.findIndex((p) => p.id === comp.partId) + 1 || undefined);
   };
 
   /** Revision rows for the 改訂表 (part drawings). */
@@ -870,6 +957,7 @@ export class DrawingEnv {
     if (!id) return;
     const a = this.sheet.annos.find((x) => x.id === id);
     if (a) return void this.editAnno(a);
+    if (id === "__partslist") return this.editPartsList();
     const v = this.sheet.views.find((x) => x.id === id);
     if (v) this.editView(v);
   }
@@ -1617,6 +1705,7 @@ export class DrawingEnv {
             t("projected", "投影", "lookAt", "親ビューから投影ビュー (第三角法) / 等角図を作成します。"),
             t("section", "断面", "section", "切断線を引いて断面図 (A-A) を作成します。切断面にはハッチングが入ります。"),
             t("detail", "詳細", "search", "円で囲んだ部分を拡大した詳細図を作成します。"),
+            { id: "dw-breakout", label: "部分断面", icon: "section", tip: "ビューの一部を指定の深さまで取り除いて内部を見せます (ブレークアウト)。ビューを選択してから実行します。", action: () => this.breakoutView() },
             { id: "dw-break", label: "破断", icon: "split", tip: "長い部品の中間を省略した破断図にします (寸法は実寸で表示)。ビューを選択してから実行します。", action: () => void this.breakView() },
           ],
         },

@@ -456,6 +456,8 @@ export class App {
     this.store.doc.features.forEach((f, i) => {
       if (f.type === "workplane" && f.plane && i < this.store.doc.endOfPart && (f.visible !== false || this.showPlanePicker))
         list.push({ key: f.id, kind: "plane", plane: f.plane, label: f.name, size: size * 0.8 });
+      if (f.type === "workaxis" && i < this.store.doc.endOfPart && f.visible !== false) list.push({ key: f.id, kind: "axis", dir: f.dir, origin: f.origin, label: f.name, size });
+      if (f.type === "workpoint" && f.pos && i < this.store.doc.endOfPart && f.visible !== false) list.push({ key: f.id, kind: "point", origin: f.pos, label: f.name, size });
     });
     if (list.length) list[0].size = size;
     this.vp.setRefs(list);

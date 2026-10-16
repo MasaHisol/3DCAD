@@ -1253,6 +1253,47 @@ export function drawView(items: { shape: Shape; tag: number }[], v: ViewSpec, th
       }
     }
   }
+  if (v.breakout && v.breakout.pts.length >= 3 && v.breakout.depth > 0 && !v.section) {
+    // front of the model along the viewing direction, then a prism to the given depth
+    let front = -Infinity;
+    for (const it of items) {
+      const bb = it.shape.boundingBox.bounds as [Vec3, Vec3];
+      for (let k = 0; k < 8; k++) front = Math.max(front, dot([bb[k & 1][0], bb[(k >> 1) & 1][1], bb[(k >> 2) & 1][2]], dir));
+    }
+    const cutAt = front - v.breakout.depth;
+    const base = v.breakout.pts.map((p) => add(sub(p, scale(dir, dot(p, dir))), scale(dir, cutAt)));
+    const pl = new R.Plane(base[0], xAxis, dir);
+    const loc = base.map((p): [number, number] => [dot(sub(p, base[0]), xAxis), dot(sub(p, base[0]), yAxis)]);
+    let pen = R.draw(loc[0]) as R.DrawingPen;
+    for (const q of loc.slice(1)) pen = pen.lineTo(q);
+    const tool = pen.close().sketchOnPlane(pl).extrude(v.breakout.depth + 1e3) as Shape;
+    shapes = [];
+    for (const it of items) {
+      const cut = it.shape.cut(tool);
+      if (isEmpty(cut)) continue;
+      shapes.push({ shape: cut, tag: it.tag });
+      for (const f of cut.faces) {
+        if (String(f.geomType) !== "PLANE") continue;
+        const fn = normalize(tuple(f.normalAt(f.center)));
+        if (dot(fn, dir) < 0.999 || Math.abs(dot(tuple(f.center), dir) - cutAt) > 1e-5) continue;
+        const ring = (w: R.Wire): P2[] => {
+          const pts: P2[] = [];
+          for (const e of w.edges) {
+            const k = String(e.geomType) === "LINE" ? 1 : 32;
+            const rev = e.orientation === "backward";
+            for (let i = 0; i < k; i++) pts.push(to2(tuple(e.pointAt(rev ? 1 - i / k : i / k))));
+          }
+          return pts;
+        };
+        try {
+          const inner = f.clone().innerWires();
+          hatch.push([ring(f.clone().outerWire()), ...inner.map(ring)]);
+        } catch {
+          /* skip */
+        }
+      }
+    }
+  }
   const visible: Seg2[] = [], hidden: Seg2[] = [];
   const cam = new R.ProjectionCamera([0, 0, 0], dir, xAxis);
   if (shapes.length) {

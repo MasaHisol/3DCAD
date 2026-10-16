@@ -280,6 +280,23 @@ try {
   const sw = await page.evaluate(() => ({ weld: document.querySelectorAll(".dw-stage .anno.weld").length, stepped: document.querySelectorAll(".dw-stage .stepped-cut").length, hatch: document.querySelectorAll('.dw-stage .dview[data-id="secS"] path[fill="url(#hatch)"]').length }));
   check("weld symbol + stepped section", sw.weld === 1 && sw.stepped === 1 && sw.hatch === 1, JSON.stringify(sw));
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/drawing-weld.png` });
+  // partial (breakout) section of the base view
+  await page.evaluate(() => window.cad.drawing.selected.clear());
+  await page.locator('[data-cmd="dw-breakout"]').click();
+  await page.locator('[data-k="breakout-depth"]').fill("20");
+  await page.locator(".modal-foot .btn.primary").click();
+  await settle();
+  await page
+    .waitForFunction(() => {
+      const v = window.cad.drawing.doc.sheets[window.cad.drawing.activeSheet].views.find((x) => x.kind === "base");
+      return document.querySelectorAll(`.dw-stage .dview[data-id="${v.id}"] path[fill="url(#hatch)"]`).length > 0;
+    }, null, { timeout: 60000 })
+    .catch(() => {});
+  const bo = await page.evaluate(() => {
+    const v = window.cad.drawing.doc.sheets[window.cad.drawing.activeSheet].views.find((x) => x.kind === "base");
+    return { line: document.querySelectorAll(".dw-stage .breakout-line").length, hatch: document.querySelectorAll(`.dw-stage .dview[data-id="${v.id}"] path[fill="url(#hatch)"]`).length };
+  });
+  check("breakout (partial section)", bo.line === 1 && bo.hatch >= 1, JSON.stringify(bo));
   await page.keyboard.press("Control+z");
   await page.keyboard.press("Control+y");
   await page.evaluate(() => window.cad.leaveDrawingEnv());
@@ -529,6 +546,12 @@ try {
   await page.evaluate(() => window.cad.drawing.switchSheet(0));
   await settle();
   check("assembly drawing + parts list", (await page.evaluate(() => document.querySelectorAll(".dw-stage .partslist").length)) === 1);
+  // edit the parts list: note of item 1
+  await page.evaluate(() => window.cad.drawing.editPartsList());
+  await page.locator('[data-k="bom-edit"] tr').nth(1).locator("input").nth(3).fill("焼入れ HRC40");
+  await page.locator(".modal-foot .btn.primary").click();
+  await settle();
+  check("parts list edit", (await page.evaluate(() => document.querySelector(".dw-stage .partslist").textContent)).includes("焼入れ HRC40"));
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/asm-drawing.png` });
 } catch (e) {
   check("run", false, e.message);

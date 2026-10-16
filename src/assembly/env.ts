@@ -27,6 +27,8 @@ const TYPE_LABELS: Record<AsmConstraintType, string> = {
   insert: "挿入",
   axis: "軸合わせ",
   angle: "角度",
+  rigid: "剛性 (固定)",
+  ball: "ボール (点一致)",
 };
 
 interface PartCache {
@@ -183,7 +185,7 @@ export class AssemblyEnv {
         } catch {
           /* invalid -> 0 */
         }
-        return { type: c.type, a: c.a, b: c.b, value, flip: c.flip };
+        return { type: c.type, a: c.a, b: c.b, value, flip: c.flip, rel: c.rel };
       });
   }
 
@@ -336,6 +338,17 @@ export class AssemblyEnv {
     const comp = this.doc.components.find((c) => c.id === map.comp)!;
     const body = this.parts.get(comp.partId)?.bodies[map.local];
     if (!body) return null;
+    if (type === "rigid" || type === "ball") {
+      // a point on the component: circle centre, sphere / cylinder axis point, or face centre
+      if (p.kind === "edge") {
+        const e = body.edges[p.index];
+        const pt = e.axis ? e.axis.origin : e.mid;
+        return { comp: comp.id, geom: "axis", point: pt, dir: e.axis?.dir ?? [0, 0, 1], edge: { mid: e.mid, a: e.a, b: e.b, type: e.type }, label: `${comp.name} ${e.axis ? "円の中心" : "エッジ"}` };
+      }
+      const f = body.faces[p.index];
+      const pt = f.type === "SPHERE" && f.axis ? f.axis.origin : f.center;
+      return { comp: comp.id, geom: "plane", point: pt, dir: f.normal, face: { center: f.center, normal: f.normal, type: f.type }, label: `${comp.name} ${f.type === "SPHERE" ? "球の中心" : "面"}` };
+    }
     const want = type === "mate" || type === "flush" ? "plane" : type === "angle" ? "plane" : "axis";
     if (p.kind === "face") {
       const f = body.faces[p.index];
@@ -358,6 +371,8 @@ export class AssemblyEnv {
     const comp = this.doc.components.find((c) => c.id === map.comp)!;
     const body = this.parts.get(comp.partId)?.bodies[map.local];
     if (!body) return false;
+    if (type === "rigid") return true;
+    if (type === "ball") return p.kind === "face" || (body.edges[p.index]?.type === "CIRCLE" && !!body.edges[p.index]?.axis);
     if (p.kind === "face") {
       const t = body.faces[p.index]?.type;
       if (type === "mate" || type === "flush" || type === "angle") return t === "PLANE";
@@ -1099,6 +1114,8 @@ class ConstraintCommand {
       insert: "穴とピンなどの円形エッジを 2 つ選択",
       axis: "円筒面・円形エッジ・直線エッジの軸を 2 つ選択",
       angle: "角度を指定する平面 (または直線エッジ) を 2 つ選択",
+      rigid: "一体に固定する 2 つのコンポーネントの任意の面を選択 (現在の相対位置で固定)",
+      ball: "一致させる点 (円形エッジの中心・球面の中心・面の中心) を 2 つ選択",
     };
     this.app.status(hints[this.type]);
   }
@@ -1110,6 +1127,11 @@ class ConstraintCommand {
     if (this.a && this.b) {
       const name = this.existing?.name ?? `${TYPE_LABELS[this.type]}:${env.doc.constraints.filter((c) => c.type === this.type).length + 1}`;
       const c: AsmConstraint = { id: this.cid, name, type: this.type, a: this.a, b: this.b, offset: this.offsetField.value() || "0", flip: this.flip };
+      if (this.type === "rigid") {
+        // keep the relative placement the components have now
+        const ma = env.doc.components.find((x) => x.id === this.a!.comp)!, mb = env.doc.components.find((x) => x.id === this.b!.comp)!;
+        c.rel = new THREE.Matrix4().fromArray(ma.matrix).invert().multiply(new THREE.Matrix4().fromArray(mb.matrix)).toArray();
+      }
       env.store.patch((d) => {
         const i = d.constraints.findIndex((x) => x.id === this.cid);
         if (i >= 0) d.constraints[i] = c;

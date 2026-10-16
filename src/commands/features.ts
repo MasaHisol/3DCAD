@@ -41,11 +41,13 @@ import type {
   Vec2,
   Vec3,
   WorkPlaneFeature,
+  WorkAxisFeature,
+  WorkPointFeature,
 } from "../core/types";
 import { pointInRegion, type Region } from "../sketch/profiles";
 import { download, h, iconEl, toast } from "../ui/dom";
 import { cutList, findSize, sectionShape, STEEL, unitMass, type SectionKind } from "../library/steel";
-import { PropertyPanel } from "../ui/panel";
+import { PropertyPanel, type ExprField } from "../ui/panel";
 import { StressCommand } from "../analysis/ui";
 import { PrintCheckCommand } from "../analysis/printui";
 import { CamCommand } from "../cam/camUi";
@@ -608,8 +610,9 @@ class RevolveCommand extends FeatureCommand<RevolveFeature> {
         { value: "", label: "スケッチの線分を選択" },
         { value: "X", label: "スケッチ X 軸" },
         { value: "Y", label: "スケッチ Y 軸" },
+        ...this.app.store.doc.features.filter((x) => x.type === "workaxis").map((x) => ({ value: `wa:${x.id}`, label: x.name })),
       ],
-      f.axis === "X" || f.axis === "Y" ? f.axis : "",
+      f.axis === "X" || f.axis === "Y" || f.axis.startsWith("wa:") ? f.axis : "",
       (v) => {
         if (v) this.update((x) => (x.axis = v));
         else this.setMode("axis");
@@ -986,7 +989,7 @@ class CoilCommand extends FeatureCommand<CoilFeature> {
     const axisOptions = () => {
       const sk = app.store.feature<SketchFeature>(this.feature.sketch);
       const lines = sk?.entities.filter((e) => e.type === "line") ?? [];
-      return [{ value: "X", label: "スケッチ X 軸" }, { value: "Y", label: "スケッチ Y 軸" }, ...lines.map((l, i) => ({ value: l.id, label: `${l.construction ? "中心線" : "線分"} ${i + 1}` }))];
+      return [{ value: "X", label: "スケッチ X 軸" }, { value: "Y", label: "スケッチ Y 軸" }, ...app.store.doc.features.filter((x) => x.type === "workaxis").map((x) => ({ value: `wa:${x.id}`, label: x.name })), ...lines.map((l, i) => ({ value: l.id, label: `${l.construction ? "中心線" : "線分"} ${i + 1}` }))];
     };
     p.select(inp, "スケッチ", sketches.map((s) => ({ value: s.id, label: s.name })), f.sketch, (v) => {
       this.update((x) => ((x.sketch = v), (x.axis = axisOf(v))));
@@ -2054,6 +2057,99 @@ class WorkPlaneCommand extends FeatureCommand<WorkPlaneFeature> {
   }
 }
 
+// ------------------------------------------------- work axis / work point ---
+
+class WorkAxisCommand extends FeatureCommand<WorkAxisFeature> {
+  readonly id = "workaxis";
+  private pick!: ReturnType<PropertyPanel["picker"]>;
+  constructor(app: App, existing: WorkAxisFeature | null) {
+    super(app, existing, () => ({ id: uid("wa"), type: "workaxis", name: app.store.nextFeatureName("workaxis"), origin: [0, 0, 0], dir: [0, 0, 1], label: "Z 軸" }));
+    const axisOfPick = (p: Pick): { origin: Vec3; dir: Vec3; label: string } | null => {
+      const b = app.pickBodies[p.body];
+      if (p.kind === "edge") {
+        const e = b?.edges[p.index];
+        if (!e) return null;
+        if (e.axis) return { origin: e.axis.origin, dir: e.axis.dir, label: "円形エッジの軸" };
+        if (e.type === "LINE") {
+          const d: Vec3 = [e.b[0] - e.a[0], e.b[1] - e.a[1], e.b[2] - e.a[2]];
+          const l = Math.hypot(...d) || 1;
+          return { origin: e.a, dir: [d[0] / l, d[1] / l, d[2] / l], label: "直線エッジ" };
+        }
+        return null;
+      }
+      const f = p.kind === "face" ? b?.faces[p.index] : undefined;
+      return f?.axis ? { origin: f.axis.origin, dir: f.axis.dir, label: "円筒面の軸" } : null;
+    };
+    this.handler = {
+      cursor: "pointer",
+      onPointerMove: (e, vp) => vp.setHover(vp.pick(e)),
+      onPointerDown: (e, vp) => {
+        if (e.button !== 0) return;
+        const p = vp.pick(e);
+        const a = p ? axisOfPick(p) : null;
+        if (!a) return void toast("直線エッジ・円形エッジ・円筒面を選択してください", "info");
+        this.update((f) => Object.assign(f, a));
+        this.pick.setCount(1, a.label);
+      },
+    };
+    app.vp.pickKinds = new Set(["face", "edge"]);
+    app.vp.pickFilter = (p) => !!axisOfPick(p);
+    const f = this.feature;
+    this.openPanel(this.editing ? `作業軸: ${f.name}` : "作業軸", "workaxis");
+    const s = this.panel.section("入力");
+    this.panel.select(s, "原点の軸", [{ value: "", label: "— モデルから選択 —" }, { value: "X", label: "X 軸" }, { value: "Y", label: "Y 軸" }, { value: "Z", label: "Z 軸" }], "", (v) => {
+      if (!v) return;
+      const d: Vec3 = v === "X" ? [1, 0, 0] : v === "Y" ? [0, 1, 0] : [0, 0, 1];
+      this.update((x) => ((x.origin = [0, 0, 0]), (x.dir = d), (x.label = `${v} 軸`)));
+      this.pick.setCount(1, `${v} 軸`);
+    });
+    this.pick = this.panel.picker(s, "エッジ / 円筒面", "workaxis", () => {});
+    this.pick.setActive(true);
+    this.pick.setCount(1, f.label);
+    this.panel.note(s, "作成した作業軸は、回転・コイルの軸に選べます (選択した位置で固定されます)。");
+    app.status("作業軸にする直線エッジ・円形エッジ・円筒面を選択");
+  }
+}
+
+class WorkPointCommand extends FeatureCommand<WorkPointFeature> {
+  readonly id = "workpoint";
+  constructor(app: App, existing: WorkPointFeature | null) {
+    super(app, existing, () => {
+      const id = uid("wpt");
+      const P = (e: string) => app.store.addParam(app.store.doc, e, "mm", id);
+      return { id, type: "workpoint", name: app.store.nextFeatureName("workpoint"), x: P("0"), y: P("0"), z: P("0") };
+    });
+    const fields: ExprField[] = [];
+    this.handler = {
+      cursor: "pointer",
+      onPointerMove: (e, vp) => vp.setHover(vp.pick(e)),
+      onPointerDown: (e, vp) => {
+        if (e.button !== 0) return;
+        const p = vp.pick(e);
+        const b = p ? app.pickBodies[p.body] : undefined;
+        let pt: Vec3 | null = null;
+        if (p?.kind === "edge") {
+          const ed = b?.edges[p.index];
+          pt = ed ? (ed.axis ? ed.axis.origin : ed.mid) : null;
+        } else if (p?.kind === "face") pt = b?.faces[p.index]?.center ?? null;
+        if (!pt) return;
+        (["x", "y", "z"] as const).forEach((k, i) => {
+          const v = formatNumber(pt![i], 4);
+          this.setParam(this.feature[k], v);
+          fields[i].set(v);
+        });
+      },
+    };
+    app.vp.pickKinds = new Set(["face", "edge"]);
+    const f = this.feature;
+    this.openPanel(this.editing ? `作業点: ${f.name}` : "作業点", "workpoint");
+    const s = this.panel.section("位置");
+    (["x", "y", "z"] as const).forEach((k) => fields.push(this.panel.expr(s, k.toUpperCase(), this.expr(f[k]), "mm", (e) => this.setParam(this.feature[k], e), f[k])));
+    this.panel.note(s, "座標を入力するか、円形エッジ (中心)・エッジ (中点)・面 (中心) をクリックします。");
+    app.status("作業点の座標を入力、またはモデルをクリック");
+  }
+}
+
 // ----------------------------------------------------------------- move ---
 
 class MoveCommand extends FeatureCommand<MoveFeature> {
@@ -2206,6 +2302,8 @@ export function buildCommands(app: App): CommandRegistry {
     sphere: { id: "sphere", label: "球", icon: "sphere" },
     torus: { id: "torus", label: "トーラス", icon: "torus" },
     workplane: { id: "workplane", label: "作業平面", icon: "workplane" },
+    workaxis: { id: "workaxis", label: "作業軸", icon: "workaxis" },
+    workpoint: { id: "workpoint", label: "作業点", icon: "workpoint" },
     move: { id: "move", label: "ボディを移動", icon: "move" },
     measure: { id: "measure", label: "測定", icon: "measure" },
     stress: { id: "stress", label: "応力解析", icon: "stress" },
@@ -2267,6 +2365,10 @@ export function buildCommands(app: App): CommandRegistry {
       case "sphere":
       case "torus":
         return new PrimitiveCommand(app, f as PrimitiveFeature | null, id);
+      case "workaxis":
+        return new WorkAxisCommand(app, f as WorkAxisFeature | null);
+      case "workpoint":
+        return new WorkPointCommand(app, f as WorkPointFeature | null);
       case "workplane":
         return new WorkPlaneCommand(app, f as WorkPlaneFeature | null);
       case "move":

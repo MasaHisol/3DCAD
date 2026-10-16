@@ -230,6 +230,8 @@ export interface ViewSpec {
     steps?: { at: number; offset: number }[];
   };
   hidden?: boolean;
+  /** Breakout (部分断面): polygon in the view plane (3D points), removed to `depth` from the front of the model. */
+  breakout?: { pts: Vec3[]; depth: number };
 }
 
 export interface ViewGeometry {

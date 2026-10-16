@@ -32,6 +32,8 @@ export const FEATURE_ICONS: Record<string, string> = {
   sphere: "sphere",
   torus: "torus",
   workplane: "workplane",
+  workaxis: "workaxis",
+  workpoint: "workpoint",
   import: "import",
   move: "move",
 };

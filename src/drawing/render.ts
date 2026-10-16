@@ -425,6 +425,22 @@ function renderView(v: DView, ctx: RenderCtx, views: Map<string, DView>): string
     if (cm.length) out += `<path d="${cm.join("")}" stroke="#000" stroke-width="${W.fine}" stroke-dasharray="6 1.2 1 1.2"/>`;
   }
   out += "</g>" + breakLines;
+  if (v.breakout && v.breakout.pts.length >= 3) {
+    // irregular thin boundary (JIS: freehand line of the partial section)
+    const pts = v.breakout.pts.map((q) => toSheet(v, q));
+    const wav: string[] = [];
+    pts.forEach((a, i) => {
+      const b = pts[(i + 1) % pts.length];
+      const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const n = Math.max(2, Math.round(l / 3));
+      const nx = -(b[1] - a[1]) / (l || 1), ny = (b[0] - a[0]) / (l || 1);
+      for (let k = 0; k < n; k++) {
+        const t = k / n, w = Math.sin(k * 2.1 + i) * 0.6;
+        wav.push(`${f(a[0] + (b[0] - a[0]) * t + nx * w)} ${f(a[1] + (b[1] - a[1]) * t + ny * w)}`);
+      }
+    });
+    out += `<path d="M${wav.join("L")}Z" stroke="#000" stroke-width="${W.thin}" class="breakout-line"/>`;
+  }
   if (v.detail) out += `<circle cx="${f(v.x)}" cy="${f(v.y)}" r="${f(v.detail.r * v.scale)}" stroke="#000" stroke-width="${W.fine}"/>`;
   // cutting line / detail circle on this view for its children
   for (const c of views.values()) {

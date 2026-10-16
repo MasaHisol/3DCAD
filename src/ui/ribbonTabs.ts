@@ -105,7 +105,10 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
         },
         {
           title: "作業フィーチャ",
-          items: [cmd("workplane", "平面", "workplane", undefined, "既存の平面または面からオフセットした作業平面を作成します。")],
+          items: [
+            cmd("workplane", "平面", "workplane", undefined, "既存の平面または面からオフセットした作業平面を作成します。"),
+            { stack: [cmd("workaxis", "軸", "workaxis", undefined, "エッジ・円筒面の軸や原点の軸から作業軸を作成します (回転・コイルの軸に使用)。", "small"), cmd("workpoint", "点", "workpoint", undefined, "座標またはモデル上の点から作業点を作成します。", "small")] },
+          ],
         },
         {
           title: "パターン",

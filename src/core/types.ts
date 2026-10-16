@@ -405,6 +405,26 @@ export interface WorkPlaneFeature extends FeatureBase {
   plane?: PlaneDef;
 }
 
+/** Work axis (作業軸): origin axis, or a line / circle axis picked on the model (fixed where picked). */
+export interface WorkAxisFeature extends FeatureBase {
+  type: "workaxis";
+  origin: Vec3;
+  dir: Vec3;
+  label: string;
+  visible?: boolean;
+}
+
+/** Work point (作業点): parametric coordinates. */
+export interface WorkPointFeature extends FeatureBase {
+  type: "workpoint";
+  x: string;
+  y: string;
+  z: string;
+  visible?: boolean;
+  /** Resolved position (cache). */
+  pos?: Vec3;
+}
+
 export interface ImportFeature extends FeatureBase {
   type: "import";
   format: "step" | "stl";
@@ -449,6 +469,8 @@ export type Feature =
   | MoveFeature
   | FrameFeature
   | CoilFeature
+  | WorkAxisFeature
+  | WorkPointFeature
   | EmbossFeature
   | WeldFeature;
 

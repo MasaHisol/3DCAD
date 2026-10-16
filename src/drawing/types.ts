@@ -41,6 +41,8 @@ export interface DView {
   };
   /** Detail: circle in the parent view (view mm). */
   detail?: { c: Vec2; r: number };
+  /** Breakout (部分断面): polygon in view coords and depth from the front of the model (mm). */
+  breakout?: { pts: Vec2[]; depth: number };
   /** Broken view (破断図): ranges (view mm along the view x / y axis) removed from the display. */
   breaks?: { axis: "x" | "y"; a: number; b: number }[];
 }
@@ -217,6 +219,8 @@ export interface DrawingDoc {
   title: TitleBlock;
   /** Letters already used for section / detail views. */
   nextLetter: number;
+  /** Parts list edits per part id (assembly drawings): name, note, item number, material text. */
+  bomEdits?: Record<string, { name?: string; note?: string; item?: number; material?: string }>;
 }
 
 export function sheetSize(s: Sheet): [number, number] {
