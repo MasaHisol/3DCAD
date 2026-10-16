@@ -4,7 +4,8 @@ import type { ExtrudeFeature, FilletFeature, HoleFeature, PatternFeature, Revolv
 import { sampleDocument } from "../samples";
 import { constraintCount, count, dims, drawing, editing, has, hasDim, near, sketches, userParams, usesUserParam, val, views } from "./checks";
 import { blockStarter, pinAssemblyStarter, plateStarter } from "./starters";
-import type { Chapter, Exercise, GlossaryEntry, LearnState } from "./types";
+import type { Chapter, Exercise, LearnState } from "./types";
+export { GLOSSARY } from "./glossary";
 
 const inSketch = (s: LearnState) => !!editing(s);
 /** Two circles of the edited sketch share a centre point (by id or position). */
@@ -67,6 +68,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "モデルを真上から見たいときに便利なのは?", choices: ["タイムライン", "ViewCube", "ステータスバー"], answer: 1, explain: "ViewCube の面・エッジ・角をクリックすると、その方向からの視点に切り替わります。" },
           { q: "内部の穴の形を確認するのに適した表示は?", choices: ["リアル表示", "断面図", "透視投影"], answer: 1, explain: "断面図はモデルを平面で切断して表示するので、内部の形状がわかります。" },
         ],
+        see: ["process"],
       },
       {
         id: "1-2",
@@ -98,6 +100,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "「穴をいつも板の中央に置きたい」とき、穴の位置寸法の式として適切なのは?", choices: ["40", "幅 / 2", "d3 + 10"], answer: 1, explain: "板の幅パラメータを使って「幅 / 2」とすると、幅が変わっても常に中央になります。" },
           { q: "フィーチャ履歴で、フィレットはふつう どの段階で作るのがよい?", choices: ["最初 (スケッチより前)", "主要な形ができた後の最後のほう", "どこでも同じ"], answer: 1, explain: "フィレットや面取りは仕上げのフィーチャ。後のフィーチャがフィレットのエッジに依存すると変更に弱くなるため、最後のほうに置くのが定石です。" },
         ],
+        see: ["cad-practice"],
       },
     ],
   },
@@ -130,6 +133,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "水平な板の輪郭を描くのに適した基準平面は? (このアプリは Y 軸が上)", choices: ["XY 平面", "XZ 平面", "YZ 平面"], answer: 1, explain: "Y 軸が上向きなので、水平面は X と Z を含む XZ 平面です。" },
           { q: "スケッチを終了するショートカットは?", choices: ["Ctrl+Enter", "Ctrl+S", "F6"], answer: 0, explain: "Ctrl+Enter でスケッチ環境を終了し、3D モデルに戻ります。" },
         ],
+        see: ["drawing"],
       },
       {
         id: "2-2",
@@ -161,6 +165,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "完全拘束の状態とは?", choices: ["寸法が 1 つ以上ある", "残りの自由度が 0", "線がすべて水平か垂直"], answer: 1, explain: "すべての自由度が拘束・寸法で消された状態が完全拘束です。" },
           { q: "2 本の線を常に同じ長さにしたいときの拘束は?", choices: ["平行", "等値", "一致"], answer: 1, explain: "等値拘束で 2 つの線分の長さ (円なら半径) を等しく保てます。" },
         ],
+        see: ["cad-practice", "drawing"],
       },
       {
         id: "2-3",
@@ -187,6 +192,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "回転フィーチャの軸として使う線は、ふつう何にする?", choices: ["コンストラクション線", "太い線", "寸法線"], answer: 0, explain: "コンストラクション線は立体の輪郭に含まれないため、回転軸や対称軸として使えます。" },
           { q: "2 つの円の中心を常に一致させる拘束は?", choices: ["正接", "同心", "等値"], answer: 1, explain: "同心拘束は円・円弧の中心を一致させます。" },
         ],
+        see: ["drawing"],
       },
     ],
   },
@@ -223,6 +229,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "板に貫通した四角い穴をあける押し出しの設定は?", choices: ["接合 + 距離", "切り取り + 貫通", "交差 + 対称"], answer: 1, explain: "切り取りで材料を削り、範囲を「貫通」にすると板厚が変わっても必ず貫通します。" },
           { q: "スケッチ平面の両側に同じ量だけ押し出す範囲は?", choices: ["対称", "反転", "貫通"], answer: 0, explain: "対称は指定距離をスケッチ平面の両側に半分ずつ押し出します。" },
         ],
+        see: ["cad-practice"],
       },
       {
         id: "3-2",
@@ -252,6 +259,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "M6 のボルトを通す穴 (キリ穴) の直径として適切なのは?", choices: ["5.0 mm", "6.6 mm", "12 mm"], answer: 1, explain: "ISO 273 / JIS の 2 級 (中) で M6 のキリ穴は 6.6 mm。ボルトが通るように呼び径より少し大きくします。" },
           { q: "ボルトの頭を沈めるための段付きの穴は?", choices: ["皿穴", "座ぐり穴", "ねじ穴"], answer: 1, explain: "座ぐり穴は六角穴付きボルトの頭が面から出ないように段を付けた穴です。皿穴は皿ねじ用の円すい形です。" },
         ],
+        see: ["fastening", "dfm-machining"],
       },
       {
         id: "3-3",
@@ -282,6 +290,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "回転フィーチャに向いている部品は?", choices: ["L 形のブラケット", "段付きシャフト", "板金の箱"], answer: 1, explain: "シャフトは軸対称なので、断面を 1 つ描いて回転させるのが最も簡単です。" },
           { q: "回転の断面が軸をまたいでいると どうなる?", choices: ["自動で修正される", "形が自己交差してエラーになりやすい", "2 倍の太さになる"], answer: 1, explain: "軸をまたぐ断面は回転させると自分自身と重なるため、正しいソリッドになりません。" },
         ],
+        see: ["torsion"],
       },
       {
         id: "3-4",
@@ -310,6 +319,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "内側の角 (入隅) にフィレットを付ける主な目的は?", choices: ["軽量化", "応力集中を和らげる", "色を変える"], answer: 1, explain: "鋭い入隅には応力が集中して割れの起点になります。丸めると応力が分散します。" },
           { q: "「C2」と指示された面取りの意味は?", choices: ["45° で 2 mm の面取り", "半径 2 mm の丸め", "2 か所の面取り"], answer: 0, explain: "JIS では 45° の面取りを C と寸法で表します。C2 = 2 mm × 45°。" },
         ],
+        see: ["fatigue", "dfm-molding"],
       },
       {
         id: "3-5",
@@ -340,6 +350,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "フランジの円周上に 6 個のボルト穴を等間隔に並べるのに最適なのは?", choices: ["矩形状パターン", "円形状パターン", "ミラー"], answer: 1, explain: "円形状パターンで個数 6、角度 360° にすると 60° 間隔で並びます。" },
           { q: "パターンでコピーした穴の直径を変えるには?", choices: ["コピーを 1 つずつ編集", "元のフィーチャを編集", "パターンを削除して作り直す"], answer: 1, explain: "コピーは元フィーチャに連動しているので、元を変えればすべて更新されます。" },
         ],
+        see: ["dfa"],
       },
     ],
   },
@@ -376,6 +387,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "幅 = 100 のとき、式「幅 / 4」の値は?", choices: ["4", "25", "400"], answer: 1, explain: "100 ÷ 4 = 25 です。幅を変えると自動で再計算されます。" },
           { q: "ユーザ パラメータを使う一番の利点は?", choices: ["ファイルが小さくなる", "寸法の関係 (設計意図) を残して変更に強くできる", "描画が速くなる"], answer: 1, explain: "関連する寸法を 1 つのパラメータから式で決めることで、変更時の修正漏れを防げます。" },
         ],
+        see: ["cad-practice"],
       },
       {
         id: "4-2",
@@ -402,6 +414,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "体積 10 cm³ の部品を鋼 (密度 7.85 g/cm³) で作ると質量は?", choices: ["約 7.9 g", "約 78.5 g", "約 785 g"], answer: 1, explain: "10 × 7.85 = 78.5 g です。" },
           { q: "同じ形で最も軽くなる材料は?", choices: ["鋼", "黄銅", "アルミニウム"], answer: 2, explain: "密度は アルミ 2.7 < 鋼 7.85 < 黄銅 8.47 g/cm³ です。" },
         ],
+        see: ["materials"],
       },
     ],
   },
@@ -444,6 +457,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "ピンを穴に差し込んで頭を面に当てる拘束は?", choices: ["フラッシュ", "挿入", "角度"], answer: 1, explain: "挿入拘束は軸の一致と面の接触を同時に指定します。" },
           { q: "挿入拘束の後、ピンに残る自由度は?", choices: ["なし", "軸まわりの回転", "上下の移動"], answer: 1, explain: "軸がそろい面が接触しても、軸まわりの回転 1 自由度は残ります。" },
         ],
+        see: ["dfa", "fastening"],
       },
     ],
   },
@@ -483,6 +497,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "第三角法で、右側面図は正面図のどこに置く?", choices: ["左", "右", "下"], answer: 1, explain: "第三角法は見る方向の側に図を置きます。右から見た図は右に配置します。" },
           { q: "断面図の切断面に描く斜線を何という?", choices: ["ハッチング", "中心線", "破断線"], answer: 0, explain: "切断面にはハッチング (一般に 45° の細い実線) を施します。" },
         ],
+        see: ["drawing", "tolerance"],
       },
     ],
   },
@@ -521,6 +536,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "降伏応力 270 MPa の材料で、最大応力 90 MPa のとき安全率は?", choices: ["0.33", "3", "180"], answer: 1, explain: "270 ÷ 90 = 3 です。" },
           { q: "応力解析で必ず指定しなければならない条件は?", choices: ["色と材質感", "固定と荷重", "図面の尺度"], answer: 1, explain: "どこが固定され、どこにどんな力がかかるかがわからないと計算できません。" },
         ],
+        see: ["stress", "bending", "safety"],
       },
       {
         id: "7-2",
@@ -550,6 +566,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "他社の CAD で形状を編集してもらうときに渡す形式は?", choices: ["STL", "STEP", "PNG"], answer: 1, explain: "STEP は正確な曲面を持つソリッドなので、他の CAD で読み込んで加工・編集できます。STL は三角形の近似です。" },
           { q: "3D プリントでサポート材が必要になりやすいのは?", choices: ["垂直な壁", "下向きの水平な面 (オーバーハング)", "上向きの面"], answer: 1, explain: "下向きの面は空中に造形することになるため、支えるサポートが必要です。" },
         ],
+        see: ["dfm-3dp"],
       },
     ],
   },
@@ -626,44 +643,6 @@ export const EXERCISES: Exercise[] = [
     ],
     tips: ["本体パーツ → ふたパーツ を作ってそれぞれ保存し、新規アセンブリに「ファイルから配置」します", "アセンブリの「作成」でアセンブリ内に直接パーツを作ることもできます", "図面は本体のパーツで「図面ビュー」→「自動寸法」が速いです"],
   },
-];
-
-// ----------------------------------------------------------- glossary ---
-
-export const GLOSSARY: GlossaryEntry[] = [
-  { term: "ソリッド", en: "Solid", desc: "中身の詰まった立体。体積・質量・重心が計算できる。3D CAD の基本となる形状。" },
-  { term: "B-rep (境界表現)", en: "Boundary representation", desc: "立体を面・エッジ・頂点のつながりで正確に表す方式。曲面も近似せずに表せる。STEP はこの形式。" },
-  { term: "メッシュ", en: "Mesh", desc: "形を小さな三角形の集まりで近似したもの。STL / OBJ / 3MF。3D プリントや表示に使う。" },
-  { term: "パラメトリック", en: "Parametric", desc: "寸法 (パラメータ) と手順で形を定義し、寸法を変えると形が再計算される設計方式。" },
-  { term: "フィーチャ", en: "Feature", desc: "押し出し・穴・フィレットなど、形を作る 1 つ 1 つの作業。モデルはフィーチャの積み重ね。" },
-  { term: "スケッチ", en: "Sketch", desc: "平面上に描く 2D の輪郭。押し出し・回転などの元になる。" },
-  { term: "プロファイル", en: "Profile", desc: "スケッチ内の閉じた領域。押し出し・回転で立体になる部分。" },
-  { term: "拘束 (幾何拘束)", en: "Constraint", desc: "水平・垂直・平行・一致・正接など、スケッチ要素どうしの形の関係。" },
-  { term: "寸法拘束", en: "Dimension", desc: "長さ・距離・直径・角度など、大きさと位置を数値で決める拘束。値は式にできる。" },
-  { term: "自由度", en: "Degrees of freedom", desc: "まだ決まっていない動きの数。スケッチの点は 2、空間の剛体は 6 (移動 3 + 回転 3)。" },
-  { term: "完全拘束", en: "Fully constrained", desc: "自由度が 0 で、形と位置が一意に決まった状態。" },
-  { term: "コンストラクション線", en: "Construction geometry", desc: "立体の輪郭にならない補助線。軸・対称の基準・寸法の基準に使う。" },
-  { term: "押し出し", en: "Extrude", desc: "プロファイルを平面に垂直な方向に伸ばして立体を作るフィーチャ。" },
-  { term: "回転", en: "Revolve", desc: "プロファイルを軸のまわりに回して軸対称の立体を作るフィーチャ。" },
-  { term: "ブール演算", en: "Boolean", desc: "立体どうしの 和 (接合)・差 (切り取り)・積 (交差)。" },
-  { term: "フィレット", en: "Fillet", desc: "エッジを指定した半径で丸めること。応力集中の緩和や安全のため。" },
-  { term: "面取り (C 面取り)", en: "Chamfer", desc: "エッジを斜めに削ること。C2 = 2 mm × 45°。" },
-  { term: "シェル", en: "Shell", desc: "面を取り除き、一定の肉厚の中空形状にするフィーチャ。" },
-  { term: "パターン", en: "Pattern", desc: "フィーチャを格子状 (矩形状) や円周上 (円形状) に並べてコピーすること。" },
-  { term: "設計意図", en: "Design intent", desc: "「穴は常に中央」「高さは幅の 1/4」など、寸法変更後も守りたい形の関係。式と拘束で表す。" },
-  { term: "ユーザ パラメータ", en: "User parameter", desc: "幅・板厚など、設計者が名前を付けて作る設計変数。寸法の式から参照できる。" },
-  { term: "作業平面", en: "Work plane", desc: "基準平面や面からオフセット・回転して作る補助の平面。スケッチや分割の基準に使う。" },
-  { term: "アセンブリ", en: "Assembly", desc: "複数の部品 (コンポーネント) を拘束で組み立てたモデル。" },
-  { term: "接地", en: "Grounded", desc: "アセンブリで位置を固定したコンポーネント。普通は最初の部品。" },
-  { term: "挿入拘束", en: "Insert", desc: "円形エッジどうしの軸をそろえ、面を接触させるアセンブリ拘束。ボルト・ピンに使う。" },
-  { term: "部品表 (BOM)", en: "Bill of materials", desc: "アセンブリを構成する部品の一覧 (品番・品名・数量・材質)。" },
-  { term: "第三角法", en: "Third-angle projection", desc: "JIS の投影法。平面図を正面図の上、右側面図を右に配置する。" },
-  { term: "キリ穴", en: "Clearance hole", desc: "ボルトを通すための、ねじの呼び径より少し大きい穴。M6 なら Ø6.6 (2 級)。" },
-  { term: "座ぐり", en: "Counterbore", desc: "ボルトの頭を沈めるための段付きの穴。" },
-  { term: "応力集中", en: "Stress concentration", desc: "穴や鋭い角のまわりで局所的に応力が大きくなる現象。" },
-  { term: "安全率", en: "Factor of safety", desc: "材料の強さ (降伏応力) ÷ 発生応力。1 未満で降伏する。" },
-  { term: "STEP", en: "ISO 10303", desc: "CAD 間で正確なソリッドをやり取りする国際標準形式 (.stp / .step)。" },
-  { term: "オーバーハング", en: "Overhang", desc: "3D プリントで下向きに張り出した部分。約 45° を超えるとサポートが必要。" },
 ];
 
 /** Every lesson in curriculum order. */

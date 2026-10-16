@@ -2839,3 +2839,14 @@ kbd {
     display: none;
   }
 }
+.ln-see {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+.ln-see .ln-link {
+  margin: 0;
+}

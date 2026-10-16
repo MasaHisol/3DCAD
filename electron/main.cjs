@@ -84,6 +84,8 @@ function buildMenu() {
     {
       label: "ヘルプ",
       submenu: [
+        { label: "座学テキスト (設計の基礎・構造力学・デザイン)", click: () => openTextbook() },
+        { type: "separator" },
         {
           label: "バージョン情報",
           click: () =>
@@ -98,6 +100,57 @@ function buildMenu() {
     },
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
+
+// ------------------------------------------------------------ textbook ---
+
+let textbookWin = null;
+
+/** The textbook (textbook.html) in its own window; reuses the open one. */
+function openTextbook(hash = "") {
+  const url = "app://cad/textbook.html" + hash;
+  if (textbookWin && !textbookWin.isDestroyed()) {
+    if (hash) textbookWin.loadURL(url);
+    if (textbookWin.isMinimized()) textbookWin.restore();
+    textbookWin.focus();
+    return;
+  }
+  textbookWin = new BrowserWindow({
+    width: 1200,
+    height: 860,
+    minWidth: 480,
+    minHeight: 480,
+    title: "設計の座学テキスト",
+    backgroundColor: "#f5f6f8",
+    icon: path.join(__dirname, "..", "build", "icon.png"),
+    autoHideMenuBar: true,
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false },
+  });
+  textbookWin.webContents.setWindowOpenHandler(windowOpenHandler);
+  textbookWin.webContents.on("will-navigate", (e, u) => {
+    if (!u.startsWith("app://cad/textbook.html")) {
+      e.preventDefault();
+      if (/^https?:/.test(u)) shell.openExternal(u);
+    }
+  });
+  textbookWin.on("closed", () => (textbookWin = null));
+  textbookWin.loadURL(url);
+}
+
+function windowOpenHandler({ url }) {
+  if (url === "about:blank" || url === "") return { action: "allow" };
+  const m = /^app:\/\/cad\/textbook\.html(#.*)?$/.exec(url);
+  if (m) {
+    openTextbook(m[1] ?? "");
+    return { action: "deny" };
+  }
+  // the textbook asks the CAD window (already open) to start a lesson: just bring it forward
+  if (url.startsWith("app://cad/index.html")) {
+    if (win && !win.isDestroyed()) win.focus();
+    return { action: "deny" };
+  }
+  if (/^https?:/.test(url)) shell.openExternal(url);
+  return { action: "deny" };
 }
 
 function createWindow() {
@@ -123,12 +176,8 @@ function createWindow() {
     win.show();
   });
 
-  // print window (about:blank) is allowed; real links open in the system browser
-  win.webContents.setWindowOpenHandler(({ url }) => {
-    if (url === "about:blank" || url === "") return { action: "allow" };
-    if (/^https?:/.test(url)) shell.openExternal(url);
-    return { action: "deny" };
-  });
+  // print window (about:blank) and the textbook are allowed; real links open in the system browser
+  win.webContents.setWindowOpenHandler(windowOpenHandler);
   win.webContents.on("will-navigate", (e, url) => {
     if (!url.startsWith("app://")) {
       e.preventDefault();

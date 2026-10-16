@@ -30,7 +30,8 @@ import { openNativeInfo } from "./io/nativeDialog";
 import type { Rule, RuleContext, RuleResult } from "./rules/engine";
 import { DrawingEnv } from "./drawing/env";
 import { newAssembly, type AssemblyDocument } from "./assembly/types";
-import { openLearningCenter } from "./learn/center";
+import { openLearningCenter, startLessonById } from "./learn/center";
+import { listenForLessons, openTextbook } from "./learn/textbookLink";
 
 const AUTOSAVE_KEY = "3dcad.autosave.v2";
 
@@ -209,6 +210,7 @@ export class App {
 
     this.restoreAutosave();
     this.refreshUI();
+    listenForLessons((id) => startLessonById(this, id));
     this.kernel
       .init()
       .then(() => {
@@ -1120,6 +1122,7 @@ export class App {
       { label: "iProperties…", icon: "iprops", action: () => openIProperties(this) },
       { separator: true, label: "" },
       { label: "学習センター (3D 設計を学ぶ)…", icon: "learn", action: () => openLearningCenter(this) },
+      { label: "座学テキスト (設計の基礎・構造力学・デザイン)", icon: "open", action: () => openTextbook() },
     ]);
   }
 

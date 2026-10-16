@@ -491,6 +491,22 @@ try {
   const cur = await page.evaluate(() => document.querySelector(".ln-step.current")?.textContent ?? "");
   check("learning: guided step auto-completes", glow.includes("params") && cur.includes("板厚"), JSON.stringify({ glow, cur: cur.slice(0, 30) }));
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/learning.png` });
+
+  // textbook (separate page): every chapter renders and its calculators produce results
+  const tb = await browser.newPage({ viewport: { width: 1300, height: 860 } });
+  tb.on("pageerror", (e) => errors.push(`textbook: ${e.message}`));
+  await tb.goto(url + "textbook.html");
+  await tb.waitForSelector(".tb-hero");
+  const ids = await tb.evaluate(() => [...document.querySelectorAll(".tb-nav-part a")].map((a) => a.getAttribute("href")));
+  let widgetErrors = 0;
+  for (const href of ids) {
+    await tb.goto(url + "textbook.html" + href);
+    await tb.waitForSelector(".tb-article");
+    widgetErrors += await tb.evaluate(() => document.querySelectorAll(".tb-err").length + [...document.querySelectorAll("[data-widget]")].filter((w) => !w.querySelector(".tb-widget-out")?.children.length).length);
+  }
+  check("textbook: chapters and calculators", ids.length >= 20 && widgetErrors === 0, `${ids.length} chapters, ${widgetErrors} widget errors`);
+  if (process.env.E2E_SHOTS) await tb.screenshot({ path: `${process.env.E2E_SHOTS}/textbook.png` });
+  await tb.close();
 } catch (e) {
   check("run", false, e.message);
 } finally {

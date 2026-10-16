@@ -3,6 +3,7 @@ import { evaluateParams } from "../core/params";
 import { confirmDialog, h, iconEl, toast } from "../ui/dom";
 import { ALL_LESSONS, EXERCISES } from "./curriculum";
 import { loadProgress, today, updateProgress } from "./progress";
+import { openTextbook, TEXTBOOK_TITLES } from "./textbookLink";
 import type { Exercise, LearnState, Lesson, LessonSetup } from "./types";
 
 /** Read the running application into a LearnState snapshot. */
@@ -285,6 +286,14 @@ export class Tutor {
       h("div", { class: "ln-meta" }, h("span", {}, "★".repeat(l.level) + "☆".repeat(3 - l.level)), h("span", {}, `約 ${l.minutes} 分`), h("span", {}, `${l.steps.length} ステップ`)),
       h("div", { class: "ln-goals" }, h("b", {}, "このレッスンの目標"), h("ul", {}, ...l.goals.map((g) => h("li", {}, g)))),
       h("div", { class: "ln-theory", html: l.theory }),
+      l.see?.length
+        ? h(
+            "div",
+            { class: "ln-see" },
+            h("b", {}, "座学テキストで詳しく: "),
+            ...l.see.map((id) => h("button", { class: "ln-link", onClick: () => openTextbook(id) }, TEXTBOOK_TITLES[id] ?? id)),
+          )
+        : "",
       h(
         "div",
         { class: "ln-actions" },

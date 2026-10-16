@@ -2,11 +2,21 @@ import type { App } from "../app";
 import { confirmDialog, h, iconEl, modal } from "../ui/dom";
 import { ALL_LESSONS, CURRICULUM, EXERCISES, GLOSSARY } from "./curriculum";
 import { loadProgress, resetProgress } from "./progress";
+import { openTextbook } from "./textbookLink";
 import { Tutor } from "./tutor";
 import type { Lesson } from "./types";
 
 let tutor: Tutor | null = null;
 let lastTab: "course" | "exercise" | "glossary" | "guide" = "course";
+
+/** Start a lesson by id (from the textbook window). */
+export function startLessonById(app: App, id: string): boolean {
+  const l = ALL_LESSONS.find((x) => x.id === id);
+  if (!l) return false;
+  document.querySelector(".ln-center")?.closest(".modal-back")?.remove();
+  void getTutor(app).startLesson(l);
+  return true;
+}
 
 /** The coach panel singleton (created on first use). */
 export function getTutor(app: App): Tutor {
@@ -45,6 +55,7 @@ export function openLearningCenter(app: App) {
           h("div", { class: "ln-progress big" }, h("div", { class: "ln-progress-bar", style: `width:${(done / ALL_LESSONS.length) * 100}%` })),
           h("span", {}, next ? `次のおすすめ: ${next.id} ${next.title}` : "全レッスン修了! 総合演習に挑戦しましょう"),
         ),
+        h("button", { class: "btn", title: "設計の基礎・構造力学・設計ノウハウ・デザインの座学テキストを別ウィンドウで開きます", onClick: () => openTextbook() }, iconEl("open"), "座学テキスト"),
         next ? h("button", { class: "btn primary", onClick: () => start(next) }, iconEl("play"), done ? "続きから" : "最初から始める") : null,
       ),
     );
@@ -163,6 +174,9 @@ export function openLearningCenter(app: App) {
   <li>ガイドはヘッダーをドラッグして移動、<b>∨</b> で最小化できます</li>
   <li>レッスンは毎回、専用の練習モデルから始まります。作業中のモデルは先に保存しておきましょう</li>
 </ul>
+<h3>座学テキスト</h3>
+<p>操作の実習とは別に、<b>設計の基礎・構造力学 (材料力学)・設計ノウハウ・プロダクトデザイン</b> を学ぶ座学テキストがあります (25 章、計算ツール・計算練習・確認テスト付き)。
+「コース」タブの <b>座学テキスト</b> ボタン、または各レッスンの解説にあるリンクから別ウィンドウで開けます。テキストからレッスンを開くこともできます。</p>
 <p class="ln-note">進捗はこのコンピュータ (ブラウザ / アプリ) に保存されます。紙の教材として使える解説は <code>docs/learning/</code> にもあります。</p>
 </div>`;
   };

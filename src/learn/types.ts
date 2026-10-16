@@ -70,6 +70,8 @@ export interface Lesson {
   /** Key points shown on completion. */
   summary: string[];
   quiz: QuizItem[];
+  /** Related chapters of the textbook (座学テキスト). */
+  see?: string[];
 }
 
 export interface Chapter {
