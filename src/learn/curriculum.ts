@@ -1,8 +1,8 @@
 // 3D 設計の学習カリキュラム (アプリ内チュートリアル + 確認テスト + 総合演習)。
 // 各ステップの check は LearnState の純関数で、操作が終わると自動で次へ進みます。
-import type { ExtrudeFeature, FilletFeature, HoleFeature, PatternFeature, RevolveFeature, ShellFeature, ChamferFeature } from "../core/types";
+import type { ExtrudeFeature, FilletFeature, FlangeFeature, HoleFeature, LoftFeature, PatternFeature, RevolveFeature, ShellFeature, ChamferFeature, SweepFeature } from "../core/types";
 import { sampleDocument } from "../samples";
-import { constraintCount, count, dims, drawing, editing, has, hasDim, near, sketches, userParams, usesUserParam, val, views } from "./checks";
+import { constraintCount, count, dims, drawing, editing, features, has, hasDim, near, sketches, userParams, usesUserParam, val, views } from "./checks";
 import { blockStarter, pinAssemblyStarter, plateStarter } from "./starters";
 import type { Chapter, Exercise, LearnState } from "./types";
 export { GLOSSARY } from "./glossary";
@@ -290,7 +290,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "回転フィーチャに向いている部品は?", choices: ["L 形のブラケット", "段付きシャフト", "板金の箱"], answer: 1, explain: "シャフトは軸対称なので、断面を 1 つ描いて回転させるのが最も簡単です。" },
           { q: "回転の断面が軸をまたいでいると どうなる?", choices: ["自動で修正される", "形が自己交差してエラーになりやすい", "2 倍の太さになる"], answer: 1, explain: "軸をまたぐ断面は回転させると自分自身と重なるため、正しいソリッドになりません。" },
         ],
-        see: ["torsion"],
+        see: ["torsion", "bearings"],
       },
       {
         id: "3-4",
@@ -457,7 +457,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "ピンを穴に差し込んで頭を面に当てる拘束は?", choices: ["フラッシュ", "挿入", "角度"], answer: 1, explain: "挿入拘束は軸の一致と面の接触を同時に指定します。" },
           { q: "挿入拘束の後、ピンに残る自由度は?", choices: ["なし", "軸まわりの回転", "上下の移動"], answer: 1, explain: "軸がそろい面が接触しても、軸まわりの回転 1 自由度は残ります。" },
         ],
-        see: ["dfa", "fastening"],
+        see: ["dfa", "fastening", "bearings", "mechanisms"],
       },
     ],
   },
@@ -536,7 +536,7 @@ export const CURRICULUM: Chapter[] = [
           { q: "降伏応力 270 MPa の材料で、最大応力 90 MPa のとき安全率は?", choices: ["0.33", "3", "180"], answer: 1, explain: "270 ÷ 90 = 3 です。" },
           { q: "応力解析で必ず指定しなければならない条件は?", choices: ["色と材質感", "固定と荷重", "図面の尺度"], answer: 1, explain: "どこが固定され、どこにどんな力がかかるかがわからないと計算できません。" },
         ],
-        see: ["stress", "bending", "safety"],
+        see: ["stress", "bending", "safety", "fea-practice"],
       },
       {
         id: "7-2",
@@ -567,6 +567,104 @@ export const CURRICULUM: Chapter[] = [
           { q: "3D プリントでサポート材が必要になりやすいのは?", choices: ["垂直な壁", "下向きの水平な面 (オーバーハング)", "上向きの面"], answer: 1, explain: "下向きの面は空中に造形することになるため、支えるサポートが必要です。" },
         ],
         see: ["dfm-3dp"],
+      },
+    ],
+  },
+  // ------------------------------------------------------------------ 8 ---
+  {
+    id: "advanced",
+    title: "第 8 章 応用モデリング — スイープ・ロフト・板金",
+    desc: "パイプや取っ手のような曲がった形、断面が変わる形、板を曲げて作る部品のモデリングを学びます。",
+    lessons: [
+      {
+        id: "8-1",
+        title: "スイープ — 経路に沿った形 (パイプ・取っ手)",
+        minutes: 15,
+        level: 2,
+        goals: ["経路 (パス) とプロファイルの 2 つのスケッチを使い分けられる", "スイープでパイプや取っ手の形を作れる"],
+        theory: `
+<p><b>スイープ</b>は、断面 (<b>プロファイル</b>) を<b>経路 (パス)</b> に沿って動かした軌跡を立体にします。配管・手すり・ワイヤー・取っ手・ばねのような形に使います。</p>
+<ol>
+  <li><b>パス</b>: 開いた (または閉じた) 線分・円弧のつながり。立体の中心線になる</li>
+  <li><b>プロファイル</b>: パスの<b>始点で、パスに垂直な平面</b>に描いた閉じた形</li>
+</ol>
+<p>押し出しは「まっすぐなパス」のスイープ、回転は「円のパス」のスイープと考えることもできます。</p>
+<p class="ln-note">ここでは、正面 (XY 平面) に L 字のパスを描き、原点で垂直な XZ 平面に円のプロファイルを描きます。</p>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> を <b>XY 平面</b> (正面) に開始します。", tab: "model", ui: "sketch", check: inSketch },
+          { text: "<b>線分</b> (<kbd>L</kbd>) で、<b>原点</b>から真上に 60 mm、続けて右へ 80 mm の L 字の線を描きます (閉じない)。", tab: "sketch", ui: "sk-line", check: (s) => count(editing(s), "line") >= 2, hint: "原点をクリック → 上の点 → 右の点 → <kbd>Esc</kbd>。寸法 (D) で 60 と 80 を付けると正確になります。" },
+          { text: "<b>スケッチを終了</b> します。これがパスです。", tab: "sketch", ui: "sk-finish", check: (s) => s.mode === "model" },
+          { text: "もう一度 <b>2D スケッチ</b> を押し、今度は水平な <b>XZ 平面</b> を選びます (パスの始点で、パスに垂直な平面)。", tab: "model", ui: "sketch", check: (s) => inSketch(s) && sketches(s).length >= 2 },
+          { text: "<b>円</b> で原点を中心に直径 <code>12</code> の円を描き、<b>スケッチを終了</b> します。", tab: "sketch", ui: ["sk-circle", "sk-finish"], check: (s) => s.mode === "model" && sketches(s).some((k) => count(k, "circle") >= 1) },
+          { text: "<b>スイープ</b> を押し、プロファイルに円の内側、パスに L 字のスケッチを選んで OK。曲がったパイプができます。", tab: "model", ui: "sweep", check: (s) => has<SweepFeature>(s, "sweep") && s.bodies > 0, hint: "パスの候補が 1 つだけなら自動で選ばれます。" },
+          { text: "<b>シェル</b> でパイプの両端の面を取り除き、厚さ <code>1</code> の中空のパイプにしてみましょう (任意)。ブラウザでパスのスケッチを編集すると、パイプの形も変わります。レッスン完了です。", tab: "model", ui: "shell" },
+        ],
+        summary: ["スイープ = プロファイルをパスに沿って動かす", "プロファイルはパスの始点で、パスに垂直な平面に描く", "パスを編集すると形全体が追従する"],
+        quiz: [
+          { q: "スイープのプロファイルを描く平面として正しいのは?", choices: ["パスと同じ平面", "パスの始点でパスに垂直な平面", "どこでもよい"], answer: 1, explain: "プロファイルはパスの始点で、パスの向きに垂直な平面に描きます。" },
+          { q: "スイープが特に向いている形は?", choices: ["直方体", "曲がった配管や手すり", "穴あきの板"], answer: 1, explain: "経路に沿って断面が一定の形 (配管・手すり・取っ手) に向いています。" },
+        ],
+        see: ["cad-practice"],
+      },
+      {
+        id: "8-2",
+        title: "ロフト — 断面が変わる形 (ノズル・ボトル)",
+        minutes: 15,
+        level: 2,
+        goals: ["作業平面をオフセットして作れる", "複数の断面をロフトでつなげられる", "シェルで中空にできる"],
+        theory: `
+<p><b>ロフト</b>は、離れた平面に描いた<b>複数の断面</b>をなめらかにつないだ立体を作ります。四角から丸へ変わるダクト、ボトル、ノズル、船の船体などに使います。</p>
+<ul>
+  <li>断面は別々のスケッチに描く。高さの違う断面には<b>作業平面</b> (基準平面からオフセットした平面) を使う</li>
+  <li>断面の順番どおりにつながる。断面の向き・点の数が大きく違うとねじれることがある</li>
+  <li>「直線状 (ルールド)」にすると、断面の間を平面的につなぐ</li>
+</ul>
+<p class="ln-note">ここでは、床 (XZ 平面) の 60 × 40 の長方形と、高さ 40 の位置の直径 30 の円をつなぎます。</p>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>作業フィーチャ → 平面</b> を押し、<b>XZ 平面</b> を選んでオフセット <code>40</code> の作業平面を作ります。", tab: "model", ui: "workplane", check: (s) => has(s, "workplane"), hint: "ブラウザの「原点」から XZ 平面を選ぶこともできます。" },
+          { text: "<b>2D スケッチ</b> を <b>XZ 平面</b> に開始し、原点を中心に 60 × 40 の<b>長方形</b>を描いて終了します。", tab: "model", ui: "sketch", check: (s) => s.mode === "model" && sketches(s).some((k) => count(k, "line") >= 4) },
+          { text: "<b>2D スケッチ</b> を押し、今度は<b>作業平面1</b> を選びます。原点を中心に直径 <code>30</code> の<b>円</b>を描いて終了します。", tab: "model", ui: "sketch", check: (s) => s.mode === "model" && sketches(s).some((k) => !!k.planeRef && count(k, "circle") >= 1), hint: "作業平面はモデルの上に半透明で表示されています。ブラウザの「作業平面1」を右クリックしてもスケッチを作れます。" },
+          { text: "<b>ロフト</b> を押し、2 つのスケッチを下から順に選んで OK。四角から丸へ変わる形ができます。", tab: "model", ui: "loft", check: (s) => has<LoftFeature>(s, "loft") && s.bodies > 0 },
+          { text: "<b>シェル</b> で上と下の面を取り除き、厚さ <code>2</code> のダクトにします。", tab: "model", ui: "shell", check: (s) => has<ShellFeature>(s, "shell", (f) => f.faces.length >= 1) },
+          { text: "パラメータ表で作業平面のオフセット (40) や円の直径を変えて、形がなめらかに変わることを確かめましょう。レッスン完了です。", tab: "model", ui: "params" },
+        ],
+        summary: ["ロフト = 複数の断面をなめらかにつなぐ", "高さの違う断面には作業平面を使う", "シェルと組み合わせてダクト・容器を作る"],
+        quiz: [
+          { q: "四角い吸込口から丸い出口へ変わるダクトを作るのに最適なのは?", choices: ["押し出し", "ロフト", "パターン"], answer: 1, explain: "異なる断面をなめらかにつなぐのはロフトです。" },
+          { q: "床から 40 mm 上に断面を描くには、何を作る?", choices: ["作業平面 (オフセット)", "コンストラクション線", "パターン"], answer: 0, explain: "基準平面からオフセットした作業平面を作り、その上にスケッチします。" },
+        ],
+        see: ["dfm-molding", "form"],
+      },
+      {
+        id: "8-3",
+        title: "板金 — 板を曲げて作る",
+        minutes: 15,
+        level: 2,
+        goals: ["板金の面とフランジで曲げ部品を作れる", "板厚・曲げ半径・K 係数の意味がわかる", "展開パターンを確認できる"],
+        theory: `
+<p><b>板金</b>部品は、平らな板を切り抜いて曲げて作ります。軽く・安く・少量でも作れるため、カバー・ブラケット・筐体に広く使われます。</p>
+<ul>
+  <li><b>面</b>: スケッチの輪郭を板厚一定の板にする</li>
+  <li><b>フランジ</b>: 板の縁を曲げて立ち上げる (曲げ半径付き)</li>
+  <li><b>展開パターン</b>: 曲げる前の平らな形。レーザー加工の DXF になる</li>
+</ul>
+<p>展開長さは<b>K 係数</b> (曲げたとき伸び縮みしない面の位置) で計算されます: 曲げ代 = 角度 × (曲げ半径 + K × 板厚)。</p>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> を <b>XZ 平面</b> に開始し、原点を中心に 100 × 60 の<b>長方形</b>を描いて終了します。", tab: "model", ui: "sketch", check: (s) => s.mode === "model" && sketches(s).some((k) => count(k, "line") >= 4) },
+          { text: "<b>板金</b>タブの <b>面</b> を押し、長方形の内側を選んで OK。板厚 2 mm の板ができます。", tab: "sheetmetal", ui: "sheetFace", check: (s) => has(s, "sheetFace") && s.bodies > 0 },
+          { text: "<b>フランジ</b> を押し、長い 2 辺の縁 (エッジ) をクリックして、高さ <code>20</code>・角度 90° で OK。", tab: "sheetmetal", ui: "flange", check: (s) => has<FlangeFeature>(s, "flange", (f) => f.edges.length >= 1), hint: "上面の外周のエッジをクリックします。4 辺すべて選ぶと箱 (トレー) になり、角には逃げが入ります。" },
+          { text: "<b>板金スタイル</b> を開き、板厚・曲げ半径・K 係数を確認します (板厚を 1.6 に変えてみてもよい)。", tab: "sheetmetal", ui: "sm-style" },
+          { text: "<b>展開パターン</b> を開き、展開寸法と曲げ線を確認します。DXF に書き出すとレーザー加工に使えます。レッスン完了です。", tab: "sheetmetal", ui: "sm-flat" },
+        ],
+        summary: ["板金 = 面 + フランジで曲げ部品を作る", "曲げ半径は板厚以上、フランジ高さは板厚の 3〜4 倍以上", "展開長さは K 係数で計算 — 展開パターンを DXF で加工へ"],
+        quiz: [
+          { q: "板金の展開長さの計算に使う、中立面の位置を表す値は?", choices: ["安全率", "K 係数", "モジュール"], answer: 1, explain: "K 係数は板厚に対する中立面の位置の比で、曲げ代の計算に使います。" },
+          { q: "板厚 2 mm の板金で、内側曲げ半径の目安は?", choices: ["0.2 mm", "2 mm 程度以上", "20 mm 以上"], answer: 1, explain: "曲げ半径は板厚程度以上が目安。小さすぎると外側が割れます。" },
+        ],
+        see: ["dfm-sheet"],
       },
     ],
   },
@@ -642,6 +740,63 @@ export const EXERCISES: Exercise[] = [
       { text: "図面に寸法が記入されている", check: (s) => dims(s).length >= 1 || s.asm.parts.some((p) => (p.doc?.drawing?.sheets ?? []).some((sh) => sh.annos.some((a) => a.type === "dim"))) },
     ],
     tips: ["本体パーツ → ふたパーツ を作ってそれぞれ保存し、新規アセンブリに「ファイルから配置」します", "アセンブリの「作成」でアセンブリ内に直接パーツを作ることもできます", "図面は本体のパーツで「図面ビュー」→「自動寸法」が速いです"],
+  },  {
+    id: "ex-sheet",
+    title: "演習 4: 板金の電装カバー",
+    level: 2,
+    brief: "制御基板を覆う板金カバーを設計します。曲げの制約と放熱を考えましょう。",
+    spec: [
+      ["外形", "幅 120 × 奥行 80 × 高さ 30 程度のコの字 / 箱形"],
+      ["板厚", "1.2〜1.6 (SPCC または A5052)"],
+      ["穴", "取付穴 4 か所、放熱用の穴またはスリット"],
+      ["注意", "穴は曲げ線から 板厚×2 + R 以上離す"],
+    ],
+    requirements: [
+      { text: "板金の面がある", check: (s) => has(s, "sheetFace") },
+      { text: "フランジが 2 辺以上ある", check: (s) => features<FlangeFeature>(s, "flange").reduce((n, f) => n + f.edges.length, 0) >= 2 },
+      { text: "穴 (切り取り・穴フィーチャ) がある", check: anyHoles },
+      { text: "穴をパターンで並べている", check: (s) => has(s, "rectPattern") || has(s, "circPattern") || has(s, "mirror") },
+      { text: "ソリッドが 1 つで、エラーのフィーチャがない", check: healthy },
+    ],
+    tips: ["面 → フランジ (2〜4 辺) → 押し出し (切り取り・貫通) で穴を作ります", "放熱スリットは長円 (スロット) を 1 つ作って矩形状パターンで並べると速いです", "板金タブの「展開パターン」で、穴が曲げ線に近すぎないか確認しましょう"],
+  },
+  {
+    id: "ex-duct",
+    title: "演習 5: 吸気ダクト",
+    level: 2,
+    brief: "四角い吸込口から丸い出口へ変わる、樹脂成形の吸気ダクトを設計します。",
+    spec: [
+      ["吸込口", "80 × 50 の長方形 (角 R5)"],
+      ["出口", "φ40、吸込口から高さ 60"],
+      ["肉厚", "2 (樹脂成形品として均一に)"],
+      ["取付", "吸込口の周りにフランジ (つば) と取付穴"],
+    ],
+    requirements: [
+      { text: "作業平面を使っている", check: (s) => has(s, "workplane") },
+      { text: "ロフトで断面をつないでいる", check: (s) => has(s, "loft") },
+      { text: "シェルで一定の肉厚にしている", check: (s) => has(s, "shell") },
+      { text: "穴がある", check: anyHoles },
+      { text: "ソリッドが 1 つで、エラーのフィーチャがない", check: healthy },
+    ],
+    tips: ["フランジ (つば) は吸込口の平面に押し出し (接合) で付けます", "シェルは上下の開口面を取り除きます。ロフトの後、フランジの前に行うと簡単です", "座学テキスト「樹脂成形品の設計」で肉厚・抜き勾配を確認しましょう"],
+  },
+  {
+    id: "ex-linkage",
+    title: "演習 6: てこクランク機構の組立",
+    level: 3,
+    brief: "モーターの回転をワイパーのような揺動に変える四節リンク機構を、アセンブリで組み立てて動かします。",
+    spec: [
+      ["リンク長さ", "クランク 20、連結 70、てこ 50、固定 60 (グラスホフの条件を満たす)"],
+      ["リンク", "厚さ 5 の板、両端に φ6 の穴、端は R (半円)"],
+      ["組立", "穴どうしを挿入 / 軸合わせ拘束でつなぎ、ベースを接地"],
+      ["確認", "拘束を駆動してクランクを回し、干渉がないことを確認"],
+    ],
+    requirements: [
+      { text: "アセンブリに 4 個以上のコンポーネントがある", check: (s) => s.asm.components.length >= 4 },
+      { text: "挿入または軸合わせの拘束が 4 個以上ある", check: (s) => s.asm.constraints.filter((c) => !c.suppressed && (c.type === "insert" || c.type === "axis")).length >= 4 },
+      { text: "角度拘束がある (駆動用)", check: (s) => s.asm.constraints.some((c) => !c.suppressed && c.type === "angle") },
+    ],
+    tips: ["リンク 1 本をパラメトリックに作り (長さをユーザ パラメータに)、長さ違いをファミリー表で作ると効率的です", "座学テキスト「機構 — リンクとカム」の計算ツールで、動きを先に確認しましょう", "クランクとベースの間に角度拘束を付け、「拘束を駆動」で 0〜360° 回します"],
   },
 ];
 

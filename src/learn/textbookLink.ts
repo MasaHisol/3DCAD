@@ -16,6 +16,18 @@ export const TEXTBOOK_TITLES: Record<string, string> = {
   buckling: "座屈",
   fatigue: "応力集中と疲労",
   safety: "安全率と許容応力",
+  vibration: "振動と固有振動数",
+  heat: "熱の設計 — 膨張と放熱",
+  bearings: "軸受",
+  gears: "歯車",
+  springs: "ばね",
+  keys: "キー・ピン・止め輪・軸継手",
+  belts: "ベルト・チェーン・ねじ送り",
+  mechanisms: "機構 — リンクとカム",
+  "fea-practice": "解析 (FEA) を正しく使う",
+  treatment: "熱処理と表面処理",
+  cost: "コストの見積もりと工法の選択",
+  "safety-design": "安全設計とリスクアセスメント",
   "dfm-machining": "切削加工を考えた設計",
   "dfm-sheet": "板金と溶接の設計",
   "dfm-molding": "樹脂成形品の設計",
@@ -27,6 +39,7 @@ export const TEXTBOOK_TITLES: Record<string, string> = {
   ergonomics: "人間工学",
   cmf: "色・素材・仕上げ",
   ucd: "ユーザ中心設計とプロトタイピング",
+  sustainable: "サステナブルデザイン",
 };
 
 /** Open the textbook (in its own window in the desktop app, a new tab in the browser). */

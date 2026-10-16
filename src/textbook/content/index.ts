@@ -3,17 +3,22 @@ import type { GlossaryEntry } from "../../learn/types";
 import type { Part, TextChapter } from "../types";
 import { BASICS } from "./basics";
 import { DESIGN } from "./design";
+import { ELEMENTS } from "./elements";
+import { DESIGN_MORE, KNOWHOW_MORE, MECHANICS_MORE } from "./more";
 import { KNOWHOW } from "./knowhow";
 import { MECHANICS } from "./mechanics";
 
 export const PARTS: Part[] = [
   { id: "basics", title: "第 1 部 設計の基礎", desc: "設計の進め方、製図、公差とはめあい、材料、締結", color: "#2563eb" },
-  { id: "mechanics", title: "第 2 部 構造力学 (材料力学)", desc: "力のつり合い、応力とひずみ、はりの曲げ、断面、ねじり、座屈、疲労、安全率", color: "#b45309" },
-  { id: "knowhow", title: "第 3 部 設計ノウハウ", desc: "切削・板金・樹脂成形・3D プリントの設計、組立性、CAD の作法、設計レビュー", color: "#0f766e" },
-  { id: "design", title: "第 4 部 プロダクトデザイン", desc: "形と比率、人間工学、色・素材・仕上げ、ユーザ中心設計", color: "#9333ea" },
+  { id: "mechanics", title: "第 2 部 構造力学 (材料力学)", desc: "力のつり合い、応力とひずみ、はりの曲げ、断面、ねじり、座屈、疲労、安全率、振動、熱", color: "#b45309" },
+  { id: "elements", title: "第 3 部 機械要素", desc: "軸受、歯車、ばね、キー・ピン・軸継手、ベルト・チェーン・ねじ送り、リンクとカム", color: "#be123c" },
+  { id: "knowhow", title: "第 4 部 設計ノウハウ", desc: "切削・板金・樹脂成形・3D プリント、組立性、CAD の作法、解析の使い方、熱処理・表面処理、コスト、安全、設計レビュー", color: "#0f766e" },
+  { id: "design", title: "第 5 部 プロダクトデザイン", desc: "形と比率、人間工学、色・素材・仕上げ、ユーザ中心設計、サステナブルデザイン", color: "#9333ea" },
 ];
 
-export const CHAPTERS: TextChapter[] = [...BASICS, ...MECHANICS, ...KNOWHOW, ...DESIGN];
+/** Reading order. The review chapter closes the know-how part. */
+const knowhow = [...KNOWHOW.filter((c) => c.id !== "review"), ...KNOWHOW_MORE, ...KNOWHOW.filter((c) => c.id === "review")];
+export const CHAPTERS: TextChapter[] = [...BASICS, ...MECHANICS, ...MECHANICS_MORE, ...ELEMENTS, ...knowhow, ...DESIGN, ...DESIGN_MORE];
 
 const EXTRA: GlossaryEntry[] = [
   { term: "応力", en: "Stress", desc: "単位面積あたりの内力。σ = F / A (MPa = N/mm²)。" },
@@ -49,6 +54,28 @@ const EXTRA: GlossaryEntry[] = [
   { term: "CMF", en: "Color, Material, Finish", desc: "色・素材・仕上げ。製品の印象と品質感を決める。" },
   { term: "アルマイト", en: "Anodizing", desc: "アルミの陽極酸化処理。耐食・耐摩耗の皮膜で、染色もできる。" },
   { term: "プロトタイプ", en: "Prototype", desc: "検証のための試作品。初期は安く早く多く作る。" },
+  { term: "基本定格寿命 (L10)", en: "Basic rating life", desc: "同じ条件の軸受の 90 % が転がり疲れで壊れずに回れる回転数。(C/P)³ × 10⁶ 回転 (玉軸受)。" },
+  { term: "基本動定格荷重", en: "Basic dynamic load rating", desc: "軸受の寿命計算に使うカタログ値 C。寿命が 10⁶ 回転になる荷重。" },
+  { term: "モジュール", en: "Module", desc: "歯車の歯の大きさ。ピッチ円直径 = モジュール × 歯数。かみ合う歯車は同じモジュール。" },
+  { term: "バックラッシ", en: "Backlash", desc: "かみ合う歯の間のすきま。位置決め精度に影響する。" },
+  { term: "ばね定数", en: "Spring rate", desc: "荷重 ÷ たわみ (N/mm)。コイルばねでは線径の 4 乗に比例。" },
+  { term: "平行キー", en: "Parallel key", desc: "軸とボスのキー溝に入れてトルクを伝える部品。寸法は軸径で決まる (JIS B 1301)。" },
+  { term: "止め輪", en: "Retaining ring", desc: "軸や穴の溝にはめて軸方向の抜けを止める部品 (C 形・E 形)。" },
+  { term: "軸継手", en: "Coupling", desc: "2 本の軸をつなぎ、芯ずれを吸収する部品。" },
+  { term: "グラスホフの条件", en: "Grashof condition", desc: "四節リンクで 最短 + 最長 ≤ 他の 2 本の和 のとき、いずれかのリンクが 1 回転できる。" },
+  { term: "自由度 (機構)", en: "Mobility", desc: "機構の動きを決めるのに必要な入力の数。平面ではグリューブラーの式 F = 3(n−1) − 2j₁ − j₂。" },
+  { term: "固有振動数", en: "Natural frequency", desc: "構造が自然に振動しやすい周波数。fn = (1/2π)√(k/m)。" },
+  { term: "共振", en: "Resonance", desc: "加振の周波数が固有振動数に近く、振動が大きく増幅される現象。" },
+  { term: "減衰比", en: "Damping ratio", desc: "振動の減衰の大きさを表す無次元数 ζ。金属構造では 0.01〜0.05 程度。" },
+  { term: "線膨張係数", en: "Coefficient of thermal expansion", desc: "温度 1 K あたりのひずみ α。鋼 約 12、アルミ 約 24 (×10⁻⁶/K)。" },
+  { term: "熱抵抗", en: "Thermal resistance", desc: "熱の流れにくさ (K/W)。温度差 = 熱抵抗 × 熱流。" },
+  { term: "焼入れ・焼戻し", en: "Quenching and tempering", desc: "鋼を加熱・急冷して硬くし、再加熱でねばさを戻す熱処理 (調質)。" },
+  { term: "HRC", en: "Rockwell hardness C", desc: "焼入れ鋼などの硬さの尺度。工具鋼で 60 前後。" },
+  { term: "特異点 (解析)", en: "Singularity", desc: "鋭い角・点荷重などで理論上応力が無限大になる箇所。メッシュを細かくするほど値が増える。" },
+  { term: "リスクアセスメント", en: "Risk assessment", desc: "危険源を特定し、リスクを見積もり・評価して低減する手順 (ISO 12100)。" },
+  { term: "フェールセーフ", en: "Fail-safe", desc: "故障したときに安全側になるように設計すること。" },
+  { term: "LCA", en: "Life cycle assessment", desc: "材料から廃棄までの製品の一生の環境影響を評価する手法。" },
+  { term: "チャージ", en: "Hourly rate", desc: "加工の時間単価 (円/時)。機械と作業者の費用。" },
 ];
 
 export const TEXT_GLOSSARY: GlossaryEntry[] = [...GLOSSARY, ...EXTRA].sort((a, b) => a.term.localeCompare(b.term, "ja"));

@@ -91,3 +91,69 @@ describe("bolts and fits", () => {
     expect(() => deviations(200, "H7")).toThrow();
   });
 });
+
+describe("machine elements", () => {
+  it("bearing life follows (C/P)^3", async () => {
+    const { bearingLife } = await import("../src/textbook/mech");
+    const r = bearingLife(12.8, 1.28, 1000);
+    expect(r.L10).toBeCloseTo(1e9, 0);
+    expect(r.hours).toBeCloseTo(1e9 / 60000, 3);
+    expect(bearingLife(10, 5, 100, true).L10).toBeCloseTo(2 ** (10 / 3) * 1e6, 0);
+  });
+  it("gear pair geometry", async () => {
+    const { gearPair } = await import("../src/textbook/mech");
+    const g = gearPair(2, 20, 60, 1500, 10000, 1);
+    expect([g.d1, g.d2, g.a, g.da1, g.ratio, g.rpm2, g.T2, g.Ft]).toEqual([40, 120, 80, 44, 3, 500, 30000, 500]);
+    expect(gearPair(1, 12, 30, 100, 1).undercut).toBe(true);
+  });
+  it("coil spring rate and Wahl factor", async () => {
+    const { coilSpring } = await import("../src/textbook/mech");
+    const s = coilSpring(2, 16, 8, 78500, 10);
+    expect(s.k).toBeCloseTo((78500 * 16) / (8 * 4096 * 8), 9);
+    expect(s.c).toBe(8);
+    expect(s.Kw).toBeCloseTo(1.184, 3);
+  });
+  it("key selection and stresses", async () => {
+    const { keyCheck } = await import("../src/textbook/mech");
+    const k = keyCheck(20, 50000, 25);
+    expect([k.b, k.h]).toEqual([6, 6]);
+    expect(k.F).toBe(5000);
+    expect(k.shear).toBeCloseTo(5000 / 150, 9);
+    expect(k.pressure).toBeCloseTo(5000 / (2.5 * 25), 9);
+  });
+  it("belt length and wrap angle", async () => {
+    const { beltDrive } = await import("../src/textbook/mech");
+    const b = beltDrive(100, 100, 300, 1000);
+    expect(b.L).toBeCloseTo(600 + Math.PI * 100, 9);
+    expect(b.wrap).toBeCloseTo(180, 9);
+    expect(beltDrive(100, 200, 300, 1000).wrap).toBeCloseTo(180 - 2 * (Math.asin(100 / 600) * 180) / Math.PI, 9);
+  });
+  it("four-bar linkage closes with the right link lengths", async () => {
+    const { fourBar, grashof, grubler } = await import("../src/textbook/mech");
+    for (const th of [0, 45, 90, 180, 270]) {
+      const p = fourBar(20, 70, 50, 60, th)!;
+      expect(Math.hypot(p.B[0] - p.A[0], p.B[1] - p.A[1])).toBeCloseTo(70, 9);
+      expect(Math.hypot(p.B[0] - 60, p.B[1])).toBeCloseTo(50, 9);
+    }
+    expect(grashof(20, 70, 50, 60).kind).toContain("てこクランク");
+    expect(grashof(60, 30, 40, 80).ok).toBe(false);
+    expect(grubler(4, 4)).toBe(1);
+  });
+  it("vibration: natural frequency and resonance", async () => {
+    const { naturalFrequency, response, cantileverFrequency, section } = await import("../src/textbook/mech");
+    // k = (2π·10 Hz)² × 1 kg = 3948 N/m → 10 Hz
+    expect(naturalFrequency((2 * Math.PI * 10) ** 2 / 1000, 1)).toBeCloseTo(10, 9);
+    expect(response(0, 0.05).magnification).toBeCloseTo(1, 9);
+    expect(response(1, 0.05).magnification).toBeCloseTo(10, 6);
+    expect(response(Math.SQRT2, 0.1).transmissibility).toBeCloseTo(1, 9);
+    // steel cantilever 20 × 40 (bending about the strong axis), 500 mm: hand calculation ≈ 132.4 Hz
+    const s = section("rect", { b: 20, h: 40 });
+    expect(cantileverFrequency(206000, s.I, s.A, 7.85, 500)).toBeCloseTo(132.4, 0);
+  });
+  it("conduction and cost", async () => {
+    const { conduction, unitCost } = await import("../src/textbook/mech");
+    expect(conduction(50, 1e6, 10, 10)).toBeCloseTo(50000, 6);
+    const c = unitCost({ material: 300, setupMin: 60, cycleMin: 30, rate: 6000, tooling: 0, lot: 10, quantity: 10 });
+    expect(c.total).toBeCloseTo(300 + 600 + 3000, 9);
+  });
+});

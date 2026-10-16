@@ -3,9 +3,10 @@ import opencascade from "replicad-opencascadejs";
 import { setOC } from "replicad";
 import { GeometryEngine } from "../src/kernel/geometry";
 import { evaluateParams } from "../src/core/params";
-import { newDocument } from "../src/core/document";
+import { newDocument, ORIGIN_PLANES } from "../src/core/document";
+import { ensureSheetStyle } from "../src/sheetmetal/sheet";
 import { prepareDocument, resolveDocument } from "../src/core/resolve";
-import type { PartDocument, SketchFeature } from "../src/core/types";
+import type { Feature, PartDocument, PlaneDef, SketchFeature, SkEntity } from "../src/core/types";
 import { newAssembly } from "../src/assembly/types";
 import { sampleDocument } from "../src/samples";
 import { ALL_LESSONS, CURRICULUM, EXERCISES, GLOSSARY, findLesson } from "../src/learn/curriculum";
@@ -196,4 +197,72 @@ describe("step checks", () => {
     expect(res.every(Boolean)).toBe(true);
     expect(ex.requirements.every((r) => !r.check(state(newDocument(), { bodies: 0 })))).toBe(true);
   });
+});
+
+const sk = (id: string, plane: PlaneDef, entities: SkEntity[], planeRef?: string): SketchFeature => ({
+  id, type: "sketch", name: id, plane, planeLabel: "", planeRef,
+  entities: [{ id: "origin", type: "point", x: 0, y: 0, fixed: true, ref: true }, ...entities], constraints: [], dimensions: [],
+});
+const rect = (w: number, d: number): SkEntity[] => [
+  { id: "a", type: "point", x: -w / 2, y: -d / 2 }, { id: "b", type: "point", x: w / 2, y: -d / 2 },
+  { id: "c", type: "point", x: w / 2, y: d / 2 }, { id: "d", type: "point", x: -w / 2, y: d / 2 },
+  { id: "l1", type: "line", p1: "a", p2: "b" }, { id: "l2", type: "line", p1: "b", p2: "c" },
+  { id: "l3", type: "line", p1: "c", p2: "d" }, { id: "l4", type: "line", p1: "d", p2: "a" },
+];
+function finish(doc: PartDocument, ...f: Feature[]) {
+  doc.features.push(...f);
+  doc.endOfPart = doc.features.length;
+  return doc;
+}
+
+describe("applied modelling lessons (chapter 8)", () => {
+  it("8-1: an L-shaped path swept with a circle builds and completes the sweep step", async () => {
+    const doc = finish(
+      newDocument(),
+      sk("p", ORIGIN_PLANES.XY, [{ id: "a", type: "point", x: 0, y: 60 }, { id: "b", type: "point", x: 80, y: 60 }, { id: "l1", type: "line", p1: "origin", p2: "a" }, { id: "l2", type: "line", p1: "a", p2: "b" }]),
+      sk("c", ORIGIN_PLANES.XZ, [{ id: "C", type: "circle", c: "origin", r: 6 }]),
+      { id: "sw", type: "sweep", name: "スイープ1", sketch: "c", profiles: [0], profilePts: [[0, 0]], path: "p", op: "new" },
+    );
+    const r = await build(doc);
+    expect(r.bodies).toBe(1);
+    expect(r.volume).toBeCloseTo(Math.PI * 36 * 140, -1);
+    expect(stepCheck("8-1", 5)(state(doc))).toBe(true);
+  }, 60000);
+
+  it("8-2: rectangle to circle loft on a work plane builds and completes the loft step", async () => {
+    const doc = newDocument();
+    doc.params.push({ name: "d0", expr: "40", unit: "mm", kind: "model", owner: "wp" });
+    finish(
+      doc,
+      { id: "wp", type: "workplane", name: "作業平面1", base: ORIGIN_PLANES.XZ, baseLabel: "XZ 平面", offset: "d0" },
+      sk("r", ORIGIN_PLANES.XZ, rect(60, 40)),
+      sk("ci", { origin: [0, 40, 0], xDir: [1, 0, 0], normal: [0, 1, 0] }, [{ id: "C", type: "circle", c: "origin", r: 15 }], "wp"),
+      { id: "lf", type: "loft", name: "ロフト1", sketches: ["r", "ci"], op: "new", ruled: false },
+    );
+    const r = await build(doc);
+    expect(r.bodies).toBe(1);
+    // between the prism of the circle and that of the rectangle
+    expect(r.volume).toBeGreaterThan(Math.PI * 225 * 40);
+    expect(r.volume).toBeLessThan(60 * 40 * 40);
+    const s = state(doc);
+    expect([0, 1, 2, 3].map((i) => stepCheck("8-2", i)(s))).toEqual([true, true, true, true]);
+  }, 60000);
+
+  it("8-3: sheet metal face with two flanges builds and completes its steps", async () => {
+    const doc = newDocument();
+    ensureSheetStyle(doc);
+    doc.params.push({ name: "d0", expr: "20", unit: "mm", kind: "model", owner: "fl" }, { name: "d1", expr: "90", unit: "deg", kind: "model", owner: "fl" });
+    finish(
+      doc,
+      sk("r", ORIGIN_PLANES.XZ, rect(100, 60)),
+      { id: "sf", type: "sheetFace", name: "面1", sketch: "r", profiles: [0], profilePts: [[0, 0]], op: "new", flip: false },
+      { id: "fl", type: "flange", name: "フランジ1", base: "sf", edges: [[0, -30], [0, 30]], height: "d0", angle: "d1", down: false },
+    );
+    const r = await build(doc);
+    expect(r.bodies).toBe(1);
+    expect(r.volume).toBeGreaterThan(100 * 60 * 2);
+    const s = state(doc);
+    expect([0, 1, 2].map((i) => stepCheck("8-3", i)(s))).toEqual([true, true, true]);
+    expect(EXERCISES.find((e) => e.id === "ex-sheet")!.requirements[1].check(s)).toBe(true);
+  }, 60000);
 });

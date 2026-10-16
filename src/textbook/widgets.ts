@@ -2,6 +2,21 @@
 import { fmt, lineChart } from "./chart";
 import {
   beam,
+  BEARINGS,
+  bearingLife,
+  beltDrive,
+  cantileverFrequency,
+  coilSpring,
+  conduction,
+  equivalentLoad,
+  fourBar,
+  gearPair,
+  grashof,
+  keyCheck,
+  naturalFrequency,
+  response,
+  THERMAL,
+  unitCost,
   beamDeflectionFormula,
   BOLT_CLASSES,
   BOLTS,
@@ -585,6 +600,378 @@ const WIDGETS: Record<string, (host: HTMLElement) => void> = {
   },
 };
 
+const MORE: Record<string, (host: HTMLElement) => void> = {
+  bearing(host) {
+    const { body, out } = shell(host, "転がり軸受の寿命 (基本定格寿命 L10)");
+    const f = form(
+      [
+        { key: "brg", label: "軸受 (深溝玉)", type: "select", value: "6204", options: BEARINGS.map((b) => [b.name, `${b.name} (内径 ${b.d} × 外径 ${b.D} × 幅 ${b.B})`]) },
+        { key: "Fr", label: "ラジアル荷重 Fr", type: "num", value: 1500, unit: "N" },
+        { key: "Fa", label: "アキシアル荷重 Fa", type: "num", value: 0, unit: "N" },
+        { key: "n", label: "回転数", type: "num", value: 1450, unit: "min⁻¹" },
+        { key: "fw", label: "荷重係数 fw (衝撃)", type: "num", value: 1.2, step: 0.1 },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      try {
+        const b = BEARINGS.find((x) => x.name === f.str("brg"))!;
+        const P = equivalentLoad(f.num("Fr"), f.num("Fa")) * f.num("fw");
+        const r = bearingLife(b.Cr * 1000, P, f.num("n"));
+        const years = r.hours / (8 * 250);
+        out.innerHTML = table([
+          ["基本動定格荷重 Cr / 静定格荷重 C0r", `${b.Cr} kN / ${b.C0r} kN`],
+          ["動等価荷重 P (× fw)", `${fmt(P)} N`],
+          ["定格寿命 L10 = (C/P)³ × 10⁶", `${fmt(r.L10 / 1e6)} × 10⁶ 回転`],
+          ["寿命時間 L10h = L10 / 60n", `${fmt(r.hours)} 時間`, r.hours >= 20000 ? "good" : r.hours >= 5000 ? "warn" : "bad"],
+          ["1 日 8 時間・年 250 日で", `約 ${fmt(years, 2)} 年`],
+          ["静的安全係数 C0r / P", fmt((b.C0r * 1000) / P, 2), (b.C0r * 1000) / P >= 1.5 ? "good" : "warn"],
+        ]) + `<p class="tb-note">目安: 一般機械 2〜3 万時間、連続運転の機械 4〜6 万時間。値はカタログの代表値です。Fa / Fr が大きい場合は X = 0.56、Y ≈ 1.6 で概算しています。</p>`;
+      } catch (e) {
+        out.innerHTML = err(e);
+      }
+    }
+    update();
+  },
+
+  gear(host) {
+    const { body, out } = shell(host, "平歯車の寸法と速比");
+    const f = form(
+      [
+        { key: "m", label: "モジュール m", type: "num", value: 2, step: 0.5 },
+        { key: "z1", label: "小歯車の歯数 z₁", type: "num", value: 20, step: 1 },
+        { key: "z2", label: "大歯車の歯数 z₂", type: "num", value: 60, step: 1 },
+        { key: "n1", label: "入力回転数", type: "num", value: 1500, unit: "min⁻¹" },
+        { key: "T1", label: "入力トルク", type: "num", value: 10, unit: "N·m" },
+        { key: "eff", label: "効率", type: "num", value: 0.98, step: 0.01 },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      try {
+        const g = gearPair(f.num("m"), Math.round(f.num("z1")), Math.round(f.num("z2")), f.num("n1"), f.num("T1") * 1000, f.num("eff"));
+        const k = 150 / (g.da1 + g.da2);
+        const r1 = (g.d1 / 2) * k, r2 = (g.d2 / 2) * k;
+        const cx1 = 20 + (g.da1 / 2) * k, cx2 = cx1 + g.a * k;
+        const svg = `<svg class="tb-chart" viewBox="0 0 ${cx2 + (g.da2 / 2) * k + 20} ${(g.da2 * k) + 20}" aria-label="歯車"><g transform="translate(0 ${(g.da2 * k) / 2 + 10})">
+          <circle class="sec" cx="${cx1}" cy="0" r="${(g.da1 / 2) * k}"/><circle class="sec" cx="${cx2}" cy="0" r="${(g.da2 / 2) * k}"/>
+          <circle cx="${cx1}" cy="0" r="${r1}" fill="none" class="guide"/><circle cx="${cx2}" cy="0" r="${r2}" fill="none" class="guide"/>
+          <line class="axis" x1="${cx1}" x2="${cx2}" y1="0" y2="0"/><text class="tick" x="${(cx1 + cx2) / 2 + r1 / 2}" y="14" text-anchor="middle">a = ${fmt(g.a)}</text></g></svg>`;
+        out.innerHTML =
+          `<div class="tb-split">${svg}` +
+          table([
+            ["ピッチ円直径 d = m·z", `${fmt(g.d1)} / ${fmt(g.d2)} mm`],
+            ["歯先円直径 da = m(z + 2)", `${fmt(g.da1)} / ${fmt(g.da2)} mm`],
+            ["中心距離 a = m(z₁ + z₂)/2", `${fmt(g.a)} mm`],
+            ["速比 i = z₂ / z₁", fmt(g.ratio, 4)],
+            ["出力回転数 / 出力トルク", `${fmt(g.rpm2)} min⁻¹ / ${fmt(g.T2 / 1000)} N·m`],
+            ["接線力 Ft = 2T / d₁", `${fmt(g.Ft)} N`],
+            ["ピッチ円周速度", `${fmt(g.v)} m/s`],
+            ["切下げ", g.undercut ? "歯数 17 未満 — 切下げに注意 (転位で回避)" : "なし (歯数 17 以上)", g.undercut ? "warn" : "good"],
+          ]) +
+          "</div>";
+      } catch (e) {
+        out.innerHTML = err(e);
+      }
+    }
+    update();
+  },
+
+  spring(host) {
+    const { body, out } = shell(host, "圧縮コイルばね");
+    const f = form(
+      [
+        { key: "d", label: "線径 d", type: "num", value: 2, unit: "mm", step: 0.1 },
+        { key: "D", label: "コイル平均径 D", type: "num", value: 16, unit: "mm" },
+        { key: "n", label: "有効巻数 n", type: "num", value: 8 },
+        { key: "G", label: "材料", type: "select", value: "78500", options: [["78500", "ピアノ線・硬鋼線 (G = 78.5 GPa)"], ["68500", "ステンレス SUS304-WPB (G = 68.5 GPa)"]] },
+        { key: "x", label: "たわみ量", type: "num", value: 10, unit: "mm" },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      try {
+        const r = coilSpring(f.num("d"), f.num("D"), f.num("n"), Number(f.str("G")), f.num("x"));
+        out.innerHTML = table([
+          ["ばね定数 k = G d⁴ / (8 D³ n)", `${fmt(r.k)} N/mm`],
+          ["荷重 P = k · δ", `${fmt(r.P)} N`],
+          ["ばね指数 c = D / d", fmt(r.c, 3), r.c >= 4 && r.c <= 10 ? "good" : "warn"],
+          ["応力修正係数 (ワール) κ", fmt(r.Kw, 3)],
+          ["ねじり応力 τ = κ · 8PD / (πd³)", `${fmt(r.tau)} MPa`, r.tau < 0.45 * 1800 ? "" : "warn"],
+        ]) + `<p class="tb-note">ばね指数は 4〜10 が作りやすい範囲。許容ねじり応力はピアノ線で引張強さの 40〜50 % 程度 (線径により異なる) が目安です。</p>`;
+      } catch (e) {
+        out.innerHTML = err(e);
+      }
+    }
+    update();
+  },
+
+  key(host) {
+    const { body, out } = shell(host, "平行キーの強度");
+    const f = form(
+      [
+        { key: "d", label: "軸径 d", type: "num", value: 20, unit: "mm" },
+        { key: "T", label: "伝達トルク T", type: "num", value: 50, unit: "N·m" },
+        { key: "l", label: "キーの有効長さ l", type: "num", value: 25, unit: "mm" },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      try {
+        const k = keyCheck(f.num("d"), f.num("T") * 1000, f.num("l"));
+        out.innerHTML = table([
+          ["呼び寸法 b × h (JIS B 1301)", `${k.b} × ${k.h} mm (軸溝深さ t₁ = ${k.t1})`],
+          ["軸表面の接線力 F = 2T / d", `${fmt(k.F)} N`],
+          ["せん断応力 τ = F / (b·l)", `${fmt(k.shear)} MPa`, k.shear < 40 ? "good" : "warn"],
+          ["側面の面圧 p = F / ((h − t₁)·l)", `${fmt(k.pressure)} MPa`, k.pressure < 100 ? "good" : "bad"],
+        ]) + `<p class="tb-note">S45C のキーで、許容せん断応力 約 40 MPa、許容面圧 約 100 MPa (ボス側が鋳鉄なら 50 MPa 程度) が一般的な目安です。キーの長さは軸径の 1.5 倍程度まで。</p>`;
+      } catch (e) {
+        out.innerHTML = err(e);
+      }
+    }
+    update();
+  },
+
+  belt(host) {
+    const { body, out } = shell(host, "ベルト伝動 (オープンベルト)");
+    const f = form(
+      [
+        { key: "D1", label: "駆動プーリ径 D₁", type: "num", value: 100, unit: "mm" },
+        { key: "D2", label: "従動プーリ径 D₂", type: "num", value: 250, unit: "mm" },
+        { key: "C", label: "軸間距離 C", type: "num", value: 400, unit: "mm" },
+        { key: "n1", label: "駆動側回転数", type: "num", value: 1450, unit: "min⁻¹" },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      try {
+        const b = beltDrive(f.num("D1"), f.num("D2"), f.num("C"), f.num("n1"));
+        out.innerHTML = table([
+          ["速比 D₂ / D₁", fmt(b.ratio, 4)],
+          ["従動側回転数", `${fmt(b.rpm2)} min⁻¹`],
+          ["ベルト長さ L = 2C + π(D₁+D₂)/2 + (D₂−D₁)²/4C", `${fmt(b.L)} mm`],
+          ["小プーリの巻き掛け角", `${fmt(b.wrap)}°`, b.wrap >= 120 ? "good" : "bad"],
+          ["ベルト速度", `${fmt(b.v)} m/s`, b.v <= 30 ? "" : "warn"],
+        ]) + `<p class="tb-note">巻き掛け角は 120° 以上 (できれば 150° 以上) にします。小さいと滑りやすくなります。実際のベルトは規格長さから選び、軸間距離を調整します。</p>`;
+      } catch (e) {
+        out.innerHTML = err(e);
+      }
+    }
+    update();
+  },
+
+  linkage(host) {
+    const { body, out } = shell(host, "四節リンク機構");
+    const f = form(
+      [
+        { key: "a", label: "クランク (入力) a", type: "num", value: 20, unit: "mm" },
+        { key: "b", label: "連結リンク b", type: "num", value: 70, unit: "mm" },
+        { key: "c", label: "てこ (出力) c", type: "num", value: 50, unit: "mm" },
+        { key: "d", label: "固定リンク d", type: "num", value: 60, unit: "mm" },
+        { key: "th", label: "クランク角 θ", type: "num", value: 30, unit: "°" },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    const play = document.createElement("button");
+    play.className = "tb-btn";
+    play.textContent = "▶ クランクを回す";
+    body.appendChild(play);
+    let timer = 0;
+    play.addEventListener("click", () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = 0;
+        play.textContent = "▶ クランクを回す";
+        return;
+      }
+      play.textContent = "■ 止める";
+      timer = window.setInterval(() => {
+        if (!host.isConnected) return clearInterval(timer);
+        f.set("th", (f.num("th") + 4) % 360);
+        update();
+      }, 50);
+    });
+    function update() {
+      const a = f.num("a"), b = f.num("b"), c = f.num("c"), d = f.num("d");
+      const g = grashof(a, b, c, d);
+      const p = fourBar(a, b, c, d, f.num("th"));
+      // rocker swing range and the area swept by the joints over a full turn
+      const angles: number[] = [];
+      const xs = [0, d], ys = [0, 0];
+      for (let t = 0; t < 360; t += 2) {
+        const q = fourBar(a, b, c, d, t);
+        if (!q) continue;
+        angles.push(q.rockerAngle);
+        xs.push(q.A[0], q.B[0]);
+        ys.push(q.A[1], q.B[1]);
+      }
+      const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+      const k = Math.min(480 / Math.max(x1 - x0, 1), 200 / Math.max(y1 - y0, 1));
+      const ox = 260 - ((x0 + x1) / 2) * k, oy = 120 + ((y0 + y1) / 2) * k;
+      const P = (x: number, y: number) => `${(ox + x * k).toFixed(1)},${(oy - y * k).toFixed(1)}`;
+      let svg = `<svg class="tb-chart tb-linkage" viewBox="0 0 520 260" aria-label="四節リンク"><path class="ground" d="M${ox - 14},${oy + 9} L${ox + d * k + 14},${oy + 9}"/>`;
+      if (p) {
+        svg += `<polyline class="lk" points="${P(0, 0)} ${P(p.A[0], p.A[1])} ${P(p.B[0], p.B[1])} ${P(d, 0)}"/>`;
+        svg += [P(0, 0), P(p.A[0], p.A[1]), P(p.B[0], p.B[1]), P(d, 0)].map((q) => `<circle class="pin" cx="${q.split(",")[0]}" cy="${q.split(",")[1]}" r="4"/>`).join("");
+      }
+      svg += `<text class="tick" x="${ox}" y="${oy + 28}" text-anchor="middle">O₂</text><text class="tick" x="${ox + d * k}" y="${oy + 28}" text-anchor="middle">O₄</text></svg>`;
+      const swing = angles.length ? Math.max(...angles) - Math.min(...angles) : 0;
+      out.innerHTML =
+        svg +
+        table([
+          ["グラスホフの条件 (最短 + 最長 ≤ 他の 2 本の和)", g.ok ? "満たす" : "満たさない", g.ok ? "good" : "warn"],
+          ["機構の種類", g.kind],
+          ["この角度で組み立てられるか", p ? "はい" : "いいえ (リンクが届かない)", p ? "" : "bad"],
+          ["出力リンクの角度", p ? `${fmt(p.rockerAngle, 4)}°` : "—"],
+          ["出力の揺動角 (1 回転あたり)", angles.length === 180 ? `${fmt(swing, 3)}°` : "全周では動かない"],
+        ]);
+    }
+    update();
+  },
+
+  vibration(host) {
+    const { body, out } = shell(host, "ばね-質量系の振動と防振");
+    const f = form(
+      [
+        { key: "m", label: "質量 m", type: "num", value: 20, unit: "kg" },
+        { key: "k", label: "ばね定数 k (合計)", type: "num", value: 50, unit: "N/mm" },
+        { key: "z", label: "減衰比 ζ", type: "num", value: 0.05, step: 0.01 },
+        { key: "f", label: "加振周波数 (回転数/60)", type: "num", value: 25, unit: "Hz" },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      try {
+        const fn = naturalFrequency(f.num("k"), f.num("m"));
+        const r = f.num("f") / fn;
+        const z = f.num("z");
+        const res = response(r, z);
+        const rs = Array.from({ length: 150 }, (_, i) => (i + 1) * 0.02);
+        out.innerHTML =
+          table([
+            ["固有振動数 fn = (1/2π)√(k/m)", `${fmt(fn)} Hz`],
+            ["振動数比 f / fn", fmt(r, 3), Math.abs(r - 1) < 0.3 ? "bad" : ""],
+            ["応答倍率 (変位)", fmt(res.magnification, 3), res.magnification > 3 ? "bad" : ""],
+            ["力の伝達率 (床へ伝わる割合)", `${fmt(res.transmissibility * 100, 3)} %`, res.transmissibility < 1 ? "good" : "warn"],
+            ["判定", r > Math.SQRT2 ? "防振領域 (f > √2·fn)" : Math.abs(r - 1) < 0.3 ? "共振に近い — 危険" : "伝達率 > 1 (振動が増幅される)", r > Math.SQRT2 ? "good" : "warn"],
+          ]) +
+          lineChart(
+            [{ x: rs, y: rs.map((x) => Math.min(response(x, z).transmissibility, 12)), color: "#2563eb" }],
+            { xLabel: "振動数比 f / fn", yLabel: "伝達率", height: 150, marks: [{ x: Math.min(r, 3), y: Math.min(res.transmissibility, 12), text: "現在" }] },
+          );
+      } catch (e) {
+        out.innerHTML = err(e);
+      }
+    }
+    update();
+  },
+
+  cantilevervib(host) {
+    const { body, out } = shell(host, "片持ちはりの 1 次固有振動数");
+    const f = form([{ key: "L", label: "長さ L", type: "num", value: 500, unit: "mm" }, { key: "mat", label: "材料", type: "select", value: "0", options: matOptions }, ...SECTION_FIELDS], update);
+    body.appendChild(f.el);
+    function update() {
+      try {
+        const { props: s } = readSection(f);
+        const m = metals[Number(f.str("mat"))];
+        const fr = cantileverFrequency(m.E * 1000, s.I, s.A, m.rho, f.num("L"));
+        out.innerHTML = table([
+          ["1 次固有振動数 f₁ = (1.875² / 2π) √(EI / ρAL⁴)", `${fmt(fr)} Hz`],
+          ["長さを 2 倍にすると", `${fmt(fr / 4)} Hz (1/4)`],
+        ]);
+      } catch (e) {
+        out.innerHTML = err(e);
+      }
+    }
+    update();
+  },
+
+  thermal(host) {
+    const { body, out } = shell(host, "熱膨張と熱伝導");
+    const f = form(
+      [
+        { key: "mat", label: "材料", type: "select", value: "2", options: THERMAL.map((t, i) => [String(i), `${t.name} (α ${t.alpha}×10⁻⁶/K, λ ${t.k} W/mK)`]) },
+        { key: "L", label: "長さ L", type: "num", value: 500, unit: "mm" },
+        { key: "dT", label: "温度変化・温度差 ΔT", type: "num", value: 40, unit: "K" },
+        { key: "A", label: "伝熱面積 A", type: "num", value: 10000, unit: "mm²" },
+        { key: "t", label: "板厚 t", type: "num", value: 5, unit: "mm" },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      try {
+        const m = THERMAL[Number(f.str("mat"))];
+        const dL = m.alpha * 1e-6 * f.num("L") * f.num("dT");
+        out.innerHTML = table([
+          ["伸び ΔL = α · L · ΔT", `${fmt(dL * 1000)} µm (${fmt(dL)} mm)`],
+          ["板を通る熱流 Q = λ A ΔT / t", `${fmt(conduction(m.k, f.num("A"), f.num("t"), f.num("dT")))} W`],
+          ["熱抵抗 R = t / (λ A)", `${fmt(f.num("t") / 1000 / (m.k * f.num("A") * 1e-6))} K/W`],
+        ]);
+      } catch (e) {
+        out.innerHTML = err(e);
+      }
+    }
+    update();
+  },
+
+  cost(host) {
+    const { body, out } = shell(host, "部品単価の見積もり (切削 vs 樹脂成形)");
+    const f = form(
+      [
+        { key: "q", label: "生産数量", type: "num", value: 1000, step: 1 },
+        { key: "mc", label: "切削: 材料費", type: "num", value: 300, unit: "円/個" },
+        { key: "cy", label: "切削: 加工時間", type: "num", value: 12, unit: "分/個" },
+        { key: "rate", label: "切削: チャージ", type: "num", value: 6000, unit: "円/時" },
+        { key: "su", label: "切削: 段取り", type: "num", value: 90, unit: "分/ロット" },
+        { key: "lot", label: "ロット数", type: "num", value: 50, step: 1 },
+        { key: "die", label: "成形: 金型費", type: "num", value: 1500000, unit: "円" },
+        { key: "mp", label: "成形: 材料+成形費", type: "num", value: 60, unit: "円/個" },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      try {
+        const cut = (q: number) => unitCost({ material: f.num("mc"), setupMin: f.num("su"), cycleMin: f.num("cy"), rate: f.num("rate"), tooling: 0, lot: Math.max(1, Math.min(f.num("lot"), q)), quantity: q });
+        const mold = (q: number) => f.num("mp") + f.num("die") / q;
+        const q = Math.max(1, Math.round(f.num("q")));
+        const c = cut(q);
+        const qs = Array.from({ length: 60 }, (_, i) => Math.round(10 ** (1 + (i * 4) / 59)));
+        // exact break-even once the lot is full: die / q + mold part = cutting unit cost
+        const full = cut(Math.max(1, f.num("lot"))).total;
+        const exact = full > f.num("mp") ? f.num("die") / (full - f.num("mp")) : Infinity;
+        const be = exact >= f.num("lot") ? (Number.isFinite(exact) ? Math.ceil(exact) : undefined) : qs.find((x) => mold(x) < cut(x).total);
+        const cap = 3 * Math.max(cut(10).total, f.num("mp"));
+        out.innerHTML =
+          table([
+            ["切削の単価 (材料 + 加工 + 段取り)", `${fmt(c.total)} 円 = ${fmt(c.material)} + ${fmt(c.machining)} + ${fmt(c.setup)}`],
+            ["樹脂成形の単価 (材料・成形 + 金型償却)", `${fmt(mold(q))} 円`],
+            ["有利な工法", mold(q) < c.total ? "樹脂成形" : "切削", "good"],
+            ["損益分岐の数量 (目安)", be ? `約 ${fmt(be)} 個` : "この範囲では切削が有利"],
+          ]) +
+          lineChart(
+            [
+              { x: qs.map((x) => Math.log10(x)), y: qs.map((x) => Math.min(cut(x).total, cap)), color: "#b45309", label: "切削" },
+              { x: qs.map((x) => Math.log10(x)), y: qs.map((x) => Math.min(mold(x), cap)), color: "#0f766e", label: "成形" },
+            ],
+            { xLabel: "数量 (log₁₀: 1 = 10 個, 3 = 1000 個)", yLabel: "単価 [円]", height: 170 },
+          );
+      } catch (e) {
+        out.innerHTML = err(e);
+      }
+    }
+    update();
+  },
+};
+
 /** Schematic of the beam case (supports, load arrows). */
 function diagram(kind: BeamCase, aRatio: number): string {
   const x0 = 40, x1 = 520, y = 40;
@@ -599,6 +986,8 @@ function diagram(kind: BeamCase, aRatio: number): string {
   } else s += arrow(kind === "cantilever-point" ? x1 : ax);
   return s + "</svg>";
 }
+
+Object.assign(WIDGETS, MORE);
 
 export function mountWidgets(root: HTMLElement) {
   for (const el of root.querySelectorAll<HTMLElement>("[data-widget]")) {
