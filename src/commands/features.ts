@@ -19,6 +19,8 @@ import type {
   SplitFeature,
   RibFeature,
   FrameFeature,
+  CoilFeature,
+  EmbossFeature,
   WeldFeature,
   ThickenFeature,
   SheetFaceFeature,
@@ -804,10 +806,31 @@ class SweepCommand extends FeatureCommand<SweepFeature> {
     p.select(
       inp,
       "パス",
-      [{ value: "", label: "パスのスケッチを選択…" }, ...allSketches.map((s) => ({ value: s.id, label: s.name }))],
+      [{ value: "", label: "パスのスケッチを選択…" }, { value: "3d", label: "3D パス (座標を入力)" }, ...allSketches.map((s) => ({ value: s.id, label: s.name }))],
       this.feature.path,
-      (v) => this.update((f) => (f.path = v)),
+      (v) => {
+        this.update((f) => {
+          f.path = v;
+          if (v === "3d" && !f.bend) f.bend = app.store.addParam(app.store.doc, "0", "mm", f.id);
+        });
+        p3.style.display = v === "3d" ? "" : "none";
+        addBend();
+      },
     );
+    const pts = h("textarea", { class: "field-input", rows: "5", "data-k": "path3d", placeholder: "0, 0, 0\n0, 0, 100\n50, 0, 150" }, this.feature.points3d ?? "0, 0, 0\n0, 0, 100\n100, 0, 100\n100, 80, 160") as HTMLTextAreaElement;
+    if (!this.feature.points3d) this.update((f) => (f.points3d = pts.value));
+    pts.addEventListener("change", () => this.update((f) => (f.points3d = pts.value)));
+    const p3 = h("div", {}, h("label", { class: "field" }, h("span", { class: "field-label" }, "3D パスの点 (x, y, z)"), h("span", { class: "field-ctl" }, pts)));
+    inp.appendChild(p3);
+    const bendRow = h("div", {});
+    p3.appendChild(bendRow);
+    const addBend = () => {
+      if (!this.feature.bend) return;
+      bendRow.innerHTML = "";
+      p.expr(bendRow, "曲げ半径", this.expr(this.feature.bend), "mm", (e) => this.setParam(this.feature.bend!, e), this.feature.bend);
+    };
+    addBend();
+    if (this.feature.path !== "3d") p3.style.display = "none";
     p.note(inp, "パスは線分・円弧をつなげた 1 本の曲線です (別のスケッチに作成し、プロファイルと交差させます)。");
     const out = p.section("出力");
     p.toggles(out, "ブール演算", OPS, this.feature.op, (v) => this.update((x) => (x.op = v as BoolOp)));
@@ -941,6 +964,80 @@ class ChamferCommand extends TopoCommand<ChamferFeature> {
     setTimeout(() => d.input.focus(), 50);
     this.setup();
     app.status("面取りするエッジを選択");
+  }
+}
+
+class CoilCommand extends FeatureCommand<CoilFeature> {
+  readonly id = "coil";
+  constructor(app: App, existing: CoilFeature | null) {
+    const sketches = profileSketches(app);
+    const pre = [...app.browserSelection].find((id) => sketches.some((s) => s.id === id)) ?? sketches.at(-1)?.id ?? "";
+    const axisOf = (id: string) => app.store.feature<SketchFeature>(id)?.entities.find((e) => e.type === "line" && e.construction)?.id ?? "Y";
+    super(app, existing, () => {
+      const id = uid("co");
+      const P = (e: string, u: "mm" | "ul" = "mm") => app.store.addParam(app.store.doc, e, u, id);
+      return { id, type: "coil", name: app.store.nextFeatureName("coil"), sketch: pre, profiles: [], axis: pre ? axisOf(pre) : "Y", pitch: P("10"), turns: P("5", "ul"), leftHand: false, op: app.hasBodies() ? "join" : "new" };
+    });
+    const f = this.feature;
+    this.openPanel(this.editing ? `コイル: ${f.name}` : "コイル", "coil", true);
+    const p = this.panel;
+    const inp = p.section("入力ジオメトリ");
+    let axisSel: HTMLSelectElement;
+    const axisOptions = () => {
+      const sk = app.store.feature<SketchFeature>(this.feature.sketch);
+      const lines = sk?.entities.filter((e) => e.type === "line") ?? [];
+      return [{ value: "X", label: "スケッチ X 軸" }, { value: "Y", label: "スケッチ Y 軸" }, ...lines.map((l, i) => ({ value: l.id, label: `${l.construction ? "中心線" : "線分"} ${i + 1}` }))];
+    };
+    p.select(inp, "スケッチ", sketches.map((s) => ({ value: s.id, label: s.name })), f.sketch, (v) => {
+      this.update((x) => ((x.sketch = v), (x.axis = axisOf(v))));
+      axisSel.innerHTML = "";
+      for (const o of axisOptions()) axisSel.appendChild(h("option", { value: o.value, selected: o.value === this.feature.axis }, o.label));
+    });
+    axisSel = p.select(inp, "軸", axisOptions(), f.axis, (v) => this.update((x) => (x.axis = v)));
+    p.note(inp, "スケッチの閉じたプロファイル (円など) を、軸の周りにらせん状に掃引します。軸は中心線を 1 本引いておくと自動で選ばれます。");
+    const sh = p.section("コイル");
+    p.expr(sh, "ピッチ", this.expr(f.pitch), "mm", (e) => this.setParam(this.feature.pitch, e), f.pitch);
+    p.expr(sh, "回転数", this.expr(f.turns), "", (e) => this.setParam(this.feature.turns, e), f.turns);
+    p.checkbox(sh, "左巻き", f.leftHand, (v) => this.update((x) => (x.leftHand = v)));
+    p.select(sh, "操作", [{ value: "new", label: "新規ソリッド" }, { value: "join", label: "接合" }, { value: "cut", label: "切り取り (ねじ溝など)" }], f.op, (v) => this.update((x) => (x.op = v as BoolOp)));
+    app.status("コイルのプロファイル・軸・ピッチを指定");
+  }
+  captureBefore() {
+    return this.featureId;
+  }
+}
+
+class EmbossCommand extends FeatureCommand<EmbossFeature> {
+  readonly id = "emboss";
+  constructor(app: App, existing: EmbossFeature | null) {
+    const sketches = app.store.doc.features.filter((x): x is SketchFeature => x.type === "sketch");
+    const pre = [...app.browserSelection].find((id) => sketches.some((s) => s.id === id)) ?? sketches.at(-1)?.id ?? "";
+    const pt = app.store.feature<SketchFeature>(pre)?.entities.find((e): e is SkPoint => e.type === "point" && !e.ref);
+    super(app, existing, () => {
+      const id = uid("em");
+      const P = (e: string, u: "mm" | "deg" = "mm") => app.store.addParam(app.store.doc, e, u, id);
+      return { id, type: "emboss", name: app.store.nextFeatureName("emboss"), sketch: pre, text: "TEXT", x: P(formatNumber(pt?.x ?? 0, 3)), y: P(formatNumber(pt?.y ?? 0, 3)), size: P("10"), depth: P("1"), angle: P("0", "deg"), op: "cut" };
+    });
+    const f = this.feature;
+    this.openPanel(this.editing ? `文字: ${f.name}` : "文字 (エンボス / 刻印)", "emboss", true);
+    const p = this.panel;
+    const s = p.section("文字");
+    p.select(s, "スケッチ (配置面)", sketches.map((k) => ({ value: k.id, label: k.name })), f.sketch, (v) => this.update((x) => (x.sketch = v)));
+    const ti = h("textarea", { class: "field-input", rows: "2", "data-k": "emboss-text" }, f.text) as HTMLTextAreaElement;
+    ti.addEventListener("input", () => this.update((x) => (x.text = ti.value)));
+    s.appendChild(h("label", { class: "field" }, h("span", { class: "field-label" }, "文字列"), h("span", { class: "field-ctl" }, ti)));
+    p.expr(s, "位置 X", this.expr(f.x), "mm", (e) => this.setParam(this.feature.x, e), f.x);
+    p.expr(s, "位置 Y", this.expr(f.y), "mm", (e) => this.setParam(this.feature.y, e), f.y);
+    p.expr(s, "文字の高さ", this.expr(f.size), "mm", (e) => this.setParam(this.feature.size, e), f.size);
+    p.expr(s, "回転", this.expr(f.angle), "deg", (e) => this.setParam(this.feature.angle, e), f.angle);
+    const o = p.section("形状");
+    p.expr(o, "深さ / 高さ", this.expr(f.depth), "mm", (e) => this.setParam(this.feature.depth, e), f.depth);
+    p.select(o, "種類", [{ value: "cut", label: "刻印 (彫り込み)" }, { value: "join", label: "エンボス (浮き出し)" }], f.op, (v) => this.update((x) => (x.op = v as "join" | "cut")));
+    p.note(o, "スケッチ平面上の位置 (文字の左下) に、日本語を含む文字を IPA P ゴシック体で作成します。");
+    app.status("文字列と位置を入力");
+  }
+  captureBefore() {
+    return this.featureId;
   }
 }
 
@@ -2095,6 +2192,8 @@ export function buildCommands(app: App): CommandRegistry {
     split: { id: "split", label: "分割", icon: "split" },
     rib: { id: "rib", label: "リブ", icon: "rib" },
     frame: { id: "frame", label: "フレーム", icon: "frame" },
+    coil: { id: "coil", label: "コイル", icon: "coil" },
+    emboss: { id: "emboss", label: "文字", icon: "emboss" },
     weld: { id: "weld", label: "溶接", icon: "weld" },
     thicken: { id: "thicken", label: "厚み付け", icon: "thicken" },
     sheetFace: { id: "sheetFace", label: "面 (板金)", icon: "smFace" },
@@ -2145,6 +2244,10 @@ export function buildCommands(app: App): CommandRegistry {
         return new RibCommand(app, f as RibFeature | null);
       case "frame":
         return new FrameCommand(app, f as FrameFeature | null);
+      case "coil":
+        return new CoilCommand(app, f as CoilFeature | null);
+      case "emboss":
+        return new EmbossCommand(app, f as EmbossFeature | null);
       case "weld":
         return new WeldCommand(app, f as WeldFeature | null);
       case "thicken":
@@ -2179,7 +2282,7 @@ export function buildCommands(app: App): CommandRegistry {
     }
     return null;
   };
-  const needsProfile = new Set(["extrude", "revolve", "loft", "sweep", "sheetFace"]);
+  const needsProfile = new Set(["extrude", "revolve", "loft", "sweep", "sheetFace", "coil"]);
   const needsBody = new Set(["draft", "split", "rib", "thicken", "stress", "fillet", "chamfer", "shell", "hole", "move", "pushpull", "thread", "flange", "weld", "printcheck"]);
   return {
     get: (id) => info[id],

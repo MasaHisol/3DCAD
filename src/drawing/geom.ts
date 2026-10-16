@@ -48,8 +48,36 @@ export function viewSpec(v: DView, parent?: DView): ViewSpec {
   const spec: ViewSpec = { dir: v.dir, xAxis: v.xAxis, hidden: v.hidden };
   if (v.kind === "section" && v.section && parent) {
     spec.section = { origin: viewTo3d(parent, v.section.a), normal: v.dir };
+    if (v.section.steps?.length) {
+      const { a, b } = v.section;
+      const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+      spec.section.along = norm(add(mul(norm(parent.xAxis), (b[0] - a[0]) / l), mul(yAxisOf(parent), (b[1] - a[1]) / l)));
+      // deeper = away from the viewer (against the section view direction)
+      spec.section.steps = v.section.steps.map((s) => ({ at: s.at, offset: -s.offset }));
+    }
   }
   return spec;
+}
+
+/** Cutting line of a (possibly stepped) section in parent view coordinates. */
+export function cuttingLine(parent: DView, sec: NonNullable<DView["section"]>, dir: Vec3): Vec2[] {
+  const { a, b } = sec;
+  const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+  const u: Vec2 = [(b[0] - a[0]) / l, (b[1] - a[1]) / l];
+  // section viewing direction in the parent view plane; "deeper" is against it
+  const n3 = norm(dir);
+  const x = norm(parent.xAxis), y = yAxisOf(parent);
+  const nd: Vec2 = [-(n3[0] * x[0] + n3[1] * x[1] + n3[2] * x[2]), -(n3[0] * y[0] + n3[1] * y[1] + n3[2] * y[2])];
+  const pts: Vec2[] = [a];
+  let off = 0;
+  for (const s of [...(sec.steps ?? [])].sort((p, q) => p.at - q.at)) {
+    const base: Vec2 = [a[0] + u[0] * s.at, a[1] + u[1] * s.at];
+    pts.push([base[0] + nd[0] * off, base[1] + nd[1] * off]);
+    off = s.offset;
+    pts.push([base[0] + nd[0] * off, base[1] + nd[1] * off]);
+  }
+  pts.push([b[0] + nd[0] * off, b[1] + nd[1] * off]);
+  return pts;
 }
 
 /** Section frame: looks perpendicular to the cutting line, horizontal along it. */

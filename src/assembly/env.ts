@@ -15,6 +15,7 @@ import type { Pick, ToolHandler } from "../viewer/viewport";
 import { StressCommand } from "../analysis/ui";
 import { analyzeDof, explodeOffsets, type DofReport } from "./motion";
 import { startDrive, startExplode } from "./motionUi";
+import { patternMatrices, type AsmPattern } from "./pattern";
 import { constraintError, solveAssembly, type SolverConstraint } from "./solver";
 import { IDENTITY, newAssembly, type AsmComponent, type AsmConstraint, type AsmConstraintType, type AssemblyDocument, type GeoRef } from "./types";
 
@@ -190,8 +191,15 @@ export class AssemblyEnv {
   solve() {
     const doc = this.doc;
     const mats = new Map(doc.components.map((c) => [c.id, m4(c.matrix)]));
-    const fixed = new Set(doc.components.filter((c) => c.grounded).map((c) => c.id));
+    const fixed = new Set(doc.components.filter((c) => c.grounded || c.patternOf).map((c) => c.id));
     const rep = solveAssembly(mats, fixed, this.solverConstraints());
+    // pattern instances follow their (solved) source
+    for (const pt of doc.patterns ?? []) {
+      const src = mats.get(pt.source);
+      if (!src) continue;
+      const ms = patternMatrices(pt, src.toArray());
+      for (const c of doc.components) if (c.patternOf?.pattern === pt.id && ms[c.patternOf.index]) mats.set(c.id, m4(ms[c.patternOf.index]));
+    }
     this.solveError = rep.ok ? 0 : rep.error;
     let changed = false;
     const next = doc.components.map((c) => {
@@ -201,7 +209,7 @@ export class AssemblyEnv {
     });
     if (changed) this.store.patch((d) => (d.components = next), "solve");
     try {
-      this.dof = analyzeDof(this.doc.components, this.solverConstraints());
+      this.dof = analyzeDof(this.doc.components.map((c) => ({ ...c, grounded: c.grounded || !!c.patternOf })), this.solverConstraints());
     } catch {
       this.dof = null;
     }
@@ -626,6 +634,9 @@ export class AssemblyEnv {
     const comps = this.doc.components.filter((c) => ids.has(c.id));
     if (comps.length && !(await confirmDialog("削除", `${comps.length} 個のコンポーネントと関連する拘束を削除します。`, "削除"))) return;
     this.store.mutate("削除", (d) => {
+      // deleting a pattern source removes the pattern and its instances
+      for (const pt of d.patterns ?? []) if (ids.has(pt.source)) for (const c of d.components) if (c.patternOf?.pattern === pt.id) ids.add(c.id);
+      d.patterns = (d.patterns ?? []).filter((pt) => !ids.has(pt.source));
       d.components = d.components.filter((c) => !ids.has(c.id));
       d.constraints = d.constraints.filter((c) => !ids.has(c.id) && !ids.has(c.a.comp) && !ids.has(c.b.comp));
       const used = new Set(d.components.map((c) => c.partId));
@@ -633,6 +644,73 @@ export class AssemblyEnv {
       if (d.components.length && !d.components.some((c) => c.grounded)) d.components[0].grounded = true;
     });
     this.select([]);
+  }
+
+  /** Component pattern (rectangular / circular) of the selected component. */
+  patternDialog(existing?: AsmPattern) {
+    const src = existing ? this.doc.components.find((c) => c.id === existing.source) : this.doc.components.find((c) => this.selected.has(c.id) && !c.patternOf);
+    if (!src) return void toast("パターン化するコンポーネントを選択してください", "warn");
+    const AX: Record<string, Vec3> = { X: [1, 0, 0], Y: [0, 1, 0], Z: [0, 0, 1] };
+    const axName = (v?: Vec3) => (v ? (Object.keys(AX).find((k) => AX[k].every((x, i) => Math.abs(x - v[i]) < 1e-9)) ?? "X") : "X");
+    const p: AsmPattern = existing ? JSON.parse(JSON.stringify(existing)) : { id: uid("pt"), name: `パターン${(this.doc.patterns?.length ?? 0) + 1}`, source: src.id, kind: "rect", dir1: [1, 0, 0], count1: 3, spacing1: 30, dir2: [0, 1, 0], count2: 1, spacing2: 30, axisPoint: [0, 0, 0], axisDir: [0, 0, 1], count: 6, angle: 360 };
+    const sel = (opts: [string, string][], v: string, on: (v: string) => void) => {
+      const s = h("select", { class: "field-input" }, ...opts.map(([k, l]) => h("option", { value: k, selected: k === v }, l)));
+      s.addEventListener("change", () => on(s.value));
+      return s;
+    };
+    const num = (v: number, on: (v: number) => void) => {
+      const i = h("input", { class: "field-input", value: String(v) });
+      i.addEventListener("change", () => on(Number(i.value)));
+      return i;
+    };
+    const row = (label: string, el: HTMLElement) => h("label", { class: "field" }, h("span", {}, label), el);
+    const axes: [string, string][] = [["X", "X 軸方向"], ["Y", "Y 軸方向"], ["Z", "Z 軸方向"]];
+    const rect = h("div", {}, row("方向 1", sel(axes, axName(p.dir1), (v) => (p.dir1 = AX[v]))), row("個数 1", num(p.count1, (v) => (p.count1 = v))), row("間隔 1 (mm)", num(p.spacing1, (v) => (p.spacing1 = v))), row("方向 2", sel(axes, axName(p.dir2), (v) => (p.dir2 = AX[v]))), row("個数 2", num(p.count2 ?? 1, (v) => (p.count2 = v))), row("間隔 2 (mm)", num(p.spacing2 ?? 0, (v) => (p.spacing2 = v))));
+    const ctr = this.compBox(src).center;
+    const circ = h(
+      "div",
+      {},
+      row("回転軸", sel(axes, axName(p.axisDir), (v) => (p.axisDir = AX[v]))),
+      row("軸の通過点 X, Y, Z", (() => {
+        const i = h("input", { class: "field-input", value: (p.axisPoint ?? [0, 0, 0]).map((x) => formatNumber(x, 3)).join(", ") });
+        i.addEventListener("change", () => (p.axisPoint = i.value.split(/[,\s]+/).map(Number).slice(0, 3) as Vec3));
+        return i;
+      })()),
+      row("個数", num(p.count ?? 6, (v) => (p.count = v))),
+      row("角度 (360 = 全周)", num(p.angle ?? 360, (v) => (p.angle = v))),
+      h("p", { class: "muted" }, `元のコンポーネントの中心: ${ctr.map((x) => formatNumber(x, 1)).join(", ")}`),
+    );
+    const show = () => {
+      rect.style.display = p.kind === "rect" ? "" : "none";
+      circ.style.display = p.kind === "circ" ? "" : "none";
+    };
+    const body = h("div", { class: "form-grid" }, row("種類", sel([["rect", "矩形状"], ["circ", "円形状"]], p.kind, (v) => ((p.kind = v as "rect" | "circ"), show()))), rect, circ, h("p", { class: "muted" }, `元: ${src.name}。コピーは元のコンポーネントに追従します (元を動かす・拘束すると全体が移動)。`));
+    show();
+    modal({
+      title: existing ? `パターンを編集: ${p.name}` : "コンポーネント パターン",
+      icon: "rectPattern",
+      body,
+      buttons: [
+        { label: "キャンセル" },
+        {
+          label: "OK",
+          primary: true,
+          onClick: () => {
+            const ms = patternMatrices(p, src.matrix);
+            if (!ms.length) return void toast("個数を 2 以上にしてください", "warn");
+            if (ms.length > 500) return void toast("コピーが多すぎます (500 個まで)", "warn");
+            this.store.mutate(existing ? "パターンを編集" : "コンポーネント パターン", (d) => {
+              d.patterns = [...(d.patterns ?? []).filter((x) => x.id !== p.id), p];
+              d.components = d.components.filter((c) => c.patternOf?.pattern !== p.id);
+              ms.forEach((m, i) => d.components.push({ id: uid("c"), name: `${src.name}:${i + 2}`, partId: src.partId, matrix: m, grounded: false, patternOf: { pattern: p.id, index: i } }));
+            });
+            this.solve();
+            this.render();
+            toast(`${ms.length} 個のコピーを配置しました`, "ok");
+          },
+        },
+      ],
+    });
   }
 
   // -------------------------------------------------------------- place ---
@@ -847,6 +925,7 @@ export class AssemblyEnv {
               },
             },
             { id: "asm-create", label: "作成", icon: "new", tip: "新しいパーツを作成し、アセンブリ内で編集します。", action: () => this.createPart() },
+            { id: "asm-pattern", label: "パターン", icon: "rectPattern", tip: "選択したコンポーネントを矩形状 / 円形状に並べます (元に追従)。", action: () => this.patternDialog() },
             { id: "asm-library", label: "標準部品", icon: "library", tip: "ボルト・ナット・座金・ピン・軸受を規格寸法で配置します (コンテンツ センター)。", action: () => openLibrary(this.app) },
           ],
         },

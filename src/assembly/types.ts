@@ -19,6 +19,8 @@ export interface AsmComponent {
   matrix: number[];
   grounded: boolean;
   visible?: boolean;
+  /** Instance of a component pattern (placed from the pattern's source). */
+  patternOf?: { pattern: string; index: number };
 }
 
 export type AsmGeom = "plane" | "axis";
@@ -57,6 +59,8 @@ export interface AssemblyDocument {
   parts: AsmPart[];
   components: AsmComponent[];
   constraints: AsmConstraint[];
+  /** Component patterns. */
+  patterns?: import("./pattern").AsmPattern[];
   params: Parameter[];
   iprops: Record<string, string>;
   drawing?: import("../drawing/types").DrawingDoc;

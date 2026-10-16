@@ -472,6 +472,27 @@ function holeThreads(f: Extract<RFeature, { type: "hole" }>, spec: ThreadSpec, b
   return out;
 }
 
+let fontReady: Promise<unknown> | null = null;
+/** Japanese-capable outline font (IPA P Gothic) for embossed text. */
+function ensureFont() {
+  fontReady ??= (async () => {
+    const url = new URL("../assets/fonts/ipagp.ttf", import.meta.url);
+    let buf: ArrayBuffer;
+    try {
+      buf = await (await fetch(url)).arrayBuffer();
+    } catch {
+      // node (tests): read the file directly
+      const fsName = "node:fs", urlName = "node:url";
+      const fs = await import(/* @vite-ignore */ fsName);
+      const { fileURLToPath } = await import(/* @vite-ignore */ urlName);
+      const b: Uint8Array = fs.readFileSync(fileURLToPath(url));
+      buf = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer;
+    }
+    return R.loadFont(buf, "ipa");
+  })();
+  return fontReady;
+}
+
 async function evalShape(f: RFeature, st: State, entry: CacheEntry): Promise<State> {
   const bodies = st.bodies;
   const tools = new Map(st.tools);
@@ -706,6 +727,59 @@ async function evalShape(f: RFeature, st: State, entry: CacheEntry): Promise<Sta
       });
       if (out.length === bodies.length) throw new Error("フレーム部材を作成できませんでした");
       return { bodies: out, tools };
+    }
+    case "emboss": {
+      if (!f.text.trim()) throw new Error("文字を入力してください");
+      if (!(f.size > 0) || !(f.depth > 0)) throw new Error("文字の高さと深さは正の値にしてください");
+      await ensureFont();
+      const n = normalize(f.plane.normal);
+      const yv = cross(n, f.plane.xDir);
+      const a = (f.angle * Math.PI) / 180;
+      const xr = add(scale(f.plane.xDir, Math.cos(a)), scale(yv, Math.sin(a)));
+      // engrave: start inside the material; emboss: start on the face
+      const origin = add(planePoint(f.plane, f.pos), scale(n, f.op === "cut" ? -f.depth : 0));
+      const drawing = R.drawText(f.text, { startX: 0, startY: 0, fontSize: f.size, fontFamily: "ipa" });
+      const tool = drawing.sketchOnPlane(new R.Plane(origin, xr, n)).extrude(f.depth) as Shape;
+      tools.set(f.id, { shape: tool, op: f.op });
+      return { bodies: applyOp(bodies, tool, f.op), tools };
+    }
+    case "coil": {
+      if (!(f.pitch > 0) || !(f.turns > 0)) throw new Error("ピッチと回転数は正の値にしてください");
+      if (!f.regions.length) throw new Error("プロファイルが選択されていません");
+      const O = planePoint(f.plane, f.axisOrigin);
+      const yv = cross(f.plane.normal, f.plane.xDir);
+      const d = normalize(add(scale(f.plane.xDir, f.axisDir[0]), scale(yv, f.axisDir[1])));
+      // helix through the profile centre, around the axis
+      const outer = f.regions[0].outer;
+      const pts2 = outer.flatMap((s) => (s.t === "circle" ? [s.c] : [s.a]));
+      const c2: Vec2 = [pts2.reduce((s, p) => s + p[0], 0) / pts2.length, pts2.reduce((s, p) => s + p[1], 0) / pts2.length];
+      const C = planePoint(f.plane, c2);
+      const rel = sub(C, O);
+      const along0 = dot(rel, d);
+      const rv = sub(rel, scale(d, along0));
+      const r = Math.hypot(...rv);
+      if (r < 1e-6) throw new Error("プロファイルが軸上にあります (軸から離して配置してください)");
+      const u = scale(rv, 1 / r), w = scale(cross(d, u), f.leftHand ? -1 : 1);
+      const n = Math.max(24, Math.ceil(f.turns * 48));
+      const total = 2 * Math.PI * f.turns;
+      const helixPts: Vec3[] = [];
+      for (let i = 0; i <= n; i++) {
+        const t = (total * i) / n;
+        helixPts.push(add(add(O, scale(d, along0 + (f.pitch * t) / (2 * Math.PI))), add(scale(u, r * Math.cos(t)), scale(w, r * Math.sin(t)))));
+      }
+      const spine = R.assembleWire([R.makeBSplineApproximation(helixPts, { tolerance: 1e-4, degMax: 5, smoothing: null } as never)]);
+      const sweepLoop = (segs: LoopSeg[]) => {
+        const sk = loopDrawing(segs).sketchOnPlane(toPlane(f.plane)) as R.Sketch;
+        return R.genericSweep(sk.wire, spine, { frenet: true, transitionMode: "right" }, false);
+      };
+      const parts = f.regions.map((reg) => {
+        let solid = sweepLoop(reg.outer);
+        for (const hl of reg.holes) solid = solid.cut(sweepLoop(hl));
+        return solid;
+      });
+      const tool = fuseAll(parts);
+      tools.set(f.id, { shape: tool, op: f.op });
+      return { bodies: applyOp(bodies, tool, f.op), tools };
     }
     case "weld": {
       const { perBody, updated } = resolveEdges(bodies, f.edges, diag);
@@ -1134,14 +1208,32 @@ export function drawView(items: { shape: Shape; tag: number }[], v: ViewSpec, th
     const n = normalize(v.section.normal);
     const plane = new R.Plane(v.section.origin, perp(n), n);
     shapes = [];
+    // stepped section: remove the material in front of each plane segment
+    const steps = v.section.steps?.length && v.section.along ? [...v.section.steps].sort((a, b) => a.at - b.at) : null;
+    const offsets = [0, ...(steps ?? []).map((s) => s.offset)];
+    let stepTool: Shape | null = null;
+    if (steps) {
+      const along = normalize(v.section.along!);
+      const big = 1e5;
+      const bounds = [-big, ...steps.map((s) => s.at), big];
+      const boxes: Shape[] = [];
+      for (let k = 0; k < offsets.length; k++) {
+        const lo = bounds[k], hi = bounds[k + 1];
+        if (hi - lo < 1e-9) continue;
+        const o = add(add(v.section.origin, scale(along, (lo + hi) / 2)), scale(n, offsets[k]));
+        boxes.push(R.drawRectangle(hi - lo, 2 * big).sketchOnPlane(new R.Plane(o, along, n)).extrude(big) as Shape);
+      }
+      stepTool = fuseAll(boxes);
+    }
     for (const it of items) {
-      const cut = it.shape.cutPlane(plane, 0, "negative");
+      const cut = stepTool ? it.shape.cut(stepTool) : it.shape.cutPlane(plane, 0, "negative");
       if (!cut || isEmpty(cut as Shape)) continue;
       shapes.push({ shape: cut as Shape, tag: it.tag });
       for (const f of (cut as Shape).faces) {
         if (String(f.geomType) !== "PLANE") continue;
         const fn = normalize(tuple(f.normalAt(f.center)));
-        if (dot(fn, n) < 0.999 || Math.abs(dot(sub(tuple(f.center), v.section.origin), n)) > 1e-5) continue;
+        const dn = dot(sub(tuple(f.center), v.section.origin), n);
+        if (dot(fn, n) < 0.999 || !offsets.some((o) => Math.abs(dn - o) < 1e-5)) continue;
         const ring = (w: R.Wire): P2[] => {
           const pts: P2[] = [];
           for (const e of w.edges) {

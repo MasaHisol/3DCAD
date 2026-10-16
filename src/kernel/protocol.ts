@@ -76,6 +76,19 @@ export type RFeature =
       miter: boolean;
       rotate: number;
     }
+  | {
+      id: string;
+      type: "coil";
+      plane: PlaneDef;
+      regions: RRegion[];
+      axisOrigin: Vec2;
+      axisDir: Vec2;
+      pitch: number;
+      turns: number;
+      leftHand: boolean;
+      op: BoolOp;
+    }
+  | { id: string; type: "emboss"; plane: PlaneDef; text: string; pos: Vec2; size: number; depth: number; angle: number; op: "join" | "cut" }
   | { id: string; type: "weld"; edges: EdgeRef[]; size: number }
   | { id: string; type: "rib"; plane: PlaneDef; segs: [Vec2, Vec2][]; thickness: number; flip: boolean }
   | { id: string; type: "thicken"; faces: FaceRef[]; distance: number; flip: boolean; op: BoolOp }
@@ -209,7 +222,13 @@ export interface ViewSpec {
   dir: Vec3;
   xAxis: Vec3;
   /** Section: keep the material behind the plane (opposite `normal`), hatch the cut faces. */
-  section?: { origin: Vec3; normal: Vec3 };
+  section?: {
+    origin: Vec3;
+    normal: Vec3;
+    /** Stepped (offset) section: cutting-line direction and plane offsets from `at` (mm along it) onwards. */
+    along?: Vec3;
+    steps?: { at: number; offset: number }[];
+  };
   hidden?: boolean;
 }
 

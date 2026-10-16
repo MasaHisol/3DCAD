@@ -61,6 +61,7 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
               stack: [
                 cmd("loft", "ロフト", "loft", undefined, "複数の断面スケッチの間を滑らかにつないだソリッドを作成します。", "small"),
                 cmd("sweep", "スイープ", "sweep", undefined, "プロファイルをパスに沿って掃引してソリッドを作成します。", "small"),
+                cmd("coil", "コイル", "coil", undefined, "プロファイルを軸の周りにらせん状に掃引します (ばね・ねじ山)。", "small"),
                 cmd("torus", "トーラス", "torus", undefined, "トーラス プリミティブを配置します。", "small"),
               ],
             },
@@ -85,6 +86,7 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
         {
           title: "形状編集",
           items: [
+            cmd("emboss", "文字", "emboss", undefined, "スケッチ平面に文字 (日本語可) を刻印 / エンボスします。"),
             cmd("rib", "リブ", "rib", undefined, "スケッチした線分とボディの間を埋める補強リブを作成します。"),
             {
               stack: [

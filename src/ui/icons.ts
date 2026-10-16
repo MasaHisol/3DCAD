@@ -60,6 +60,8 @@ export const ICONS: Record<string, string> = {
   split: I(`<path class="a" d="M4 6h7v12H4z"/><path d="M13 6h7v12h-7z"/><path class="b" d="M12 2v20" stroke-width="1.6" stroke-dasharray="2.5 1.5"/>`),
   cam: I(`<path class="a" d="M9 2h6v9l-3 4-3-4z"/><path class="b" d="M3 19c3-3 6 2 9-1s6 2 9-1"/>`),
   printcheck: I(`<path class="a" d="M4 3h16v5H4z"/><path class="b" d="M11 8h2v3h-2zM6 20h12v-2l-3-5H9l-3 5z"/>`),
+  emboss: I(`<path class="a" d="M3 16h18v4H3z"/><path class="b" d="M6 15l4-10h2l4 10h-2.5l-1-2.6h-3L8.5 15zM10.3 10.4h1.9L11.2 7.6z"/>`),
+  coil: I(`<path class="a" d="M6 5c8-2 12 1 12 2s-12 3-12 4 12 3 12 4-12 3-12 4 4 3 12 1" fill="none" stroke="currentColor" stroke-width="2"/>`),
   frame: I(`<path class="a" d="M3 4h18v3H3zM4 7h3v13H4zM17 7h3v13h-3z"/>`),
   weld: I(`<path class="a" d="M3 20h18v-3H3zM10 4h4v13h-4z"/><path class="b" d="M14 17l4 0-4-4zM10 17l-4 0 4-4z"/>`),
   rib: I(`<path class="a" d="M4 20V4h4v12h12v4z"/><path class="b" d="M8 8l8 8H8z"/>`),

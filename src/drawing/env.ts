@@ -19,6 +19,7 @@ import {
   sheetSize,
   type Anno,
   type DimAnno,
+  type WeldAnno,
   type DimKind,
   type DrawingDoc,
   type DView,
@@ -44,6 +45,7 @@ type Tool =
   | "gdt"
   | "datum"
   | "balloon"
+  | "weld"
   | "centerline";
 
 const PROMPTS: Record<Tool, string> = {
@@ -60,6 +62,7 @@ const PROMPTS: Record<Tool, string> = {
   gdt: "幾何公差の引出し先 (エッジ) をクリックし、枠の位置をクリック",
   datum: "データムを付けるエッジをクリックし、記号の位置をクリック",
   balloon: "部品のエッジをクリックし、風船の位置をクリック",
+  weld: "溶接する箇所 (エッジ) をクリックし、基線の位置をクリック",
   centerline: "中心線を引く 2 本の線分 (または 2 つの円) をクリック",
 };
 
@@ -902,7 +905,7 @@ export class DrawingEnv {
     let pv: string | null = null;
     const t = this.tool;
     const mark = (q: Vec2, color = "#f97316") => `<circle cx="${q[0]}" cy="${q[1]}" r="${1.4}" fill="${color}" stroke="none"/>`;
-    if (["dim", "hole", "leader", "surface", "gdt", "datum", "balloon", "centerline", "section", "detail"].includes(t)) {
+    if (["dim", "hole", "leader", "surface", "gdt", "datum", "balloon", "weld", "centerline", "section", "detail"].includes(t)) {
       const view = this.picks.view ? this.sheet.views.find((v) => v.id === this.picks.view) : undefined;
       const s = this.snap(e, view);
       if (s) {
@@ -1058,6 +1061,7 @@ export class DrawingEnv {
       case "gdt":
       case "surface":
       case "datum":
+      case "weld":
       case "balloon": {
         if (!this.picks.refs.length) {
           const s = this.snap(e);
@@ -1098,6 +1102,9 @@ export class DrawingEnv {
           let L = "A";
           for (let i = 0; i < 26 && used.has(L); i++) L = String.fromCharCode(65 + i + 1);
           this.mutate("データム", (d) => d.sheets[this.activeSheet].annos.push({ id: uid("a"), type: "datum", view: v.id, p: target, pos: toView(v, p), letter: L }));
+        } else if (t === "weld") {
+          const w = await weldDialog();
+          if (w) this.mutate("溶接記号", (d) => d.sheets[this.activeSheet].annos.push({ id: uid("a"), type: "weld", view: v.id, p: target, pos: toView(v, p), ...w }));
         } else if (t === "balloon") {
           const tag = this.picks.pts[0][0];
           this.mutate("風船", (d) => d.sheets[this.activeSheet].annos.push({ id: uid("a"), type: "balloon", view: v.id, p: target, pos: toView(v, p), tag }));
@@ -1234,6 +1241,7 @@ export class DrawingEnv {
     const label = h("input", { class: "field-input", value: v.label });
     const hidden = h("input", { type: "checkbox", checked: v.hidden });
     const cm = h("input", { type: "checkbox", checked: v.centerMarks });
+    const steps = h("textarea", { class: "field-input", rows: "3", "data-k": "section-steps" }, (v.section?.steps ?? []).map((s) => `${s.at}, ${s.offset}`).join("\n")) as HTMLTextAreaElement;
     const body = h(
       "div",
       { class: "settings" },
@@ -1242,6 +1250,8 @@ export class DrawingEnv {
       h("label", { class: "field check" }, hidden, h("span", {}, "隠れ線を表示")),
       h("label", { class: "field check" }, cm, h("span", {}, "中心マークを表示")),
       v.kind === "section" ? h("p", { class: "muted" }, "断面の向きを反転するには、ビューを削除して反対側に配置し直してください。") : null,
+      v.kind === "section" ? h("label", { class: "field" }, h("span", { class: "field-label" }, "階段断面 (位置, 奥行き)"), h("span", { class: "field-ctl" }, steps)) : null,
+      v.kind === "section" ? h("p", { class: "muted" }, "1 行に「切断線の始点からの距離, 奥へのずらし量」(mm) を入力すると、その位置から切断面が段違いになります。例: 40, 15") : null,
     );
     modal({
       title: "ビューを編集",
@@ -1269,6 +1279,15 @@ export class DrawingEnv {
               vv.label = label.value;
               vv.hidden = hidden.checked;
               vv.centerMarks = cm.checked;
+              if (vv.section) {
+                const st = steps.value
+                  .split("\n")
+                  .map((l) => l.split(/[,\s]+/).filter(Boolean).map(Number))
+                  .filter((x) => x.length === 2 && x.every(Number.isFinite))
+                  .map(([at, offset]) => ({ at, offset }));
+                if (st.length) vv.section.steps = st;
+                else delete vv.section.steps;
+              }
               for (const c of sh.views) if (c.parent === vv.id) this.align(sh, c);
             });
             void this.refresh();
@@ -1293,6 +1312,8 @@ export class DrawingEnv {
       void gdtDialog(a).then((r) => r && this.mutate("幾何公差", (d) => Object.assign(d.sheets[this.activeSheet].annos.find((x) => x.id === a.id)!, r)));
       return;
     }
+    if (a.type === "weld")
+      void weldDialog(a).then((w) => w && this.mutate("溶接記号", (d) => Object.assign(d.sheets[this.activeSheet].annos.find((x) => x.id === a.id)!, w)));
     if (a.type === "datum") {
       void promptDialog("データム", "記号", a.letter).then((t) => t && this.mutate("データム", (d) => ((d.sheets[this.activeSheet].annos.find((x) => x.id === a.id) as typeof a).letter = t.toUpperCase())));
     }
@@ -1611,6 +1632,7 @@ export class DrawingEnv {
           items: [
             { stack: [t("note", "テキスト", "edit", "テキスト注記を配置します。", "small"), t("leader", "引出線注記", "edit", "引出線付きの注記を配置します。", "small"), t("surface", "表面性状", "pushpull", "表面性状記号 (Ra) を記入します。", "small")] },
             { stack: [t("gdt", "幾何公差", "iprops", "幾何公差の枠 (平面度・位置度 など) を記入します。", "small"), t("datum", "データム", "fix", "データム記号を記入します。", "small"), t("balloon", "風船", "circPattern", "部品の品番を示す風船を記入します (アセンブリ)。", "small")] },
+            t("weld", "溶接記号", "weld", "JIS の溶接記号 (隅肉・開先・スポット、全周・現場溶接) を記入します。"),
             { id: "dw-parts", label: "部品表", icon: "rectPattern", tip: "部品表 (品番・品名・数量・材質) の表示を切り替えます。", action: () => this.togglePartsList() },
           ],
         },
@@ -1744,6 +1766,7 @@ function moveAnno(sh: Sheet, id: string, o: Anno, dx: number, dy: number) {
     case "dim":
     case "datum":
     case "balloon":
+    case "weld":
       a.pos = [(o as DimAnno).pos[0] + dv[0], (o as DimAnno).pos[1] + dv[1]];
       break;
     case "note":
@@ -1764,6 +1787,36 @@ function moveAnno(sh: Sheet, id: string, o: Anno, dx: number, dy: number) {
     case "centerline":
       break;
   }
+}
+
+function weldDialog(init?: Partial<WeldAnno>): Promise<Omit<WeldAnno, "id" | "type" | "view" | "p" | "pos"> | null> {
+  return new Promise((resolve) => {
+    let result: Omit<WeldAnno, "id" | "type" | "view" | "p" | "pos"> | null = null;
+    const sel = (opts: [string, string][], v: string) => h("select", { class: "field-input" }, ...opts.map(([k, l]) => h("option", { value: k, selected: k === v }, l)));
+    const kind = sel([["fillet", "隅肉溶接 ◺"], ["v", "V 形開先"], ["bevel", "レ形開先"], ["square", "I 形開先"], ["spot", "スポット溶接"], ["plug", "プラグ溶接"]], init?.kind ?? "fillet");
+    const side = sel([["arrow", "矢の側"], ["other", "矢の反対側"], ["both", "両側"]], init?.side ?? "arrow");
+    const size = h("input", { class: "field-input", value: init?.size ?? "4" });
+    const length = h("input", { class: "field-input", value: init?.length ?? "", placeholder: "例: 50 (空欄 = 全長)" });
+    const around = h("input", { type: "checkbox", checked: init?.allAround ?? false });
+    const field = h("input", { type: "checkbox", checked: init?.field ?? false });
+    const row = (l: string, e: HTMLElement) => h("label", { class: "field" }, h("span", {}, l), e);
+    modal({
+      title: "溶接記号",
+      icon: "weld",
+      body: h("div", { class: "form-grid" }, row("種類", kind), row("溶接する側", side), row("寸法 (脚長 / 深さ)", size), row("長さ", length), row("全周溶接", around), row("現場溶接", field)),
+      onClose: () => resolve(result),
+      buttons: [
+        { label: "キャンセル" },
+        {
+          label: "OK",
+          primary: true,
+          onClick: () => {
+            result = { kind: kind.value as WeldAnno["kind"], side: side.value as WeldAnno["side"], size: size.value, length: length.value, allAround: around.checked, field: field.checked };
+          },
+        },
+      ],
+    });
+  });
 }
 
 function gdtDialog(init?: { symbol: string; value: string; datums: string }): Promise<{ symbol: string; value: string; datums: string } | null> {

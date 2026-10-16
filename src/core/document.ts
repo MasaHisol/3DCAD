@@ -20,6 +20,8 @@ export const FEATURE_LABELS: Record<FeatureType, string> = {
   split: "分割",
   rib: "リブ",
   frame: "フレーム",
+  coil: "コイル",
+  emboss: "文字",
   weld: "溶接",
   thicken: "厚み付け",
   sheetFace: "面",
