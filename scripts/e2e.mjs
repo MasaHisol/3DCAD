@@ -484,6 +484,7 @@ try {
   if (await discard.isVisible({ timeout: 1000 }).catch(() => false)) await discard.click();
   await page.locator(".ln-coach .btn.primary", { hasText: "操作をはじめる" }).click();
   await page.locator(".ln-coach .btn.primary", { hasText: "次へ" }).click();
+  await page.waitForSelector(".ln-glow", { timeout: 3000 }).catch(() => {});
   const glow = await page.evaluate(() => [...document.querySelectorAll(".ln-glow")].map((e) => e.dataset.cmd));
   await page.evaluate(() => window.cad.store.mutate("幅", (d) => (d.params.find((p) => p.name === "幅").expr = "100")));
   await page.waitForFunction(() => document.querySelector(".ln-step.current")?.textContent.includes("板厚"), null, { timeout: 5000 }).catch(() => {});
