@@ -937,3 +937,7 @@ mark {
     display: none !important;
   }
 }
+.tb-chart text.sec {
+  fill: var(--tb-text-2);
+  stroke: none;
+}

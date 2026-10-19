@@ -160,28 +160,35 @@ export const ANIM: Record<string, (host: HTMLElement) => void> = {
     const sl = slider(ctl, "押し込み量 %", 0, 100, 0, 1, (v) => ((pos = v / 100), (playing = false), draw()));
     button(ctl, "▶ 自動", () => (playing = true));
     const L = 14, t = 1.5, y = 1.2; // hook length, thickness, undercut (mm)
+    const k = 9; // px per mm
     const draw = () => {
-      // insertion: 0..0.5 ramps the hook out to y, 0.5..0.8 holds, then snaps back
-      const d = pos < 0.55 ? (pos / 0.55) * y : pos < 0.7 ? y : 0;
-      const strain = (1.5 * t * d) / (L * L) * 100; // % (cantilever snap formula)
-      const k = 9;
-      const bx = 150, by = 190;
-      let s = `<rect x="${bx + 70}" y="${by - 160 + pos * 60}" width="160" height="40" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/><text class="tick" x="${bx + 150}" y="${by - 135 + pos * 60}" text-anchor="middle">ふた (相手側)</text>`;
-      s += `<path d="M${bx + 70},${by - 120 + pos * 60} l0,-6 l-14,0" fill="none" stroke="var(--tb-text-3)" stroke-width="3"/>`;
-      // hook as a bending beam: x offset grows with height^2
+      const bx = 200, by = 200; // hook root
+      const tipy = by - L * k; // top of the hook
+      const barbH = 22, barbW = y * k + 6;
+      const lidH = 30;
+      // the lid edge travels down past the barb: lidBottom from above the hook to below the barb
+      const lidBottom = tipy - 30 + Math.min(1, pos / 0.9) * (barbH + lidH + 30);
+      // the sloped barb is pushed aside while the lid edge slides along it, then springs back over the lid
+      const over = lidBottom - tipy; // how far the lid edge has passed the barb top
+      const d = over <= 0 ? 0 : over < barbH ? (over / barbH) * y : lidBottom - lidH < tipy + barbH ? y : 0;
+      const latched = lidBottom - lidH >= tipy + barbH;
+      const strain = ((1.5 * t * d) / (L * L)) * 100; // % (cantilever snap formula)
+      const lidX = bx + t * k / 2 + barbW - y * k; // lid edge overlaps the barb by the undercut
+      let s = `<line x1="${bx - 60}" x2="${bx + 240}" y1="${by}" y2="${by}" stroke="var(--tb-text-3)" stroke-width="4"/><text class="tick" x="${bx - 60}" y="${by + 16}">本体</text>`;
+      s += `<rect x="${lidX}" y="${lidBottom - lidH}" width="200" height="${lidH}" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="tick" x="${lidX + 100}" y="${lidBottom - lidH / 2 + 4}" text-anchor="middle">ふた (相手側)</text>`;
+      // hook beam: bends to the left (−x) by d at the tip, shape ∝ height²
       let path = `M${bx},${by}`;
       for (let i = 0; i <= 20; i++) {
         const h = (i / 20) * L;
-        const off = d * (h / L) ** 2 * k;
-        path += ` L${bx + 50 + off},${by - h * k}`;
+        path += ` L${bx - d * (h / L) ** 2 * k},${by - h * k}`;
       }
-      s += `<line x1="${bx - 40}" x2="${bx + 120}" y1="${by}" y2="${by}" stroke="var(--tb-text-3)" stroke-width="4"/>`;
-      s += `<path d="${path}" fill="none" stroke="var(--tb-accent)" stroke-width="${t * 5}" stroke-linecap="round"/>`;
-      const tipx = bx + 50 + d * k, tipy = by - L * k;
-      s += `<path d="M${tipx},${tipy} l${y * k + 4},6 l-${y * k + 4},14" fill="var(--tb-accent)" opacity="0.6"/>`;
-      s += `<text class="mark-t" x="20" y="24">たわみ ${fmt(d, 2)} mm / 根元のひずみ ≈ ${fmt(strain, 2)} %</text>`;
+      s += `<path d="${path}" fill="none" stroke="var(--tb-accent)" stroke-width="${t * k * 0.9}" stroke-linecap="butt"/>`;
+      const tx = bx - d * k;
+      s += `<path d="M${tx + (t * k) / 2},${tipy} L${tx + (t * k) / 2 + barbW},${tipy + barbH} L${tx + (t * k) / 2},${tipy + barbH} Z" fill="var(--tb-accent)"/>`;
+      s += `<text class="mark-t" x="20" y="24">たわみ ${fmt(d, 2)} mm / 根元のひずみ ≈ ${fmt(strain, 2)} %${latched ? " — はまった (ロック)" : ""}</text>`;
+      if (d > 0) s += `<path d="M${bx + 30},${by - 20} a30,30 0 0 0 -16,-30" fill="none" stroke="var(--tb-bad)" stroke-width="2"/><text class="tick" x="${bx + 36}" y="${by - 20}">根元にひずみが集中</text>`;
       svg.innerHTML = s;
-      out.innerHTML = `<p class="tb-note">片持ちばり形のツメの根元ひずみ ε ≈ 1.5·t·y / L² (t: 厚さ、y: 引っかかり量、L: 長さ)。樹脂の許容ひずみ (ABS で 2〜3 % 程度、繰返しはその半分程度が目安) を超えないよう、長さを長く・厚さを薄く・根元に R を付けます。</p>`;
+      out.innerHTML = `<p class="tb-note">ふたが下りると、ツメの斜面が押されて片持ちばりのようにたわみ、通り過ぎると戻って引っかかります。根元のひずみ ε ≈ 1.5·t·y / L² (t: 厚さ、y: 引っかかり量、L: 長さ)。樹脂の許容ひずみ (ABS で 2〜3 % 程度、繰返しはその半分程度が目安) を超えないよう、ツメを長く・薄く、根元に R を付けます。</p>`;
     };
     draw();
     loop(host, (_t, dt) => {
@@ -385,12 +392,13 @@ export const ANIM: Record<string, (host: HTMLElement) => void> = {
         <table class="tb-res"><tr><th>あなたの式</th><td>時間 ≈ ${fmt(a, 3)} + ${fmt(b, 3)} × ID [ms]</td></tr><tr><th>平均時間</th><td>${fmt(my, 3)} ms</td></tr></table>
         <p class="tb-note">遠くて小さいターゲットほど時間がかかります (ID が大きい)。よく使うボタンは大きく・近くに、危険なボタンは小さく・離して置く理由がここにあります。</p>`;
     };
+    out.innerHTML = `<p class="tb-note">20 回クリックすると、難しさ (ID) と時間の関係があなたのデータでグラフになります。</p>`;
     draw();
   },
 
   /** Reach envelope by percentile. */
   "anim-reach"(host) {
-    const { ctl, svg, out } = frame(host, "体格の違いと手の届く範囲 (立位・側面)", 260);
+    const { ctl, svg, out } = frame(host, "体格の違いと手の届く範囲 (立位・側面)", 262);
     // stature (mm) by group/percentile — rough illustrative values for Japanese adults
     const data: Record<string, number> = { "f5": 1490, "f50": 1580, "f95": 1670, "m5": 1615, "m50": 1710, "m95": 1805 };
     let key = "f5";
@@ -399,23 +407,25 @@ export const ANIM: Record<string, (host: HTMLElement) => void> = {
     slider(ctl, "棚・操作部の高さ mm", 1000, 2100, shelf, 10, (v) => ((shelf = v), draw()));
     const draw = () => {
       const H = data[key];
-      const k = 0.11; // px per mm
-      const g = 245; // ground y
-      const sh = H * 0.818, reachUp = H * 1.24, arm = H * 0.44; // shoulder height, overhead reach, arm length (rough ratios)
-      const X = 140;
+      const k = 0.105; // px per mm
+      const g = 250; // ground y
+      const sh = H * 0.818, arm = H * 0.44, reachUp = sh + arm; // shoulder height, arm length, overhead reach (rough ratios)
+      const head = H * 0.13;
+      const X = 120;
       let s = `<line class="axis" x1="20" x2="500" y1="${g}" y2="${g}"/>`;
-      // silhouette
-      s += `<circle cx="${X}" cy="${g - H * k + 12}" r="11" class="sec"/><path d="M${X},${g - H * k + 24} L${X},${g - H * 0.48 * k} L${X - 12},${g} M${X},${g - H * 0.48 * k} L${X + 12},${g}" stroke="var(--tb-accent)" stroke-width="5" fill="none" stroke-linecap="round"/>`;
-      const ang = Math.asin(Math.max(-1, Math.min(1, (Math.min(shelf, sh + arm) - sh) / arm)));
+      // silhouette: head above the shoulders, trunk, legs
+      s += `<circle cx="${X}" cy="${g - (H - head / 2) * k}" r="${(head / 2) * k}" class="sec"/>`;
+      s += `<path d="M${X},${g - sh * k} L${X},${g - H * 0.48 * k} L${X - 12},${g} M${X},${g - H * 0.48 * k} L${X + 12},${g}" stroke="var(--tb-accent)" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+      const reachTo = Math.min(shelf, reachUp);
+      const ang = Math.asin(Math.max(-1, Math.min(1, (reachTo - sh) / arm)));
       const hx = X + arm * k * Math.cos(ang), hy = g - (sh + arm * Math.sin(ang)) * k;
       s += `<path d="M${X},${g - sh * k} L${hx},${hy}" stroke="var(--tb-accent)" stroke-width="5" stroke-linecap="round"/>`;
-      // reach arc
-      s += `<path d="M${X},${g - (sh + arm) * k} A${arm * k},${arm * k} 0 0 1 ${X + arm * k},${g - sh * k}" fill="none" class="guide"/>`;
-      // shelf
-      const ok = shelf <= reachUp * 0.92;
-      s += `<rect x="${X + 40}" y="${g - shelf * k - 4}" width="150" height="8" fill="${ok ? "var(--tb-good)" : "var(--tb-bad)"}"/><text class="tick" x="${X + 200}" y="${g - shelf * k + 3}">${shelf} mm</text>`;
-      s += `<text class="mark-t" x="300" y="30">身長 ${H} mm・肩 ≈ ${Math.round(sh)} mm</text><text class="tick" x="300" y="48">上方の届く高さ ≈ ${Math.round(reachUp)} mm (つま先立ちなし)</text>`;
-      s += `<text class="mark-t" x="300" y="70" fill="${ok ? "var(--tb-good)" : "var(--tb-bad)"}">${ok ? "楽に届く" : "届かない / 背伸びが必要"}</text>`;
+      s += `<path d="M${X},${g - reachUp * k} A${arm * k},${arm * k} 0 0 1 ${X + arm * k},${g - sh * k}" fill="none" class="guide"/>`;
+      const state = shelf <= reachUp * 0.9 ? 0 : shelf <= reachUp ? 1 : 2;
+      const col = ["var(--tb-good)", "var(--tb-warn)", "var(--tb-bad)"][state];
+      s += `<rect x="${X + 30}" y="${g - shelf * k - 4}" width="130" height="8" fill="${col}"/><text class="tick" x="${X + 30}" y="${g - shelf * k - 8}">棚 ${shelf} mm</text>`;
+      s += `<text class="mark-t" x="310" y="110">身長 ${H} mm</text><text class="tick" x="310" y="130">肩の高さ ≈ ${Math.round(sh)} mm</text><text class="tick" x="310" y="148">腕を伸ばして届く高さ ≈ ${Math.round(reachUp)} mm</text>`;
+      s += `<text class="mark-t" x="310" y="176" fill="${col}">${["楽に届く", "ぎりぎり届く (腕を伸ばしきる)", "届かない / 踏み台が必要"][state]}</text>`;
       svg.innerHTML = s;
     };
     out.innerHTML = `<p class="tb-note">身長と体の比率は説明用の概略値です。実際の設計では人体寸法データベースなどの一次資料を使ってください。「届く」寸法は小さい人 (女性 5 パーセンタイルなど) で確認します。</p>`;

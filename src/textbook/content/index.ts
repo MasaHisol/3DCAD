@@ -13,6 +13,7 @@ import { CAD2D_ADV } from "./cad2d_adv";
 import { CAD3D } from "./cad3d";
 import { MECHANICS3, MECHATRONICS2 } from "./mechanics3";
 import { KNOWHOW2 } from "./knowhow2";
+import { KNOWHOW3 } from "./knowhow3";
 import { DESIGN2 } from "./design2";
 import { DESIGN3 } from "./design3";
 import { UX } from "./ux";
@@ -36,7 +37,7 @@ export const PARTS: Part[] = [
 ];
 
 /** Reading order. The review chapter closes the know-how part. */
-const knowhow = [...KNOWHOW.filter((c) => c.id !== "review"), ...KNOWHOW_MORE, ...QUALITY, ...KNOWHOW2, ...KNOWHOW.filter((c) => c.id === "review")];
+const knowhow = [...KNOWHOW3.filter((c) => c.id === "design-thinking-eng"), ...KNOWHOW.filter((c) => c.id !== "review"), ...KNOWHOW_MORE, ...QUALITY, ...KNOWHOW2, ...KNOWHOW3.filter((c) => c.id !== "design-thinking-eng"), ...KNOWHOW.filter((c) => c.id === "review")];
 export const CHAPTERS: TextChapter[] = [...CAD2D, ...CAD2D_ADV, ...CAD3D, ...BASICS, ...DRAFTING, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...MECHANICS3, ...ELEMENTS, ...MECHATRONICS, ...MECHATRONICS2, ...knowhow, ...DESIGN2.filter((c) => c.id === "design-process"), ...DESIGN3.filter((c) => c.id === "form-language"), ...DESIGN, ...DESIGN3.filter((c) => c.id !== "form-language"), ...DESIGN_MORE, ...DESIGN2.filter((c) => c.id !== "design-process"), ...UX2.filter((c) => c.id === "human-senses"), ...UX, ...UX2.filter((c) => c.id !== "human-senses"), ...SERVICE];
 
 const EXTRA: GlossaryEntry[] = [
