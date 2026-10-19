@@ -1,6 +1,11 @@
 // Interactive calculators embedded in the textbook pages (<div data-widget="...">).
 import { fmt, lineChart } from "./chart";
 import {
+  charHeight,
+  filletWeld,
+  goodman,
+  reliability,
+  wireDrop,
   airCylinder,
   cadPoint,
   cylinderThickness,
@@ -1158,6 +1163,142 @@ const MORE2: Record<string, (host: HTMLElement) => void> = {
   },
 };
 
+const MORE3: Record<string, (host: HTMLElement) => void> = {
+  goodman(host) {
+    const { body, out } = shell(host, "疲労 — 修正グッドマン線図");
+    const f = form(
+      [
+        { key: "sB", label: "引張強さ σB", type: "num", value: 600, unit: "MPa" },
+        { key: "sw", label: "疲労限度 σw (補正後)", type: "num", value: 220, unit: "MPa" },
+        { key: "sm", label: "平均応力 σm", type: "num", value: 150, unit: "MPa" },
+        { key: "sa", label: "応力振幅 σa", type: "num", value: 80, unit: "MPa" },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      const sB = f.num("sB"), sw = f.num("sw"), sm = f.num("sm"), sa = f.num("sa");
+      const g = goodman(sB, sw, sm, sa);
+      out.innerHTML =
+        table([
+          ["安全率 S = 1 / (σa/σw + σm/σB)", fmt(g.S, 3), safeClass(g.S / 1.5)],
+          ["この平均応力で許される振幅 (S = 1)", `${fmt(g.allowedAmp)} MPa`],
+        ]) +
+        lineChart(
+          [
+            { x: [0, sB], y: [sw, 0], color: "#b45309", label: "グッドマン線" },
+            { x: [0, sB / 1.5], y: [sw / 1.5, 0], color: "#94a3b8", dash: true, label: "S = 1.5" },
+          ],
+          { xLabel: "平均応力 σm [MPa]", yLabel: "応力振幅 σa [MPa]", height: 170, marks: [{ x: sm, y: sa, text: "使用点" }] },
+        ) +
+        `<p class="tb-note">σw には、試験片の疲労限度に表面・寸法・切欠きの係数を掛けた「部品の疲労限度」を入れます。</p>`;
+    }
+    update();
+  },
+
+  weld(host) {
+    const { body, out } = shell(host, "隅肉溶接のせん断強さ");
+    const f = form(
+      [
+        { key: "leg", label: "脚長", type: "num", value: 6, unit: "mm" },
+        { key: "l", label: "溶接長さ (1 本)", type: "num", value: 100, unit: "mm" },
+        { key: "n", label: "溶接線の本数", type: "num", value: 2, step: 1 },
+        { key: "F", label: "荷重 (せん断方向)", type: "num", value: 20000, unit: "N" },
+        { key: "ta", label: "許容せん断応力", type: "num", value: 80, unit: "MPa" },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      const w = filletWeld(f.num("leg"), f.num("l"), f.num("F"), Math.max(1, Math.round(f.num("n"))), f.num("ta"));
+      out.innerHTML = table([
+        ["のど厚 a = 0.7 × 脚長", `${fmt(w.throat)} mm`],
+        ["せん断応力 τ = F / (a·l·n)", `${fmt(w.tau)} MPa`],
+        ["許容応力に対する余裕", fmt(w.S, 3), safeClass(w.S)],
+      ]) + `<p class="tb-note">許容応力は、母材・溶接材料・荷重の種類 (静的 / 繰返し) と適用する基準で決まります。疲労を受ける溶接は大幅に低くとります。</p>`;
+    }
+    update();
+  },
+
+  wire(host) {
+    const { body, out } = shell(host, "電線の電圧降下");
+    const f = form(
+      [
+        { key: "I", label: "電流", type: "num", value: 5, unit: "A" },
+        { key: "L", label: "片道の長さ", type: "num", value: 10, unit: "m" },
+        { key: "A", label: "導体断面積", type: "select", value: "0.75", options: ["0.3", "0.5", "0.75", "1.25", "2", "3.5", "5.5"].map((x) => [x, `${x} mm²`]) },
+        { key: "V", label: "電源電圧", type: "num", value: 24, unit: "V" },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      const d = wireDrop(f.num("I"), f.num("L"), Number(f.str("A")), f.num("V"));
+      out.innerHTML = table([
+        ["往復の抵抗 (銅 20 °C)", `${fmt(d.R)} Ω`],
+        ["電圧降下 ΔV = I·R", `${fmt(d.dV)} V`],
+        ["電源電圧に対する割合", `${fmt(d.ratio * 100)} %`, d.ratio <= 0.05 ? "good" : "warn"],
+        ["電線での損失 (発熱)", `${fmt(d.loss)} W`],
+      ]) + `<p class="tb-note">電線は許容電流 (周囲温度・束ねる本数で低下) と電圧降下の両方で選びます。DC 24 V の制御回路では電圧降下を数 % 以内に抑えるのが目安です。</p>`;
+    }
+    update();
+  },
+
+  reliability(host) {
+    const { body, out } = shell(host, "信頼度とアベイラビリティ");
+    const f = form(
+      [
+        { key: "mtbf", label: "MTBF (1 台)", type: "num", value: 5000, unit: "h" },
+        { key: "mttr", label: "MTTR", type: "num", value: 4, unit: "h" },
+        { key: "t", label: "使用時間", type: "num", value: 1000, unit: "h" },
+        { key: "n", label: "台数", type: "num", value: 2, step: 1 },
+        { key: "cfg", label: "構成", type: "select", value: "series", options: [["series", "直列 (全部が必要)"], ["parallel", "並列 (1 台あればよい・冗長)"]] },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      const n = Math.max(1, Math.round(f.num("n")));
+      const r = reliability(f.num("mtbf"), f.num("mttr"), f.num("t"), n, f.str("cfg") === "parallel");
+      const ts = Array.from({ length: 60 }, (_, i) => (f.num("mtbf") * 2 * i) / 59);
+      out.innerHTML =
+        table([
+          ["1 台の信頼度 R = exp(−t / MTBF)", `${fmt(r.unit * 100)} %`],
+          ["システムの信頼度", `${fmt(r.system * 100)} %`, r.system > 0.9 ? "good" : "warn"],
+          ["アベイラビリティ MTBF / (MTBF + MTTR)", `${fmt(r.availability * 100, 5)} %`],
+        ]) +
+        lineChart(
+          [
+            { x: ts, y: ts.map((t) => reliability(f.num("mtbf"), 1, t, n, false).system * 100), color: "#b45309", label: "直列" },
+            { x: ts, y: ts.map((t) => reliability(f.num("mtbf"), 1, t, n, true).system * 100), color: "#0f766e", label: "並列" },
+          ],
+          { xLabel: "使用時間 [h]", yLabel: "信頼度 [%]", height: 160 },
+        );
+    }
+    update();
+  },
+
+  legibility(host) {
+    const { body, out } = shell(host, "見やすい文字の大きさ");
+    const f = form(
+      [
+        { key: "d", label: "見る距離", type: "num", value: 700, unit: "mm" },
+        { key: "a", label: "視角 (文字高さ)", type: "num", value: 20, unit: "分 (′)" },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      const a = f.num("a");
+      const rows = [300, 500, 700, 1000, 2000, 5000].map((d) => [`${d / 1000} m`, `${fmt(charHeight(d, a))} mm`] as [string, string]);
+      out.innerHTML =
+        table([[`距離 ${fmt(f.num("d"))} mm で必要な文字高さ`, `${fmt(charHeight(f.num("d"), a))} mm (≈ ${fmt(charHeight(f.num("d"), a) / 0.3528 / 0.7)} pt 相当)`, "good"], ...rows]) +
+        `<p class="tb-note">視角 16〜24 分が読みやすさの目安 (最小 10〜12 分程度)。暗い場所、高齢者、重要な表示はさらに大きく、コントラストを高くします。pt 換算は文字の高さ ≈ 0.7 em とした概算です。</p>`;
+    }
+    update();
+  },
+};
+
 /** Schematic of the beam case (supports, load arrows). */
 function diagram(kind: BeamCase, aRatio: number): string {
   const x0 = 40, x1 = 520, y = 40;
@@ -1173,7 +1314,7 @@ function diagram(kind: BeamCase, aRatio: number): string {
   return s + "</svg>";
 }
 
-Object.assign(WIDGETS, MORE, MORE2);
+Object.assign(WIDGETS, MORE, MORE2, MORE3);
 
 export function mountWidgets(root: HTMLElement) {
   for (const el of root.querySelectorAll<HTMLElement>("[data-widget]")) {

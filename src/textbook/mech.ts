@@ -627,3 +627,43 @@ export function airCylinder(D: number, d: number, p: number, loadRatio: number, 
   const vol = ((A1 + A2) * stroke) / 1e6; // L of compressed volume per double stroke
   return { push: p * A1, pull: p * A2, pushUse: p * A1 * loadRatio, pullUse: p * A2 * loadRatio, air: vol * ((p + 0.101) / 0.101) };
 }
+
+// -------------------------------------------------------------- fatigue ---
+
+/** Modified Goodman: safety factor S with σa/σw + σm/σB = 1/S (MPa). */
+export function goodman(sB: number, sw: number, sm: number, sa: number) {
+  const inv = sa / sw + Math.max(sm, 0) / sB;
+  return { S: inv > 0 ? 1 / inv : Infinity, allowedAmp: sw * (1 - Math.max(sm, 0) / sB) };
+}
+
+// ---------------------------------------------------------------- welds ---
+
+/** Fillet weld in shear: throat a = 0.7·leg, τ = F / (a · l · n). */
+export function filletWeld(leg: number, length: number, F: number, lines: number, tauAllow: number) {
+  const a = 0.7 * leg;
+  const tau = F / (a * length * lines);
+  return { throat: a, tau, S: tauAllow / tau };
+}
+
+// ------------------------------------------------------------------ wire ---
+
+/** Copper wire: resistance (Ω), voltage drop (V, two-way), drop ratio and loss (W). ρ = 0.0178 Ω·mm²/m at 20 °C. */
+export function wireDrop(I: number, lengthM: number, area: number, V: number) {
+  const R = (0.0178 * 2 * lengthM) / area;
+  const dV = I * R;
+  return { R, dV, ratio: dV / V, loss: I * I * R };
+}
+
+// ----------------------------------------------------------- reliability ---
+
+/** Exponential reliability of n identical units in series or parallel for mission time t; availability MTBF/(MTBF+MTTR). */
+export function reliability(mtbf: number, mttr: number, t: number, n: number, parallel: boolean) {
+  const r = Math.exp(-t / mtbf);
+  const R = parallel ? 1 - (1 - r) ** n : r ** n;
+  return { unit: r, system: R, availability: mtbf / (mtbf + mttr) };
+}
+
+// ----------------------------------------------------------- legibility ---
+
+/** Character height (mm) subtending a visual angle (arc minutes) at a viewing distance (mm). */
+export const charHeight = (distance: number, arcmin: number) => 2 * distance * Math.tan(((arcmin / 60) * Math.PI) / 360);

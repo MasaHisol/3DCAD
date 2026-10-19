@@ -199,3 +199,23 @@ describe("2D input, plane stress, vessels, motors, cylinders", () => {
     expect(c.pull).toBeCloseTo(527.8, 1);
   });
 });
+
+describe("fatigue, welds, wires, reliability, legibility", () => {
+  it("formulas", async () => {
+    const m = await import("../src/textbook/mech");
+    expect(m.goodman(600, 270, 0, 135).S).toBeCloseTo(2, 9);
+    expect(m.goodman(600, 270, 300, 0).S).toBeCloseTo(2, 9);
+    const w = m.filletWeld(6, 100, 8400, 2, 80);
+    expect(w.throat).toBeCloseTo(4.2, 9);
+    expect(w.tau).toBeCloseTo(10, 9);
+    const d = m.wireDrop(10, 20, 2, 24);
+    expect(d.R).toBeCloseTo(0.356, 9);
+    expect(d.dV).toBeCloseTo(3.56, 9);
+    const r = m.reliability(1000, 10, 1000, 2, true);
+    expect(r.unit).toBeCloseTo(Math.exp(-1), 9);
+    expect(r.system).toBeCloseTo(1 - (1 - Math.exp(-1)) ** 2, 9);
+    expect(r.availability).toBeCloseTo(1000 / 1010, 9);
+    // 1 m at 15 arcmin ≈ 4.36 mm
+    expect(m.charHeight(1000, 15)).toBeCloseTo(4.363, 3);
+  });
+});
