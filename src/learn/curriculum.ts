@@ -25,6 +25,179 @@ function concentricPair(s: LearnState): boolean {
 const firstExtrude = (s: LearnState) => s.part.features.find((f): f is ExtrudeFeature => f.type === "extrude");
 
 export const CURRICULUM: Chapter[] = [
+  // ------------------------------------------------------------------ 0 ---
+  {
+    id: "drafting2d",
+    title: "第 0 章 2D 作図の基礎 — 3D の前に",
+    desc: "3D CAD の土台は 2D の作図です。座標・基本図形・トリム・拘束・寸法・図面の書き方を、スケッチと図面環境で身につけます。",
+    lessons: [
+      {
+        id: "0-1",
+        title: "線分と座標入力 — 正確に描く",
+        minutes: 10,
+        level: 1,
+        goals: ["スケッチ (2D 作図画面) を開ける", "線分を連続して描き、長さを数値で指定できる", "寸法で大きさを確かめ、直せる"],
+        theory: `
+<p>CAD の作図は、手描きと違って<b>数値で正確に</b>描くのが基本です。2D CAD の考え方は 3D CAD のスケッチでもそのまま使います。</p>
+<ul>
+  <li><b>原点</b> (0, 0) を基準に、右が X、上が Y</li>
+  <li>線分は<b>始点 → 終点</b>とクリックし、続けてクリックすると連続線になる</li>
+  <li>描いている途中で<b>数値を入力</b>すると、その長さの線になる (寸法も自動で付く)</li>
+  <li>水平・垂直に近い線には、自動で<b>水平・垂直拘束</b>が付く</li>
+</ul>
+<p class="ln-note">ここでは L 字形 (幅 60・高さ 40・板の厚さ 15) の輪郭を描きます。座学テキスト「2D CAD 入門」の「座標と入力」も参考にしてください。</p>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> (<kbd>S</kbd>) を押し、正面の <b>XY 平面</b> を選びます。画面が真正面からの 2D 作図画面になります。", tab: "model", ui: "sketch", check: inSketch },
+          { text: "<b>線分</b> (<kbd>L</kbd>) を選び、<b>原点</b>をクリックして始めます。右へ動かして <kbd>6</kbd><kbd>0</kbd> <kbd>Enter</kbd> で長さ 60 の線になります。", tab: "sketch", ui: "sk-line", check: (s) => count(editing(s), "line") >= 1, hint: "数値を入力すると、カーソルの方向にその長さの線が引かれます。" },
+          { text: "続けて 上へ 15 → 左へ 45 → 上へ 25 → 左へ 15 と描き、最後に<b>原点</b>をクリックして L 字を閉じます。<kbd>Esc</kbd> で線分ツールを終了します。", tab: "sketch", ui: "sk-line", check: (s) => count(editing(s), "line") >= 6, hint: "閉じるときは最初の点 (原点) に吸着させます。点が重なると一致拘束が付きます。" },
+          { text: "<b>寸法</b> (<kbd>D</kbd>) で、自動で付かなかった辺に寸法を付けましょう。寸法をダブルクリックすると値を変えられます。", tab: "sketch", ui: "sk-dimension", check: (s) => (editing(s)?.dimensions.length ?? 0) >= 4 },
+          { text: "<b>スケッチを終了</b> します。2D で正確に描けたら、3D では押し出すだけで立体になります。レッスン完了です。", tab: "sketch", ui: "sk-finish", check: (s) => s.mode === "model" },
+        ],
+        summary: ["原点を基準に、右が X・上が Y", "描きながら数値入力で正確な長さに", "水平・垂直は自動拘束、閉じた形は始点に吸着"],
+        quiz: [
+          { q: "原点 (0, 0) から右へ 60、上へ 40 の点の座標は?", choices: ["(40, 60)", "(60, 40)", "(−60, 40)"], answer: 1, explain: "X (右) が 60、Y (上) が 40 なので (60, 40) です。" },
+          { q: "CAD で正確な長さの線を描く方法は?", choices: ["グリッドを目で数える", "描きながら数値を入力する", "拡大して慎重にクリックする"], answer: 1, explain: "数値入力すれば誤差なく描けます。あとから寸法で直すこともできます。" },
+        ],
+        see: ["2d-coords", "2d-draw"],
+      },
+      {
+        id: "0-2",
+        title: "円・円弧・トリム — 不要な線を切る",
+        minutes: 10,
+        level: 1,
+        goals: ["円を描ける", "トリムで交点の間の線を消せる", "円がトリムで円弧になることがわかる"],
+        theory: `
+<p>2D 作図では、まず<b>大まかに図形を重ねて描き</b>、<b>トリム</b> (交点で区切られた部分を消す) で形を整える方法がよく使われます。
+円をトリムすると<b>円弧</b>になります。</p>
+<p>ここでは、2 つの円を重ねて描き、重なった内側をトリムして「ひょうたん形 (8 の字)」の輪郭を作ります。</p>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> を <b>XY 平面</b> に開始します。", tab: "model", ui: "sketch", check: inSketch },
+          { text: "<b>円</b> (<kbd>C</kbd>) で原点を中心に直径 40 程度の円、その右に少し重なるように同じくらいの円を描きます。", tab: "sketch", ui: "sk-circle", check: (s) => count(editing(s), "circle") + count(editing(s), "arc") >= 2, hint: "中心をクリック → 半径の位置をクリック。数値入力で直径を指定することもできます。" },
+          { text: "<b>トリム</b> (<kbd>X</kbd>) を選び、2 つの円が重なっている内側の弧をクリックして消します。両方の円の内側を消すと、外形だけが残ります。", tab: "sketch", ui: "sk-trim", check: (s) => count(editing(s), "arc") >= 2, hint: "交点と交点の間の部分が 1 回のクリックで消えます。消しすぎたら Ctrl+Z。" },
+          { text: "<b>スケッチを終了</b> します。トリムで作った閉じた輪郭は、そのまま押し出せます。レッスン完了です。", tab: "sketch", ui: "sk-finish", check: (s) => s.mode === "model" },
+        ],
+        summary: ["重ねて描いてトリムで整えるのが 2D 作図の定石", "円をトリムすると円弧になる", "閉じた輪郭は 3D で押し出せる"],
+        quiz: [
+          { q: "トリムの働きは?", choices: ["線を延ばす", "交点で区切られた部分を消す", "線を平行に複写する"], answer: 1, explain: "トリムは、交点で区切られた曲線の一部を削除します。延長は別のコマンドです。" },
+          { q: "円の一部をトリムすると何になる?", choices: ["線分", "円弧", "点"], answer: 1, explain: "円の一部を消すと、残りは円弧になります。" },
+        ],
+        see: ["2d-edit"],
+      },
+      {
+        id: "0-3",
+        title: "拘束と寸法で形を決める — 長円 (スロット)",
+        minutes: 12,
+        level: 1,
+        goals: ["長円 (スロット) を描ける", "寸法と拘束で完全拘束にできる"],
+        theory: `
+<p>パラメトリック CAD の 2D 図形は、<b>拘束</b> (形の関係) と<b>寸法</b> (大きさ・位置) で決まります。
+自由度 (まだ動ける量) を 0 にすると<b>完全拘束</b>になり、寸法を変えても形が崩れません。</p>
+<p><b>長円 (スロット)</b> は、2 本の平行な線と両端の半円でできた形で、長穴などに使います。描くと正接拘束などが自動で付きます。</p>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> を <b>XY 平面</b> に開始します。", tab: "model", ui: "sketch", check: inSketch },
+          { text: "<b>長円</b> を選び、<b>原点</b>を最初の中心に、右に 2 つ目の中心をクリックし、幅の位置をクリックして長円を描きます。", tab: "sketch", ui: "sk-slot", check: (s) => count(editing(s), "arc") >= 2 && count(editing(s), "line") >= 2 },
+          { text: "<b>寸法</b>で、中心間の距離 <code>50</code> と、半円の半径 (または直径) を付けます。", tab: "sketch", ui: "sk-dimension", check: (s) => hasDim(s, editing(s), 50) },
+          { text: "ステータスバーが <b>✓ 完全拘束</b> になるまで、必要な拘束・寸法を足しましょう。", tab: "sketch", ui: ["sk-dimension", "sk-horizontal"], check: (s) => !!s.sketch && s.sketch.ok && s.sketch.dof === 0, hint: "中心を結ぶ線を水平にする (水平拘束) か、2 つ目の中心の高さを寸法で決めます。" },
+          { text: "<b>スケッチを終了</b> します。レッスン完了です。", tab: "sketch", ui: "sk-finish", check: (s) => s.mode === "model" },
+        ],
+        summary: ["拘束 = 形の関係、寸法 = 大きさと位置", "完全拘束にすると寸法変更で形が崩れない", "長円は長穴・取付穴の調整に使う"],
+        quiz: [
+          { q: "長円 (スロット) の両端の円弧と直線の関係に付く拘束は?", choices: ["正接", "直交", "同一直線上"], answer: 0, explain: "直線と円弧がなめらかにつながるよう、正接拘束が付きます。" },
+          { q: "完全拘束にする利点は?", choices: ["ファイルが小さくなる", "寸法を変えたときに形が予想どおりに変わる", "表示が速くなる"], answer: 1, explain: "動ける自由度が残っていないので、変更しても形が崩れません。" },
+        ],
+        see: ["2d-constraints"],
+      },
+      {
+        id: "0-4",
+        title: "補助線と対称形状",
+        minutes: 12,
+        level: 2,
+        goals: ["コンストラクション (補助) 線を使える", "対称・等値拘束で左右対称の形を作れる"],
+        theory: `
+<p>機械部品の多くは<b>左右対称</b>です。製図では中心線を先に引き、それを基準に対称に描きます。
+CAD では<b>補助線 (コンストラクション)</b> を中心線にして、<b>対称拘束</b>で両側の点を対称に保ちます。</p>
+<ul>
+  <li><b>対称拘束</b>: 2 つの点 (または線) を、指定した線に対して対称にする</li>
+  <li><b>等値拘束</b>: 2 本の線の長さ (円なら半径) を同じにする</li>
+</ul>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> を <b>XY 平面</b> に開始します。", tab: "model", ui: "sketch", check: inSketch },
+          { text: "<b>線分</b>で原点を通る縦の線を引き、選択して <b>コンストラクション</b> に切り替えます (中心線)。", tab: "sketch", ui: ["sk-line", "sk-construction"], check: (s) => count(editing(s), "line", true) >= 1 },
+          { text: "中心線の両側にまたがる台形 (上辺が短い 4 辺の形) を<b>線分</b>で描きます。", tab: "sketch", ui: "sk-line", check: (s) => count(editing(s), "line") >= 4 },
+          { text: "<b>対称</b> 拘束を選び、左右の対応する 2 点と中心線をクリックして対称にします (上の 2 点、下の 2 点)。", tab: "sketch", ui: "sk-symmetric", check: (s) => constraintCount(editing(s), "symmetric") >= 1, hint: "点 → 点 → 対称の基準線 の順にクリックします。" },
+          { text: "<b>等値</b> 拘束で左右の斜めの辺を同じ長さにし、寸法を付けて形を決めます。", tab: "sketch", ui: ["sk-equal", "sk-dimension"], check: (s) => constraintCount(editing(s), "symmetric") >= 2 || constraintCount(editing(s), "equal") >= 1 },
+          { text: "<b>スケッチを終了</b> します。片側の寸法を変えると、もう片側も対称に動きます。レッスン完了です。", tab: "sketch", ui: "sk-finish", check: (s) => s.mode === "model" },
+        ],
+        summary: ["中心線 (補助線) を先に引くのが製図の基本", "対称拘束で左右を連動させる", "等値拘束で同じ長さ・半径に"],
+        quiz: [
+          { q: "補助線 (コンストラクション) について正しいのは?", choices: ["立体の輪郭になる", "立体の輪郭にならず、基準や対称軸に使う", "印刷すると太線になる"], answer: 1, explain: "補助線は形の基準に使う線で、押し出しなどの輪郭には含まれません。" },
+          { q: "左右の穴の大きさを常に同じにしたい。使う拘束は?", choices: ["等値", "平行", "一致"], answer: 0, explain: "等値拘束で円の半径を等しく保てます。" },
+        ],
+        see: ["2d-constraints", "2d-draw"],
+      },
+      {
+        id: "0-5",
+        title: "2D 部品図形の完成と DXF 書き出し — ガスケット",
+        minutes: 15,
+        level: 2,
+        goals: ["外形と穴を組み合わせた部品の 2D 図形を描ける", "完全拘束にできる", "DXF に書き出して他の 2D CAD やレーザー加工に渡せる"],
+        theory: `
+<p>ここまでの技を使って、フランジ用の<b>ガスケット</b> (薄い板のシール部品) の形を描きます。
+ガスケットや板金の切り抜き部品は、2D の形 (<b>DXF</b>) だけでレーザー・ウォータージェットで加工できます。</p>
+<ul>
+  <li>外形: 直径 80 の円</li>
+  <li>中央の穴: 直径 40</li>
+  <li>ボルト穴: 直径 9 を、中心から 30 の位置に 2 か所 (左右対称)</li>
+</ul>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> を <b>XY 平面</b> に開始し、原点を中心に直径 <code>80</code> と <code>40</code> の円を描いて寸法を付けます。", tab: "model", ui: ["sketch", "sk-circle", "sk-dimension"], check: (s) => hasDim(s, editing(s), 80, ["diameter"]) && hasDim(s, editing(s), 40, ["diameter"]) },
+          { text: "ボルト穴を 2 つ描きます。左右に直径 <code>9</code> の円を描き、中心を X 軸上 (原点から水平距離 30) に置きます。", tab: "sketch", ui: ["sk-circle", "sk-dimension"], check: (s) => count(editing(s), "circle") >= 4 && hasDim(s, editing(s), 9, ["diameter"]), hint: "2 つ目の穴は等値拘束で 1 つ目と同じ直径にすると、寸法が 1 つで済みます。" },
+          { text: "ステータスバーが <b>✓ 完全拘束</b> になるまで拘束と寸法を足します。", tab: "sketch", ui: ["sk-dimension", "sk-equal", "sk-symmetric"], check: (s) => !!s.sketch && s.sketch.ok && s.sketch.dof === 0, hint: "穴の中心を水平拘束で原点とそろえる、対称拘束で左右対称にする、などが使えます。" },
+          { text: "<b>スケッチを終了</b> します。", tab: "sketch", ui: "sk-finish", check: (s) => s.mode === "model" },
+          { text: "ブラウザの <b>スケッチ1</b> を右クリックして <b>DXF に書き出し</b> を選びます。AutoCAD・Jw_cad で開いたり、レーザー加工業者に渡したりできます。", hint: "書き出したくない場合は、メニューを確認するだけでも構いません。" },
+          { text: "押し出し (距離 2) で、厚さ 2 mm のガスケットにしてみましょう (任意)。2D の図形がそのまま 3D の形になります。レッスン完了です。", tab: "model", ui: "extrude" },
+        ],
+        summary: ["外形 → 穴 → 拘束・寸法 の順で描く", "完全拘束にしてから使う", "2D の形は DXF で他の CAD や加工機へ渡せる"],
+        quiz: [
+          { q: "レーザー加工業者に板の切り抜き形状を渡すのに一般的な形式は?", choices: ["DXF", "STL", "PNG"], answer: 0, explain: "DXF は 2D CAD の標準的な交換形式で、レーザー・タレパンの加工データに使われます。" },
+          { q: "左右 2 つの穴を同じ大きさに保つ最も簡単な方法は?", choices: ["両方に同じ数値の寸法を付ける", "等値拘束を付ける", "目で合わせる"], answer: 1, explain: "等値拘束なら 1 つの寸法を変えるだけで両方が変わり、修正漏れがありません。" },
+        ],
+        see: ["2d-drawing-workflow", "2d-to-3d"],
+      },
+      {
+        id: "0-6",
+        title: "図面環境で寸法と注記を書く",
+        minutes: 12,
+        level: 1,
+        goals: ["図面環境でビューを確認できる", "寸法を手で記入できる", "注記を書ける"],
+        theory: `
+<p>2D 図面は、製作者に形・寸法・公差・材料を伝える書類です。3D CAD では、モデルから<b>投影図を自動で作り</b>、寸法や注記を書き加えます。</p>
+<ul>
+  <li><b>寸法</b>: 線・円・2 点をクリックして記入。加工・検査に必要な寸法を、重複なく</li>
+  <li><b>注記</b>: 「指示なき角は C0.5」「材料 SS400」など、図だけで表せない指示</li>
+</ul>
+<p class="ln-note">サンプルの「ブラケット」で練習します。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>図面ビュー</b> で図面環境を開きます。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
+          { text: "<b>寸法</b> を選び、正面図の外形の線 (または 2 点) をクリックして、置き場所をクリックします。2 つ以上記入しましょう。", tab: "drawing", ui: "dw-dim", check: (s) => s.env === "drawing" && dims(s).length >= 2 },
+          { text: "<b>注記</b> を選び、図面の空いている所をクリックして「指示なき角は C0.5」と入力します。", tab: "drawing", ui: "dw-note", check: (s) => (drawing(s)?.sheets ?? []).some((sh) => sh.annos.some((a) => a.type === "note")) },
+          { text: "<b>モデルに戻る</b> を押します。図面はモデルと一緒に保存され、モデルを変えると図面も更新されます。レッスン完了です。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
+        ],
+        summary: ["3D モデルから投影図を作り、寸法・注記を書き加える", "寸法は加工・検査に必要なものを重複なく", "図で表せない指示は注記で"],
+        quiz: [
+          { q: "図で表せない指示 (材料・処理・一般的な面取り) はどう伝える?", choices: ["注記に書く", "口頭で伝える", "書かなくてよい"], answer: 0, explain: "図面に書いたことだけが確実に伝わります。図で表せない指示は注記に書きます。" },
+          { q: "同じ寸法を 2 つの図に重ねて書くと?", choices: ["わかりやすくなる", "改訂時に矛盾の原因になる", "公差が厳しくなる"], answer: 1, explain: "寸法の重複は、片方だけ直して矛盾する原因になるため避けます。" },
+        ],
+        see: ["2d-drawing-workflow", "dimensioning"],
+      },
+    ],
+  },
   // ------------------------------------------------------------------ 1 ---
   {
     id: "basics",
@@ -676,6 +849,26 @@ const anyHoles = (s: LearnState) => has(s, "hole") || has<ExtrudeFeature>(s, "ex
 const healthy = (s: LearnState) => s.bodies === 1 && s.errors === 0;
 
 export const EXERCISES: Exercise[] = [
+  {
+    id: "ex-2d",
+    title: "演習 0: 2D 作図 — 取付プレートの外形",
+    level: 1,
+    brief: "3D に進む前の 2D 作図の総仕上げです。長穴付きの取付プレートの形を、1 つのスケッチで完全に描きます。",
+    spec: [
+      ["外形", "120 × 60 の長方形、四隅は R10 の円弧 (円を描いてトリム)"],
+      ["穴", "中央に φ20、左右に 長さ 20 × 幅 9 の長円 (長穴) 2 個 (左右対称)"],
+      ["拘束", "中心線を補助線で引き、対称・等値拘束を使う"],
+      ["出力", "DXF に書き出す"],
+    ],
+    requirements: [
+      { text: "スケッチに円弧 (トリムまたは長円) がある", check: (s) => sketches(s).some((k) => count(k, "arc") >= 2) },
+      { text: "円が 1 つ以上ある", check: (s) => sketches(s).some((k) => count(k, "circle") >= 1) },
+      { text: "補助線 (コンストラクション) を使っている", check: (s) => sketches(s).some((k) => count(k, "line", true) >= 1) },
+      { text: "対称または等値拘束を使っている", check: (s) => sketches(s).some((k) => constraintCount(k, "symmetric") + constraintCount(k, "equal") >= 1) },
+      { text: "寸法が 6 個以上ある", check: (s) => sketches(s).some((k) => k.dimensions.length >= 6) },
+    ],
+    tips: ["中心線 (縦・横) を補助線で先に引くと、対称拘束が使いやすくなります", "角の R は、角に円を置いて線と円をトリムするか、長方形の角を残したまま 3D のフィレットで丸める方法もあります", "完全拘束になったか、スケッチを開いてステータスバーで確認しましょう"],
+  },
   {
     id: "ex-bracket",
     title: "演習 1: 取付ブラケット",

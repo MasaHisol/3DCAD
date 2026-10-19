@@ -1,4 +1,4 @@
-export type PartId = "basics" | "mechanics" | "elements" | "knowhow" | "design";
+export type PartId = "cad2d" | "basics" | "drafting" | "mechanics" | "elements" | "mechatronics" | "knowhow" | "design";
 
 export interface Quiz {
   q: string;

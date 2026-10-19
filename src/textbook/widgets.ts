@@ -1,6 +1,12 @@
 // Interactive calculators embedded in the textbook pages (<div data-widget="...">).
 import { fmt, lineChart } from "./chart";
 import {
+  airCylinder,
+  cadPoint,
+  cylinderThickness,
+  motorSizing,
+  planeStress,
+  thinCylinder,
   beam,
   BEARINGS,
   bearingLife,
@@ -972,6 +978,186 @@ const MORE: Record<string, (host: HTMLElement) => void> = {
   },
 };
 
+const MORE2: Record<string, (host: HTMLElement) => void> = {
+  coords(host) {
+    const { body, out } = shell(host, "座標入力 (絶対・相対・極座標)");
+    const f = form(
+      [
+        { key: "x0", label: "始点 X", type: "num", value: 20, unit: "mm" },
+        { key: "y0", label: "始点 Y", type: "num", value: 10, unit: "mm" },
+        { key: "mode", label: "入力方法", type: "select", value: "polar", options: [["abs", "絶対座標 (X, Y)"], ["rel", "相対座標 @ΔX, ΔY"], ["polar", "極座標 @距離 < 角度"]] },
+        { key: "a", label: "X / ΔX / 距離", type: "num", value: 50 },
+        { key: "b", label: "Y / ΔY / 角度 (°)", type: "num", value: 30 },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      const mode = f.str("mode") as "abs" | "rel" | "polar";
+      const s: [number, number] = [f.num("x0"), f.num("y0")];
+      const e = cadPoint(s, mode, f.num("a"), f.num("b"));
+      const xs = [0, s[0], e[0]], ys = [0, s[1], e[1]];
+      const x0 = Math.min(...xs) - 10, x1 = Math.max(...xs) + 10, y0 = Math.min(...ys) - 10, y1 = Math.max(...ys) + 10;
+      const k = Math.min(480 / (x1 - x0), 200 / (y1 - y0));
+      const X = (x: number) => 20 + (x - x0) * k, Y = (y: number) => 215 - (y - y0) * k;
+      const text = mode === "abs" ? `${fmt(f.num("a"))}, ${fmt(f.num("b"))}` : mode === "rel" ? `@${fmt(f.num("a"))}, ${fmt(f.num("b"))}` : `@${fmt(f.num("a"))}<${fmt(f.num("b"))}`;
+      out.innerHTML =
+        `<svg class="tb-chart" viewBox="0 0 520 230" aria-label="座標"><line class="axis" x1="${X(x0)}" x2="${X(x1)}" y1="${Y(0)}" y2="${Y(0)}"/><line class="axis" x1="${X(0)}" x2="${X(0)}" y1="${Y(y0)}" y2="${Y(y1)}"/>` +
+        `<text class="tick" x="${X(0) + 4}" y="${Y(0) + 14}">原点 (0, 0)</text>` +
+        (mode === "polar" ? `<line class="guide" x1="${X(s[0])}" x2="${X(s[0]) + 60}" y1="${Y(s[1])}" y2="${Y(s[1])}"/>` : "") +
+        `<line x1="${X(s[0])}" y1="${Y(s[1])}" x2="${X(e[0])}" y2="${Y(e[1])}" stroke="var(--tb-accent)" stroke-width="3"/>` +
+        `<circle class="mark" cx="${X(s[0])}" cy="${Y(s[1])}" r="4"/><circle class="mark" cx="${X(e[0])}" cy="${Y(e[1])}" r="4"/>` +
+        `<text class="mark-t" x="${X(s[0])}" y="${Y(s[1]) + 18}" text-anchor="middle">始点</text><text class="mark-t" x="${X(e[0])}" y="${Y(e[1]) - 8}" text-anchor="middle">${text}</text></svg>` +
+        table([
+          ["終点の絶対座標", `(${fmt(e[0], 5)}, ${fmt(e[1], 5)})`, "good"],
+          ["始点からの相対", `@${fmt(e[0] - s[0], 5)}, ${fmt(e[1] - s[1], 5)}`],
+          ["始点からの極座標", `@${fmt(Math.hypot(e[0] - s[0], e[1] - s[1]), 5)} < ${fmt((Math.atan2(e[1] - s[1], e[0] - s[0]) * 180) / Math.PI, 5)}°`],
+        ]);
+    }
+    update();
+  },
+
+  mohr(host) {
+    const { body, out } = shell(host, "組合せ応力とモールの応力円");
+    const f = form(
+      [
+        { key: "sx", label: "σx", type: "num", value: 80, unit: "MPa" },
+        { key: "sy", label: "σy", type: "num", value: -40, unit: "MPa" },
+        { key: "t", label: "τxy", type: "num", value: 45, unit: "MPa" },
+        { key: "mat", label: "材料", type: "select", value: "0", options: matOptions },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      const sx = f.num("sx"), sy = f.num("sy"), t = f.num("t");
+      const r = planeStress(sx, sy, t);
+      const m = metals[Number(f.str("mat"))];
+      const span = Math.max(Math.abs(r.s1), Math.abs(r.s2), r.R, 1) * 1.15;
+      const k = 100 / span;
+      const cx = 260, cy = 115;
+      const X = (v: number) => cx + v * k, Y = (v: number) => cy + v * k; // τ drawn downward-positive (common convention)
+      const svg =
+        `<svg class="tb-chart" viewBox="0 0 520 235" aria-label="モールの応力円"><line class="axis" x1="20" x2="500" y1="${cy}" y2="${cy}"/><line class="axis" x1="${cx}" x2="${cx}" y1="8" y2="222"/>` +
+        `<text class="lbl" x="498" y="${cy - 6}" text-anchor="end">σ</text><text class="lbl" x="${cx + 6}" y="18">τ</text>` +
+        `<circle cx="${X(r.center)}" cy="${cy}" r="${r.R * k}" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>` +
+        `<line class="guide" x1="${X(sx)}" y1="${Y(t)}" x2="${X(sy)}" y2="${Y(-t)}"/>` +
+        `<circle class="mark" cx="${X(sx)}" cy="${Y(t)}" r="4"/><text class="mark-t" x="${X(sx) + 6}" y="${Y(t) + 14}">X (σx, τxy)</text>` +
+        `<circle class="mark" cx="${X(sy)}" cy="${Y(-t)}" r="4"/><text class="mark-t" x="${X(sy) - 6}" y="${Y(-t) - 6}" text-anchor="end">Y (σy, −τxy)</text>` +
+        `<text class="tick" x="${X(r.s1)}" y="${cy + 14}" text-anchor="middle">σ₁</text><text class="tick" x="${X(r.s2)}" y="${cy + 14}" text-anchor="middle">σ₂</text></svg>`;
+      out.innerHTML =
+        svg +
+        table([
+          ["中心 (σx + σy)/2・半径 R", `${fmt(r.center)} MPa ・ ${fmt(r.R)} MPa`],
+          ["主応力 σ₁ / σ₂", `${fmt(r.s1)} / ${fmt(r.s2)} MPa`],
+          ["最大せん断応力 τmax = R", `${fmt(r.tmax)} MPa`],
+          ["主方向 θp (x 軸から)", `${fmt(r.theta, 3)}°`],
+          ["ミーゼス相当応力", `${fmt(r.mises)} MPa`],
+          [`降伏に対する安全率 (σy = ${m.sy} MPa)`, fmt(safetyFactor(m.sy, r.mises), 2), safeClass(safetyFactor(m.sy, r.mises))],
+        ]);
+    }
+    update();
+  },
+
+  pressure(host) {
+    const { body, out } = shell(host, "薄肉円筒の圧力容器");
+    const f = form(
+      [
+        { key: "p", label: "内圧 p", type: "num", value: 1, unit: "MPa", step: 0.1 },
+        { key: "D", label: "内径 D", type: "num", value: 200, unit: "mm" },
+        { key: "t", label: "板厚 t", type: "num", value: 5, unit: "mm" },
+        { key: "mat", label: "材料", type: "select", value: "0", options: matOptions },
+        { key: "S", label: "目標の安全率", type: "num", value: 4, step: 0.5 },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      try {
+        const c = thinCylinder(f.num("p"), f.num("D"), f.num("t"));
+        const m = metals[Number(f.str("mat"))];
+        const sf = safetyFactor(m.sy, c.hoop);
+        out.innerHTML = table([
+          ["周方向応力 σθ = pD / 2t", `${fmt(c.hoop)} MPa`],
+          ["軸方向応力 σz = pD / 4t", `${fmt(c.axial)} MPa`],
+          ["球形容器なら σ = pD / 4t", `${fmt(c.sphere)} MPa`],
+          [`安全率 (σy = ${m.sy} MPa、周方向)`, fmt(sf, 2), safeClass(sf / 2)],
+          [`安全率 ${fmt(f.num("S"))} に必要な板厚`, `${fmt(cylinderThickness(f.num("p"), f.num("D"), m.sy, f.num("S")))} mm`],
+          ["鏡板 (ふた) を押す力 p·πD²/4", `${fmt(c.lidForce / 1000)} kN`],
+          ["薄肉の条件 t/D < 0.1", c.thin ? "満たす" : "満たさない (厚肉円筒の式が必要)", c.thin ? "good" : "warn"],
+        ]) + `<p class="tb-note">圧力容器は法規 (労働安全衛生法の圧力容器構造規格など) で設計・検査が定められている場合があります。この計算は学習用の概算です。</p>`;
+      } catch (e) {
+        out.innerHTML = err(e);
+      }
+    }
+    update();
+  },
+
+  motor(host) {
+    const { body, out } = shell(host, "モーター選定 (水平移動軸)");
+    const f = form(
+      [
+        { key: "drive", label: "駆動方式", type: "select", value: "screw", options: [["screw", "ボールねじ (リード)"], ["belt", "ベルト・プーリ (プーリ径)"]] },
+        { key: "m", label: "移動質量", type: "num", value: 20, unit: "kg" },
+        { key: "lead", label: "リード / プーリ径", type: "num", value: 10, unit: "mm" },
+        { key: "mu", label: "摩擦係数", type: "num", value: 0.1, step: 0.01 },
+        { key: "v", label: "最高速度", type: "num", value: 500, unit: "mm/s" },
+        { key: "ta", label: "加速時間", type: "num", value: 0.1, unit: "s", step: 0.01 },
+        { key: "eff", label: "機械効率", type: "num", value: 0.9, step: 0.05 },
+        { key: "Jm", label: "モーター慣性 (×10⁻⁴)", type: "num", value: 0.2, unit: "kg·m²", step: 0.01 },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      try {
+        const r = motorSizing({ drive: f.str("drive") as "screw" | "belt", mass: f.num("m"), lead: f.num("lead"), mu: f.num("mu"), speed: f.num("v"), tacc: f.num("ta"), eff: f.num("eff"), rotor: f.num("Jm") * 1e-4 });
+        out.innerHTML = table([
+          ["モーター回転数", `${fmt(r.rpm)} min⁻¹`, r.rpm > 4500 ? "warn" : ""],
+          ["負荷慣性 (モーター軸換算)", `${fmt(r.JL * 1e4)} × 10⁻⁴ kg·m²`],
+          ["慣性比 負荷 / モーター", fmt(r.ratio, 3), r.ratio <= 10 ? "good" : "warn"],
+          ["定速時のトルク (摩擦)", `${fmt(r.Tconst)} N·m`],
+          ["加速トルク", `${fmt(r.Tacc)} N·m`],
+          ["最大トルク (加速 + 摩擦)", `${fmt(r.peak)} N·m`, "good"],
+          ["最大出力の目安", `${fmt(r.power)} W`],
+        ]) + `<p class="tb-note">実際の選定ではメーカーの選定ツールで、実効トルク・回生・安全率 (1.5〜2 倍) を確認します。慣性比の許容値は機種と求める応答性で異なります。</p>`;
+      } catch (e) {
+        out.innerHTML = err(e);
+      }
+    }
+    update();
+  },
+
+  pneumatic(host) {
+    const { body, out } = shell(host, "空気圧シリンダの推力と空気消費量");
+    const f = form(
+      [
+        { key: "D", label: "チューブ内径 D", type: "num", value: 40, unit: "mm" },
+        { key: "d", label: "ロッド径 d", type: "num", value: 16, unit: "mm" },
+        { key: "p", label: "使用圧力", type: "num", value: 0.5, unit: "MPa", step: 0.05 },
+        { key: "lr", label: "負荷率", type: "num", value: 0.5, step: 0.05 },
+        { key: "st", label: "ストローク", type: "num", value: 100, unit: "mm" },
+      ],
+      update,
+    );
+    body.appendChild(f.el);
+    function update() {
+      try {
+        const c = airCylinder(f.num("D"), f.num("d"), f.num("p"), f.num("lr"), f.num("st"));
+        out.innerHTML = table([
+          ["押し側の理論推力 p·πD²/4", `${fmt(c.push)} N`],
+          ["引き側の理論推力 p·π(D²−d²)/4", `${fmt(c.pull)} N`],
+          [`使える推力 (負荷率 ${fmt(f.num("lr"))})`, `押し ${fmt(c.pushUse)} N / 引き ${fmt(c.pullUse)} N`, "good"],
+          ["1 往復の空気消費量 (大気圧換算)", `${fmt(c.air)} L`],
+        ]) + `<p class="tb-note">負荷率は動かす用途で 0.5 以下 (速く動かすなら 0.3〜0.4) が目安。クランプなど静的に押し付けるだけなら 0.7 程度まで。</p>`;
+      } catch (e) {
+        out.innerHTML = err(e);
+      }
+    }
+    update();
+  },
+};
+
 /** Schematic of the beam case (supports, load arrows). */
 function diagram(kind: BeamCase, aRatio: number): string {
   const x0 = 40, x1 = 520, y = 40;
@@ -987,7 +1173,7 @@ function diagram(kind: BeamCase, aRatio: number): string {
   return s + "</svg>";
 }
 
-Object.assign(WIDGETS, MORE);
+Object.assign(WIDGETS, MORE, MORE2);
 
 export function mountWidgets(root: HTMLElement) {
   for (const el of root.querySelectorAll<HTMLElement>("[data-widget]")) {

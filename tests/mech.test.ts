@@ -157,3 +157,45 @@ describe("machine elements", () => {
     expect(c.total).toBeCloseTo(300 + 600 + 3000, 9);
   });
 });
+
+describe("2D input, plane stress, vessels, motors, cylinders", () => {
+  it("cad point input", async () => {
+    const { cadPoint } = await import("../src/textbook/mech");
+    expect(cadPoint([10, 10], "abs", 3, 4)).toEqual([3, 4]);
+    expect(cadPoint([10, 10], "rel", 3, 4)).toEqual([13, 14]);
+    const p = cadPoint([0, 0], "polar", 50, 30);
+    expect(p[0]).toBeCloseTo(43.301, 3);
+    expect(p[1]).toBeCloseTo(25, 9);
+  });
+  it("Mohr circle", async () => {
+    const { planeStress } = await import("../src/textbook/mech");
+    const r = planeStress(80, -40, 45);
+    expect(r.center).toBe(20);
+    expect(r.R).toBeCloseTo(75, 9);
+    expect([r.s1, r.s2]).toEqual([95, -55]);
+    expect(r.mises).toBeCloseTo(Math.sqrt(95 ** 2 - 95 * -55 + 55 ** 2), 9);
+    // pure shear: σ1 = τ, angle 45°
+    const s = planeStress(0, 0, 50);
+    expect(s.s1).toBeCloseTo(50, 9);
+    expect(s.theta).toBeCloseTo(45, 9);
+  });
+  it("thin cylinder", async () => {
+    const { thinCylinder, cylinderThickness } = await import("../src/textbook/mech");
+    const c = thinCylinder(1, 200, 5);
+    expect([c.hoop, c.axial]).toEqual([20, 10]);
+    expect(cylinderThickness(1, 200, 245, 4)).toBeCloseTo(800 / 490, 9);
+  });
+  it("motor sizing for a ball screw axis", async () => {
+    const { motorSizing } = await import("../src/textbook/mech");
+    const r = motorSizing({ drive: "screw", mass: 20, lead: 10, mu: 0.1, speed: 500, tacc: 0.1, eff: 0.9, rotor: 0 });
+    expect(r.rpm).toBeCloseTo(3000, 9);
+    expect(r.JL).toBeCloseTo(20 * (0.01 / (2 * Math.PI)) ** 2, 12);
+    expect(r.Tconst).toBeCloseTo((0.1 * 20 * 9.81 * 0.01) / (2 * Math.PI * 0.9), 9);
+  });
+  it("air cylinder forces", async () => {
+    const { airCylinder } = await import("../src/textbook/mech");
+    const c = airCylinder(40, 16, 0.5, 0.5, 100);
+    expect(c.push).toBeCloseTo(628.3, 1);
+    expect(c.pull).toBeCloseTo(527.8, 1);
+  });
+});

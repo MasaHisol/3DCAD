@@ -548,3 +548,82 @@ export function unitCost(o: { material: number; setupMin: number; cycleMin: numb
   const tooling = o.tooling / o.quantity;
   return { material: o.material, setup, machining, tooling, total: o.material + setup + machining + tooling };
 }
+
+// ---------------------------------------------------------- coordinates ---
+
+/** End point of 2D CAD input from a start point: absolute (x, y), relative (@dx, dy) or polar (@r < angle°, CCW from +X). */
+export function cadPoint(start: [number, number], mode: "abs" | "rel" | "polar", a: number, b: number): [number, number] {
+  if (mode === "abs") return [a, b];
+  if (mode === "rel") return [start[0] + a, start[1] + b];
+  const t = (b * Math.PI) / 180;
+  return [start[0] + a * Math.cos(t), start[1] + a * Math.sin(t)];
+}
+
+// ------------------------------------------------------- plane stress ---
+
+/** Principal stresses, max shear, principal angle (deg) and von Mises of a plane stress state (MPa). */
+export function planeStress(sx: number, sy: number, txy: number) {
+  const c = (sx + sy) / 2;
+  const R = Math.hypot((sx - sy) / 2, txy);
+  return {
+    s1: c + R,
+    s2: c - R,
+    center: c,
+    R,
+    tmax: R,
+    theta: (0.5 * Math.atan2(2 * txy, sx - sy) * 180) / Math.PI,
+    mises: Math.sqrt(sx * sx - sx * sy + sy * sy + 3 * txy * txy),
+    tresca: Math.max(Math.abs(c + R - (c - R)), Math.abs(c + R), Math.abs(c - R)),
+  };
+}
+
+// ---------------------------------------------------- pressure vessels ---
+
+/** Thin-walled cylinder: hoop and axial stress (MPa) for pressure p (MPa), inner diameter D, wall t (mm). */
+export function thinCylinder(p: number, D: number, t: number) {
+  if (!(t > 0 && D > 0)) throw new Error("内径と板厚を正の値にしてください");
+  return { hoop: (p * D) / (2 * t), axial: (p * D) / (4 * t), sphere: (p * D) / (4 * t), thin: t / D < 0.1, lidForce: (p * Math.PI * D * D) / 4 };
+}
+
+/** Wall thickness for a cylinder so that the hoop stress equals σy / S. */
+export const cylinderThickness = (p: number, D: number, sy: number, S: number) => (p * D * S) / (2 * sy);
+
+// ---------------------------------------------------------- motor sizing ---
+
+export interface MotorInput {
+  drive: "screw" | "belt";
+  /** Load mass (kg), screw lead (mm) or pulley diameter (mm), friction coefficient, max speed (mm/s), acceleration time (s), efficiency (0–1), motor rotor inertia (kg·m²). */
+  mass: number;
+  lead: number;
+  mu: number;
+  speed: number;
+  tacc: number;
+  eff: number;
+  rotor: number;
+}
+
+/** Horizontal axis sizing: rpm, load inertia, acceleration / constant / peak torque (N·m), power (W), inertia ratio. */
+export function motorSizing(o: MotorInput) {
+  const g = 9.81;
+  // distance per motor revolution (m)
+  const perRev = o.drive === "screw" ? o.lead / 1000 : (Math.PI * o.lead) / 1000;
+  const rpm = ((o.speed / 1000) / perRev) * 60;
+  const JL = o.mass * (perRev / (2 * Math.PI)) ** 2;
+  const omega = (2 * Math.PI * rpm) / 60;
+  const alpha = omega / o.tacc;
+  const Tf = (o.mu * o.mass * g * perRev) / (2 * Math.PI * o.eff);
+  const Ta = ((o.rotor + JL / o.eff) * alpha);
+  const peak = Ta + Tf;
+  return { rpm, JL, alpha, Tconst: Tf, Tacc: Ta, peak, power: peak * omega, ratio: o.rotor > 0 ? JL / o.rotor : Infinity };
+}
+
+// ----------------------------------------------------------- pneumatics ---
+
+/** Air cylinder forces (N) and free air consumption per double stroke (L, atmospheric). D, d, stroke in mm, p in MPa (gauge). */
+export function airCylinder(D: number, d: number, p: number, loadRatio: number, stroke: number) {
+  if (!(D > d && d >= 0)) throw new Error("ロッド径 < チューブ内径 にしてください");
+  const A1 = (Math.PI * D * D) / 4;
+  const A2 = (Math.PI * (D * D - d * d)) / 4;
+  const vol = ((A1 + A2) * stroke) / 1e6; // L of compressed volume per double stroke
+  return { push: p * A1, pull: p * A2, pushUse: p * A1 * loadRatio, pullUse: p * A2 * loadRatio, air: vol * ((p + 0.101) / 0.101) };
+}
