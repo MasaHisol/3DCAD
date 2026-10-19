@@ -9,23 +9,33 @@ import { CAD2D } from "./cad2d";
 import { DRAFTING } from "./drafting";
 import { MECHANICS2 } from "./mechanics2";
 import { MECHATRONICS, QUALITY } from "./mechatronics";
+import { CAD2D_ADV } from "./cad2d_adv";
+import { CAD3D } from "./cad3d";
+import { MECHANICS3, MECHATRONICS2 } from "./mechanics3";
+import { KNOWHOW2 } from "./knowhow2";
+import { DESIGN2 } from "./design2";
+import { UX } from "./ux";
+import { SERVICE } from "./service";
 import { KNOWHOW } from "./knowhow";
 import { MECHANICS } from "./mechanics";
 
 export const PARTS: Part[] = [
-  { id: "cad2d", title: "第 1 部 2D CAD 入門", desc: "座標と入力、基本図形、編集、拘束と寸法、線種と画層、図面の作図手順、2D から 3D へ", color: "#0891b2" },
-  { id: "basics", title: "第 2 部 設計の基礎", desc: "設計の進め方、製図の基本、公差とはめあい、材料、締結", color: "#2563eb" },
-  { id: "drafting", title: "第 3 部 製図の実践", desc: "投影図の選び方、断面図、寸法記入、機械要素の略画法、溶接記号、幾何公差、図面を読む", color: "#4f46e5" },
-  { id: "mechanics", title: "第 4 部 構造力学 (材料力学)", desc: "つり合い、応力とひずみ、はり、断面、ねじり、座屈、疲労、安全率、振動、熱、組合せ応力、圧力容器、不静定、衝撃、接触、有限要素法、概算", color: "#b45309" },
-  { id: "elements", title: "第 5 部 機械要素", desc: "軸受、歯車、ばね、キー・ピン・軸継手、ベルト・チェーン・ねじ送り、リンクとカム", color: "#be123c" },
-  { id: "mechatronics", title: "第 6 部 メカトロニクスと駆動", desc: "モーター選定、減速機、直動案内、空気圧、センサ、制御の基礎", color: "#7c3aed" },
-  { id: "knowhow", title: "第 7 部 設計ノウハウ", desc: "加工法別の設計、組立性、CAD の作法、解析の使い方、熱処理、コスト、安全、測定と検査、品質管理、設計レビュー", color: "#0f766e" },
-  { id: "design", title: "第 8 部 プロダクトデザイン", desc: "形と比率、人間工学、色・素材・仕上げ、ユーザ中心設計、サステナブルデザイン", color: "#9333ea" },
+  { id: "cad2d", title: "第 1 部 2D CAD 初級〜上級", desc: "座標と入力、作図・編集、拘束と寸法、線種と画層、図面の作図手順、幾何作図、接線、標準化、レイアウト設計、データ交換、図面管理", color: "#0891b2" },
+  { id: "cad3d", title: "第 2 部 3D CAD 初級〜上級", desc: "3D CAD の種類、最初の 10 時間、フィーチャの選び方、変更に強いモデル、曲面と連続性、トップダウン設計、アセンブリ上級、設計自動化、データ管理、MBD", color: "#0284c7" },
+  { id: "basics", title: "第 3 部 設計の基礎", desc: "設計の進め方、製図の基本、公差とはめあい、材料、締結", color: "#2563eb" },
+  { id: "drafting", title: "第 4 部 製図の実践", desc: "投影図の選び方、断面図、寸法記入、機械要素の略画法、溶接記号、幾何公差、図面を読む", color: "#4f46e5" },
+  { id: "mechanics", title: "第 5 部 構造力学 (材料力学)", desc: "つり合いから応力・はり・座屈・疲労・振動・熱、組合せ応力、圧力容器、不静定、衝撃、接触、FEM、疲労設計・溶接・ボルト継手の上級まで", color: "#b45309" },
+  { id: "elements", title: "第 6 部 機械要素", desc: "軸受、歯車、ばね、キー・ピン・軸継手、ベルト・チェーン・ねじ送り、リンクとカム", color: "#be123c" },
+  { id: "mechatronics", title: "第 7 部 メカトロニクスと駆動", desc: "モーター・減速機・直動案内・空気圧・センサ・制御、電気の基礎、ロボットの運動学、動作パターンと振動抑制", color: "#7c3aed" },
+  { id: "knowhow", title: "第 8 部 設計ノウハウ", desc: "加工法別の設計、組立性、CAD の作法、解析、熱処理、コスト、安全、測定・品質、標準化、設計文書、試験、公差設計、規格、信頼性、失敗事例", color: "#0f766e" },
+  { id: "design", title: "第 9 部 デザイン・意匠", desc: "形と比率、CMF、ユーザ中心設計、サステナブル、デザインの進め方、スケッチ、造形と面、色彩、デザイン言語、意匠権、デザインレビュー", color: "#9333ea" },
+  { id: "ux", title: "第 10 部 人間工学・UX", desc: "人体寸法の使い方、操作具、表示とサイン、UI/UX の原則、ユニバーサルデザイン、作業姿勢と負担、UX リサーチ", color: "#db2777" },
+  { id: "service", title: "第 11 部 配線・メンテナンスを考えた設計", desc: "配線設計、ケーブルベア、制御盤の配置、コネクタ、保全性、点検・給油、防塵防水 (IP)、保守のための情報", color: "#65a30d" },
 ];
 
 /** Reading order. The review chapter closes the know-how part. */
-const knowhow = [...KNOWHOW.filter((c) => c.id !== "review"), ...KNOWHOW_MORE, ...QUALITY, ...KNOWHOW.filter((c) => c.id === "review")];
-export const CHAPTERS: TextChapter[] = [...CAD2D, ...BASICS, ...DRAFTING, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...ELEMENTS, ...MECHATRONICS, ...knowhow, ...DESIGN, ...DESIGN_MORE];
+const knowhow = [...KNOWHOW.filter((c) => c.id !== "review"), ...KNOWHOW_MORE, ...QUALITY, ...KNOWHOW2, ...KNOWHOW.filter((c) => c.id === "review")];
+export const CHAPTERS: TextChapter[] = [...CAD2D, ...CAD2D_ADV, ...CAD3D, ...BASICS, ...DRAFTING, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...MECHANICS3, ...ELEMENTS, ...MECHATRONICS, ...MECHATRONICS2, ...knowhow, ...DESIGN2.filter((c) => c.id === "design-process"), ...DESIGN, ...DESIGN_MORE, ...DESIGN2.filter((c) => c.id !== "design-process"), ...UX, ...SERVICE];
 
 const EXTRA: GlossaryEntry[] = [
   { term: "応力", en: "Stress", desc: "単位面積あたりの内力。σ = F / A (MPa = N/mm²)。" },

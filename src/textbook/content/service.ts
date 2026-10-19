@@ -345,7 +345,7 @@ export const SERVICE: TextChapter[] = [
   <tr><td>調整・確認</td><td>位置決めピン・突き当てで再調整を不要に</td></tr>
 </table>
 <h2>アクセス性 — 手と工具が入るか</h2>
-<p>モデル上は外せる部品でも、<b>手や工具が入らなければ</b>交換できません。人体寸法に基づく開口部・すき間の寸法は規格にまとめられています (例: ISO 14738 作業場所の人体計測的要求、ISO 15534 シリーズ / JIS B 9711 等の機械類の開口部・アクセス寸法に関する規格)。設計ではこれらを参照してください。</p>
+<p>モデル上は外せる部品でも、<b>手や工具が入らなければ</b>交換できません。人体寸法に基づく開口部・すき間の寸法は規格にまとめられています (例: ISO 14738 作業場所の人体計測的要求、ISO 15534 シリーズ (機械類の安全性のための人間工学的設計 — 全身・身体の一部が入る開口部とアクセス寸法))。設計ではこれらを参照してください。</p>
 <svg class="tb-chart" viewBox="0 0 520 230" aria-label="点検口と手・工具のすき間">
   <rect x="40" y="30" width="200" height="170" fill="none" stroke="currentColor" stroke-width="2.5"/>
   <rect x="80" y="70" width="120" height="90" fill="none" stroke="var(--tb-accent)" stroke-width="2.5" stroke-dasharray="6 3"/>
