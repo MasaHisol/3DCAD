@@ -2,6 +2,8 @@
 import { ANIM } from "./anim";
 import { ANIM2 } from "./anim2";
 import { ANIM3 } from "./anim3";
+import { ANIM4 } from "./anim4";
+import { ANIM5 } from "./anim5";
 import { fmt, lineChart } from "./chart";
 import {
   charHeight,
@@ -1317,7 +1319,7 @@ function diagram(kind: BeamCase, aRatio: number): string {
   return s + "</svg>";
 }
 
-Object.assign(WIDGETS, MORE, MORE2, MORE3, ANIM, ANIM2, ANIM3);
+Object.assign(WIDGETS, MORE, MORE2, MORE3, ANIM, ANIM2, ANIM3, ANIM4, ANIM5);
 
 export function mountWidgets(root: HTMLElement) {
   for (const el of root.querySelectorAll<HTMLElement>("[data-widget]")) {

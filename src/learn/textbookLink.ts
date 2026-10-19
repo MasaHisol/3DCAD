@@ -2,6 +2,22 @@
 
 /** Chapter titles for links (kept in sync with src/textbook/content by tests/learn.test.ts). */
 export const TEXTBOOK_TITLES: Record<string, string> = {
+  "drawing-format": "線と図面様式 — 太さ・用紙・輪郭・表題欄・尺度",
+  "projection-practice": "投影法の実際 — 第一角法と第三角法、図の配置と特殊な図示",
+  "element-drawing-adv": "ねじ・歯車・ばねの図示の実際 — 組立状態・止まり穴・要目表",
+  "dimension-applied": "寸法記入の応用 — 加工基準・キー溝・穴記号の実践",
+  "fit-drawing": "はめあいと寸法公差の図示 — 表の引き方から積み上げまで",
+  "fabrication-drawings": "板金・溶接構造物・樹脂部品の図面 — 工法に合わせた描き方",
+  "assembly-bom": "組立図・部品表・図番体系 — 図面を束ねて管理する",
+  "drawing-check": "検図 — チェックリストと間違い探し",
+  "machining-practice": "切削加工の実際 — 旋削・フライス・穴あけと切削条件",
+  "grinding-finishing": "研削・仕上げ・精密加工",
+  "casting-forging": "鋳造と鍛造 — 素形材の選び方と設計",
+  "welding-joining": "溶接・接合技術 — 工法の選択とひずみの制御",
+  "press-sheet-detail": "プレス・板金加工の詳細 — 打抜き・曲げ・絞り",
+  "steel-selection": "鉄鋼材料の選び方 — JIS 記号と熱処理",
+  "nonferrous-polymer-selection": "非鉄・樹脂・複合材料の選び方 — 材料選択チャート",
+  "process-planning": "加工精度と工程設計 — 工程能力・基準・工程順序",
   "stiffness-design": "剛性設計の考え方 — 強さより「硬さ」",
   "stiffness-shape": "剛性を高める形状 — 断面・リブ・閉断面",
   "joint-stiffness": "接合部・締結部・軸受の剛性",
