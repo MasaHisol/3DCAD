@@ -612,7 +612,7 @@ export function motorSizing(o: MotorInput) {
   const omega = (2 * Math.PI * rpm) / 60;
   const alpha = omega / o.tacc;
   const Tf = (o.mu * o.mass * g * perRev) / (2 * Math.PI * o.eff);
-  const Ta = ((o.rotor + JL / o.eff) * alpha);
+  const Ta = (o.rotor + JL) * alpha;
   const peak = Ta + Tf;
   return { rpm, JL, alpha, Tconst: Tf, Tacc: Ta, peak, power: peak * omega, ratio: o.rotor > 0 ? JL / o.rotor : Infinity };
 }

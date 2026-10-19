@@ -5,20 +5,27 @@ import { BASICS } from "./basics";
 import { DESIGN } from "./design";
 import { ELEMENTS } from "./elements";
 import { DESIGN_MORE, KNOWHOW_MORE, MECHANICS_MORE } from "./more";
+import { CAD2D } from "./cad2d";
+import { DRAFTING } from "./drafting";
+import { MECHANICS2 } from "./mechanics2";
+import { MECHATRONICS, QUALITY } from "./mechatronics";
 import { KNOWHOW } from "./knowhow";
 import { MECHANICS } from "./mechanics";
 
 export const PARTS: Part[] = [
-  { id: "basics", title: "第 1 部 設計の基礎", desc: "設計の進め方、製図、公差とはめあい、材料、締結", color: "#2563eb" },
-  { id: "mechanics", title: "第 2 部 構造力学 (材料力学)", desc: "力のつり合い、応力とひずみ、はりの曲げ、断面、ねじり、座屈、疲労、安全率、振動、熱", color: "#b45309" },
-  { id: "elements", title: "第 3 部 機械要素", desc: "軸受、歯車、ばね、キー・ピン・軸継手、ベルト・チェーン・ねじ送り、リンクとカム", color: "#be123c" },
-  { id: "knowhow", title: "第 4 部 設計ノウハウ", desc: "切削・板金・樹脂成形・3D プリント、組立性、CAD の作法、解析の使い方、熱処理・表面処理、コスト、安全、設計レビュー", color: "#0f766e" },
-  { id: "design", title: "第 5 部 プロダクトデザイン", desc: "形と比率、人間工学、色・素材・仕上げ、ユーザ中心設計、サステナブルデザイン", color: "#9333ea" },
+  { id: "cad2d", title: "第 1 部 2D CAD 入門", desc: "座標と入力、基本図形、編集、拘束と寸法、線種と画層、図面の作図手順、2D から 3D へ", color: "#0891b2" },
+  { id: "basics", title: "第 2 部 設計の基礎", desc: "設計の進め方、製図の基本、公差とはめあい、材料、締結", color: "#2563eb" },
+  { id: "drafting", title: "第 3 部 製図の実践", desc: "投影図の選び方、断面図、寸法記入、機械要素の略画法、溶接記号、幾何公差、図面を読む", color: "#4f46e5" },
+  { id: "mechanics", title: "第 4 部 構造力学 (材料力学)", desc: "つり合い、応力とひずみ、はり、断面、ねじり、座屈、疲労、安全率、振動、熱、組合せ応力、圧力容器、不静定、衝撃、接触、有限要素法、概算", color: "#b45309" },
+  { id: "elements", title: "第 5 部 機械要素", desc: "軸受、歯車、ばね、キー・ピン・軸継手、ベルト・チェーン・ねじ送り、リンクとカム", color: "#be123c" },
+  { id: "mechatronics", title: "第 6 部 メカトロニクスと駆動", desc: "モーター選定、減速機、直動案内、空気圧、センサ、制御の基礎", color: "#7c3aed" },
+  { id: "knowhow", title: "第 7 部 設計ノウハウ", desc: "加工法別の設計、組立性、CAD の作法、解析の使い方、熱処理、コスト、安全、測定と検査、品質管理、設計レビュー", color: "#0f766e" },
+  { id: "design", title: "第 8 部 プロダクトデザイン", desc: "形と比率、人間工学、色・素材・仕上げ、ユーザ中心設計、サステナブルデザイン", color: "#9333ea" },
 ];
 
 /** Reading order. The review chapter closes the know-how part. */
-const knowhow = [...KNOWHOW.filter((c) => c.id !== "review"), ...KNOWHOW_MORE, ...KNOWHOW.filter((c) => c.id === "review")];
-export const CHAPTERS: TextChapter[] = [...BASICS, ...MECHANICS, ...MECHANICS_MORE, ...ELEMENTS, ...knowhow, ...DESIGN, ...DESIGN_MORE];
+const knowhow = [...KNOWHOW.filter((c) => c.id !== "review"), ...KNOWHOW_MORE, ...QUALITY, ...KNOWHOW.filter((c) => c.id === "review")];
+export const CHAPTERS: TextChapter[] = [...CAD2D, ...BASICS, ...DRAFTING, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...ELEMENTS, ...MECHATRONICS, ...knowhow, ...DESIGN, ...DESIGN_MORE];
 
 const EXTRA: GlossaryEntry[] = [
   { term: "応力", en: "Stress", desc: "単位面積あたりの内力。σ = F / A (MPa = N/mm²)。" },

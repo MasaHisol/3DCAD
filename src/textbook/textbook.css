@@ -844,3 +844,42 @@ mark {
 .tb-widget-body > .tb-btn {
   margin: 8px 0 0;
 }
+.tb-road {
+  max-width: 860px;
+  margin: 22px auto 0;
+  padding: 4px 18px 10px;
+  border-radius: 10px;
+  background: var(--tb-surface);
+  border: 1px solid var(--tb-border);
+}
+.tb-road ol {
+  padding-left: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.tb-road li {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 2px 12px;
+  padding: 8px 12px;
+  border-left: 4px solid var(--tb-accent);
+  background: var(--tb-bg);
+  border-radius: 0 6px 6px 0;
+  line-height: 1.5;
+}
+.tb-road li.done {
+  border-left-color: var(--tb-good);
+}
+.tb-road li small {
+  grid-column: 2;
+  color: var(--tb-text-3);
+}
+@media (max-width: 860px) {
+  .tb-road li {
+    grid-template-columns: 1fr;
+  }
+  .tb-road li small {
+    grid-column: 1;
+  }
+}
