@@ -122,9 +122,12 @@ try {
       if (f.type === "PLANE" && f.normal[1] < -0.99 && f.center[1] <= faces[lo].center[1]) lo = i;
       if (f.type === "PLANE" && f.normal[1] > 0.99 && f.center[1] >= faces[hi].center[1]) hi = i;
     });
-    cmd.sets.fixed.push({ kind: "face", body: 0, index: lo, point: faces[lo].center });
     cmd.sets.load.push({ kind: "face", body: 0, index: hi, point: faces[hi].center });
+    window.__lo = lo;
   });
+  // the hidden bottom face comes from the quick-select button
+  await page.locator(".pp-body .btn", { hasText: "底面を追加" }).click();
+  check("analysis bottom-face quick pick", await page.evaluate(() => window.cad.command.sets.fixed.some((p) => p.index === window.__lo)));
   await page.locator('[data-k="mesh"]').selectOption("5000");
   await page.locator(".pp-body .btn", { hasText: "解析を実行" }).click();
   await page.waitForFunction(() => document.querySelector(".measure-out")?.textContent.includes("最大ミーゼス"), null, { timeout: 120000 });

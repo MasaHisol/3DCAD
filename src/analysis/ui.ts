@@ -56,6 +56,8 @@ const KINDS: { value: AnalysisKind; label: string }[] = [
 type SetKey = "fixed" | "load" | "temp" | "flux" | "conv";
 const SET_LABEL: Record<SetKey, string> = { fixed: "固定拘束", load: "荷重面", temp: "温度固定面", flux: "入熱面", conv: "対流面" };
 const SET_ICON: Record<SetKey, string> = { fixed: "fix", load: "pushpull", temp: "stress", flux: "extrude", conv: "shell" };
+/** Overlay colour of each boundary set in the viewport (also shown on its picker). */
+const SET_COLOR: Record<SetKey, string> = { fixed: "#2bb3a3", load: "#e5484d", temp: "#f59e0b", flux: "#d946ef", conv: "#3b82f6" };
 const KIND_SETS: Record<AnalysisKind, SetKey[]> = {
   static: ["fixed", "load"],
   modal: ["fixed"],
@@ -164,15 +166,21 @@ export class StressCommand implements Command {
         if (!pk || pk.kind !== "face") return;
         const list = this.sets[this.active];
         const k = list.findIndex((x) => x.body === pk.body && x.index === pk.index);
-        if (k >= 0) list.splice(k, 1);
-        else {
-          // a face belongs to one boundary set only
-          for (const s of Object.values(this.sets)) {
-            const j = s.findIndex((x) => x.body === pk.body && x.index === pk.index);
-            if (j >= 0) s.splice(j, 1);
+        if (k >= 0) {
+          list.splice(k, 1);
+          this.app.status(`${SET_LABEL[this.active]}から面を外しました`);
+        } else {
+          // a face belongs to one boundary set only: say so when it moves
+          for (const key of Object.keys(this.sets) as SetKey[]) {
+            const j = this.sets[key].findIndex((x) => x.body === pk.body && x.index === pk.index);
+            if (j < 0) continue;
+            this.sets[key].splice(j, 1);
+            toast(`この面は${SET_LABEL[key]}から${SET_LABEL[this.active]}へ移りました (1 つの面は 1 つの条件にだけ使えます)`, "info", 4000);
           }
           list.push(pk);
+          this.app.status(`${SET_LABEL[this.active]}: ${list.length} 面 — 続けてクリックで追加、もう一度クリックで解除`);
         }
+        this.boundaryChanged();
         this.sync();
       },
     };
@@ -210,8 +218,9 @@ export class StressCommand implements Command {
     );
     const bc = p.section("境界条件");
     for (const key of KIND_SETS[this.kind]) {
-      const pk = p.picker(bc, SET_LABEL[key], SET_ICON[key], () => this.setActive(key), () => ((this.sets[key] = []), this.sync()));
+      const pk = p.picker(bc, SET_LABEL[key], SET_ICON[key], () => this.setActive(key), () => ((this.sets[key] = []), this.boundaryChanged(), this.sync()));
       this.pickers.set(key, pk);
+      bc.lastElementChild?.querySelector(".picker")?.prepend(h("span", { class: "pick-swatch", style: `background:${SET_COLOR[key]}`, title: "モデル上の表示色" }));
       if (key === "load") {
         const kindLoad = p.select(
           bc,
@@ -243,6 +252,15 @@ export class StressCommand implements Command {
         p.expr(bc, "周囲温度", this.convAmb, "°C", (e) => (this.convAmb = e));
       }
     }
+    bc.appendChild(
+      h(
+        "div",
+        { class: "drive-btns" },
+        h("button", { class: "btn", title: "最も低い位置にある下向きの平面 (見えない底面) を選択中の条件に追加します", onClick: () => this.quickPick(-1) }, "底面を追加"),
+        h("button", { class: "btn", title: "最も高い位置にある上向きの平面を選択中の条件に追加します", onClick: () => this.quickPick(1) }, "上面を追加"),
+      ),
+    );
+    p.note(bc, "条件のボタンを押してから面をクリックします (色は上の四角と同じ)。裏側の面はモデルを回転させるか、「底面を追加」を使います。");
     if (this.kind === "thermalStress") p.expr(bc, "基準温度 (応力ゼロ)", this.tref, "°C", (e) => (this.tref = e));
     if (this.kind === "topology") {
       p.expr(bc, "残す体積の割合", this.volFrac, "%", (e) => (this.volFrac = e));
@@ -338,7 +356,49 @@ export class StressCommand implements Command {
       const n = this.sets[key].length;
       pk.setCount(n, n ? `${n} 面` : "面を選択");
     }
-    this.app.vp.setSelection(this.sets[this.active]);
+    // the active set shows as the selection; the others stay visible in their own colours
+    this.app.vp.setTagged(KIND_SETS[this.kind].map((k) => ({ picks: this.sets[k], color: SET_COLOR[k], opacity: k === this.active ? 0.75 : 0.5 })));
+    this.app.vp.setSelection([]);
+  }
+
+  /** Add the lowest downward (-1) or highest upward (+1) planar face (Y up) to the active set. */
+  private quickPick(dir: 1 | -1) {
+    let best: Pick | null = null, bestY = 0;
+    this.B.forEach((b, bi) =>
+      b.faces.forEach((f, i) => {
+        if (f.type !== "PLANE" || f.normal[1] * dir < 0.99) return;
+        if (best && f.center[1] * dir <= bestY * dir) return;
+        best = { kind: "face", body: bi, index: i, point: f.center };
+        bestY = f.center[1];
+      }),
+    );
+    if (!best) return toast(dir < 0 ? "下向きの平面が見つかりません" : "上向きの平面が見つかりません", "warn");
+    const pk: Pick = best;
+    for (const key of Object.keys(this.sets) as SetKey[]) this.sets[key] = this.sets[key].filter((x) => !(x.body === pk.body && x.index === pk.index));
+    // also take the coplanar faces at the same height (e.g. a base split by feet or slots)
+    this.B.forEach((b, bi) =>
+      b.faces.forEach((f, i) => {
+        if (f.type === "PLANE" && f.normal[1] * dir > 0.99 && Math.abs(f.center[1] - bestY) < 1e-6 && !(bi === pk.body && i === pk.index)) {
+          for (const key of Object.keys(this.sets) as SetKey[]) this.sets[key] = this.sets[key].filter((x) => !(x.body === bi && x.index === i));
+          this.sets[this.active].push({ kind: "face", body: bi, index: i, point: f.center });
+        }
+      }),
+    );
+    this.sets[this.active].push(pk);
+    this.app.status(`${SET_LABEL[this.active]}に${dir < 0 ? "底面" : "上面"}を追加しました (${this.sets[this.active].length} 面)`);
+    this.boundaryChanged();
+    this.sync();
+  }
+
+  /** Boundary conditions changed: an earlier result no longer applies, and its colours would hide the picks. */
+  private boundaryChanged() {
+    if (!this.result) return;
+    this.result = null;
+    this.stopAnim();
+    this.app.vp.setResult(null);
+    this.app.vp.setPreviewMesh(null);
+    this.legend.classList.remove("show");
+    this.out.textContent = "境界条件が変わりました。「解析を実行」で再計算してください。";
   }
 
   // -------------------------------------------------------------- mesh ---
@@ -917,6 +977,7 @@ export class StressCommand implements Command {
     this.worker?.terminate();
     this.app.vp.setResult(null);
     this.app.vp.setPreviewMesh(null);
+    this.app.vp.setTagged([]);
     this.legend.remove();
     this.panel.close();
   }
