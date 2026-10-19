@@ -2850,3 +2850,61 @@ kbd {
 .ln-see .ln-link {
   margin: 0;
 }
+.ln-road-title {
+  margin: 4px 0 6px;
+  font-weight: 700;
+  font-size: 13px;
+}
+.ln-road {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.ln-road-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-align: left;
+  line-height: 1.3;
+}
+.ln-road-step:hover {
+  border-color: var(--accent);
+}
+.ln-road-step small {
+  color: var(--text-3);
+  font-size: 11px;
+}
+.ln-road-step.doing {
+  border-color: var(--accent);
+  background: var(--accent-2);
+}
+.ln-road-step.done {
+  border-color: var(--ok);
+}
+.ln-road-no {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--surface-3);
+  font-size: 11px;
+  font-weight: 700;
+}
+.ln-road-step.done .ln-road-no {
+  background: var(--ok);
+  color: #fff;
+}
+@media (max-width: 720px) {
+  .ln-road {
+    grid-template-columns: 1fr 1fr;
+  }
+}

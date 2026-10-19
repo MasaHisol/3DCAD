@@ -2,6 +2,7 @@ import "./textbook.css";
 import { CHAPTERS, PARTS, TEXT_GLOSSARY } from "./content";
 import type { TextChapter } from "./types";
 import { mountWidgets } from "./widgets";
+import { ROADMAP } from "../learn/roadmap";
 
 // ------------------------------------------------------------ progress ---
 
@@ -127,6 +128,15 @@ function home() {
   計算ツールと例題で学びます。3DCAD Studio の学習センター (実習) と合わせて使うと効果的です。</p>
   <div class="tb-progress-row"><div class="tb-progress"><div style="width:${(read / CHAPTERS.length) * 100}%"></div></div><span>${read} / ${CHAPTERS.length} 章 読了 (全体で約 ${Math.round(total / 60)} 時間)</span></div>
   ${next ? `<a class="tb-btn primary" href="#/c/${next.id}">${read ? "続きから読む" : "最初から読む"}: ${next.title} →</a>` : `<p class="tb-good">全章読了です。用語集と計算ツールで復習しましょう。</p>`}
+</section>
+<section class="tb-road">
+  <h2>学習ロードマップ — 2D から 3D、設計へ</h2>
+  <ol>${ROADMAP.map((st) => {
+    const chs = CHAPTERS.filter((c) => st.textbook.includes(c.part));
+    const n = chs.filter((c) => p.read[c.id]).length;
+    return `<li class="${n === chs.length ? "done" : ""}"><b>STEP ${st.step} ${st.title}</b><span>${st.goal}</span><small>テキスト: ${st.textbook.map((id) => PARTS.find((x) => x.id === id)?.title.replace(/^第 \d+ 部 /, "") ?? id).join("・")} (${n}/${chs.length} 章)${chs[0] ? ` — <a href="#/c/${(chs.find((c) => !p.read[c.id]) ?? chs[0]).id}">読む</a>` : ""}</small></li>`;
+  }).join("")}</ol>
+  <p class="tb-note">アプリの学習センターでは、同じ順番で実習レッスン (第 0 章 2D 作図 → 第 1〜8 章) を進められます。</p>
 </section>
 <div class="tb-parts">
 ${PARTS.map((part) => {

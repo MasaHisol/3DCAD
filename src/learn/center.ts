@@ -2,6 +2,7 @@ import type { App } from "../app";
 import { confirmDialog, h, iconEl, modal } from "../ui/dom";
 import { ALL_LESSONS, CURRICULUM, EXERCISES, GLOSSARY } from "./curriculum";
 import { loadProgress, resetProgress } from "./progress";
+import { ROADMAP } from "./roadmap";
 import { openTextbook } from "./textbookLink";
 import { Tutor } from "./tutor";
 import type { Lesson } from "./types";
@@ -59,6 +60,23 @@ export function openLearningCenter(app: App) {
         next ? h("button", { class: "btn primary", onClick: () => start(next) }, iconEl("play"), done ? "続きから" : "最初から始める") : null,
       ),
     );
+    // learning path: 2D → 3D → assembly / drawing → verification → applied design
+    const road = h("div", { class: "ln-road" });
+    for (const st of ROADMAP) {
+      const lessons = CURRICULUM.filter((c) => st.chapters.includes(c.id)).flatMap((c) => c.lessons);
+      const n = lessons.filter((l) => p.done[l.id]).length;
+      const first = lessons.find((l) => !p.done[l.id]) ?? lessons[0];
+      road.appendChild(
+        h(
+          "button",
+          { class: "ln-road-step" + (n === lessons.length ? " done" : n ? " doing" : ""), title: `${st.goal} — クリックで開始`, onClick: () => first && start(first) },
+          h("span", { class: "ln-road-no" }, n === lessons.length ? "✓" : String(st.step)),
+          h("b", {}, st.title),
+          h("small", {}, `${n} / ${lessons.length} レッスン`),
+        ),
+      );
+    }
+    pane.append(h("div", { class: "ln-road-title" }, "学習ロードマップ — 2D から 3D、設計へ"), road);
     for (const ch of CURRICULUM) {
       const n = ch.lessons.filter((l) => p.done[l.id]).length;
       const sec = h(
@@ -162,11 +180,12 @@ export function openLearningCenter(app: App) {
 <h3>おすすめの進め方</h3>
 <table class="ln-table">
   <tr><th>段階</th><th>レッスン</th><th>身につくこと</th></tr>
+  <tr><td>2D 作図 (約 1 時間)</td><td>第 0 章 + テキスト「2D CAD 入門」</td><td>座標・基本図形・トリム・拘束・寸法・DXF・図面への記入 — 3D の土台</td></tr>
   <tr><td>入門 (約 1 時間)</td><td>第 1〜2 章</td><td>画面操作、パラメトリックの考え方、スケッチと拘束</td></tr>
   <tr><td>基礎 (約 1 時間)</td><td>第 3〜4 章</td><td>押し出し・回転・穴・フィレット・パターン、パラメータ設計</td></tr>
   <tr><td>応用 (約 1 時間)</td><td>第 5〜7 章</td><td>アセンブリ、図面、解析、製造データ</td></tr>
   <tr><td>発展 (約 45 分)</td><td>第 8 章</td><td>スイープ・ロフト・板金</td></tr>
-  <tr><td>総合演習</td><td>演習 1〜6</td><td>要件から自分で設計する力 (板金カバー・ダクト・リンク機構を含む)</td></tr>
+  <tr><td>総合演習</td><td>演習 0〜8</td><td>要件から自分で設計する力 (板金カバー・ダクト・リンク機構を含む)</td></tr>
 </table>
 <h3>困ったときは</h3>
 <ul>
@@ -176,7 +195,7 @@ export function openLearningCenter(app: App) {
   <li>レッスンは毎回、専用の練習モデルから始まります。作業中のモデルは先に保存しておきましょう</li>
 </ul>
 <h3>座学テキスト</h3>
-<p>操作の実習とは別に、<b>設計の基礎・構造力学 (材料力学)・設計ノウハウ・プロダクトデザイン</b> を学ぶ座学テキストがあります (5 部 38 章、機械要素・振動・熱・コスト・安全設計を含む。計算ツール・計算練習・確認テスト付き)。
+<p>操作の実習とは別に、<b>設計の基礎・構造力学 (材料力学)・設計ノウハウ・プロダクトデザイン</b> を学ぶ座学テキストがあります (11 部 120 章、機械要素・振動・熱・コスト・安全設計を含む。計算ツール・計算練習・確認テスト付き)。
 「コース」タブの <b>座学テキスト</b> ボタン、または各レッスンの解説にあるリンクから別ウィンドウで開けます。テキストからレッスンを開くこともできます。</p>
 <p class="ln-note">進捗はこのコンピュータ (ブラウザ / アプリ) に保存されます。紙の教材として使える解説は <code>docs/learning/</code> にもあります。</p>
 </div>`;

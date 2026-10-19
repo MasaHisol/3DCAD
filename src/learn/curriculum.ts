@@ -25,6 +25,264 @@ function concentricPair(s: LearnState): boolean {
 const firstExtrude = (s: LearnState) => s.part.features.find((f): f is ExtrudeFeature => f.type === "extrude");
 
 export const CURRICULUM: Chapter[] = [
+  // ------------------------------------------------------------------ 0 ---
+  {
+    id: "drafting2d",
+    title: "第 0 章 2D 作図の基礎 — 3D の前に",
+    desc: "3D CAD の土台は 2D の作図です。座標・基本図形・トリム・拘束・寸法・図面の書き方を、スケッチと図面環境で身につけます。",
+    lessons: [
+      {
+        id: "0-1",
+        title: "線分と座標入力 — 正確に描く",
+        minutes: 10,
+        level: 1,
+        goals: ["スケッチ (2D 作図画面) を開ける", "線分を連続して描き、長さを数値で指定できる", "寸法で大きさを確かめ、直せる"],
+        theory: `
+<p>CAD の作図は、手描きと違って<b>数値で正確に</b>描くのが基本です。2D CAD の考え方は 3D CAD のスケッチでもそのまま使います。</p>
+<ul>
+  <li><b>原点</b> (0, 0) を基準に、右が X、上が Y</li>
+  <li>線分は<b>始点 → 終点</b>とクリックし、続けてクリックすると連続線になる</li>
+  <li>描いている途中で<b>数値を入力</b>すると、その長さの線になる (寸法も自動で付く)</li>
+  <li>水平・垂直に近い線には、自動で<b>水平・垂直拘束</b>が付く</li>
+</ul>
+<p class="ln-note">ここでは L 字形 (幅 60・高さ 40・板の厚さ 15) の輪郭を描きます。座学テキスト「2D CAD 入門」の「座標と入力」も参考にしてください。</p>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> (<kbd>S</kbd>) を押し、正面の <b>XY 平面</b> を選びます。画面が真正面からの 2D 作図画面になります。", tab: "model", ui: "sketch", check: inSketch },
+          { text: "<b>線分</b> (<kbd>L</kbd>) を選び、<b>原点</b>をクリックして始めます。右へ動かして <kbd>6</kbd><kbd>0</kbd> <kbd>Enter</kbd> で長さ 60 の線になります。", tab: "sketch", ui: "sk-line", check: (s) => count(editing(s), "line") >= 1, hint: "数値を入力すると、カーソルの方向にその長さの線が引かれます。" },
+          { text: "続けて 上へ 15 → 左へ 45 → 上へ 25 → 左へ 15 と描き、最後に<b>原点</b>をクリックして L 字を閉じます。<kbd>Esc</kbd> で線分ツールを終了します。", tab: "sketch", ui: "sk-line", check: (s) => count(editing(s), "line") >= 6, hint: "閉じるときは最初の点 (原点) に吸着させます。点が重なると一致拘束が付きます。" },
+          { text: "<b>寸法</b> (<kbd>D</kbd>) で、自動で付かなかった辺に寸法を付けましょう。寸法をダブルクリックすると値を変えられます。", tab: "sketch", ui: "sk-dimension", check: (s) => (editing(s)?.dimensions.length ?? 0) >= 4 },
+          { text: "<b>スケッチを終了</b> します。2D で正確に描けたら、3D では押し出すだけで立体になります。レッスン完了です。", tab: "sketch", ui: "sk-finish", check: (s) => s.mode === "model" },
+        ],
+        summary: ["原点を基準に、右が X・上が Y", "描きながら数値入力で正確な長さに", "水平・垂直は自動拘束、閉じた形は始点に吸着"],
+        quiz: [
+          { q: "原点 (0, 0) から右へ 60、上へ 40 の点の座標は?", choices: ["(40, 60)", "(60, 40)", "(−60, 40)"], answer: 1, explain: "X (右) が 60、Y (上) が 40 なので (60, 40) です。" },
+          { q: "CAD で正確な長さの線を描く方法は?", choices: ["グリッドを目で数える", "描きながら数値を入力する", "拡大して慎重にクリックする"], answer: 1, explain: "数値入力すれば誤差なく描けます。あとから寸法で直すこともできます。" },
+        ],
+        see: ["2d-coords", "2d-draw"],
+      },
+      {
+        id: "0-2",
+        title: "円・円弧・トリム — 不要な線を切る",
+        minutes: 10,
+        level: 1,
+        goals: ["円を描ける", "トリムで交点の間の線を消せる", "円がトリムで円弧になることがわかる"],
+        theory: `
+<p>2D 作図では、まず<b>大まかに図形を重ねて描き</b>、<b>トリム</b> (交点で区切られた部分を消す) で形を整える方法がよく使われます。
+円をトリムすると<b>円弧</b>になります。</p>
+<p>ここでは、2 つの円を重ねて描き、重なった内側をトリムして「ひょうたん形 (8 の字)」の輪郭を作ります。</p>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> を <b>XY 平面</b> に開始します。", tab: "model", ui: "sketch", check: inSketch },
+          { text: "<b>円</b> (<kbd>C</kbd>) で原点を中心に直径 40 程度の円、その右に少し重なるように同じくらいの円を描きます。", tab: "sketch", ui: "sk-circle", check: (s) => count(editing(s), "circle") + count(editing(s), "arc") >= 2, hint: "中心をクリック → 半径の位置をクリック。数値入力で直径を指定することもできます。" },
+          { text: "<b>トリム</b> (<kbd>X</kbd>) を選び、2 つの円が重なっている内側の弧をクリックして消します。両方の円の内側を消すと、外形だけが残ります。", tab: "sketch", ui: "sk-trim", check: (s) => count(editing(s), "arc") >= 2, hint: "交点と交点の間の部分が 1 回のクリックで消えます。消しすぎたら Ctrl+Z。" },
+          { text: "<b>スケッチを終了</b> します。トリムで作った閉じた輪郭は、そのまま押し出せます。レッスン完了です。", tab: "sketch", ui: "sk-finish", check: (s) => s.mode === "model" },
+        ],
+        summary: ["重ねて描いてトリムで整えるのが 2D 作図の定石", "円をトリムすると円弧になる", "閉じた輪郭は 3D で押し出せる"],
+        quiz: [
+          { q: "トリムの働きは?", choices: ["線を延ばす", "交点で区切られた部分を消す", "線を平行に複写する"], answer: 1, explain: "トリムは、交点で区切られた曲線の一部を削除します。延長は別のコマンドです。" },
+          { q: "円の一部をトリムすると何になる?", choices: ["線分", "円弧", "点"], answer: 1, explain: "円の一部を消すと、残りは円弧になります。" },
+        ],
+        see: ["2d-edit"],
+      },
+      {
+        id: "0-3",
+        title: "拘束と寸法で形を決める — 長円 (スロット)",
+        minutes: 12,
+        level: 1,
+        goals: ["長円 (スロット) を描ける", "寸法と拘束で完全拘束にできる"],
+        theory: `
+<p>パラメトリック CAD の 2D 図形は、<b>拘束</b> (形の関係) と<b>寸法</b> (大きさ・位置) で決まります。
+自由度 (まだ動ける量) を 0 にすると<b>完全拘束</b>になり、寸法を変えても形が崩れません。</p>
+<p><b>長円 (スロット)</b> は、2 本の平行な線と両端の半円でできた形で、長穴などに使います。描くと正接拘束などが自動で付きます。</p>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> を <b>XY 平面</b> に開始します。", tab: "model", ui: "sketch", check: inSketch },
+          { text: "<b>長円</b> を選び、<b>原点</b>を最初の中心に、右に 2 つ目の中心をクリックし、幅の位置をクリックして長円を描きます。", tab: "sketch", ui: "sk-slot", check: (s) => count(editing(s), "arc") >= 2 && count(editing(s), "line") >= 2 },
+          { text: "<b>寸法</b>で、中心間の距離 <code>50</code> と、半円の半径 (または直径) を付けます。", tab: "sketch", ui: "sk-dimension", check: (s) => hasDim(s, editing(s), 50) },
+          { text: "ステータスバーが <b>✓ 完全拘束</b> になるまで、必要な拘束・寸法を足しましょう。", tab: "sketch", ui: ["sk-dimension", "sk-horizontal"], check: (s) => !!s.sketch && s.sketch.ok && s.sketch.dof === 0, hint: "中心を結ぶ線を水平にする (水平拘束) か、2 つ目の中心の高さを寸法で決めます。" },
+          { text: "<b>スケッチを終了</b> します。レッスン完了です。", tab: "sketch", ui: "sk-finish", check: (s) => s.mode === "model" },
+        ],
+        summary: ["拘束 = 形の関係、寸法 = 大きさと位置", "完全拘束にすると寸法変更で形が崩れない", "長円は長穴・取付穴の調整に使う"],
+        quiz: [
+          { q: "長円 (スロット) の両端の円弧と直線の関係に付く拘束は?", choices: ["正接", "直交", "同一直線上"], answer: 0, explain: "直線と円弧がなめらかにつながるよう、正接拘束が付きます。" },
+          { q: "完全拘束にする利点は?", choices: ["ファイルが小さくなる", "寸法を変えたときに形が予想どおりに変わる", "表示が速くなる"], answer: 1, explain: "動ける自由度が残っていないので、変更しても形が崩れません。" },
+        ],
+        see: ["2d-constraints"],
+      },
+      {
+        id: "0-4",
+        title: "補助線と対称形状",
+        minutes: 12,
+        level: 2,
+        goals: ["コンストラクション (補助) 線を使える", "対称・等値拘束で左右対称の形を作れる"],
+        theory: `
+<p>機械部品の多くは<b>左右対称</b>です。製図では中心線を先に引き、それを基準に対称に描きます。
+CAD では<b>補助線 (コンストラクション)</b> を中心線にして、<b>対称拘束</b>で両側の点を対称に保ちます。</p>
+<ul>
+  <li><b>対称拘束</b>: 2 つの点 (または線) を、指定した線に対して対称にする</li>
+  <li><b>等値拘束</b>: 2 本の線の長さ (円なら半径) を同じにする</li>
+</ul>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> を <b>XY 平面</b> に開始します。", tab: "model", ui: "sketch", check: inSketch },
+          { text: "<b>線分</b>で原点を通る縦の線を引き、選択して <b>コンストラクション</b> に切り替えます (中心線)。", tab: "sketch", ui: ["sk-line", "sk-construction"], check: (s) => count(editing(s), "line", true) >= 1 },
+          { text: "中心線の両側にまたがる台形 (上辺が短い 4 辺の形) を<b>線分</b>で描きます。", tab: "sketch", ui: "sk-line", check: (s) => count(editing(s), "line") >= 4 },
+          { text: "<b>対称</b> 拘束を選び、左右の対応する 2 点と中心線をクリックして対称にします (上の 2 点、下の 2 点)。", tab: "sketch", ui: "sk-symmetric", check: (s) => constraintCount(editing(s), "symmetric") >= 1, hint: "点 → 点 → 対称の基準線 の順にクリックします。" },
+          { text: "<b>等値</b> 拘束で左右の斜めの辺を同じ長さにし、寸法を付けて形を決めます。", tab: "sketch", ui: ["sk-equal", "sk-dimension"], check: (s) => constraintCount(editing(s), "symmetric") >= 2 || constraintCount(editing(s), "equal") >= 1 },
+          { text: "<b>スケッチを終了</b> します。片側の寸法を変えると、もう片側も対称に動きます。レッスン完了です。", tab: "sketch", ui: "sk-finish", check: (s) => s.mode === "model" },
+        ],
+        summary: ["中心線 (補助線) を先に引くのが製図の基本", "対称拘束で左右を連動させる", "等値拘束で同じ長さ・半径に"],
+        quiz: [
+          { q: "補助線 (コンストラクション) について正しいのは?", choices: ["立体の輪郭になる", "立体の輪郭にならず、基準や対称軸に使う", "印刷すると太線になる"], answer: 1, explain: "補助線は形の基準に使う線で、押し出しなどの輪郭には含まれません。" },
+          { q: "左右の穴の大きさを常に同じにしたい。使う拘束は?", choices: ["等値", "平行", "一致"], answer: 0, explain: "等値拘束で円の半径を等しく保てます。" },
+        ],
+        see: ["2d-constraints", "2d-draw"],
+      },
+      {
+        id: "0-5",
+        title: "2D 部品図形の完成と DXF 書き出し — ガスケット",
+        minutes: 15,
+        level: 2,
+        goals: ["外形と穴を組み合わせた部品の 2D 図形を描ける", "完全拘束にできる", "DXF に書き出して他の 2D CAD やレーザー加工に渡せる"],
+        theory: `
+<p>ここまでの技を使って、フランジ用の<b>ガスケット</b> (薄い板のシール部品) の形を描きます。
+ガスケットや板金の切り抜き部品は、2D の形 (<b>DXF</b>) だけでレーザー・ウォータージェットで加工できます。</p>
+<ul>
+  <li>外形: 直径 80 の円</li>
+  <li>中央の穴: 直径 40</li>
+  <li>ボルト穴: 直径 9 を、中心から 30 の位置に 2 か所 (左右対称)</li>
+</ul>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> を <b>XY 平面</b> に開始し、原点を中心に直径 <code>80</code> と <code>40</code> の円を描いて寸法を付けます。", tab: "model", ui: ["sketch", "sk-circle", "sk-dimension"], check: (s) => hasDim(s, editing(s), 80, ["diameter"]) && hasDim(s, editing(s), 40, ["diameter"]) },
+          { text: "ボルト穴を 2 つ描きます。左右に直径 <code>9</code> の円を描き、中心を X 軸上 (原点から水平距離 30) に置きます。", tab: "sketch", ui: ["sk-circle", "sk-dimension"], check: (s) => count(editing(s), "circle") >= 4 && hasDim(s, editing(s), 9, ["diameter"]), hint: "2 つ目の穴は等値拘束で 1 つ目と同じ直径にすると、寸法が 1 つで済みます。" },
+          { text: "ステータスバーが <b>✓ 完全拘束</b> になるまで拘束と寸法を足します。", tab: "sketch", ui: ["sk-dimension", "sk-equal", "sk-symmetric"], check: (s) => !!s.sketch && s.sketch.ok && s.sketch.dof === 0, hint: "穴の中心を水平拘束で原点とそろえる、対称拘束で左右対称にする、などが使えます。" },
+          { text: "<b>スケッチを終了</b> します。", tab: "sketch", ui: "sk-finish", check: (s) => s.mode === "model" },
+          { text: "ブラウザの <b>スケッチ1</b> を右クリックして <b>DXF に書き出し</b> を選びます。AutoCAD・Jw_cad で開いたり、レーザー加工業者に渡したりできます。", hint: "書き出したくない場合は、メニューを確認するだけでも構いません。" },
+          { text: "押し出し (距離 2) で、厚さ 2 mm のガスケットにしてみましょう (任意)。2D の図形がそのまま 3D の形になります。レッスン完了です。", tab: "model", ui: "extrude" },
+        ],
+        summary: ["外形 → 穴 → 拘束・寸法 の順で描く", "完全拘束にしてから使う", "2D の形は DXF で他の CAD や加工機へ渡せる"],
+        quiz: [
+          { q: "レーザー加工業者に板の切り抜き形状を渡すのに一般的な形式は?", choices: ["DXF", "STL", "PNG"], answer: 0, explain: "DXF は 2D CAD の標準的な交換形式で、レーザー・タレパンの加工データに使われます。" },
+          { q: "左右 2 つの穴を同じ大きさに保つ最も簡単な方法は?", choices: ["両方に同じ数値の寸法を付ける", "等値拘束を付ける", "目で合わせる"], answer: 1, explain: "等値拘束なら 1 つの寸法を変えるだけで両方が変わり、修正漏れがありません。" },
+        ],
+        see: ["2d-drawing-workflow", "2d-to-3d"],
+      },
+      {
+        id: "0-6",
+        title: "図面環境で寸法と注記を書く",
+        minutes: 12,
+        level: 1,
+        goals: ["図面環境でビューを確認できる", "寸法を手で記入できる", "注記を書ける"],
+        theory: `
+<p>2D 図面は、製作者に形・寸法・公差・材料を伝える書類です。3D CAD では、モデルから<b>投影図を自動で作り</b>、寸法や注記を書き加えます。</p>
+<ul>
+  <li><b>寸法</b>: 線・円・2 点をクリックして記入。加工・検査に必要な寸法を、重複なく</li>
+  <li><b>注記</b>: 「指示なき角は C0.5」「材料 SS400」など、図だけで表せない指示</li>
+</ul>
+<p class="ln-note">サンプルの「ブラケット」で練習します。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>図面ビュー</b> で図面環境を開きます。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
+          { text: "<b>寸法</b> を選び、正面図の外形の線 (または 2 点) をクリックして、置き場所をクリックします。2 つ以上記入しましょう。", tab: "drawing", ui: "dw-dim", check: (s) => s.env === "drawing" && dims(s).length >= 2 },
+          { text: "<b>注記</b> を選び、図面の空いている所をクリックして「指示なき角は C0.5」と入力します。", tab: "drawing", ui: "dw-note", check: (s) => (drawing(s)?.sheets ?? []).some((sh) => sh.annos.some((a) => a.type === "note")) },
+          { text: "<b>モデルに戻る</b> を押します。図面はモデルと一緒に保存され、モデルを変えると図面も更新されます。レッスン完了です。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
+        ],
+        summary: ["3D モデルから投影図を作り、寸法・注記を書き加える", "寸法は加工・検査に必要なものを重複なく", "図で表せない指示は注記で"],
+        quiz: [
+          { q: "図で表せない指示 (材料・処理・一般的な面取り) はどう伝える?", choices: ["注記に書く", "口頭で伝える", "書かなくてよい"], answer: 0, explain: "図面に書いたことだけが確実に伝わります。図で表せない指示は注記に書きます。" },
+          { q: "同じ寸法を 2 つの図に重ねて書くと?", choices: ["わかりやすくなる", "改訂時に矛盾の原因になる", "公差が厳しくなる"], answer: 1, explain: "寸法の重複は、片方だけ直して矛盾する原因になるため避けます。" },
+        ],
+        see: ["2d-drawing-workflow", "dimensioning"],
+      },
+    ],
+  },
+  // ----------------------------------------------------------- 0 (mid) ---
+  {
+    id: "drafting2d-mid",
+    title: "第 0 章 B 2D 作図 中級 — 正確な形と再利用",
+    desc: "正多角形と正接、既存の形状の投影、式で関係付けた寸法など、実務で使う 2D 作図の技を練習します。",
+    lessons: [
+      {
+        id: "0-7",
+        title: "【中級】正多角形と正接 — 六角ボスとアーム",
+        minutes: 12,
+        level: 2,
+        goals: ["ポリゴンで正六角形を描ける", "正接拘束で線と円弧をなめらかにつなげられる"],
+        theory: `
+<p>ナットの形 (六角) や、軸からアームが伸びる形は、<b>正多角形</b>と<b>正接 (接線)</b> の作図が基本です。</p>
+<ul>
+  <li>正六角形は<b>二面幅</b> (向かい合う辺の距離) で大きさを指定することが多い。対角距離 = 二面幅 ÷ cos30° ≈ 1.155 倍</li>
+  <li>円と線を<b>正接</b>拘束すると、角のないなめらかなつながりになる (応力集中・見た目の両方に有利)</li>
+</ul>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> を <b>XY 平面</b> に開始します。", tab: "model", ui: "sketch", check: inSketch },
+          { text: "<b>ポリゴン</b> (<kbd>G</kbd>) で、原点を中心に正六角形を描きます。", tab: "sketch", ui: "sk-polygon", check: (s) => count(editing(s), "line") >= 6, hint: "中心 → 頂点の位置の順にクリックします。辺の数はパネルで指定できます。" },
+          { text: "六角形の右に<b>円</b>を描き、六角形の頂点付近から円に向かって<b>線分</b>を 1 本引きます。", tab: "sketch", ui: ["sk-circle", "sk-line"], check: (s) => count(editing(s), "circle") + count(editing(s), "arc") >= 1 && count(editing(s), "line") >= 7 },
+          { text: "<b>正接</b> 拘束を選び、線分と円をクリックして、線が円に接するようにします。", tab: "sketch", ui: "sk-tangent", check: (s) => constraintCount(editing(s), "tangent") >= 1 },
+          { text: "<b>寸法</b>で六角形の二面幅 (向かい合う辺の距離) を <code>17</code> にし、<b>スケッチを終了</b> します。レッスン完了です。", tab: "sketch", ui: ["sk-dimension", "sk-finish"], check: (s) => s.mode === "model" },
+        ],
+        summary: ["正六角形は二面幅で指定 (対角 ≈ 1.155 倍)", "正接拘束でなめらかにつなぐ", "ポリゴンは等値拘束付きで描かれる"],
+        quiz: [
+          { q: "二面幅 17 mm の正六角形の対角距離はおよそ?", choices: ["14.7 mm", "19.6 mm", "34 mm"], answer: 1, explain: "17 ÷ cos30° = 17 ÷ 0.866 ≈ 19.6 mm です。" },
+          { q: "線分と円弧を角なくつなぐ拘束は?", choices: ["一致", "正接", "直交"], answer: 1, explain: "正接拘束で接線方向がそろい、なめらかにつながります。" },
+        ],
+        see: ["2d-geometry", "2d-tangent"],
+      },
+      {
+        id: "0-8",
+        title: "【中級】ジオメトリを投影 — 既存の形に合わせて描く",
+        minutes: 12,
+        level: 2,
+        goals: ["面の上にスケッチし、モデルのエッジを投影できる", "投影した線を基準に新しい形を描ける"],
+        theory: `
+<p>部品に追加工をするとき、既存の外形に合わせて描く必要があります。<b>ジオメトリを投影</b>すると、モデルのエッジがスケッチに<b>参照線</b>として写り、
+寸法や拘束の基準にできます。元の形が変わると、投影した線も追従します。</p>
+<p class="ln-note">60 × 40 × 15 の練習ブロックから始めます。</p>`,
+        setup: { kind: "part", make: blockStarter },
+        steps: [
+          { text: "<b>2D スケッチ</b> を押し、ブロックの<b>上面</b>をクリックします。", tab: "model", ui: "sketch", check: (s) => inSketch(s) && sketches(s).length >= 2 },
+          { text: "<b>ジオメトリを投影</b> を選び、上面の外周のエッジをクリックして投影します。", tab: "sketch", ui: "sk-project", check: (s) => (editing(s)?.entities ?? []).some((e) => e.ref && e.type !== "point") },
+          { text: "投影した線の内側に<b>長方形</b>を描き、各辺と投影線の距離に寸法 <code>5</code> を付けます (一定幅の溝の輪郭)。", tab: "sketch", ui: ["sk-rect", "sk-dimension"], check: (s) => hasDim(s, editing(s), 5) },
+          { text: "<b>スケッチを終了</b> し、<b>押し出し</b>の<b>切り取り</b>・距離 <code>3</code> で浅いポケットにします。レッスン完了です。", tab: "model", ui: ["sk-finish", "extrude"], check: (s) => has<ExtrudeFeature>(s, "extrude", (f) => f.op === "cut") },
+        ],
+        summary: ["面の上にスケッチすると面に追従する", "ジオメトリを投影で既存のエッジを基準にできる", "元の形が変わっても関係が保たれる"],
+        quiz: [
+          { q: "投影したジオメトリの特徴は?", choices: ["自由に動かせる", "元のモデルのエッジに追従する参照線", "押し出すと 2 倍になる"], answer: 1, explain: "投影線はモデルのエッジへの参照で、元の形の変更に追従します。" },
+          { q: "ブロックの外形から一定幅 5 mm 内側に溝を作りたい。確実な描き方は?", choices: ["目分量で描く", "投影した外形線から寸法 5 を付ける", "数値を暗算して座標で描く"], answer: 1, explain: "投影線を基準に寸法を付けると、外形が変わっても幅 5 mm が保たれます。" },
+        ],
+        see: ["2d-constraints", "3d-robust"],
+      },
+      {
+        id: "0-9",
+        title: "【上級】式で関係付けた寸法 — 比率を保つ図形",
+        minutes: 12,
+        level: 3,
+        goals: ["寸法に式を入れられる", "1 つの寸法を変えるだけで全体が比率を保って変わる図形を作れる"],
+        theory: `
+<p>寸法の値には<b>式</b>を書けます。寸法を記入すると <code>d0, d1 …</code> のパラメータ名が付くので、別の寸法から参照できます。</p>
+<pre>d0 = 100         (全幅)
+d1 = d0 / 2      (高さは幅の半分)
+d2 = d0 * 0.2    (穴の直径は幅の 20 %)</pre>
+<p>こうしておくと、<b>全幅を変えるだけで</b>全体が相似に変わります。上級者は、どの寸法を「親」にするかを最初に決めてから描きます。</p>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> を <b>XY 平面</b> に開始し、<b>長方形</b>とその中に<b>円</b>を描きます。", tab: "model", ui: ["sketch", "sk-rect", "sk-circle"], check: (s) => count(editing(s), "line") >= 4 && count(editing(s), "circle") >= 1 },
+          { text: "長方形の幅に寸法 <code>100</code> を付けます。寸法の名前 (例: <code>d0</code>) を確認しておきます。", tab: "sketch", ui: "sk-dimension", check: (s) => hasDim(s, editing(s), 100) },
+          { text: "高さの寸法の値に、幅の寸法名を使った式 (例: <code>d0 / 2</code>) を入力します。", tab: "sketch", ui: "sk-dimension", check: (s) => { const sk = editing(s); return !!sk && sk.dimensions.some((d) => { const p = s.part.params.find((q) => q.name === d.param); return !!p && /[A-Za-z\u3040-\u9fff]/.test(p.expr); }); }, hint: "寸法をダブルクリックして値の欄に d0 / 2 と入力します (d0 は幅の寸法の名前)。" },
+          { text: "幅の寸法を <code>160</code> に変えて、高さも一緒に変わることを確認し、<b>スケッチを終了</b> します。レッスン完了です。", tab: "sketch", ui: ["sk-dimension", "sk-finish"], check: (s) => s.mode === "model" && sketches(s).some((k) => hasDim(s, k, 160)) },
+        ],
+        summary: ["寸法には式を書ける (d0 / 2 など)", "親になる寸法を決め、他を式で関係付ける", "1 か所の変更で全体が相似に変わる"],
+        quiz: [
+          { q: "幅 d0 = 120 のとき、高さの式 d0 / 2 + 10 の値は?", choices: ["60", "70", "130"], answer: 1, explain: "120 / 2 + 10 = 70 です。" },
+          { q: "式で寸法を関係付ける一番の利点は?", choices: ["描くのが速い", "設計変更のとき関係が保たれ、修正漏れがない", "ファイルが軽い"], answer: 1, explain: "親の寸法を変えるだけで、関係付けた寸法がすべて追従します。" },
+        ],
+        see: ["2d-constraints", "3d-automation"],
+      },
+    ],
+  },
   // ------------------------------------------------------------------ 1 ---
   {
     id: "basics",
@@ -668,6 +926,160 @@ export const CURRICULUM: Chapter[] = [
       },
     ],
   },
+
+  // ------------------------------------------------------------------ 9 ---
+  {
+    id: "expert",
+    title: "第 9 章 上級 — 設計の自動化と製造連携",
+    desc: "ファミリー表・ルールで設計を自動化し、改訂管理・コイル・トポロジー最適化・CAM まで、実務の上級機能を使いこなします。",
+    lessons: [
+      {
+        id: "9-1",
+        title: "【上級】ファミリー表 — サイズ違いを一括管理",
+        minutes: 12,
+        level: 3,
+        goals: ["ファミリー表でサイズ違いの構成を作れる", "行を切り替えてモデルを変更できる"],
+        theory: `
+<p>同じ形でサイズだけ違う部品 (ボルト・ブラケットのシリーズなど) は、<b>ファミリー表</b> (iPart / デザインテーブル) で管理します。
+列がパラメータ、行が構成 (品番) で、行を選ぶとそのサイズにモデルが変わります。</p>
+<p class="ln-note">サンプルの「ブラケット」(ユーザ パラメータ 幅・奥行・板厚・ボス径) を使います。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>ファミリー表</b> を開き、列に <b>幅</b> と <b>板厚</b> を加えます。", tab: "manage", ui: "family", check: (s) => (s.part.family?.columns.length ?? 0) >= 1 },
+          { text: "行を 2 つ以上作ります (例: BRK-080 = 幅 80 / 板厚 10、BRK-120 = 幅 120 / 板厚 12)。", tab: "manage", ui: "family", check: (s) => (s.part.family?.rows.length ?? 0) >= 2 },
+          { text: "2 つ目の行を<b>適用</b>して、モデルがそのサイズに変わることを確認します。レッスン完了です。", tab: "manage", ui: "family", check: (s) => (s.part.family?.active ?? 0) >= 1 },
+        ],
+        summary: ["ファミリー表 = パラメータ (列) × 構成 (行)", "行を選ぶだけでサイズ違いのモデルに", "シリーズ部品・標準部品の管理に使う"],
+        quiz: [
+          { q: "ファミリー表の列と行の関係は?", choices: ["列 = 構成、行 = パラメータ", "列 = パラメータ、行 = 構成 (品番)", "どちらもパラメータ"], answer: 1, explain: "列にパラメータ、行にサイズ違いの構成を並べます。" },
+          { q: "ファミリー表に向いているのは?", choices: ["形が全く違う部品", "同じ形でサイズだけ違うシリーズ部品", "アセンブリの拘束"], answer: 1, explain: "形が同じでサイズが違う部品をまとめて管理するのに向いています。" },
+        ],
+        see: ["3d-automation", "standardization"],
+      },
+      {
+        id: "9-2",
+        title: "【上級】ルール — 条件で設計を自動調整",
+        minutes: 12,
+        level: 3,
+        goals: ["パラメータ名を使ったルールを書ける", "条件によって寸法を自動で変えられる"],
+        theory: `
+<p><b>ルール</b>は、パラメータの値に応じて他の寸法・抑制・材料を自動で決める仕組みです (iLogic 相当)。例:</p>
+<pre>if (幅 > 100) 板厚 = 12;
+else 板厚 = 10;</pre>
+<p>「幅が大きいときは板を厚くする」といった<b>設計ルール (ノウハウ)</b> をモデルに組み込めるので、誰が変更しても同じ判断になります。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>ルール</b> を開き、新しいルールを作ります。本文に <code>if (幅 &gt; 100) 板厚 = 12; else 板厚 = 10;</code> と入力して保存します。", tab: "manage", ui: "rules", check: (s) => (s.part.rules?.length ?? 0) >= 1 },
+          { text: "<b>パラメータ</b>表で <b>幅</b> を <code>120</code> にします。ルールが動いて<b>板厚</b>が 12 になることを確認します。", tab: "model", ui: "params", check: (s) => near(s.values.get("幅"), 120) && near(s.values.get("板厚"), 12), hint: "ルールの実行タイミングが「パラメータ変更時」になっているか確認します。手動実行は「ルールを実行」。" },
+          { text: "幅を <code>80</code> に戻すと、板厚が 10 に戻ります。レッスン完了です。", tab: "model", ui: "params", check: (s) => near(s.values.get("幅"), 80) && near(s.values.get("板厚"), 10) },
+        ],
+        summary: ["ルールで設計ノウハウ (条件分岐) をモデルに組み込む", "パラメータ名をそのまま変数として書ける", "誰が変更しても同じ判断になる"],
+        quiz: [
+          { q: "ルールの用途として適切なのは?", choices: ["画面の色を変える", "幅が大きいとき板厚を厚くするなどの設計判断を自動化する", "ファイルを圧縮する"], answer: 1, explain: "条件に応じた寸法・抑制・材料の自動調整に使います。" },
+          { q: "ルールを使う利点は?", choices: ["設計判断が人によってばらつかない", "解析が速くなる", "図面が不要になる"], answer: 0, explain: "判断基準がモデルに組み込まれるので、変更時の判断が統一されます。" },
+        ],
+        see: ["3d-automation", "design-docs"],
+      },
+      {
+        id: "9-3",
+        title: "【上級】改訂管理 — 版を記録して変更を追う",
+        minutes: 10,
+        level: 3,
+        goals: ["版 (A, B …) を記録できる", "版ごとの変更点を確認できる"],
+        theory: `
+<p>出図した後の設計変更は、<b>版 (改訂記号)</b> を上げて記録します。いつ・何を・なぜ変えたかを残すことで、製造・調達との食い違いを防ぎます。</p>
+<p>3DCAD Studio の<b>改訂履歴</b>は、版ごとにモデルの定義を保存し、寸法変更・フィーチャの追加削除などの<b>変更点を自動で一覧</b>にします。図面の表題欄と改訂表にも反映されます。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>改訂履歴</b> を開き、現在の状態を版 <b>A</b> (初版) として記録します。", tab: "manage", ui: "revisions", check: (s) => (s.part.revisions?.length ?? 0) >= 1 },
+          { text: "<b>パラメータ</b>表で <b>ボス径</b> を <code>34</code> に変更します (設計変更)。", tab: "model", ui: "params", check: (s) => near(s.values.get("ボス径"), 34) },
+          { text: "改訂履歴を開き、未記録の変更点に「ボス径 30 → 34」が出ていることを確認して、版 <b>B</b> として記録します。レッスン完了です。", tab: "manage", ui: "revisions", check: (s) => (s.part.revisions?.length ?? 0) >= 2 },
+        ],
+        summary: ["出図後の変更は版を上げて記録", "変更点 (何を・なぜ) を残す", "版は図面の表題欄・改訂表に反映"],
+        quiz: [
+          { q: "版を記録する主な目的は?", choices: ["ファイルを小さくする", "どの図面・モデルで作られたかを追跡し、食い違いを防ぐ", "描画を速くする"], answer: 1, explain: "製造・調達が正しい版を使えるよう、変更の履歴を残します。" },
+          { q: "改訂記号に I や O を使わないことが多い理由は?", choices: ["数字の 1・0 と紛らわしいから", "規格で禁止されているから必ず", "発音しにくいから"], answer: 0, explain: "I・O は 1・0 と見間違えやすいため、避ける慣習があります。" },
+        ],
+        see: ["2d-management", "3d-data-management"],
+      },
+      {
+        id: "9-4",
+        title: "【上級】コイル — ばね・らせん形状",
+        minutes: 12,
+        level: 3,
+        goals: ["軸とプロファイルからコイル (らせん) を作れる", "ピッチ・巻数の意味がわかる"],
+        theory: `
+<p><b>コイル</b>は、プロファイルを軸のまわりにらせん状に動かして、ばね・ねじ山・らせんの溝を作るフィーチャです。</p>
+<ul>
+  <li><b>ピッチ</b>: 1 回転で進む距離。<b>巻数</b> × ピッチ = 全長</li>
+  <li>プロファイル (線の断面) は軸から離れた位置に描く。軸からの距離がコイルの半径</li>
+  <li>軸はコンストラクション線・作業軸・原点の軸を使う</li>
+</ul>`,
+        setup: { kind: "newPart" },
+        steps: [
+          { text: "<b>2D スケッチ</b> を <b>XY 平面</b> に開始し、原点を通る縦の線を引いて <b>コンストラクション</b> にします (コイルの軸)。", tab: "model", ui: ["sketch", "sk-line", "sk-construction"], check: (s) => count(editing(s), "line", true) >= 1 },
+          { text: "軸から右へ 15 mm の位置に直径 <code>3</code> の<b>円</b>を描き (ばねの線径)、<b>スケッチを終了</b> します。", tab: "sketch", ui: ["sk-circle", "sk-finish"], check: (s) => s.mode === "model" && sketches(s).some((k) => count(k, "circle") >= 1) },
+          { text: "<b>コイル</b> を押し、プロファイルに円、軸にコンストラクション線を選び、ピッチ <code>8</code>・巻数 <code>6</code> 程度で OK。", tab: "model", ui: "coil", check: (s) => has(s, "coil") && s.bodies > 0, hint: "軸が自動で選ばれない場合は、パネルで軸を指定します。" },
+          { text: "<b>iProperties</b> で質量を確認し、ピッチや巻数を変えてみましょう。レッスン完了です。", tab: "inspect", ui: "iprops" },
+        ],
+        summary: ["コイル = プロファイルを軸まわりにらせん状に動かす", "全長 = ピッチ × 巻数", "ばね・ねじ・らせん溝に使う"],
+        quiz: [
+          { q: "ピッチ 8 mm で 6 巻きのコイルの全長 (中心線) は?", choices: ["14 mm", "48 mm", "8 mm"], answer: 1, explain: "8 × 6 = 48 mm です。" },
+          { q: "コイルばねの平均径を決めるのは?", choices: ["プロファイルの円の直径", "軸からプロファイル中心までの距離の 2 倍", "ピッチ"], answer: 1, explain: "軸からの距離が半径なので、その 2 倍が平均径です。線径はプロファイルの円の直径です。" },
+        ],
+        see: ["springs", "3d-feature-choice"],
+      },
+      {
+        id: "9-5",
+        title: "【上級】トポロジー最適化 — 軽くて強い形を探す",
+        minutes: 15,
+        level: 3,
+        goals: ["固定・荷重・残す体積から最適な形を計算できる", "結果を設計に生かす考え方がわかる"],
+        theory: `
+<p><b>トポロジー最適化</b>は、固定と荷重を与え、「材料を何 % 残すか」を指定すると、最も剛性の高い材料の配置を計算します。
+結果はそのまま部品にするのではなく、<b>形のアイデア</b>として、作れる形 (リブ・肉抜き) に描き直すのが一般的です。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>検査</b>タブの <b>応力解析</b> を開きます。", tab: "inspect", ui: "stress", check: (s) => s.command === "stress" },
+          { text: "解析の種類を <b>トポロジー最適化</b> にし、固定 (底面)・荷重 (ボスの上面)・残す体積 (例 40 %) を指定して実行します。", tab: "inspect", ui: "stress", check: (s) => s.analysisDone, hint: "計算には少し時間がかかります。" },
+          { text: "残った材料の形 (力の流れ) を観察し、リブや肉抜きの位置を考えます。パネルを閉じてレッスン完了です。", check: (s) => s.command === null },
+        ],
+        summary: ["固定・荷重・残す体積から最適な材料配置を計算", "結果は形のアイデア — 作れる形に描き直す", "力の流れを見る道具として使う"],
+        quiz: [
+          { q: "トポロジー最適化の結果の使い方として適切なのは?", choices: ["そのまま量産図面にする", "力の流れを参考に、作れる形に描き直す", "使わない"], answer: 1, explain: "結果は加工しにくい形が多いので、リブ・肉抜きなど作れる形に置き換えます。" },
+          { q: "トポロジー最適化で指定するものは?", choices: ["色と質感", "固定・荷重・残す体積の割合", "図面の尺度"], answer: 1, explain: "境界条件と体積の制約から材料配置を求めます。" },
+        ],
+        see: ["fea-practice", "3d-mbd"],
+      },
+      {
+        id: "9-6",
+        title: "【上級】CAM — 工具経路と G コード",
+        minutes: 12,
+        level: 3,
+        goals: ["スケッチのプロファイルから工具経路を作れる", "加工時間の目安と G コードの役割がわかる"],
+        theory: `
+<p><b>CAM</b> は、形状データから工作機械の動き (<b>工具経路</b>) を作り、<b>G コード</b> (NC プログラム) にします。</p>
+<ul>
+  <li><b>ポケット</b>: 内側をくり抜く、<b>輪郭</b>: 外形・内形をなぞる、<b>穴あけ</b>: ドリルで穴</li>
+  <li>工具径・切込み・送り速度・回転数を決める</li>
+  <li>内角は工具半径以上の R が残る (設計で R を指示しておく)</li>
+</ul>
+<p class="ln-note">練習用の取付プレート (穴付き) を使います。</p>`,
+        setup: { kind: "part", make: plateStarter },
+        steps: [
+          { text: "<b>検査</b>タブの <b>CAM</b> を開きます。", tab: "inspect", ui: "cam", check: (s) => s.command === "cam" },
+          { text: "加工方法 (輪郭・ポケット・穴あけ) と工具を選び、工具経路を作成して 3D で確認します (青: 切削、赤破線: 早送り)。加工時間の目安も見てみましょう。" },
+          { text: "G コード (.nc) の書き出しを確認し、パネルを閉じます。レッスン完了です。", check: (s) => s.command === null },
+        ],
+        summary: ["CAM = 形状 → 工具経路 → G コード", "工具径で内角の R が決まる", "加工時間を見て形状・公差を見直す"],
+        quiz: [
+          { q: "G コードとは?", choices: ["3D プリンタ専用の画像形式", "工作機械の動きを指示する NC プログラム", "図面の寸法記号"], answer: 1, explain: "G コードは工具の移動・送り・回転などを指示する NC プログラムです。" },
+          { q: "φ10 のエンドミルでポケットを加工すると、内角に残る R の最小値は?", choices: ["R2", "R5", "R10"], answer: 1, explain: "工具半径 5 mm の R が残ります。" },
+        ],
+        see: ["dfm-machining", "3d-mbd"],
+      },
+    ],
+  },
 ];
 
 // ---------------------------------------------------------- exercises ---
@@ -676,6 +1088,26 @@ const anyHoles = (s: LearnState) => has(s, "hole") || has<ExtrudeFeature>(s, "ex
 const healthy = (s: LearnState) => s.bodies === 1 && s.errors === 0;
 
 export const EXERCISES: Exercise[] = [
+  {
+    id: "ex-2d",
+    title: "演習 0: 2D 作図 — 取付プレートの外形",
+    level: 1,
+    brief: "3D に進む前の 2D 作図の総仕上げです。長穴付きの取付プレートの形を、1 つのスケッチで完全に描きます。",
+    spec: [
+      ["外形", "120 × 60 の長方形、四隅は R10 の円弧 (円を描いてトリム)"],
+      ["穴", "中央に φ20、左右に 長さ 20 × 幅 9 の長円 (長穴) 2 個 (左右対称)"],
+      ["拘束", "中心線を補助線で引き、対称・等値拘束を使う"],
+      ["出力", "DXF に書き出す"],
+    ],
+    requirements: [
+      { text: "スケッチに円弧 (トリムまたは長円) がある", check: (s) => sketches(s).some((k) => count(k, "arc") >= 2) },
+      { text: "円が 1 つ以上ある", check: (s) => sketches(s).some((k) => count(k, "circle") >= 1) },
+      { text: "補助線 (コンストラクション) を使っている", check: (s) => sketches(s).some((k) => count(k, "line", true) >= 1) },
+      { text: "対称または等値拘束を使っている", check: (s) => sketches(s).some((k) => constraintCount(k, "symmetric") + constraintCount(k, "equal") >= 1) },
+      { text: "寸法が 6 個以上ある", check: (s) => sketches(s).some((k) => k.dimensions.length >= 6) },
+    ],
+    tips: ["中心線 (縦・横) を補助線で先に引くと、対称拘束が使いやすくなります", "角の R は、角に円を置いて線と円をトリムするか、長方形の角を残したまま 3D のフィレットで丸める方法もあります", "完全拘束になったか、スケッチを開いてステータスバーで確認しましょう"],
+  },
   {
     id: "ex-bracket",
     title: "演習 1: 取付ブラケット",
@@ -741,6 +1173,46 @@ export const EXERCISES: Exercise[] = [
     ],
     tips: ["本体パーツ → ふたパーツ を作ってそれぞれ保存し、新規アセンブリに「ファイルから配置」します", "アセンブリの「作成」でアセンブリ内に直接パーツを作ることもできます", "図面は本体のパーツで「図面ビュー」→「自動寸法」が速いです"],
   },  {
+    id: "ex-panel",
+    title: "演習 7: 操作パネル (人間工学・UX)",
+    level: 2,
+    brief: "卓上機械の操作パネルを設計します。押しボタンの大きさ・間隔、表示の文字、誤操作防止を考えましょう。",
+    spec: [
+      ["外形", "150 × 90、厚さ 3 の板 (樹脂または板金)"],
+      ["ボタン穴", "φ16 程度を 3 個以上、中心間隔 25 以上"],
+      ["表示", "各ボタンの機能名を文字 (刻印 / エンボス) で入れる"],
+      ["非常停止", "他より大きい穴 (φ22 程度) を離れた位置に 1 個"],
+    ],
+    requirements: [
+      { text: "板の外形がある (押し出しまたは板金)", check: (s) => has<ExtrudeFeature>(s, "extrude", (f) => f.op !== "cut") || has(s, "sheetFace") },
+      { text: "ボタン用の穴が 3 個以上 (パターンまたは複数の穴)", check: (s) => has(s, "rectPattern") || has(s, "circPattern") || features<HoleFeature>(s, "hole").length >= 3 || features<ExtrudeFeature>(s, "extrude", (f) => f.op === "cut").length >= 2 },
+      { text: "文字 (刻印 / エンボス) で表示を入れている", check: (s) => has(s, "emboss") },
+      { text: "角を丸めている (フィレット)", check: (s) => has(s, "fillet") },
+      { text: "ソリッドが 1 つで、エラーのフィーチャがない", check: healthy },
+    ],
+    tips: ["座学テキスト「人間工学・UX」の「操作具の設計」「表示とサインの見やすさ」を先に読みましょう", "機能ごとにボタンをまとめ、使う順に左から右へ並べます", "文字の高さは見る距離から計算ツールで決めましょう"],
+  },
+  {
+    id: "ex-service",
+    title: "演習 8: 保守しやすい電装ボックス (配線・メンテナンス)",
+    level: 3,
+    brief: "機械の横に付ける電装ボックスを、配線のしやすさと保守性を考えて設計します。",
+    spec: [
+      ["本体", "板金の箱 200 × 150 × 80、板厚 1.2"],
+      ["ふた", "工具なし (または 1 本のねじ) で開けられる構造"],
+      ["配線口", "底面にケーブルグランド用の穴 (φ20 程度) を複数"],
+      ["その他", "放熱用のスリット、内部の取付穴"],
+    ],
+    requirements: [
+      { text: "板金の面がある", check: (s) => has(s, "sheetFace") },
+      { text: "フランジが 3 辺以上ある", check: (s) => features<FlangeFeature>(s, "flange").reduce((n, f) => n + f.edges.length, 0) >= 3 },
+      { text: "配線・取付用の穴がある", check: anyHoles },
+      { text: "穴・スリットをパターンで並べている", check: (s) => has(s, "rectPattern") || has(s, "circPattern") || has(s, "mirror") },
+      { text: "ソリッドが 1 つで、エラーのフィーチャがない", check: healthy },
+    ],
+    tips: ["座学テキスト「配線・メンテナンスを考えた設計」を先に読みましょう", "配線口は下向きにすると水が入りにくくなります", "ふたを外したときに手と工具が入るすき間を、アセンブリで確認しましょう"],
+  },
+  {
     id: "ex-sheet",
     title: "演習 4: 板金の電装カバー",
     level: 2,
