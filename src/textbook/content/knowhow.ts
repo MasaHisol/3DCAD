@@ -17,6 +17,37 @@ export const KNOWHOW: TextChapter[] = [
   <li><b>ドリル穴</b>の底は 118° の円すいになる。止まり穴の深さは径の 3〜5 倍以内が楽 (深穴は専用の加工が必要)</li>
   <li><b>ねじ穴</b>は下穴深さをねじ深さより長く (+3 ピッチ程度) とり、止まり穴の奥まで完全ねじにしない</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="エンドミルと入隅 R">
+<rect x="40" y="40" width="180" height="120" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<path d="M220,40 L202,40 A18,18 0 0 1 220,58 Z" fill="var(--tb-bad)"/>
+<polyline points="90,58 202,58 202,130" fill="none" class="guide"/>
+<g><circle r="18" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/><circle r="2" fill="var(--tb-accent)"/>
+<animateTransform attributeName="transform" type="translate" values="90 58;202 58;202 130;202 58;90 58" keyTimes="0;0.4;0.6;0.8;1" dur="6s" repeatCount="indefinite"/></g>
+<text class="lbl" x="232" y="36" text-anchor="start" style="fill:var(--tb-bad)">削り残し</text>
+<text class="lbl" x="130" y="185" text-anchor="middle">図面: 入隅 R なし (直角)</text>
+<rect x="300" y="40" width="180" height="120" rx="22" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<polyline points="370,58 458,58 462,62 462,130" fill="none" class="guide"/>
+<g><circle r="18" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/><circle r="2" fill="var(--tb-accent)"/>
+<animateTransform attributeName="transform" type="translate" values="370 58;458 58;462 62;462 130;462 62;458 58;370 58" keyTimes="0;0.38;0.42;0.6;0.78;0.82;1" dur="6s" repeatCount="indefinite"/></g>
+<text class="lbl" x="390" y="185" text-anchor="middle" style="fill:var(--tb-good)">図面: 入隅 R ≥ 工具半径 → 一筆で削れる</text>
+<text class="tick" x="130" y="202" text-anchor="middle">工具 (円) は丸いので角に届かない</text>
+</svg>
+<p class="tb-caption">図: 上から見たポケット加工。エンドミル (円) は丸いため、直角の入隅には削り残しが出る (左)。工具半径より少し大きい R を指示すれば、工具が止まらず滑らかに回り込める (右)</p>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="ポケットの深さと工具の長さ">
+<path d="M40,60 L105,60 L105,110 L165,110 L165,60 L230,60 L230,180 L40,180 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="120" y="20" width="30" height="88" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
+<text class="lbl" x="135" y="140" text-anchor="middle" style="fill:var(--tb-good)">深さ 50 / φ30 ≈ 1.7 倍</text>
+<text class="lbl" x="135" y="205" text-anchor="middle">短く太い工具: 剛性が高く速く削れる</text>
+<path d="M290,60 L376,60 L376,170 L396,170 L396,60 L480,60 L480,180 L290,180 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<g><rect x="380" y="10" width="12" height="158" fill="none" stroke="var(--tb-bad)" stroke-width="2"/>
+<animateTransform attributeName="transform" type="rotate" values="0 386 10;0.8 386 10;-0.8 386 10;0 386 10" dur="0.5s" repeatCount="indefinite"/></g>
+<text class="lbl" x="410" y="120" text-anchor="start" style="fill:var(--tb-bad)">深さ 30 / φ4 = 7.5 倍</text>
+<text class="lbl" x="410" y="138" text-anchor="start" style="fill:var(--tb-bad)">→ びびり・折損</text>
+<text class="lbl" x="385" y="205" text-anchor="middle">細長い工具: たわんで精度・寿命が落ちる</text>
+</svg>
+<p class="tb-caption">図: 深さは工具径の 3〜4 倍以内が目安。深く細い溝ほど工具が長く細くなり、たわみ (びびり) が出る。止まった図でも、右の工具がたわみやすい形であることが読み取れる</p>
+<p>入隅 R は加工のためだけでなく、強度にも効きます。下のアニメーションで角の R を変えると、力の流れ (力線) が角で詰まる様子と、応力集中がやわらぐ様子が見られます。</p>
+<div data-widget="anim-stressflow"></div>
 <h2>段取りと基準</h2>
 <ul>
   <li><b>段取り (つかみ替え) の回数を減らす</b>: 加工する面が 1〜2 方向にまとまるよう形を工夫する。斜めの穴は段取りが増え高価</li>
@@ -65,6 +96,31 @@ export const KNOWHOW: TextChapter[] = [
   <li>2 方向の曲げが交わる角には<b>逃げ (切り欠き)</b> を設ける</li>
   <li>曲げの方向・半径をそろえると、金型交換が減る</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="曲げの逃げ (切り欠き)">
+<rect x="40" y="80" width="160" height="80" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/><rect x="40" y="40" width="160" height="40" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/><rect x="200" y="80" width="50" height="80" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<line class="guide" x1="40" y1="80" x2="200" y2="80"/><line class="guide" x1="200" y1="80" x2="200" y2="160"/>
+<polyline points="196,84 204,76 198,72 206,66" fill="none" stroke="var(--tb-bad)" stroke-width="2"/>
+<text class="lbl" x="130" y="185" text-anchor="middle" style="fill:var(--tb-bad)">逃げなし: 角が裂ける・ふくらむ</text>
+<rect x="300" y="80" width="160" height="80" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/><rect x="300" y="40" width="152" height="40" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/><rect x="460" y="88" width="50" height="72" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="452" y="40" width="8" height="48" fill="none" stroke="var(--tb-good)" stroke-width="2" stroke-dasharray="3 2"/>
+<line class="guide" x1="300" y1="80" x2="452" y2="80"/><line class="guide" x1="460" y1="88" x2="460" y2="160"/>
+<text class="lbl" x="390" y="185" text-anchor="middle" style="fill:var(--tb-good)">逃げあり: 曲げ線の交点を切り欠く</text>
+<text class="tick" x="456" y="30" text-anchor="middle">逃げ</text>
+</svg>
+<p class="tb-caption">図: 展開図 (破線が曲げ線)。2 方向の曲げが交わる角に逃げ (切り欠き) を入れると、曲げたときに材料が逃げられる。逃げの幅は板厚以上、深さは曲げ線を越える程度が目安</p>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="穴と曲げ線の距離">
+<path d="M60,148 L300,148 A28,28 0 0 0 328,120 L328,40 L320,40 L320,120 A20,20 0 0 1 300,140 L60,140 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<line class="guide" x1="200" y1="132" x2="200" y2="156"/><line class="guide" x1="216" y1="132" x2="216" y2="156"/>
+<line class="guide" x1="216" y1="170" x2="320" y2="170"/>
+<line x1="216" y1="164" x2="216" y2="176" stroke="var(--tb-accent)"/><line x1="320" y1="164" x2="320" y2="176" stroke="var(--tb-accent)"/>
+<text class="lbl" x="268" y="190" text-anchor="middle">≥ 2t + R (目安)</text>
+<text class="tick" x="208" y="126" text-anchor="middle">穴</text>
+<text class="tick" x="345" y="60" text-anchor="start">フランジ高さ ≥ 3〜4t (目安)</text>
+<text class="tick" x="345" y="125" text-anchor="start">内側 R ≥ t</text>
+<ellipse cx="80" cy="60" rx="10" ry="7" fill="none" stroke="var(--tb-bad)" stroke-width="2"/>
+<text class="lbl" x="98" y="64" text-anchor="start" style="fill:var(--tb-bad)">曲げ線に近い穴は楕円に変形</text>
+</svg>
+<p class="tb-caption">図: 曲げの断面 (t: 板厚、R: 内側曲げ半径)。穴が曲げ部に近いと、曲げで引き伸ばされて楕円になる</p>
 <h2>展開長さと K 係数</h2>
 <div class="tb-formula">曲げ代 BA = θ(rad) × (R + K × t)　　(K: 中立面の位置、0.3〜0.5 程度)</div>
 <p>曲げると板の外側は伸び、内側は縮みます。伸び縮みしない<b>中立面</b>の位置を K 係数で表し、展開長さを計算します。</p>
@@ -106,6 +162,28 @@ export const KNOWHOW: TextChapter[] = [
   <li><b>ボス</b> (ねじ止めの円柱) は肉厚を均一にするため中空にし、根元を壁やリブでつなぐ</li>
   <li>角には R を付ける (内側 R ≈ 肉厚の 0.5 倍以上)。樹脂の流れが良くなり、応力集中も減る</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="リブの厚さとひけ">
+<path d="M40,60 L88,60 Q100,70 112,60 L170,60 L170,76 L108,76 L108,124 L92,124 L92,76 L40,76 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<circle cx="100" cy="76" r="11" fill="none" stroke="var(--tb-bad)" stroke-dasharray="3 2"/>
+<text class="lbl" x="100" y="48" text-anchor="middle" style="fill:var(--tb-bad)">ひけ</text>
+<text class="lbl" x="105" y="150" text-anchor="middle" style="fill:var(--tb-bad)">リブ厚 = 肉厚 t → 交点が厚い</text>
+<path d="M300,60 L460,60 L460,76 L385,76 L384,120 L376,120 L375,76 L300,76 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<text class="lbl" x="380" y="48" text-anchor="middle" style="fill:var(--tb-good)">表面は平ら</text>
+<text class="lbl" x="380" y="150" text-anchor="middle" style="fill:var(--tb-good)">リブ厚 0.5〜0.6t、高さ ≤ 3t (目安)</text>
+<text class="tick" x="260" y="185" text-anchor="middle">交点に内接する円が大きいほど冷えるのが遅く、ひけ・ボイドが出やすい</text>
+</svg>
+<p class="tb-caption">図: 樹脂成形品の断面。リブを肉厚と同じにすると、交点が厚肉になって表側にひけ (へこみ) が出る。リブは薄く、高さを抑える</p>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="ボスの設計">
+<path d="M30,44 L210,44 L210,60 L140,60 L140,150 L80,150 L80,60 L30,60 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<circle cx="110" cy="80" r="7" fill="none" stroke="var(--tb-bad)" stroke-width="2"/>
+<path d="M95,44 Q110,52 125,44" fill="none" stroke="var(--tb-bad)" stroke-width="2"/>
+<text class="lbl" x="120" y="180" text-anchor="middle" style="fill:var(--tb-bad)">中実の太いボス: ひけ・ボイド</text>
+<path d="M290,44 L470,44 L470,60 L400,60 L400,150 L388,150 L388,60 L352,60 L352,150 L340,150 L340,60 L290,60 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<polygon points="300,60 340,60 340,130" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/><polygon points="440,60 400,60 400,130" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<text class="tick" x="370" y="110" text-anchor="middle">ねじ穴</text>
+<text class="lbl" x="380" y="180" text-anchor="middle" style="fill:var(--tb-good)">中空 + リブで壁とつなぐ</text>
+</svg>
+<p class="tb-caption">図: ボス (ねじ止め用の円柱) の断面。中空にして肉厚を均一にし、根元を三角リブで補強する</p>
 <h2>アンダーカットを避ける</h2>
 <p>型の開く方向に抜けない形 (横穴・内側のツメなど) を<b>アンダーカット</b>と呼び、スライド機構が必要になって金型が高価になります。
 穴の向きを型開き方向にそろえる、ツメの下を貫通させるなどで回避します。</p>
@@ -153,9 +231,37 @@ export const KNOWHOW: TextChapter[] = [
   <li><b>穴は小さめに出る</b>: はめあい用の穴は 0.2〜0.3 mm 大きく設計するか、後でドリルで仕上げる</li>
   <li>底面 (ベッドに着く面) は平らで広く。角に R を付けるとそり・はがれが減る</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="FDM のオーバーハング 45° の目安">
+<line class="axis" x1="30" y1="170" x2="500" y2="170"/>
+<line x1="60" y1="170" x2="120" y2="66" stroke="var(--tb-good)" stroke-width="8"/>
+<line x1="230" y1="170" x2="315" y2="85" stroke="var(--tb-warn)" stroke-width="8"/>
+<line x1="380" y1="170" x2="484" y2="110" stroke="var(--tb-bad)" stroke-width="8"/>
+<line class="guide" x1="60" y1="170" x2="60" y2="60"/><line class="guide" x1="230" y1="170" x2="230" y2="80"/><line class="guide" x1="380" y1="170" x2="380" y2="100"/>
+<line class="guide" x1="410" y1="170" x2="410" y2="153"/><line class="guide" x1="440" y1="170" x2="440" y2="136"/><line class="guide" x1="470" y1="170" x2="470" y2="119"/>
+<text class="lbl" x="90" y="190" text-anchor="middle" style="fill:var(--tb-good)">垂直から 30°: OK</text>
+<text class="lbl" x="272" y="190" text-anchor="middle" style="fill:var(--tb-warn)">45°: 限界の目安</text>
+<text class="lbl" x="440" y="190" text-anchor="middle" style="fill:var(--tb-bad)">60°: サポートが必要</text>
+<text class="tick" x="265" y="30" text-anchor="middle">破線 = 垂直 (積層方向)。右端の細い破線はサポート</text>
+</svg>
+<p class="tb-caption">図: オーバーハング (張り出し) は垂直から 45° 程度までならサポートなしで積める (目安)。それより寝た面は下の層が支えにならず垂れる</p>
 <h2>強さは向きで変わる</h2>
 <p>FDM の部品は層と層の境目 (積層方向) が弱く、強度が数分の 1 になることもあります。
 <b>荷重が層に沿う向き</b>になるよう造形方向を決めましょう (例: フックは立てずに寝かせて造形)。</p>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="積層方向と強度">
+<line class="axis" x1="30" y1="175" x2="240" y2="175"/>
+<rect x="90" y="45" width="30" height="130" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<line class="grid" x1="90" y1="55" x2="120" y2="55"/><line class="grid" x1="90" y1="65" x2="120" y2="65"/><line class="grid" x1="90" y1="75" x2="120" y2="75"/><line class="grid" x1="90" y1="85" x2="120" y2="85"/><line class="grid" x1="90" y1="95" x2="120" y2="95"/><line class="grid" x1="90" y1="105" x2="120" y2="105"/><line class="grid" x1="90" y1="115" x2="120" y2="115"/><line class="grid" x1="90" y1="125" x2="120" y2="125"/><line class="grid" x1="90" y1="135" x2="120" y2="135"/><line class="grid" x1="90" y1="145" x2="120" y2="145"/><line class="grid" x1="90" y1="155" x2="120" y2="155"/><line class="grid" x1="90" y1="165" x2="120" y2="165"/>
+<line x1="170" y1="55" x2="124" y2="55" stroke="var(--tb-accent)" stroke-width="2"/><polygon points="124,55 131.4,51.9 131.4,58.1" fill="var(--tb-accent)"/>
+<polyline points="88,165 96,163 104,166 112,163 122,165" fill="none" stroke="var(--tb-bad)" stroke-width="2"/>
+<text class="lbl" x="130" y="200" text-anchor="middle" style="fill:var(--tb-bad)">立てて造形: 層の境目ではがれる</text>
+<line class="axis" x1="280" y1="175" x2="500" y2="175"/>
+<rect x="300" y="145" width="170" height="30" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<line class="grid" x1="300" y1="150" x2="470" y2="150"/><line class="grid" x1="300" y1="155" x2="470" y2="155"/><line class="grid" x1="300" y1="160" x2="470" y2="160"/><line class="grid" x1="300" y1="165" x2="470" y2="165"/><line class="grid" x1="300" y1="170" x2="470" y2="170"/>
+<line x1="462" y1="95" x2="462" y2="141" stroke="var(--tb-accent)" stroke-width="2"/><polygon points="462,141 458.9,133.6 465.1,133.6" fill="var(--tb-accent)"/>
+<text class="lbl" x="390" y="200" text-anchor="middle" style="fill:var(--tb-good)">寝かせて造形: 層に沿って荷重を受ける</text>
+<text class="tick" x="260" y="22" text-anchor="middle">細線 = 層の境目。矢印 = 荷重</text>
+</svg>
+<p class="tb-caption">図: 同じ棒でも造形の向きで強さが変わる。曲げで生じる引張が層の境目を引きはがす向き (左) を避け、層に沿う向き (右) にする</p>
 <div class="tb-tip"><b>3DCAD Studio</b>: 「検査 → 3D プリント」でオーバーハング (赤) と薄肉 (橙) を色分けし、造形方向ごとのサポート量を比べられます。STL / 3MF で書き出してスライサへ。</div>`,
     points: ["オーバーハングは 45° まで — 面取りにすればサポート不要", "最小肉厚はノズル径の 2 倍以上", "穴は小さく出る — はめあいは補正する", "積層方向に弱い — 荷重の向きで造形方向を決める"],
     exercises: [
@@ -186,6 +292,24 @@ export const KNOWHOW: TextChapter[] = [
   <li><b>分解・交換</b>のために別部品である必要があるか?</li>
 </ol>
 <p>どれにも当てはまらなければ、隣の部品と<b>一体化</b>できる候補です。ねじ・座金などの締結部品も、スナップフィットや位置決め形状で減らせます。</p>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="部品統合の前後">
+<rect x="30" y="150" width="190" height="16" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<path d="M60,150 L60,80 L72,80 L72,138 L110,138 L110,150 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<path d="M150,150 L150,80 L162,80 L162,138 L190,138 L190,150 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="50" y="64" width="130" height="14" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<circle cx="66" cy="56" r="5" fill="var(--tb-bad)"/><circle cx="156" cy="56" r="5" fill="var(--tb-bad)"/><circle cx="90" cy="168" r="5" fill="var(--tb-bad)"/><circle cx="175" cy="168" r="5" fill="var(--tb-bad)"/>
+<text class="lbl" x="125" y="30" text-anchor="middle">前: 7 点 (ベース・ブラケット 2・カバー・ねじ 4)</text>
+<text class="lbl" x="125" y="195" text-anchor="middle" style="fill:var(--tb-bad)">ねじ 4 本 = 4 回の位置合わせと締付</text>
+<line x1="232" y1="110" x2="282" y2="110" stroke="var(--tb-accent)" stroke-width="2"/><polygon points="282,110 274.6,113.1 274.6,106.9" fill="var(--tb-accent)"/>
+<rect x="300" y="150" width="190" height="16" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<path d="M330,150 L330,78 L460,78 L460,150 L448,150 L448,92 L342,92 L342,150 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<path d="M330,150 l-6,8 l6,0 Z M460,150 l6,8 l-6,0 Z" fill="var(--tb-good)"/>
+<text class="lbl" x="395" y="30" text-anchor="middle">後: 2 点 (ベース + 成形カバー)</text>
+<text class="lbl" x="395" y="195" text-anchor="middle" style="fill:var(--tb-good)">スナップフィットで押し込むだけ</text>
+</svg>
+<p class="tb-caption">図: ブラケットとカバーは互いに動かず、同じ材料でよいので一体化できる。ねじ 4 本はスナップフィット (緑の爪) に置き換えた</p>
+<p>部品統合の効果を動きで確かめましょう。統合前後の組立を再生すると、ねじやブラケットが消え、部品点数と組立時間がどう変わるかが分かります。</p>
+<div data-widget="anim-dfa"></div>
 <h2>組み立てやすくする</h2>
 <ul>
   <li><b>一方向から組む</b>: 上から順に積み重ねられる構造 (ひっくり返さない)</li>
@@ -194,6 +318,17 @@ export const KNOWHOW: TextChapter[] = [
   <li>工具が入るすき間、ねじを回す空間、手が届くかを確認する</li>
   <li>ねじの種類・長さをそろえる</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="面取りによる挿入ガイド">
+<rect x="40" y="110" width="75" height="70" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/><rect x="145" y="110" width="75" height="70" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="104" y="42" width="28" height="68" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
+<text class="lbl" x="130" y="200" text-anchor="middle" style="fill:var(--tb-bad)">面取りなし: 縁に当たって止まる</text>
+<path d="M300,110 L362,110 L370,118 L370,180 L300,180 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<path d="M408,110 L470,110 L470,180 L400,180 L400,118 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<g><path d="M360,22 L388,22 L388,86 L384,90 L364,90 L360,86 Z" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
+<animateTransform attributeName="transform" type="translate" values="0 0;0 22;11 34;11 82;11 82;0 0" keyTimes="0;0.25;0.4;0.65;0.85;1" dur="4s" repeatCount="indefinite"/></g>
+<text class="lbl" x="385" y="200" text-anchor="middle" style="fill:var(--tb-good)">面取りあり: 斜面に沿って自然に入る</text>
+</svg>
+<p class="tb-caption">図: 穴の入口に面取り (ガイド) を付けると、少しずれて差し込んでも斜面で位置が修正される (右はピンが入る動き)</p>
 <h2>ポカヨケ (誤組防止)</h2>
 <p>人は必ず間違えます。<b>間違えた組み方ができない形</b>にするのがポカヨケです。</p>
 <ul>
@@ -202,6 +337,18 @@ export const KNOWHOW: TextChapter[] = [
   <li>似ているが違う部品 (長さ違いのねじなど) を同じ製品に混在させない</li>
   <li>コネクタは形・色で区別する</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="ポカヨケ — ピン位置の非対称化">
+<rect x="40" y="50" width="180" height="100" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<circle cx="70" cy="100" r="7" fill="var(--tb-accent)"/><circle cx="190" cy="100" r="7" fill="var(--tb-accent)"/>
+<rect x="34" y="44" width="192" height="112" fill="none" class="guide"/>
+<text class="lbl" x="130" y="105" text-anchor="middle">180° 回しても入る</text>
+<text class="lbl" x="130" y="180" text-anchor="middle" style="fill:var(--tb-bad)">対称配置: 逆向きに組めてしまう</text>
+<rect x="300" y="50" width="180" height="100" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<circle cx="330" cy="100" r="7" fill="var(--tb-accent)"/><circle cx="450" cy="70" r="7" fill="var(--tb-accent)"/>
+<text class="lbl" x="390" y="105" text-anchor="middle">向きは 1 通りだけ</text>
+<text class="lbl" x="390" y="180" text-anchor="middle" style="fill:var(--tb-good)">片方のピンをずらす: 間違えると入らない</text>
+</svg>
+<p class="tb-caption">図: 上から見た取付面と位置決めピン。ピンを対称に置くと裏返し・逆向きでも入るが、位置をずらせば正しい向きでしか組めない</p>
 <div class="tb-tip"><b>3DCAD Studio</b>: アセンブリの部品表で部品点数・ねじの種類を確認し、干渉解析で組立時のぶつかりを確かめましょう。分解表示は組立手順書の作成にも使えます。</div>`,
     points: ["部品点数を減らす (動く・材料が違う・分解が必要 以外は統合候補)", "一方向から組める構造、面取りでガイド", "位置決めは形で — 調整作業をなくす", "ポカヨケ: 間違った組み方ができない形にする"],
     exercises: [
@@ -231,6 +378,19 @@ export const KNOWHOW: TextChapter[] = [
   <li><b>寸法は機能から</b>: 図面に書きたい寸法 (機能寸法) でスケッチを拘束しておくと、図面化も楽</li>
   <li><b>関係は式で</b>: 「穴は中央」「高さは幅の 1/4」をパラメータの式で表す</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="寸法の付け方と設計意図">
+<rect x="40" y="40" width="160" height="60" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/><circle cx="120" cy="70" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+<rect x="300" y="40" width="200" height="60" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/><circle cx="380" cy="70" r="9" fill="none" stroke="var(--tb-bad)" stroke-width="2"/>
+<text class="lbl" x="120" y="30" text-anchor="middle">元: 幅 160、穴は左端から 80</text>
+<text class="lbl" x="400" y="30" text-anchor="middle" style="fill:var(--tb-bad)">幅を 200 に変更 → 穴が中央からずれる</text>
+<rect x="40" y="140" width="160" height="60" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/><circle cx="120" cy="170" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+<rect x="300" y="140" width="200" height="60" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/><circle cx="400" cy="170" r="9" fill="none" stroke="var(--tb-good)" stroke-width="2"/>
+<line class="guide" x1="400" y1="135" x2="400" y2="205"/>
+<text class="lbl" x="120" y="130" text-anchor="middle">元: 穴を「中央」に拘束 (幅/2)</text>
+<text class="lbl" x="400" y="130" text-anchor="middle" style="fill:var(--tb-good)">幅を 200 に変更 → 穴は中央に追従</text>
+<line x1="210" y1="70" x2="290" y2="70" stroke="var(--tb-accent)" stroke-width="2"/><polygon points="290,70 282.6,73.1 282.6,66.9" fill="var(--tb-accent)"/><line x1="210" y1="170" x2="290" y2="170" stroke="var(--tb-accent)" stroke-width="2"/><polygon points="290,170 282.6,173.1 282.6,166.9" fill="var(--tb-accent)"/>
+</svg>
+<p class="tb-caption">図: 同じ形でも、寸法の付け方 (拘束) で変更時のふるまいが変わる。「穴は中央」という意図は、対称拘束か式 (幅/2) でモデルに込める</p>
 <h2>フィーチャの順序</h2>
 <ol>
   <li>主要な形 (ベース) — 押し出し・回転</li>
@@ -239,6 +399,13 @@ export const KNOWHOW: TextChapter[] = [
   <li>仕上げ — フィレット・面取り・シェル (最後のほうに)</li>
 </ol>
 <p>フィレットや面取りのエッジを参照して後のフィーチャを作ると、フィレットを変えただけで参照が壊れやすくなります。</p>
+<svg class="tb-chart" viewBox="0 0 520 160" role="img" aria-label="フィーチャの順序と参照">
+<rect x="20" y="40" width="105" height="34" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="72" y="62" text-anchor="middle">ベース押し出し</text><line x1="125" y1="57" x2="145" y2="57" stroke="var(--tb-accent)" stroke-width="2"/><polygon points="145,57 137.6,60.1 137.6,53.9" fill="var(--tb-accent)"/><rect x="145" y="40" width="105" height="34" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="197" y="62" text-anchor="middle">穴</text><line x1="250" y1="57" x2="270" y2="57" stroke="var(--tb-accent)" stroke-width="2"/><polygon points="270,57 262.6,60.1 262.6,53.9" fill="var(--tb-accent)"/><rect x="270" y="40" width="105" height="34" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="322" y="62" text-anchor="middle">パターン</text><line x1="375" y1="57" x2="395" y2="57" stroke="var(--tb-accent)" stroke-width="2"/><polygon points="395,57 387.6,60.1 387.6,53.9" fill="var(--tb-accent)"/><rect x="395" y="40" width="105" height="34" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="447" y="62" text-anchor="middle">フィレット</text>
+<path d="M450,74 C450,130 250,130 205,78" fill="none" stroke="var(--tb-bad)" stroke-width="2" stroke-dasharray="5 3"/>
+<text class="lbl" x="330" y="138" text-anchor="middle" style="fill:var(--tb-bad)">途中のフィーチャがフィレットの稜線を参照すると、R を変えただけで壊れやすい</text>
+<text class="tick" x="260" y="22" text-anchor="middle">仕上げ (フィレット・面取り) は最後に</text>
+</svg>
+<p class="tb-caption">図: フィーチャは「ベース → 大きな加工 → パターン → 仕上げ」の順に。フィレットの稜線や面を前のフィーチャから参照しない</p>
 <h2>扱いやすいモデルのために</h2>
 <ul>
   <li>1 つのスケッチに詰め込みすぎない (1 スケッチ 1 機能が目安)</li>
@@ -272,6 +439,12 @@ export const KNOWHOW: TextChapter[] = [
 <h2>修正コストは 10 倍ずつ増える</h2>
 <p>設計中に見つかれば図面を直すだけですが、試作後なら部品の作り直し、量産後なら回収や金型修正が必要になります。
 「早く見つけて早く直す」ために、節目ごとに<b>設計レビュー</b>を行います。</p>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="修正コストの増え方">
+<line class="axis" x1="60" y1="180" x2="490" y2="180"/><line class="axis" x1="60" y1="20" x2="60" y2="180"/>
+<rect x="95" y="155" width="56" height="25" fill="var(--tb-accent)" opacity="0.45"/><text class="mark-t" x="123" y="147" text-anchor="middle">×1</text><text class="tick" x="123" y="198" text-anchor="middle">設計中</text><rect x="195" y="113" width="56" height="67" fill="var(--tb-accent)" opacity="0.63"/><text class="mark-t" x="223" y="105" text-anchor="middle">×10</text><text class="tick" x="223" y="198" text-anchor="middle">試作後</text><rect x="295" y="71" width="56" height="109" fill="var(--tb-accent)" opacity="0.81"/><text class="mark-t" x="323" y="63" text-anchor="middle">×100</text><text class="tick" x="323" y="198" text-anchor="middle">量産準備</text><rect x="395" y="29" width="56" height="151" fill="var(--tb-bad)" opacity="0.99"/><text class="mark-t" x="423" y="21" text-anchor="middle">×1000</text><text class="tick" x="423" y="198" text-anchor="middle">出荷後</text>
+<text class="lbl" x="66" y="14" text-anchor="start">修正コスト (相対値・対数目盛)</text>
+</svg>
+<p class="tb-caption">図: 見つかる時期が 1 段階遅れるごとに修正コストはおよそ 10 倍になると言われる (経験則・目安)。早い時期のレビューほど効果が大きい</p>
 <h2>設計チェックリスト (例)</h2>
 <table class="tb-table">
   <tr><th>分類</th><th>確認すること</th></tr>
@@ -294,7 +467,15 @@ export const KNOWHOW: TextChapter[] = [
 </ul>
 <h2>FMEA (故障モード影響解析) 入門</h2>
 <p>部品ごとに「どう壊れうるか (故障モード)」「そのとき何が起こるか (影響)」「原因」を表にし、
-<b>重大度 × 発生度 × 検出度</b>で優先順位を付けて対策します。起こる前に失敗を想像する道具です。</p>`,
+<b>重大度 × 発生度 × 検出度</b>で優先順位を付けて対策します。起こる前に失敗を想像する道具です。</p>
+<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="FMEA の優先度 RPN">
+<rect x="30" y="50" width="90" height="56" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="75" y="72" text-anchor="middle">重大度 S</text><text class="mark-t" x="75" y="96" text-anchor="middle">8</text><text class="mark-t" x="135" y="84" text-anchor="middle">×</text><rect x="150" y="50" width="90" height="56" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="195" y="72" text-anchor="middle">発生度 O</text><text class="mark-t" x="195" y="96" text-anchor="middle">3</text><text class="mark-t" x="255" y="84" text-anchor="middle">×</text><rect x="270" y="50" width="90" height="56" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="315" y="72" text-anchor="middle">検出度 D</text><text class="mark-t" x="315" y="96" text-anchor="middle">5</text>
+<text class="mark-t" x="390" y="84" text-anchor="middle">=</text>
+<rect x="405" y="50" width="90" height="56" rx="6" fill="none" stroke="var(--tb-bad)" stroke-width="2"/><text class="lbl" x="450" y="72" text-anchor="middle">RPN</text><text class="lbl" x="450" y="96" text-anchor="middle" style="fill:var(--tb-bad)">120</text>
+<text class="tick" x="260" y="140" text-anchor="middle">各 1〜10 点で評価。RPN の大きい項目、または S が大きい項目から対策する</text>
+</svg>
+<p class="tb-caption">図: FMEA では重大度・発生度・検出度を掛けた RPN で優先順位を付ける (点数の付け方は会社・規格で異なる)</p>
+`,
     points: ["誤りは後で見つかるほど修正コストが大きい — 早めにレビュー", "機能・強度・製造・組立・安全・環境・図面をチェック", "熱膨張・工具の入る空間・公差積み上げ・電食は定番の失敗", "FMEA で故障を事前に想像して対策する"],
     exercises: [
       {

@@ -14,6 +14,7 @@ import { CAD3D } from "./cad3d";
 import { MECHANICS3, MECHATRONICS2 } from "./mechanics3";
 import { KNOWHOW2 } from "./knowhow2";
 import { DESIGN2 } from "./design2";
+import { DESIGN3 } from "./design3";
 import { UX } from "./ux";
 import { SERVICE } from "./service";
 import { KNOWHOW } from "./knowhow";
@@ -35,7 +36,7 @@ export const PARTS: Part[] = [
 
 /** Reading order. The review chapter closes the know-how part. */
 const knowhow = [...KNOWHOW.filter((c) => c.id !== "review"), ...KNOWHOW_MORE, ...QUALITY, ...KNOWHOW2, ...KNOWHOW.filter((c) => c.id === "review")];
-export const CHAPTERS: TextChapter[] = [...CAD2D, ...CAD2D_ADV, ...CAD3D, ...BASICS, ...DRAFTING, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...MECHANICS3, ...ELEMENTS, ...MECHATRONICS, ...MECHATRONICS2, ...knowhow, ...DESIGN2.filter((c) => c.id === "design-process"), ...DESIGN, ...DESIGN_MORE, ...DESIGN2.filter((c) => c.id !== "design-process"), ...UX, ...SERVICE];
+export const CHAPTERS: TextChapter[] = [...CAD2D, ...CAD2D_ADV, ...CAD3D, ...BASICS, ...DRAFTING, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...MECHANICS3, ...ELEMENTS, ...MECHATRONICS, ...MECHATRONICS2, ...knowhow, ...DESIGN2.filter((c) => c.id === "design-process"), ...DESIGN3.filter((c) => c.id === "form-language"), ...DESIGN, ...DESIGN3.filter((c) => c.id !== "form-language"), ...DESIGN_MORE, ...DESIGN2.filter((c) => c.id !== "design-process"), ...UX, ...SERVICE];
 
 const EXTRA: GlossaryEntry[] = [
   { term: "応力", en: "Stress", desc: "単位面積あたりの内力。σ = F / A (MPa = N/mm²)。" },

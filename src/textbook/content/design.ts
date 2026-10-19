@@ -17,6 +17,17 @@ export const DESIGN: TextChapter[] = [
 古くから美しいとされる比率に<b>黄金比 1 : 1.618</b> や、A 判の用紙で使われる<b>白銀比 1 : √2 (≈ 1.414)</b> があります。</p>
 <div data-widget="ratio"></div>
 <p>比率は「正解」ではなく、全体と部分の関係を整える<b>ものさし</b>です。主要な寸法の比をそろえると、全体にまとまりが出ます。</p>
+<svg class="tb-chart" viewBox="0 0 520 170" aria-label="正方形・白銀比・黄金比の長方形">
+  <rect x="30" y="40" width="90" height="90" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2"/>
+  <rect x="160" y="40" width="127" height="90" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2"/>
+  <rect x="330" y="40" width="146" height="90" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="2.5"/>
+  <line class="guide" x1="420" y1="40" x2="420" y2="130"/>
+  <text class="lbl" x="75" y="152" text-anchor="middle">1 : 1 安定・静的</text>
+  <text class="lbl" x="223" y="152" text-anchor="middle">1 : 1.414 (白銀比)</text>
+  <text class="lbl" x="403" y="152" text-anchor="middle">1 : 1.618 (黄金比)</text>
+  <text class="tick" x="375" y="30" text-anchor="middle">正方形を切り取ると残りも同じ比</text>
+</svg>
+<p class="tb-caption">図: 同じ高さでも横の比率で印象が変わる。黄金比の長方形から正方形を除くと、残りも黄金比になる</p>
 <h2>統一感をつくる</h2>
 <ul>
   <li><b>R をそろえる</b>: 角の丸みの大きさや考え方 (大きく柔らかい / 小さくシャープ) を統一する</li>
@@ -30,6 +41,21 @@ export const DESIGN: TextChapter[] = [
   <li>底面を少し内側に引っ込める (面取り・逃げ) と、軽やかに浮いて見える</li>
   <li>左右対称は安定・格式、非対称は動き・親しみ</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 180" aria-label="視覚的な重さと浮いて見える底面">
+  <line class="axis" x1="20" y1="140" x2="500" y2="140"/>
+  <rect x="40" y="50" width="120" height="90" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="40" y="110" width="120" height="30" fill="var(--tb-text-3)"/>
+  <text class="lbl" x="100" y="165" text-anchor="middle">下を暗く → 安定</text>
+  <rect x="200" y="50" width="120" height="90" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="200" y="50" width="120" height="30" fill="var(--tb-text-3)"/>
+  <text class="lbl" x="260" y="165" text-anchor="middle">上を暗く → 頭が重い</text>
+  <path d="M360,50 L480,50 L480,128 L470,138 L370,138 L360,128 Z" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
+  <path d="M372,138 L468,138" stroke="var(--tb-accent)" stroke-width="4"/>
+  <text class="mark-t" x="420" y="120" text-anchor="middle">底を逃がす</text>
+  <text class="lbl" x="420" y="165" text-anchor="middle">影ができ、浮いて軽く見える</text>
+</svg>
+<p class="tb-caption">図: 色の配置と底面の逃げで、同じ箱の「重さ」の印象が変わる</p>
+
 <div class="tb-tip"><b>3DCAD Studio</b>: ユーザ パラメータで主要寸法の比率を式にしておくと (例: 奥行 = 幅 / 1.618)、比率を保ったまま大きさを検討できます。
 「リアル表示」で質感と光の当たり方を確認しましょう。</div>`,
     points: ["デザイン = 使い方が伝わり、作れて、ブランドらしい形", "比率 (黄金比 1:1.618、白銀比 1:√2) は全体を整えるものさし", "R・線・要素をそろえて統一感", "暗い・大きい・下の要素は重く見える"],
@@ -59,6 +85,17 @@ export const DESIGN: TextChapter[] = [
   <li><b>通れる・入れる空間</b> (扉の高さ、足元のすき間) → 体の<b>大きい人</b> (男性 95 パーセンタイルなど) に合わせる</li>
   <li>どちらにも合わない場合は<b>調整機構</b> (高さ調整・スライド) を設ける</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 190" aria-label="パーセンタイルと設計の基準">
+  <line class="axis" x1="30" y1="150" x2="490" y2="150"/>
+  <path d="M40,148 C120,146 170,40 260,40 C350,40 400,146 480,148" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2"/>
+  <line class="guide" x1="140" y1="150" x2="140" y2="100"/><line class="guide" x1="380" y1="150" x2="380" y2="100"/>
+  <line class="guide" x1="260" y1="150" x2="260" y2="40"/>
+  <text class="tick" x="140" y="168" text-anchor="middle">5 %ile</text><text class="tick" x="260" y="168" text-anchor="middle">50 %ile (平均付近)</text><text class="tick" x="380" y="168" text-anchor="middle">95 %ile</text>
+  <text class="mark-t" x="100" y="90" text-anchor="middle">届く距離は</text><text class="mark-t" x="100" y="104" text-anchor="middle">小さい人に</text>
+  <text class="mark-t" x="425" y="90" text-anchor="middle">通る空間は</text><text class="mark-t" x="425" y="104" text-anchor="middle">大きい人に</text>
+  <text class="lbl" x="260" y="186" text-anchor="middle">平均に合わせると、残り半分の人には合わない</text>
+</svg>
+<p class="tb-caption">図: 人体寸法の分布。5〜95 パーセンタイルの範囲 (90 % の人) をカバーするのが一般的な目安</p>
 <h2>手と操作</h2>
 <table class="tb-table">
   <tr><th>項目</th><th>目安</th></tr>
@@ -67,6 +104,19 @@ export const DESIGN: TextChapter[] = [
   <tr><td>タッチ画面のボタン</td><td>約 7〜10 mm 以上</td></tr>
   <tr><td>片手で長時間扱う道具の質量</td><td>できるだけ軽く、重心を握りの近くに</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 170" aria-label="握り径とボタンの大きさ">
+  <circle cx="90" cy="80" r="12" fill="none" stroke="var(--tb-bad)" stroke-width="2"/>
+  <circle cx="180" cy="80" r="35" fill="var(--tb-surface-2)" stroke="var(--tb-good)" stroke-width="2.5"/>
+  <circle cx="290" cy="80" r="55" fill="none" stroke="var(--tb-bad)" stroke-width="2"/>
+  <text class="tick" x="90" y="150" text-anchor="middle">細すぎ</text><text class="tick" x="180" y="150" text-anchor="middle">30〜40 mm</text><text class="tick" x="290" y="150" text-anchor="middle">太すぎ</text>
+  <rect x="390" y="50" width="30" height="30" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="440" y="50" width="30" height="30" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+  <line class="guide" x1="420" y1="95" x2="440" y2="95"/>
+  <text class="tick" x="430" y="112" text-anchor="middle">間隔</text>
+  <text class="tick" x="405" y="42" text-anchor="middle">10 mm〜</text>
+  <text class="lbl" x="430" y="150" text-anchor="middle">ボタンは大きさ + 間隔</text>
+</svg>
+<p class="tb-caption">図: 握り径とボタン寸法の目安 (断面・正面を模式化)。手袋使用ならさらに大きく</p>
 <h2>操作をわかりやすく</h2>
 <ul>
   <li><b>アフォーダンス / シグニファイア</b>: 形が使い方を示す (押す所はくぼみ、つまむ所は突起、回す所はローレット)</li>
@@ -108,9 +158,29 @@ export const DESIGN: TextChapter[] = [
   <li>安全色 (JIS Z 9103): 赤 = 防火・禁止・停止、黄赤 = 危険、黄 = 注意、緑 = 安全・進行、青 = 指示</li>
   <li>色は<b>マンセル値</b>や色見本の番号で指定し、限度見本で管理する</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 160" aria-label="明度と見かけの大きさ・重さ">
+  <rect x="60" y="30" width="160" height="90" rx="10" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+  <rect x="300" y="30" width="160" height="90" rx="10" fill="var(--tb-text-2)" stroke="currentColor" stroke-width="1.5"/>
+  <text class="lbl" x="140" y="145" text-anchor="middle">明るい色: 軽く・大きく見える</text>
+  <text class="lbl" x="380" y="145" text-anchor="middle">暗い色: 重く・引き締まって見える</text>
+</svg>
+<p class="tb-caption">図: 同じ寸法でも明度で印象が変わる。小型に見せたい製品は暗い色、圧迫感を減らしたい大型製品は明るい色が目安</p>
 <h2>素材の見え方</h2>
 <p>金属・樹脂・木・ガラスは、それぞれ固有の質感と「らしさ」を持っています。
 金属は冷たく高品質、樹脂は軽く親しみやすい、木は温かい印象です。触れる部分の素材は、温度感や手触りも含めて選びます。</p>
+<svg class="tb-chart" viewBox="0 0 520 180" aria-label="鏡面と梨地の反射">
+  <line x1="40" y1="130" x2="230" y2="130" stroke="currentColor" stroke-width="3"/>
+  <line x1="70" y1="40" x2="135" y2="128" stroke="var(--tb-warn)" stroke-width="2"/>
+  <line x1="135" y1="128" x2="200" y2="40" stroke="var(--tb-warn)" stroke-width="2"/>
+  <text class="lbl" x="135" y="160" text-anchor="middle">鏡面: 正反射 → 映り込み・傷が目立つ</text>
+  <path d="M290,130 l8,-4 l8,4 l8,-4 l8,4 l8,-4 l8,4 l8,-4 l8,4 l8,-4 l8,4 l8,-4 l8,4 l8,-4 l8,4 l8,-4 l8,4 l8,-4 l8,4 l8,-4 l8,4 l8,-4 l8,4 l8,-4 l8,4" fill="none" stroke="currentColor" stroke-width="2"/>
+  <line x1="320" y1="40" x2="385" y2="126" stroke="var(--tb-warn)" stroke-width="2"/>
+  <g stroke="var(--tb-warn)" stroke-width="1.2" opacity="0.8">
+    <line x1="385" y1="126" x2="340" y2="70"/><line x1="385" y1="126" x2="370" y2="60"/><line x1="385" y1="126" x2="400" y2="60"/><line x1="385" y1="126" x2="430" y2="70"/><line x1="385" y1="126" x2="455" y2="95"/>
+  </g>
+  <text class="lbl" x="390" y="160" text-anchor="middle">梨地 (シボ・ブラスト): 拡散 → 落ち着く</text>
+</svg>
+<p class="tb-caption">図: 表面の凹凸で光の返り方が変わり、つや・傷の目立ちやすさが決まる</p>
 <h2>主な表面処理・仕上げ</h2>
 <table class="tb-table">
   <tr><th>素材</th><th>処理</th><th>特徴</th></tr>
@@ -155,6 +225,17 @@ export const DESIGN: TextChapter[] = [
   <li><b>試作する</b> — 早く・安く形にする</li>
   <li><b>評価する</b> — 実際の利用者に使ってもらい、観察する → 1 に戻る</li>
 </ol>
+<svg class="tb-chart" viewBox="0 0 520 220" aria-label="ユーザ中心設計のサイクル">
+  <circle cx="260" cy="110" r="75" fill="none" stroke="var(--tb-text-3)" stroke-width="2" stroke-dasharray="5 4"/>
+  <circle r="7" fill="var(--tb-accent)"><animateMotion dur="8s" repeatCount="indefinite" path="M260,35 A75,75 0 1 1 259.9,35"/></circle>
+  <text class="lbl" x="260" y="25" text-anchor="middle">理解する</text>
+  <text class="lbl" x="350" y="85">定義する</text>
+  <text class="lbl" x="320" y="200">発想する</text>
+  <text class="lbl" x="200" y="200" text-anchor="end">試作する</text>
+  <text class="lbl" x="170" y="85" text-anchor="end">評価する</text>
+  <text class="sec" x="260" y="115" text-anchor="middle">くり返す</text>
+</svg>
+<p class="tb-caption">図: 5 つの段階は一周で終わらず、評価の結果をもとに何度も回す (点は回る様子を示す)</p>
 <h2>観察のコツ</h2>
 <ul>
   <li>「何が欲しいですか」と聞くより、<b>実際に使っている様子を見る</b>。人は自分の行動をうまく説明できない</li>
@@ -170,6 +251,17 @@ export const DESIGN: TextChapter[] = [
   <tr><td>機能試作</td><td>量産に近い材料と工法</td><td>強度・耐久・性能</td></tr>
 </table>
 <p>早い段階ほど<b>安く・粗く・たくさん</b>作るのがコツです。完成度の高い試作に時間をかけすぎると、問題が見つかっても方向転換しにくくなります。</p>
+<svg class="tb-chart" viewBox="0 0 520 190" aria-label="試作の完成度とコスト">
+  <line class="axis" x1="50" y1="160" x2="500" y2="160"/><line class="axis" x1="50" y1="160" x2="50" y2="20"/>
+  <text class="lbl" x="56" y="30">1 回あたりの費用・時間</text><text class="lbl" x="495" y="180" text-anchor="end">完成度 →</text>
+  <rect x="70" y="140" width="70" height="20" fill="var(--tb-accent)"/>
+  <rect x="170" y="115" width="70" height="45" fill="var(--tb-accent)" opacity="0.8"/>
+  <rect x="270" y="80" width="70" height="80" fill="var(--tb-accent)" opacity="0.6"/>
+  <rect x="370" y="40" width="70" height="120" fill="var(--tb-accent)" opacity="0.45"/>
+  <text class="tick" x="105" y="134" text-anchor="middle">紙・粘土</text><text class="tick" x="205" y="109" text-anchor="middle">3D プリント</text>
+  <text class="tick" x="305" y="74" text-anchor="middle">外観試作</text><text class="tick" x="405" y="34" text-anchor="middle">機能試作</text>
+</svg>
+<p class="tb-caption">図: 初期は安い試作をたくさん、後半ほど高価な試作を少なく (数値は相対的な目安)</p>
 <h2>ユーザビリティ評価</h2>
 <ul>
   <li>代表的な作業 (タスク) を決め、5 人程度に試してもらうだけでも主な問題の多くが見つかる</li>

@@ -883,3 +883,57 @@ mark {
     grid-column: 1;
   }
 }
+
+/* figures and animations */
+.tb-caption {
+  margin: -4px 0 16px;
+  font-size: 12.5px;
+  color: var(--tb-text-3);
+  text-align: center;
+}
+.tb-widget-badge.anim {
+  background: var(--tb-warn);
+}
+.tb-anim-ctl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 10px 14px 0;
+  font-size: 13px;
+}
+.tb-anim-ctl select {
+  height: 30px;
+  border-radius: 5px;
+  border: 1px solid var(--tb-border);
+  background: var(--tb-bg);
+  padding: 0 6px;
+}
+.tb-anim-slider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tb-anim-slider input {
+  width: 160px;
+}
+.tb-anim-info {
+  color: var(--tb-text-3);
+}
+.tb-anim > svg.tb-chart {
+  padding: 0 14px;
+  user-select: none;
+}
+.tb-anim .fitts-target {
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tb-body svg * {
+    animation: none !important;
+  }
+}
+@media print {
+  .tb-anim-ctl {
+    display: none !important;
+  }
+}

@@ -111,6 +111,27 @@ export const KNOWHOW_MORE: TextChapter[] = [
 <h2>特異点に注意</h2>
 <p>鋭い入隅・固定面の縁・点荷重の位置では、理論上の応力が無限大になります。メッシュを細かくするほど値が大きくなり続けるのが特徴です。
 こうした値で合否を判断してはいけません。実物では R を付ける、荷重を面で受ける、などで対処し、R を付けたモデルで再解析します。</p>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="特異点と R 付きモデル">
+<path d="M40,40 L100,40 L100,120 L220,120 L220,170 L40,170 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<circle cx="100" cy="120" r="10" fill="var(--tb-bad)" opacity="0.7"/>
+<text class="lbl" x="130" y="110" text-anchor="start" style="fill:var(--tb-bad)">σ → ∞</text>
+<text class="lbl" x="130" y="192" text-anchor="middle">鋭い入隅: 理論上の応力は無限大</text>
+<path d="M300,40 L360,40 L360,100 A20,20 0 0 0 380,120 L480,120 L480,170 L300,170 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<path d="M360,100 A20,20 0 0 0 380,120" fill="none" stroke="var(--tb-warn)" stroke-width="5"/>
+<text class="lbl" x="390" y="100" text-anchor="start" style="fill:var(--tb-good)">有限の値に収束</text>
+<text class="lbl" x="390" y="192" text-anchor="middle">R を付けたモデル: 合否判定に使える</text>
+</svg>
+<p class="tb-caption">図: 鋭い入隅・点荷重・固定面の縁は特異点。実物に合わせて R を付け、面で荷重をかけたモデルで評価する</p>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="メッシュ細分化と最大応力">
+<line class="axis" x1="60" y1="180" x2="490" y2="180"/><line class="axis" x1="60" y1="20" x2="60" y2="180"/>
+<polyline points="90,150 180,110 270,82 360,58 450,36" fill="none" stroke="var(--tb-bad)" stroke-width="2.5"/>
+<polyline points="90,130 180,112 270,106 360,104 450,103.5" fill="none" stroke="var(--tb-good)" stroke-width="2.5"/>
+<text class="tick" x="90" y="196" text-anchor="middle">粗い</text><text class="tick" x="180" y="196" text-anchor="middle"></text><text class="tick" x="270" y="196" text-anchor="middle"></text><text class="tick" x="360" y="196" text-anchor="middle"></text><text class="tick" x="450" y="196" text-anchor="middle">細かい</text>
+<text class="lbl" x="444" y="32" text-anchor="end" style="fill:var(--tb-bad)">鋭い入隅: 上がり続ける</text>
+<text class="lbl" x="444" y="96" text-anchor="end" style="fill:var(--tb-good)">R 付き: 収束</text>
+<text class="lbl" x="470" y="214" text-anchor="end">メッシュの細かさ</text><text class="lbl" x="66" y="16" text-anchor="start">最大応力</text>
+</svg>
+<p class="tb-caption">図: メッシュを細かくしても値が落ち着かないのは特異点のサイン。収束した値だけを判断に使う (傾向を示す模式図)</p>
 <h2>手計算で検算する</h2>
 <p>解析の前に、はりの公式などで<b>おおよその答え</b>を出しておきましょう。解析結果が手計算と 2〜3 倍以上違うときは、多くの場合、条件の入力ミスです。</p>
 <ul>
@@ -152,6 +173,20 @@ export const KNOWHOW_MORE: TextChapter[] = [
 </table>
 <p>硬さは <b>HRC</b> (ロックウェル C) や <b>HV</b> (ビッカース) で指示します。例: 「高周波焼入れ HRC 50〜55、有効硬化層深さ 1〜2 mm」。
 焼入れするとひずむので、<b>精度の必要な面は熱処理後に研削</b>します。</p>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="表面硬化と有効硬化層深さ">
+<circle cx="490" cy="70" r="0" fill="none"/>
+<line class="axis" x1="70" y1="180" x2="470" y2="180"/><line class="axis" x1="70" y1="20" x2="70" y2="180"/>
+<polyline points="70.0,40.2 83.0,40.3 96.0,40.5 109.0,40.7 122.0,41.0 135.0,41.5 148.0,42.3 161.0,43.4 174.0,44.9 187.0,47.2 200.0,50.5 213.0,55.0 226.0,61.2 239.0,69.2 252.0,79.1 265.0,90.6 278.0,103.0 291.0,115.4 304.0,126.9 317.0,136.8 330.0,144.8 343.0,151.0 356.0,155.5 369.0,158.8 382.0,161.1 395.0,162.6 408.0,163.7 421.0,164.5 434.0,165.0 447.0,165.3 460.0,165.5" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
+<line class="guide" x1="70" y1="81.99999999999999" x2="470" y2="81.99999999999999"/>
+<line class="guide" x1="255.9" y1="81.99999999999999" x2="255.9" y2="180"/>
+<circle class="mark" cx="255.9" cy="81.99999999999999" r="4"/>
+<text class="mark-t" x="263.9" y="73.99999999999999" text-anchor="start">有効硬化層深さ (この例 ≈ 1.4 mm)</text>
+<text class="tick" x="466" y="75.99999999999999" text-anchor="end">限界硬さ (例 HV 550)</text>
+<text class="tick" x="70" y="196" text-anchor="middle">0</text><text class="tick" x="200" y="196" text-anchor="middle">1</text><text class="tick" x="330" y="196" text-anchor="middle">2</text><text class="tick" x="460" y="196" text-anchor="middle">3</text>
+<text class="lbl" x="470" y="214" text-anchor="end">表面からの深さ (mm)</text><text class="lbl" x="76" y="16" text-anchor="start">硬さ HV</text>
+<text class="tick" x="76" y="54" text-anchor="start">表面 ≈ HV 700</text><text class="tick" x="460" y="158" text-anchor="end">芯部 (ねばい)</text>
+</svg>
+<p class="tb-caption">図: 表面硬化した軸の硬さ分布 (模式図)。表面から限界硬さまでの深さを有効硬化層深さと呼び、図面に「有効硬化層深さ 1〜2 mm」のように指示する。限界硬さは処理法・炭素量で決まる (浸炭は HV 550)</p>
 <h2>表面処理</h2>
 <table class="tb-table">
   <tr><th>処理</th><th>対象</th><th>特徴</th></tr>
@@ -168,7 +203,18 @@ export const KNOWHOW_MORE: TextChapter[] = [
   <li>めっき・アルマイトは<b>膜厚の分だけ寸法が変わる</b> (アルマイトは半分が内側、半分が外側に成長)。はめあい面は処理後の寸法を指示するか、マスキングを指示</li>
   <li>ねじ穴は処理で入りにくくなる — 処理後にタップを通す、または指示する</li>
   <li>めっきによる<b>水素ぜい化</b> (高強度ボルト 10.9 以上) に注意 — ベーキング処理を指示</li>
-</ul>`,
+</ul>
+<svg class="tb-chart" viewBox="0 0 520 180" role="img" aria-label="アルマイト皮膜の成長">
+<rect x="60" y="100" width="400" height="60" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="60" y="70" width="400" height="30" fill="var(--tb-accent)" opacity="0.35"/>
+<line x1="60" y1="85" x2="460" y2="85" stroke="var(--tb-bad)" stroke-dasharray="5 3"/>
+<text class="lbl" x="470" y="89" text-anchor="start" style="fill:var(--tb-bad)">処理前の表面</text>
+<text class="mark-t" x="260" y="80" text-anchor="middle">外側に成長 (約半分)</text><text class="mark-t" x="260" y="97" text-anchor="middle">内側に食い込む (約半分)</text>
+<text class="tick" x="260" y="135" text-anchor="middle">アルミ素地</text>
+<text class="tick" x="260" y="40" text-anchor="middle">膜厚 t のとき、寸法は片側で約 t/2 増える (目安。処理条件で比率は変わる)</text>
+</svg>
+<p class="tb-caption">図: アルマイトは素地を酸化させて皮膜を作るため、膜の一部が内側に食い込み、残りが外側に成長する</p>
+`,
     points: ["焼入れ + 焼戻し (調質) で強く、高周波・浸炭で表面だけ硬く", "硬さは HRC / HV で指示、精度面は熱処理後に研削", "防錆: 亜鉛めっき・ニッケル・塗装、アルミはアルマイト", "処理の膜厚と寸法変化、ねじ穴、水素ぜい化に注意"],
     exercises: [
       {
@@ -197,6 +243,12 @@ export const KNOWHOW_MORE: TextChapter[] = [
   <li><b>段取り費</b>: 治具の準備・プログラム・初品確認。ロットが小さいと 1 個あたりが高くなる</li>
   <li><b>型費</b>: 金型・プレス型。数量で割ると、量が多いほど安くなる</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 190" role="img" aria-label="単価の内訳とロット">
+<rect x="120" y="147.5" width="70" height="12.5" fill="var(--tb-text-3)" opacity="0.75"/><text class="tick" x="155" y="157.75" text-anchor="middle">材料 500</text><rect x="120" y="97.5" width="70" height="50.0" fill="var(--tb-accent)" opacity="0.75"/><text class="tick" x="155" y="126.5" text-anchor="middle">加工 2000</text><rect x="120" y="47.5" width="70" height="50.0" fill="var(--tb-warn)" opacity="0.75"/><text class="tick" x="155" y="76.5" text-anchor="middle">段取り 2000</text><text class="tick" x="155" y="178" text-anchor="middle">ロット 10 個: 4,500 円</text><rect x="340" y="147.5" width="70" height="12.5" fill="var(--tb-text-3)" opacity="0.75"/><text class="tick" x="375" y="157.75" text-anchor="middle">材料 500</text><rect x="340" y="97.5" width="70" height="50.0" fill="var(--tb-accent)" opacity="0.75"/><text class="tick" x="375" y="126.5" text-anchor="middle">加工 2000</text><rect x="340" y="97.0" width="70" height="0.5" fill="var(--tb-warn)" opacity="0.75"/><text class="tick" x="375" y="178" text-anchor="middle">ロット 1000 個: 2,520 円</text>
+<line class="axis" x1="80" y1="160" x2="450" y2="160"/>
+<text class="tick" x="260" y="22" text-anchor="middle">段取り費 2 万円をロット数で割る (数値は例、円/個)</text>
+</svg>
+<p class="tb-caption">図: 同じ部品でも、段取り費はロット数で割られるため少量ほど単価が高い</p>
 <h2>工法と数量</h2>
 <table class="tb-table">
   <tr><th>数量の目安</th><th>向く工法</th></tr>
@@ -205,6 +257,18 @@ export const KNOWHOW_MORE: TextChapter[] = [
   <tr><td>数千〜数百万個</td><td>射出成形、プレス、ダイカスト、鍛造</td></tr>
 </table>
 <div data-widget="cost"></div>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="損益分岐数量">
+<line class="axis" x1="60" y1="180" x2="490" y2="180"/><line class="axis" x1="60" y1="20" x2="60" y2="180"/>
+<line x1="60" y1="180" x2="480" y2="12.0" stroke="var(--tb-warn)" stroke-width="2.5"/>
+<line x1="60" y1="100" x2="480" y2="88.8" stroke="var(--tb-accent)" stroke-width="2.5"/>
+<circle class="mark" cx="274.3" cy="94.3" r="5"/>
+<line class="guide" x1="274.3" y1="94.3" x2="274.3" y2="180"/>
+<text class="mark-t" x="274.28571428571433" y="196" text-anchor="middle">≈ 714 個</text>
+<text class="tick" x="476" y="28" text-anchor="end">切削 3,000 円/個</text>
+<text class="tick" x="476" y="104.8" text-anchor="end">成形 型費 200 万 + 200 円/個</text>
+<text class="lbl" x="480" y="214" text-anchor="end">数量 (個)</text><text class="lbl" x="66" y="16" text-anchor="start">総費用</text>
+</svg>
+<p class="tb-caption">図: 総費用 = 初期費用 + 単価 × 数量。2 本の直線の交点 N = 2,000,000 ÷ (3,000 − 200) ≈ 714 個より多く作るなら成形が有利 (数値は例)</p>
 <h2>設計でコストを下げる</h2>
 <ul>
   <li>市販品・標準部品を使う (ボルト・軸受・リニアガイド・アルミフレーム)</li>
@@ -247,6 +311,16 @@ export const KNOWHOW_MORE: TextChapter[] = [
   <tr><th>3. 使用上の情報</th><td>警告表示、取扱説明書、訓練 — 最後の手段</td></tr>
 </table>
 <p>「注意してください」と書くだけで済ませず、<b>まず設計で危険をなくす</b>のが原則です。</p>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="リスク低減の 3 ステップ">
+<polygon points="40,30 480,30 410,85 110,85" fill="var(--tb-good)" opacity="0.35" stroke="var(--tb-good)"/>
+<polygon points="110,90 410,90 340,145 180,145" fill="var(--tb-warn)" opacity="0.35" stroke="var(--tb-warn)"/>
+<polygon points="180,150 340,150 260,200" fill="var(--tb-bad)" opacity="0.3" stroke="var(--tb-bad)"/>
+<text class="mark-t" x="260" y="55" text-anchor="middle">1. 本質的安全設計</text><text class="tick" x="260" y="72" text-anchor="middle">危険そのものをなくす</text>
+<text class="mark-t" x="260" y="113" text-anchor="middle">2. 安全防護</text><text class="tick" x="260" y="130" text-anchor="middle">ガード・インターロック</text>
+<text class="mark-t" x="260" y="170" text-anchor="middle">3. 使用上の情報</text>
+<line x1="30" y1="40" x2="30" y2="190" stroke="var(--tb-text-3)" stroke-width="2"/><polygon points="30,190 26.9,182.6 33.1,182.6" fill="var(--tb-text-3)"/><text class="tick" x="36" y="200" text-anchor="start">効果は下ほど小さい</text>
+</svg>
+<p class="tb-caption">図: 上から順に検討する。幅の広い段ほどリスク低減の効果が大きく、人の注意に頼る警告表示は最後の手段</p>
 <h2>安全設計の考え方</h2>
 <ul>
   <li><b>フェールセーフ</b>: 故障したら安全側になる (停電でブレーキがかかる、ばねで閉じるバルブ)</li>
@@ -254,6 +328,14 @@ export const KNOWHOW_MORE: TextChapter[] = [
   <li><b>インターロック</b>: 条件がそろわないと動かない</li>
   <li><b>冗長化</b>: 重要な機能を 2 重にする</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="リスクの見積もりと低減">
+<rect x="120" y="120" width="88" height="43" fill="var(--tb-good)" opacity="0.3"/><rect x="210" y="120" width="88" height="43" fill="var(--tb-good)" opacity="0.3"/><rect x="300" y="120" width="88" height="43" fill="var(--tb-warn)" opacity="0.3"/><rect x="120" y="75" width="88" height="43" fill="var(--tb-good)" opacity="0.3"/><rect x="210" y="75" width="88" height="43" fill="var(--tb-warn)" opacity="0.3"/><rect x="300" y="75" width="88" height="43" fill="var(--tb-bad)" opacity="0.3"/><rect x="120" y="30" width="88" height="43" fill="var(--tb-warn)" opacity="0.3"/><rect x="210" y="30" width="88" height="43" fill="var(--tb-bad)" opacity="0.3"/><rect x="300" y="30" width="88" height="43" fill="var(--tb-bad)" opacity="0.3"/>
+<text class="tick" x="164" y="182" text-anchor="middle">小</text><text class="tick" x="254" y="182" text-anchor="middle">中</text><text class="tick" x="344" y="182" text-anchor="middle">大</text><text class="lbl" x="255" y="198" text-anchor="middle">危害のひどさ</text>
+<text class="tick" x="110" y="149" text-anchor="end">低</text><text class="tick" x="110" y="104" text-anchor="end">中</text><text class="tick" x="110" y="59" text-anchor="end">高</text><text class="lbl" x="60" y="100" text-anchor="middle">発生の</text><text class="lbl" x="60" y="116" text-anchor="middle">可能性</text>
+<circle class="mark" cx="344" cy="52" r="6"/><line x1="338" y1="58" x2="260" y2="136" stroke="var(--tb-accent)" stroke-width="2"/><polygon points="260,136 263.0,128.6 267.4,133.0" fill="var(--tb-accent)"/><circle cx="254" cy="142" r="6" fill="var(--tb-good)"/>
+<text class="tick" x="400" y="60" text-anchor="start">低減前</text><text class="tick" x="270" y="160" text-anchor="start">低減後: 再見積もり</text>
+</svg>
+<p class="tb-caption">図: リスクは危害のひどさと発生の可能性の組合せで見積もる (3×3 の簡易マトリクスの例)。低減策の後にもう一度見積もり、許容できるまで繰り返す</p>
 <h2>挟まれ防止のすき間 (ISO 13854 の例)</h2>
 <table class="tb-table">
   <tr><th>体の部位</th><th>最小すき間</th></tr>

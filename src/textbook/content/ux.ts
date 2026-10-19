@@ -41,6 +41,34 @@ export const UX: TextChapter[] = [
   <tr><td>両方に影響 (適合)</td><td>調整範囲で 5〜95 パーセンタイルをカバー</td><td>椅子・作業台の高さ、ヘッドレスト</td></tr>
   <tr><td>安全 (到達防止)</td><td>大きい人・細い指 (極端側)</td><td>危険部へ指が届かない開口・距離</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 260" aria-label="リーチ範囲の側面図">
+  <line class="axis" x1="20" y1="240" x2="500" y2="240"/>
+  <circle cx="110" cy="70" r="14" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
+  <path d="M110,84 L110,160 M110,160 L95,240 M110,160 L125,240" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
+  <path d="M110,110 L200,110" stroke="var(--tb-text-2)" stroke-width="2"/>
+  <path d="M20,110 A90,90 0 0 1 200,110" class="guide" fill="none"/>
+  <path d="M110,20 A90,90 0 0 1 200,110 A90,90 0 0 1 168,179" stroke="var(--tb-accent)" fill="none" stroke-width="2.5"/>
+  <circle class="mark" cx="110" cy="110" r="4"/><text class="tick" x="100" y="106" text-anchor="end">肩</text>
+  <rect x="300" y="6" width="70" height="8" fill="var(--tb-bad)"/><text class="tick" x="378" y="14">× 最上段 (届かない)</text>
+  <rect x="300" y="60" width="70" height="8" fill="var(--tb-good)"/><text class="tick" x="378" y="68">○ リーチ円の高さ内</text>
+  <line class="guide" x1="110" y1="10" x2="300" y2="10"/><line class="guide" x1="185" y1="64" x2="300" y2="64"/>
+  <text class="mark-t" x="215" y="160">5 パーセンタイルの</text><text class="mark-t" x="215" y="176">腕のリーチ (概念図)</text>
+  <text class="tick" x="110" y="256" text-anchor="middle">小柄な利用者</text>
+</svg>
+<p class="tb-caption">図: 肩を中心とした腕のリーチ円 (側面)。棚や操作部は、小さい人のリーチ円の内側に置く。</p>
+<svg class="tb-chart" viewBox="0 0 520 170" aria-label="調整範囲でカバーする">
+  <line class="axis" x1="40" y1="130" x2="500" y2="130"/>
+  <path d="M40,129 C110,128 150,110 180,70 C200,40 215,25 225,25 C235,25 250,40 270,70 C300,110 340,128 410,129" fill="none" stroke="var(--tb-text-3)" stroke-width="2"/>
+  <path d="M140,130 L140,118 C160,100 175,75 200,40 C210,28 220,25 225,25 C235,25 245,30 255,45 C275,75 295,100 310,118 L310,130 z" fill="color-mix(in srgb, var(--tb-accent) 25%, transparent)" stroke="var(--tb-accent)"/>
+  <text class="tick" x="140" y="146" text-anchor="middle">5 %</text><text class="tick" x="310" y="146" text-anchor="middle">95 %</text>
+  <text class="mark-t" x="225" y="100" text-anchor="middle">調整範囲</text>
+  <path d="M140,160 L310,160" stroke="var(--tb-accent)" stroke-width="2"/><circle cx="225" cy="160" r="6" fill="var(--tb-accent)"><animate attributeName="cx" values="140;310;140" dur="5s" repeatCount="indefinite"/></circle>
+  <text class="tick" x="330" y="164">座面高さを動かして 90 % をカバー</text>
+</svg>
+<p class="tb-caption">図: 椅子や作業台は 5〜95 パーセンタイルを調整範囲でカバーする (動く点は調整位置)。</p>
+<p class="tb-caption">図: 肩を中心とした腕のリーチ円。棚や操作部は小さい人のリーチ円の内側に置く。</p>
+<p>下のウィジェットで、パーセンタイルと性別を切り替えて、棚や操作盤の高さに手が届くかを確かめてみましょう。</p>
+<div data-widget="anim-reach"></div>
 <p>さらに、測定値は裸体・素足が基本なので、<b>靴 (+25〜40 mm 目安)・作業服・手袋・ヘルメット</b>などの<b>着衣補正</b>と、作業時の姿勢による<b>動作余裕</b>を加えます。</p>
 <div class="tb-tip"><b>3DCAD Studio</b>: 5 パーセンタイルと 95 パーセンタイルの人を円柱・直方体の簡易形状で作ってアセンブリに置き、拘束を駆動して腕や脚を動かすと、届くか・干渉するかを干渉解析と測定で確認できます。パラメータで身長を変えた案も素早く作れます。</div>`,
     points: ["パーセンタイル値 = 平均 + z × 標準偏差 (5/95 % は z = ∓1.645)", "届く寸法は小さい人、通る寸法は大きい人、両方なら調整機構", "数値は概略値 — 人体寸法データベース等の一次出典を確認する", "着衣補正・動作余裕を加え、パーセンタイルどうしは足さない"],
@@ -79,6 +107,19 @@ export const UX: TextChapter[] = [
   <tr><td>レバー</td><td>大きな力・方向のある操作 (前進/後退)</td><td>操作方向を動きと一致させる</td></tr>
   <tr><td>ペダル</td><td>手がふさがっている時の操作、大きな力</td><td>踏み間違い・意図しない踏み込み → カバー</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 170" aria-label="操作具の種類と動き">
+  <defs><marker id="ux-ar1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--tb-accent)"/></marker></defs>
+  <circle cx="60" cy="80" r="26" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="60" cy="80" r="16" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/>
+  <path d="M60,30 L60,48" stroke="var(--tb-accent)" fill="none" stroke-width="2.5" marker-end="url(#ux-ar1)"/><text class="tick" x="60" y="140" text-anchor="middle">押しボタン</text>
+  <rect x="140" y="70" width="40" height="30" rx="4" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><path d="M160,85 L175,45" stroke="var(--tb-text-2)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M150,45 A30,30 0 0 1 190,50" stroke="var(--tb-accent)" fill="none" stroke-width="2.5" marker-end="url(#ux-ar1)"/><text class="tick" x="160" y="140" text-anchor="middle">トグル</text>
+  <circle cx="260" cy="80" r="26" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><line x1="260" y1="80" x2="260" y2="58" stroke="var(--tb-accent)" stroke-width="3"><animateTransform attributeName="transform" type="rotate" values="0 260 80;90 260 80;0 260 80" dur="4s" repeatCount="indefinite"/></line>
+  <path d="M232,52 A40,40 0 0 1 292,52" stroke="var(--tb-accent)" fill="none" stroke-width="2.5" marker-end="url(#ux-ar1)"/><text class="tick" x="260" y="140" text-anchor="middle">つまみ (右回りで増)</text>
+  <rect x="345" y="95" width="30" height="12" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><path d="M360,100 L380,45" stroke="var(--tb-text-2)" stroke-width="5" stroke-linecap="round"/><circle cx="380" cy="42" r="7" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/>
+  <path d="M340,50 L395,30" stroke="var(--tb-accent)" fill="none" stroke-width="2.5" marker-end="url(#ux-ar1)"/><text class="tick" x="362" y="140" text-anchor="middle">レバー</text>
+  <path d="M430,110 L490,90 L495,100 L435,120 z" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><path d="M470,60 L470,88" stroke="var(--tb-accent)" fill="none" stroke-width="2.5" marker-end="url(#ux-ar1)"/><text class="tick" x="462" y="140" text-anchor="middle">ペダル</text>
+</svg>
+<p class="tb-caption">図: 主な操作具と操作方向 (矢印)。つまみは右回りで値が増えるのが一般的なステレオタイプ。</p>
 <h2>大きさ・操作力・ストロークの目安</h2>
 <table class="tb-table">
   <tr><th>操作具</th><th>大きさ</th><th>操作力</th><th>ストローク</th></tr>
@@ -100,6 +141,15 @@ export const UX: TextChapter[] = [
   <li><b>形・色・位置で区別</b>: 停止ボタンは大きく赤く、起動ボタンは埋め込み・小さめにすることが多い</li>
   <li>重大な操作は<b>取り消し可能</b>にするか、確認を求める</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 170" aria-label="誤操作防止の形状">
+  <line class="axis" x1="20" y1="120" x2="500" y2="120"/>
+  <rect x="50" y="100" width="60" height="20" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="tick" x="80" y="145" text-anchor="middle">突出 (押しやすい)</text>
+  <rect x="190" y="104" width="10" height="16" fill="var(--tb-text-3)"/><rect x="260" y="104" width="10" height="16" fill="var(--tb-text-3)"/><rect x="205" y="110" width="50" height="10" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="tick" x="230" y="145" text-anchor="middle">ガード (シュラウド)</text>
+  <path d="M340,120 L340,120 L360,120 L360,135 L420,135 L420,120 L440,120" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><rect x="365" y="125" width="50" height="10" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="tick" x="390" y="160" text-anchor="middle">埋め込み (リセス)</text>
+  <circle cx="80" cy="60" r="14" fill="var(--tb-accent)"><animate attributeName="cy" values="60;92;60" dur="3s" repeatCount="indefinite"/></circle>
+  <text class="tick" x="110" y="40">指</text>
+</svg>
+<p class="tb-caption">図: 断面で見た押しボタンの形状。周囲を高くするほど偶発的に押されにくい (起動は埋め込み、停止は突出が多い)。</p>
 <h2>操作方向のステレオタイプ</h2>
 <table class="tb-table">
   <tr><th>操作</th><th>多くの人が期待する意味</th></tr>
@@ -108,6 +158,11 @@ export const UX: TextChapter[] = [
   <tr><td>レバーを前に倒す</td><td>機械が前進 / 下降 (機器による — 統一が大切)</td></tr>
 </table>
 <p>なお、照明スイッチの上下は国や地域で慣習が異なります。<b>ステレオタイプは文化に依存</b>するので、海外向けでは確認が必要です。</p>
+<h2>ターゲットの大きさと距離 (フィッツの法則)</h2>
+<p>ボタンに手や指を動かす時間は、距離 D が長いほど、ボタン幅 W が小さいほど長くなります。これを<b>フィッツの法則</b>といいます (詳しくは「ターゲットの大きさと配置」の章)。</p>
+<div class="tb-formula">MT = a + b × log₂(D/W + 1)　(a, b は人・装置ごとに実験で求める係数)</div>
+<p>次の実験で、大きさと距離の違うターゲットをクリックし、所要時間と難易度 ID の関係を確かめてみましょう。</p>
+<div data-widget="anim-fitts"></div>
 <h2>配置の原則</h2>
 <ol>
   <li><b>重要度</b>: 非常停止など重要なものは最も目立ち、すぐ届く位置に</li>
@@ -116,6 +171,22 @@ export const UX: TextChapter[] = [
   <li><b>使用順序</b>: 手順どおり左→右、上→下に並べる</li>
   <li><b>対応づけ</b>: 制御対象の配置と操作具の配置をそろえる</li>
 </ol>
+<svg class="tb-chart" viewBox="0 0 520 200" aria-label="コンロのつまみ配置">
+  <rect x="20" y="20" width="200" height="130" rx="8" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
+  <circle cx="70" cy="60" r="20" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="170" cy="60" r="20" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="70" cy="110" r="20" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="170" cy="110" r="20" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
+  <circle cx="50" cy="170" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="95" cy="170" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="145" cy="170" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="190" cy="170" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
+  <text class="lbl" x="120" y="196" text-anchor="middle" fill="var(--tb-bad)">悪い例: 一列 — どれがどれ?</text>
+  <rect x="300" y="20" width="200" height="130" rx="8" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
+  <circle cx="340" cy="45" r="18" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="460" cy="45" r="18" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="350" cy="105" r="22" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="450" cy="105" r="22" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
+  <circle cx="380" cy="160" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="420" cy="160" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="380" cy="182" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="420" cy="182" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
+  <circle cx="450" cy="105" r="22" fill="var(--tb-bad)" opacity="0.3"><animate attributeName="opacity" values="0.1;0.6;0.1" dur="2s" repeatCount="indefinite"/></circle>
+  <circle cx="420" cy="182" r="9" fill="var(--tb-accent)"/>
+  <text class="lbl" x="250" y="196" text-anchor="middle">良い例 →</text>
+  <text class="tick" x="510" y="196" text-anchor="end">つまみもバーナーと同じ 2×2 配置</text>
+</svg>
+<p class="tb-caption">図: コンロのつまみ配置。右の例ではつまみがバーナーと同じ配置なので、右手前のつまみ → 右手前のバーナーと迷わない。</p>
+<p>実際に試してみましょう。一列配置と空間的に対応づけた配置で、指示されたバーナーを点火するまでの時間と間違いの数を比べます。</p>
+<div data-widget="anim-mapping"></div>
 <div class="tb-tip"><b>3DCAD Studio</b>: 操作パネルをモデル化し、手の簡易形状をアセンブリに置いて隣のボタンとの干渉を確認しましょう。断面図でガードの高さとボタンの沈み込みを確認し、3D プリント試作で操作感を確かめられます。</div>`,
     points: ["用途 (瞬間/保持/選択/連続/大きな力) で操作具を選ぶ", "大きさ・操作力・ストロークは目安 — 軽すぎず手応えとフィードバックを", "ガード・埋め込み・二段操作・長押しで誤操作を防ぐ", "ステレオタイプに合わせ、重要度・頻度・機能・順序で配置する"],
     exercises: [
@@ -167,6 +238,13 @@ export const UX: TextChapter[] = [
   <li><b>コントラスト</b>: 文字と背景の明るさの差。輝度比で高いほどよく、画面の文字では Web のアクセシビリティ指針 (WCAG) で 4.5:1 以上が推奨値の一つ。色の違いだけに頼らない</li>
   <li><b>書体</b>: 線の太さが均一で字形の区別しやすい書体 (0/O、1/l/I) を選ぶ。細すぎ・詰めすぎは不可</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 130" aria-label="コントラストの比較">
+  <rect x="20" y="20" width="150" height="70" fill="#9e9e9e"/><text x="95" y="62" text-anchor="middle" fill="#bdbdbd" font-size="22">START</text>
+  <rect x="185" y="20" width="150" height="70" fill="#c62828"/><text x="260" y="62" text-anchor="middle" fill="#2e7d32" font-size="22">STOP</text>
+  <rect x="350" y="20" width="150" height="70" fill="#1a1a1a"/><text x="425" y="62" text-anchor="middle" fill="#ffffff" font-size="22" font-weight="700">STOP</text>
+  <text class="tick" x="95" y="112" text-anchor="middle">× 輝度差が小さい</text><text class="tick" x="260" y="112" text-anchor="middle">× 赤地に緑 (色覚で判別困難)</text><text class="tick" x="425" y="112" text-anchor="middle">○ 高コントラスト・太字</text>
+</svg>
+<p class="tb-caption">図: 文字と背景のコントラスト。色相の違いより明るさ (輝度) の差が読みやすさを決める。</p>
 <h2>表示灯の色 (IEC 60204-1 / JIS B 9960-1)</h2>
 <table class="tb-table">
   <tr><th>色</th><th>意味</th><th>説明・操作者の行動</th></tr>
@@ -179,6 +257,14 @@ export const UX: TextChapter[] = [
 <p>色だけで区別すると色覚の多様な人や逆光時に判別しにくいので、<b>点灯/点滅・位置・文字・形</b>を組み合わせます (点滅は注意を引く・優先度の高い情報に)。</p>
 <h2>ピクトグラムと安全標識</h2>
 <p>ISO 3864 / ISO 7010、JIS Z 9101 などの安全標識は、<b>形と色で種類</b>を表します。</p>
+<svg class="tb-chart" viewBox="0 0 520 160" aria-label="安全標識の形">
+  <circle cx="70" cy="65" r="40" fill="#fff" stroke="#d32f2f" stroke-width="9"/><line x1="42" y1="37" x2="98" y2="93" stroke="#d32f2f" stroke-width="9"/>
+  <circle cx="195" cy="65" r="42" fill="#1565c0"/><text x="195" y="74" text-anchor="middle" fill="#fff" font-size="28" font-weight="700">!</text>
+  <path d="M320,25 L365,105 L275,105 z" fill="#fbc02d" stroke="#222" stroke-width="5" stroke-linejoin="round"/><text x="320" y="96" text-anchor="middle" fill="#222" font-size="34" font-weight="700">!</text>
+  <rect x="405" y="25" width="85" height="80" fill="#2e7d32"/><path d="M430,80 L447,50 L465,80" stroke="#fff" stroke-width="5" fill="none"/>
+  <text class="tick" x="70" y="140" text-anchor="middle">禁止</text><text class="tick" x="195" y="140" text-anchor="middle">指示 (義務)</text><text class="tick" x="320" y="140" text-anchor="middle">警告</text><text class="tick" x="447" y="140" text-anchor="middle">安全状態</text>
+</svg>
+<p class="tb-caption">図: 安全標識の基本形 (図記号は略)。形だけでも種類が分かるので、色が見分けにくい場合にも手がかりになる。</p>
 <table class="tb-table">
   <tr><th>種類</th><th>形と色</th><th>例</th></tr>
   <tr><td>禁止</td><td>赤い円と斜線、白地、黒の図記号</td><td>立入禁止、火気厳禁</td></tr>
@@ -232,6 +318,27 @@ export const UX: TextChapter[] = [
   <tr><td>9</td><td>エラーの認識・診断・回復の支援</td><td>「E-23」ではなく「カバーが開いています。閉じてリセットを押してください」</td></tr>
   <tr><td>10</td><td>ヘルプとドキュメント</td><td>必要な場面で探しやすく、手順が具体的な説明</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 190" aria-label="エラー表示の悪い例と良い例">
+  <rect x="20" y="15" width="220" height="140" rx="8" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
+  <rect x="20" y="15" width="220" height="24" rx="8" fill="var(--tb-text-3)"/>
+  <text class="mark-t" x="130" y="90" text-anchor="middle">ERR 0x1F</text>
+  <rect x="100" y="115" width="60" height="26" rx="4" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><text class="tick" x="130" y="132" text-anchor="middle">OK</text>
+  <rect x="280" y="15" width="220" height="140" rx="8" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
+  <rect x="280" y="15" width="220" height="24" rx="8" fill="var(--tb-warn)"/><text class="mark-t" x="290" y="32">異常: 冷却水不足</text>
+  <text class="tick" x="292" y="62">原因: 冷却水の流量が低下</text><text class="tick" x="292" y="80">対処: バルブ V2 を開き</text><text class="tick" x="292" y="96">　　　リセットを押す</text>
+  <rect x="292" y="115" width="80" height="26" rx="4" fill="var(--tb-accent)"/><text x="332" y="132" text-anchor="middle" fill="#fff" font-size="11">リセット</text>
+  <rect x="384" y="115" width="104" height="26" rx="4" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><text class="tick" x="436" y="132" text-anchor="middle">手順を見る (#10)</text>
+  <text class="lbl" x="130" y="178" text-anchor="middle">× コードだけ (#2, #9 に反する)</text><text class="lbl" x="390" y="178" text-anchor="middle">○ 原因と対処を言葉で</text>
+</svg>
+<p class="tb-caption">図: ヒューリスティクス #9「エラーの認識・診断・回復」の悪い例と良い例 (画面のモックアップ)。</p>
+<svg class="tb-chart" viewBox="0 0 520 120" aria-label="状態の可視化と一貫性">
+  <rect x="20" y="10" width="480" height="28" rx="4" fill="var(--tb-good)" opacity="0.85"/><text x="32" y="29" fill="#fff" font-size="13" font-weight="700">● 運転中　主軸 1 200 rpm　残り 03:20</text>
+  <rect x="20" y="46" width="480" height="8" rx="4" fill="var(--tb-surface-2)"/><rect x="20" y="46" width="300" height="8" rx="4" fill="var(--tb-accent)"><animate attributeName="width" values="40;470;40" dur="6s" repeatCount="indefinite"/></rect>
+  <rect x="20" y="78" width="90" height="30" rx="4" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><text class="tick" x="65" y="98" text-anchor="middle">◀ 戻る</text>
+  <rect x="410" y="78" width="90" height="30" rx="4" fill="var(--tb-accent)"/><text x="455" y="98" text-anchor="middle" fill="#fff" font-size="12">決定</text>
+  <text class="tick" x="260" y="98" text-anchor="middle">「戻る」「決定」は全画面で同じ位置 (#3, #4)</text>
+</svg>
+<p class="tb-caption">図: 状態バーと進捗表示 (#1)、常に同じ位置の「戻る」「決定」(#3・#4)。</p>
 <h2>ノーマンのデザイン原則</h2>
 <ul>
   <li><b>アフォーダンス</b>: モノと人の関係が可能にする行為 (取っ手は「引ける」、平板は「押せる」)</li>
@@ -241,6 +348,16 @@ export const UX: TextChapter[] = [
   <li><b>制約</b>: できる操作を物理的・論理的・文化的に限定する (逆には差せないコネクタ、無効なボタンをグレーアウト)</li>
   <li><b>概念モデル</b>: 製品の仕組みを利用者が理解できるように見せる</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 150" aria-label="ボタン押下とフィードバック">
+  <rect x="60" y="70" width="110" height="40" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"><animate attributeName="fill" values="var(--tb-surface-2);var(--tb-accent);var(--tb-surface-2);var(--tb-surface-2)" keyTimes="0;0.1;0.3;1" dur="3s" repeatCount="indefinite"/></rect>
+  <text class="mark-t" x="115" y="95" text-anchor="middle">運転</text>
+  <circle cx="115" cy="40" r="10" fill="var(--tb-text-3)"><animate attributeName="cy" values="30;62;30;30" keyTimes="0;0.1;0.3;1" dur="3s" repeatCount="indefinite"/></circle>
+  <path d="M190,80 q12,10 0,20 M202,72 q20,18 0,36" stroke="var(--tb-accent)" fill="none" stroke-width="2"><animate attributeName="opacity" values="0;1;0;0" keyTimes="0;0.12;0.35;1" dur="3s" repeatCount="indefinite"/></path>
+  <circle cx="300" cy="90" r="14" fill="var(--tb-good)"/><text class="tick" x="320" y="94">ランプ点灯 (状態)</text>
+  <text class="tick" x="210" y="130">ピッ (音)</text>
+  <text class="tick" x="20" y="140">0.1 s 以内に色・音・ランプで応答 → 評価の隔たりを埋める</text>
+</svg>
+<p class="tb-caption">図: ボタンを押すと、すぐに色が変わり、音が鳴り、状態ランプが点く (印刷時は押した後の状態として読む)。</p>
 <h2>メンタルモデルと 2 つの隔たり</h2>
 <p>利用者は頭の中に「こう動くはず」という<b>メンタルモデル</b>を作り、それに基づいて操作します。設計者のモデルと利用者のモデルがずれると、「思った通りに動かない」体験になります。</p>
 <ol class="tb-flow">
@@ -292,6 +409,18 @@ export const UX: TextChapter[] = [
   <tr><td>6</td><td>身体的な負担が少ない</td><td>小さな力で開くレバー式ハンドル</td></tr>
   <tr><td>7</td><td>接近や利用に十分な大きさと空間</td><td>車いすで近づける操作盤</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 170" aria-label="ドアノブとレバーハンドル">
+  <rect x="30" y="20" width="12" height="120" fill="var(--tb-text-3)"/><circle cx="80" cy="80" r="22" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><path d="M42,80 L58,80" stroke="var(--tb-text-2)" stroke-width="6"/>
+  <text class="tick" x="70" y="160" text-anchor="middle">× 握ってひねる握り玉</text>
+  <rect x="190" y="20" width="12" height="120" fill="var(--tb-text-3)"/><g><path d="M202,80 L290,80" stroke="var(--tb-accent)" stroke-width="12" stroke-linecap="round"/><animateTransform attributeName="transform" type="rotate" values="0 205 80;25 205 80;0 205 80" dur="3s" repeatCount="indefinite"/></g>
+  <text class="tick" x="250" y="160" text-anchor="middle">○ 押し下げるだけのレバー</text>
+  <rect x="350" y="30" width="150" height="100" rx="6" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
+  <rect x="370" y="60" width="50" height="40" rx="4" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><circle cx="395" cy="70" r="3" fill="var(--tb-text)"/>
+  <rect x="430" y="60" width="50" height="40" rx="4" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/>
+  <text class="tick" x="395" y="118" text-anchor="middle">電源 (凸点)</text><text class="tick" x="455" y="118" text-anchor="middle">他</text>
+  <text class="tick" x="425" y="160" text-anchor="middle">○ 触って分かる凸点</text>
+</svg>
+<p class="tb-caption">図: 握力が弱い人や手がふさがった人でも開けられるレバーハンドル (原則 6) と、触覚で区別できる凸点 (原則 4)。</p>
 <h2>多様な利用者への配慮</h2>
 <table class="tb-table">
   <tr><th>利用者</th><th>特徴</th><th>配慮の例</th></tr>
@@ -305,6 +434,17 @@ export const UX: TextChapter[] = [
 </table>
 <h2>規格・指針</h2>
 <p>日本では <b>JIS S 0010 系</b> を中心に、高齢者・障害者に配慮した設計指針が規格化されています (例: 消費生活製品の報知音、凸記号 (シャンプー容器のきざみ、電源スイッチの凸点など)、視覚表示物の文字の大きさ、操作性などの規格群)。国際的には ISO/IEC Guide 71 が規格作成時の配慮指針になっています。具体的な数値はそれぞれの規格本文で確認してください。</p>
+<svg class="tb-chart" viewBox="0 0 520 140" aria-label="色だけに頼らない表示">
+  <circle cx="60" cy="50" r="18" fill="#c62828"/><circle cx="110" cy="50" r="18" fill="#2e7d32"/>
+  <text class="tick" x="85" y="95" text-anchor="middle">× 色だけ (赤/緑)</text>
+  <circle cx="60" cy="50" r="18" fill="none" stroke="var(--tb-text-3)" stroke-dasharray="3 2"/>
+  <circle cx="230" cy="50" r="18" fill="#8a7a3a"/><circle cx="280" cy="50" r="18" fill="#8a7a3a"/>
+  <text class="tick" x="255" y="95" text-anchor="middle">P 型色覚での見え方の例</text>
+  <rect x="380" y="32" width="36" height="36" fill="#c62828"/><text x="398" y="57" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">✕</text>
+  <circle cx="460" cy="50" r="18" fill="#2e7d32"/><text x="460" y="56" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">✓</text>
+  <text class="tick" x="420" y="95" text-anchor="middle">○ 形 + 記号 + 色</text><text class="tick" x="398" y="115" text-anchor="middle">異常</text><text class="tick" x="460" y="115" text-anchor="middle">正常</text>
+</svg>
+<p class="tb-caption">図: 赤と緑の区別がつきにくい見え方の例 (中央は概念図)。形や記号を併用すると色に頼らず伝わる。</p>
 <h2>設計チェックリスト</h2>
 <ul>
   <li>□ 文字は視距離に対して十分大きく、背景とのコントラストは高いか</li>
@@ -357,6 +497,19 @@ export const UX: TextChapter[] = [
   <rect x="340" y="120" width="100" height="10" fill="var(--tb-accent)"/><text class="tick" x="390" y="150" text-anchor="middle">重作業</text>
   <text class="lbl" x="495" y="196" text-anchor="end">作業の種類</text>
 </svg>
+<svg class="tb-chart" viewBox="0 0 520 230" aria-label="立位と座位の作業高さ">
+  <line class="axis" x1="20" y1="210" x2="500" y2="210"/>
+  <circle cx="90" cy="35" r="13" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><path d="M90,48 L90,125 M90,125 L80,210 M90,125 L100,210 M90,62 L92,100 L135,100" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
+  <rect x="130" y="104" width="100" height="8" fill="var(--tb-accent)"/><line x1="140" y1="112" x2="140" y2="210" stroke="var(--tb-text-3)"/><line x1="220" y1="112" x2="220" y2="210" stroke="var(--tb-text-3)"/>
+  <line class="guide" x1="60" y1="100" x2="250" y2="100"/><text class="tick" x="252" y="98">肘高</text>
+  <text class="tick" x="150" y="226" text-anchor="middle">立位: 軽作業は肘高 −10〜15 cm</text>
+  <circle cx="340" cy="80" r="13" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><path d="M340,93 L340,150 L385,150 L385,210 M340,105 L345,138 L392,138" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
+  <rect x="318" y="150" width="40" height="6" fill="var(--tb-text-3)"/><line x1="338" y1="156" x2="338" y2="210" stroke="var(--tb-text-3)"/>
+  <rect x="380" y="142" width="110" height="8" fill="var(--tb-accent)"/><line x1="480" y1="150" x2="480" y2="210" stroke="var(--tb-text-3)"/>
+  <path d="M410,160 L410,200" class="guide"/><text class="tick" x="415" y="185">脚のすき間</text>
+  <text class="tick" x="400" y="226" text-anchor="middle">座位: 座面 ≈ 膝窩高、作業面 ≈ 肘高</text>
+</svg>
+<p class="tb-caption">図: 立位と座位の作業面高さの考え方 (寸法は目安)。座位では脚の入るすき間も必要。</p>
 <h2>リーチ範囲</h2>
 <ul>
   <li><b>通常作業域</b>: 上腕を体の横に付けたまま前腕を動かして届く範囲。頻繁に使う部品・工具はここに</li>
@@ -364,6 +517,16 @@ export const UX: TextChapter[] = [
   <li>それを超える位置は、前かがみ・ひねり・背伸びを生み、腰や肩の負担になる</li>
   <li>リーチは小さい人 (5 パーセンタイル) に合わせ、作業者の正面に作業点を置く</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 220" aria-label="通常作業域と最大作業域 (上から見た図)">
+  <line class="axis" x1="40" y1="190" x2="480" y2="190"/>
+  <path d="M90,190 A170,170 0 0 1 430,190" fill="color-mix(in srgb, var(--tb-accent) 12%, transparent)" stroke="var(--tb-accent)" stroke-dasharray="5 3"/>
+  <path d="M150,190 A110,110 0 0 1 370,190" fill="color-mix(in srgb, var(--tb-accent) 30%, transparent)" stroke="var(--tb-accent)" stroke-width="2"/>
+  <ellipse cx="260" cy="205" rx="60" ry="14" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/>
+  <text class="mark-t" x="260" y="140" text-anchor="middle">通常作業域</text><text class="tick" x="260" y="156" text-anchor="middle">頻繁に使う部品・工具</text>
+  <text class="mark-t" x="260" y="45" text-anchor="middle">最大作業域</text><text class="tick" x="260" y="61" text-anchor="middle">時々使うもの</text>
+  <text class="tick" x="460" y="60" text-anchor="end">外側 = 前かがみ・ひねり</text>
+</svg>
+<p class="tb-caption">図: 作業台を上から見た通常作業域と最大作業域 (半径は体格で変わる)。</p>
 <h2>持ち上げ作業</h2>
 <p>腰への負担は、重さだけでなく<b>体から荷物までの水平距離</b>、持ち上げる高さ、ひねり、頻度で大きく変わります。荷物を体に近づけると、腰にかかるモーメントは小さくなります。</p>
 <ul>
@@ -371,6 +534,16 @@ export const UX: TextChapter[] = [
   <li>海外では NIOSH の持ち上げ式 (推奨重量限界 RWL を各条件の係数で算出) なども使われる</li>
   <li>設計での対策: 持ち上げ高さを腰〜胸の範囲に、取っ手を付ける、重いものは台車・リフタ・バランサで</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 170" aria-label="荷物までの距離と腰のモーメント">
+  <line class="axis" x1="20" y1="150" x2="500" y2="150"/>
+  <circle class="mark" cx="80" cy="90" r="5"/><rect x="95" y="70" width="30" height="30" fill="var(--tb-good)"/><line x1="80" y1="110" x2="110" y2="110" stroke="var(--tb-text-2)"/><text class="tick" x="95" y="125" text-anchor="middle">d 小</text>
+  <text class="tick" x="100" y="168" text-anchor="middle">○ 体に近づける</text>
+  <circle class="mark" cx="270" cy="90" r="5"/><rect x="380" y="70" width="30" height="30" fill="var(--tb-bad)"/><line x1="270" y1="110" x2="395" y2="110" stroke="var(--tb-text-2)"/><text class="tick" x="332" y="125" text-anchor="middle">d 大</text>
+  <text class="tick" x="340" y="168" text-anchor="middle">× 遠くで持つ</text>
+  <text class="lbl" x="480" y="40" text-anchor="end">腰のモーメント ≈ 重さ × d</text>
+  <text class="tick" x="80" y="80" text-anchor="middle">腰</text><text class="tick" x="270" y="80" text-anchor="middle">腰</text>
+</svg>
+<p class="tb-caption">図: 同じ重さでも腰 (●) から荷物までの水平距離 d が大きいほど腰の負担が増える。</p>
 <h2>繰り返し作業・振動・騒音</h2>
 <table class="tb-table">
   <tr><th>負担</th><th>起こりうる障害</th><th>設計での対策</th></tr>
@@ -432,6 +605,15 @@ export const UX: TextChapter[] = [
   <li><b>ペルソナ</b>: 調査に基づく代表的な利用者像 (目標・状況・スキル・不満)。想像だけで作ると単なる思い込みになる</li>
   <li><b>カスタマージャーニーマップ</b>: 認知 → 購入 → 設置 → 使用 → 保守 → 廃棄の各段階で、行動・接点・感情・課題を時系列に並べ、体験の落ち込む所 (ペインポイント) を見つける</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 210" aria-label="カスタマージャーニーマップ">
+  <line class="grid" x1="40" y1="110" x2="500" y2="110"/>
+  <text class="tick" x="36" y="60" text-anchor="end">満足</text><text class="tick" x="36" y="170" text-anchor="end">不満</text>
+  <text class="tick" x="70" y="22" text-anchor="middle">認知</text><text class="tick" x="145" y="22" text-anchor="middle">購入</text><text class="tick" x="220" y="22" text-anchor="middle">設置</text><text class="tick" x="295" y="22" text-anchor="middle">使用</text><text class="tick" x="370" y="22" text-anchor="middle">保守</text><text class="tick" x="450" y="22" text-anchor="middle">廃棄</text>
+  <polyline points="70,70 145,60 220,160 295,80 370,150 450,100" stroke="var(--tb-accent)" fill="none" stroke-width="2.5"/>
+  <circle class="mark" cx="220" cy="160" r="6"/><circle class="mark" cx="370" cy="150" r="6"/>
+  <text class="tick" x="220" y="185" text-anchor="middle">設置手順が難しい</text><text class="tick" x="370" y="175" text-anchor="middle">消耗品の交換が面倒</text>
+</svg>
+<p class="tb-caption">図: カスタマージャーニーマップの感情曲線の例。落ち込む点 (●) がペインポイントで、改善の優先候補になる。</p>
 <h2>ユーザビリティテスト</h2>
 <ol class="tb-flow">
   <li><b>目的とタスク</b> — 現実的な作業を課題にする (「切削速度を 1 200 rpm に設定して運転を始めてください」)。操作手順そのものは教えない</li>
@@ -454,6 +636,14 @@ export const UX: TextChapter[] = [
 偶数:   3 + 4 + 3 + 3 + 4 = 17
 合計:   34  →  34 × 2.5 = 85</pre>
 <p>SUS スコアは<b>パーセントではありません</b>。多くの研究の平均はおよそ 68 とされ、それより高ければ平均以上の使いやすさと解釈されます (目安)。参加者ごとにスコアを出してから平均します。</p>
+<svg class="tb-chart" viewBox="0 0 520 110" aria-label="SUS スコアの目安">
+  <rect x="40" y="40" width="440" height="20" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
+  <rect x="40" y="40" width="226" height="20" fill="var(--tb-bad)" opacity="0.35"/><rect x="266" y="40" width="214" height="20" fill="var(--tb-good)" opacity="0.35"/>
+  <line x1="339" y1="30" x2="339" y2="70" stroke="var(--tb-accent)" stroke-width="3"/><text class="mark-t" x="339" y="24" text-anchor="middle">例題 85</text>
+  <line class="guide" x1="266" y1="30" x2="266" y2="74"/><text class="tick" x="266" y="88" text-anchor="middle">平均 約 68</text>
+  <text class="tick" x="40" y="88" text-anchor="middle">0</text><text class="tick" x="260" y="104" text-anchor="middle">50</text><text class="tick" x="480" y="88" text-anchor="middle">100</text>
+</svg>
+<p class="tb-caption">図: SUS スコアの数直線。平均の目安 (約 68) との比較で解釈する (パーセントではない)。</p>
 <h2>A/B テスト</h2>
 <ul>
   <li>2 つの案 (A と B) を利用者にランダムに割り当て、<b>事前に決めた 1 つの指標</b> (成功率・完了時間など) で比較する</li>

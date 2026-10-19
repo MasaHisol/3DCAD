@@ -40,6 +40,15 @@ export const DESIGN2: TextChapter[] = [
   <tr><td>制約</td><td>目標売価、材料 (ABS + アルミ)、発売時期</td></tr>
   <tr><td>評価方法</td><td>ユーザテスト、コスト見積、デザインレビューで判定</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 170" aria-label="発散と収束">
+  <path d="M30,85 L140,25 L250,85 L140,145 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2"/>
+  <path d="M270,85 L380,25 L490,85 L380,145 Z" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="2"/>
+  <text class="lbl" x="140" y="80" text-anchor="middle">課題を探る</text><text class="tick" x="140" y="98" text-anchor="middle">リサーチ → ブリーフ</text>
+  <text class="lbl" x="380" y="80" text-anchor="middle">解を探る</text><text class="tick" x="380" y="98" text-anchor="middle">スケッチ → 決定案</text>
+  <text class="tick" x="85" y="162" text-anchor="middle">発散</text><text class="tick" x="195" y="162" text-anchor="middle">収束</text>
+  <text class="tick" x="325" y="162" text-anchor="middle">発散</text><text class="tick" x="435" y="162" text-anchor="middle">収束</text>
+</svg>
+<p class="tb-caption">図: 「広げてから絞る」を課題と解決策の 2 回くり返す考え方 (ダブルダイヤモンド)</p>
 <h2>デザイナーと設計者の協働</h2>
 <table class="tb-table">
   <tr><th>段階</th><th>デザイナーの主な役割</th><th>設計者の主な役割</th></tr>
@@ -177,6 +186,19 @@ export const DESIGN2: TextChapter[] = [
   <li>ハイライトが<b>折れる・段がつく・波打つ</b> → 面のつながりや面の質に問題がある</li>
   <li>自動車のデザインでは、平行な蛍光灯を映す「ゼブラ」で面を評価する</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 150" aria-label="ゼブラ縞の流れ">
+  <rect x="40" y="20" width="440" height="90" rx="8" fill="var(--tb-surface-2)" stroke="currentColor"/>
+  <line class="guide" x1="260" y1="20" x2="260" y2="110"/>
+  <g stroke="currentColor" stroke-width="5" fill="none">
+    <path d="M60,35 L260,35 L260,47 L460,47"/><path d="M60,65 L260,65 L260,77 L460,77"/><path d="M60,95 L260,95 L260,107"/>
+  </g>
+  <rect x="40" y="20" width="16" height="90" fill="var(--tb-accent)" opacity="0.35"><animate attributeName="x" values="40;464;40" dur="6s" repeatCount="indefinite"/></rect>
+  <text class="mark-t" x="268" y="16">面の境目で縞がずれる = G0 (段差・折れ)</text>
+  <text class="lbl" x="260" y="135" text-anchor="middle">平行な光の縞を映すと、面のつながりの乱れが見える</text>
+</svg>
+<p class="tb-caption">図: ゼブラ表示の模式図。縞がずれる・折れる所は面のつながりに問題がある</p>
+<p>下のアニメーションでは、G0 (角)・G1 (正接)・G2 (曲率連続) の 3 種類のつなぎ目に映り込みの線を横切らせています。線が境目でどう振る舞うかを見比べてください。</p>
+<div data-widget="anim-highlight"></div>
 <h2>R の連続性 — G0・G1・G2</h2>
 <table class="tb-table">
   <tr><th>連続性</th><th>意味</th><th>見え方</th></tr>
@@ -226,6 +248,19 @@ export const DESIGN2: TextChapter[] = [
   <tr><td>直角に見せたい</td><td>勾配 0.5〜1° でも見た目はほぼ直角。R を小さくしてエッジを効かせる</td></tr>
   <tr><td>勾配と R の順序</td><td>勾配を先に付け、外観 R は後から付けると面がきれいにつながる</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 190" aria-label="抜き勾配と離型">
+  <rect x="40" y="20" width="180" height="40" fill="var(--tb-surface-2)" stroke="currentColor"/>
+  <rect x="80" y="60" width="100" height="70" fill="var(--tb-accent)" opacity="0.5"><animateTransform attributeName="transform" type="translate" values="0,0;0,0;0,-30;0,0" dur="4s" repeatCount="indefinite"/></rect>
+  <path d="M40,60 L80,60 L80,130 L180,130 L180,60 L220,60 L220,150 L40,150 Z" fill="var(--tb-surface-2)" stroke="currentColor"/>
+  <text class="lbl" x="130" y="175" text-anchor="middle">勾配なし: 壁面がこすれる</text>
+  <path d="M300,60 L340,60 L350,130 L430,130 L440,60 L480,60 L480,150 L300,150 Z" fill="var(--tb-surface-2)" stroke="currentColor"/>
+  <path d="M340,60 L350,130 L430,130 L440,60 Z" fill="var(--tb-accent)" opacity="0.5"><animateTransform attributeName="transform" type="translate" values="0,0;0,0;0,-30;0,0" dur="4s" repeatCount="indefinite"/></path>
+  <text class="mark-t" x="452" y="100">勾配</text>
+  <text class="lbl" x="390" y="175" text-anchor="middle">勾配あり: 離れた瞬間にすき間</text>
+</svg>
+<p class="tb-caption">図: 型 (灰色) から成形品 (色) を取り出すとき、勾配があればすぐ壁面から離れる</p>
+<p>次のアニメーションで、勾配の有無による離型の違いを切り替えて確認できます。</p>
+<div data-widget="anim-draft"></div>
 <div class="tb-tip"><b>3DCAD Studio</b>: 勾配を付けてからフィレットをかけると、R が勾配面に沿ってきれいにつながります。滑らかな曲面にはロフトやスイープ、ハイライトの流れの確認にはリアル表示 (映り込み) が役立ちます。断面図で R の形状を確かめましょう。</div>`,
     points: ["わずかに張った面は、ヒケに強く上質に見える", "ハイライトは面のつながりを拡大して見せる検査道具", "G1 (正接) はハイライトが折れ、G2 (曲率連続) は流れる。G2 は見える場所に絞る", "PL は R の途中を避け、見切り溝や段差でずれを隠す。勾配は R より先に付ける"],
     exercises: [
@@ -385,6 +420,16 @@ export const DESIGN2: TextChapter[] = [
   <li><b>自由領域</b>: 製品カテゴリごとに変えてよい部分 (サイズ、機能に固有の形)</li>
 </ul>
 <div class="tb-note">ルールを細かくしすぎると、製品ごとの最適解を妨げます。「シリーズらしさ」を生むのに<b>効いている要素</b>に絞り、それ以外は自由にしておくのが長続きするコツです。</div>
+<svg class="tb-chart" viewBox="0 0 520 170" aria-label="モデルチェンジでの継承">
+  <rect x="30" y="50" width="120" height="70" rx="6" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="200" y="50" width="130" height="66" rx="12" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="380" y="54" width="120" height="58" rx="18" fill="none" stroke="currentColor" stroke-width="2"/>
+  <circle cx="132" cy="68" r="8" fill="var(--tb-accent)"/><circle cx="312" cy="68" r="8" fill="var(--tb-accent)"/><circle cx="482" cy="72" r="8" fill="var(--tb-accent)"/>
+  <g stroke="var(--tb-text-3)"><line x1="155" y1="85" x2="195" y2="85"/><line x1="335" y1="85" x2="375" y2="85"/></g>
+  <text class="lbl" x="90" y="145" text-anchor="middle">初代</text><text class="lbl" x="265" y="145" text-anchor="middle">2 代目</text><text class="lbl" x="440" y="145" text-anchor="middle">3 代目</text>
+  <text class="mark-t" x="260" y="30" text-anchor="middle">象徴 (丸い電源ボタン) は残し、比率と R を磨く</text>
+</svg>
+<p class="tb-caption">図: エボリューション型のモデルチェンジ。変える所と残す所をはっきりさせる</p>
 <h2>モデルチェンジでの継承</h2>
 <table class="tb-table">
   <tr><th>方針</th><th>内容</th><th>向いている場面</th></tr>
@@ -435,6 +480,15 @@ export const DESIGN2: TextChapter[] = [
   <li><b>登録査定 → 登録料の納付 → 設定登録</b>で権利が発生し、意匠公報に掲載</li>
 </ol>
 <p>存続期間は、2020 年 4 月 1 日以降の出願について<b>出願日から最長 25 年</b>です (それ以前の出願は、登録日から 20 年)。権利を維持するには登録料を毎年納付します。また、出願人の請求により登録後最長 3 年間、意匠を秘密にできる<b>秘密意匠</b>の制度もあります。</p>
+<svg class="tb-chart" viewBox="0 0 520 120" aria-label="意匠登録の流れ">
+  <g fill="var(--tb-surface-2)" stroke="currentColor">
+    <rect x="10" y="35" width="80" height="40" rx="6"/><rect x="115" y="35" width="80" height="40" rx="6"/><rect x="220" y="35" width="80" height="40" rx="6"/><rect x="325" y="35" width="80" height="40" rx="6"/><rect x="430" y="35" width="80" height="40" rx="6" stroke="var(--tb-accent)" stroke-width="2"/>
+  </g>
+  <g stroke="currentColor"><line x1="90" y1="55" x2="115" y2="55"/><line x1="195" y1="55" x2="220" y2="55"/><line x1="300" y1="55" x2="325" y2="55"/><line x1="405" y1="55" x2="430" y2="55"/></g>
+  <text class="tick" x="50" y="60" text-anchor="middle">調査</text><text class="tick" x="155" y="60" text-anchor="middle">出願</text><text class="tick" x="260" y="60" text-anchor="middle">実体審査</text><text class="tick" x="365" y="60" text-anchor="middle">登録査定</text><text class="tick" x="470" y="60" text-anchor="middle">登録料→登録</text>
+  <text class="lbl" x="260" y="105" text-anchor="middle">登録で権利発生 (出願日から最長 25 年)</text>
+</svg>
+<p class="tb-caption">図: 意匠登録までの主な流れ。意匠は審査請求なしで実体審査が行われる</p>
 <h2>さまざまな意匠の制度</h2>
 <table class="tb-table">
   <tr><th>制度</th><th>内容</th><th>使いどころ</th></tr>
@@ -444,6 +498,15 @@ export const DESIGN2: TextChapter[] = [
   <tr><td>建築物・内装</td><td>建物の外観や、店舗などの内装</td><td>店舗デザインのブランド保護</td></tr>
   <tr><td>組物の意匠</td><td>セットで使う物品の全体 (食器セットなど)</td><td>シリーズ全体の統一感を保護</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 180" aria-label="部分意匠の図面表現">
+  <rect x="60" y="40" width="70" height="110" rx="8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <path d="M130,60 C175,60 175,130 130,130" fill="none" stroke="var(--tb-accent)" stroke-width="3"/>
+  <text class="lbl" x="110" y="172" text-anchor="middle">マグカップの取っ手</text>
+  <line x1="260" y1="60" x2="300" y2="60" stroke="var(--tb-accent)" stroke-width="3"/><text class="lbl" x="310" y="64">実線: 登録を受けたい部分</text>
+  <line x1="260" y1="100" x2="300" y2="100" stroke="currentColor" stroke-dasharray="5 4"/><text class="lbl" x="310" y="104">破線: その他の部分</text>
+  <text class="tick" x="260" y="140">特徴的な部分だけの模倣も防げる</text>
+</svg>
+<p class="tb-caption">図: 部分意匠では、権利を求める部分を実線、それ以外を破線などで描き分ける (表し方の一例)</p>
 <h2>ほかの知的財産権との違い</h2>
 <table class="tb-table">
   <tr><th>権利</th><th>保護対象</th><th>審査</th><th>存続期間 (原則)</th></tr>
@@ -533,6 +596,16 @@ export const DESIGN2: TextChapter[] = [
   <tr><td>3D プリント試作</td><td>正確な形状、R やハイライトの見え方、組立・操作部の感触</td><td>積層痕や材質の違い。塗装・研磨で外観を近づける</td></tr>
   <tr><td>デザインモック (外観模型)</td><td>量産品に近い色・つや・質感</td><td>費用と時間がかかる。最終確認向け</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 170" aria-label="評価軸ごとの得点の比較">
+  <line class="axis" x1="150" y1="20" x2="150" y2="150"/>
+  <text class="lbl" x="140" y="45" text-anchor="end">コンセプト</text><text class="lbl" x="140" y="75" text-anchor="end">使いやすさ</text><text class="lbl" x="140" y="105" text-anchor="end">ブランド</text><text class="lbl" x="140" y="135" text-anchor="end">製造性</text>
+  <g fill="var(--tb-text-3)"><rect x="150" y="32" width="96" height="8"/><rect x="150" y="62" width="96" height="8"/><rect x="150" y="92" width="48" height="8"/><rect x="150" y="122" width="80" height="8"/></g>
+  <g fill="var(--tb-accent)"><rect x="150" y="42" width="120" height="8"/><rect x="150" y="72" width="72" height="8"/><rect x="150" y="102" width="80" height="8"/><rect x="150" y="132" width="32" height="8"/></g>
+  <rect x="380" y="40" width="12" height="8" fill="var(--tb-text-3)"/><text class="tick" x="398" y="48">A 案</text>
+  <rect x="380" y="60" width="12" height="8" fill="var(--tb-accent)"/><text class="tick" x="398" y="68">B 案</text>
+  <text class="tick" x="380" y="100">合計が近くても</text><text class="tick" x="380" y="116">差のつく軸が違う</text>
+</svg>
+<p class="tb-caption">図: 上の表の A 案と B 案を、重み × 評点で軸ごとに並べたもの。どこで差がついたかが一目でわかる</p>
 <h2>意思決定の記録</h2>
 <p>レビューで決めたことは、すぐに記録して共有します。後で「なぜこの形になったのか」を説明でき、同じ議論の蒸し返しを防げます。</p>
 <pre class="tb-pre">デザインレビュー記録 (例)
