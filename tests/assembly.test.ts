@@ -85,3 +85,38 @@ describe("assembly motion", () => {
     expect(analyzeDof(comps, [...cons, mate]).perComp.get("c3")).toEqual({ dof: 3, trans: 2, rot: 1 });
   });
 });
+
+import { analyzeDof } from "../src/assembly/motion";
+
+describe("joints: rigid and ball", () => {
+  it("rigid joint carries B with A (A moved by its own constraint); B has no DOF", () => {
+    const rel = pose(0.3, 0.2, -0.5, [10, 0, 5]);
+    const A0 = pose(0, 0, 0, [0, 0, 0]);
+    const m = new Map([
+      ["G", new THREE.Matrix4()],
+      ["A", pose(0.1, 0.4, 0.2, [50, 20, -3])],
+      ["B", pose(-1, 2, 0.5, [-40, 7, 9])],
+    ]);
+    const cons: SolverConstraint[] = [
+      { type: "rigid", a: { comp: "G", geom: "plane", point: [0, 0, 0], dir: [0, 0, 1] }, b: { comp: "A", geom: "plane", point: [0, 0, 0], dir: [0, 0, 1] }, value: 0, rel: A0.toArray() },
+      { type: "rigid", a: { comp: "A", geom: "plane", point: [0, 0, 0], dir: [0, 0, 1] }, b: { comp: "B", geom: "plane", point: [0, 0, 0], dir: [0, 0, 1] }, value: 0, rel: rel.toArray() },
+    ];
+    expect(solveAssembly(m, new Set(["G"]), cons).ok).toBe(true);
+    const want = rel.elements;
+    m.get("B")!.elements.forEach((v, i) => expect(v).toBeCloseTo(want[i], 6));
+    const dof = analyzeDof([...m].map(([id, mm]) => ({ id, matrix: mm.toArray(), grounded: id === "G" })), cons);
+    expect(dof.perComp.get("B")!.dof).toBe(0);
+  });
+  it("ball joint: centres coincide, 3 rotational DOF remain", () => {
+    const m = new Map([
+      ["A", new THREE.Matrix4()],
+      ["B", pose(0.3, 0, 0, [20, 30, 40])],
+    ]);
+    const cons: SolverConstraint[] = [{ type: "ball", a: { comp: "A", geom: "plane", point: [0, 0, 50], dir: [0, 0, 1] }, b: { comp: "B", geom: "plane", point: [0, 0, 0], dir: [0, 0, 1] }, value: 0 }];
+    expect(solveAssembly(m, new Set(["A"]), cons).ok).toBe(true);
+    const p = new THREE.Vector3(0, 0, 0).applyMatrix4(m.get("B")!);
+    expect(p.distanceTo(new THREE.Vector3(0, 0, 50))).toBeLessThan(1e-6);
+    const dof = analyzeDof([...m].map(([id, mm]) => ({ id, matrix: mm.toArray(), grounded: id === "A" })), cons);
+    expect(dof.perComp.get("B")).toEqual({ dof: 3, trans: 0, rot: 3 });
+  });
+});

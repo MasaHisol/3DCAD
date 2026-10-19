@@ -24,6 +24,8 @@ export interface SolverConstraint {
   b: SolverGeo;
   value: number;
   flip?: boolean;
+  /** Rigid: Mb = Ma · rel. */
+  rel?: number[];
 }
 
 export interface SolveReport {
@@ -92,6 +94,15 @@ export function constraintError(ma: THREE.Matrix4, mb: THREE.Matrix4, c: SolverC
       const cur = Math.acos(THREE.MathUtils.clamp(A.d.dot(B.d), -1, 1));
       return Math.abs(cur - THREE.MathUtils.degToRad(c.value)) * 50;
     }
+    case "ball":
+      return B.p.distanceTo(A.p);
+    case "rigid": {
+      if (!c.rel) return 0;
+      const want = ma.clone().multiply(new THREE.Matrix4().fromArray(c.rel)).elements, cur = mb.elements;
+      let e = 0;
+      for (let i = 0; i < 16; i++) e = Math.max(e, Math.abs(want[i] - cur[i]) * (i % 4 === 3 || i >= 12 ? 1 : 100));
+      return e;
+    }
   }
 }
 
@@ -122,6 +133,12 @@ function correct(ma: THREE.Matrix4, mb: THREE.Matrix4, c: SolverConstraint) {
       translate(mb, v.sub(A.d.clone().multiplyScalar(v.dot(A.d))).negate());
       break;
     }
+    case "ball":
+      translate(mb, A.p.clone().sub(B.p));
+      break;
+    case "rigid":
+      if (c.rel) mb.copy(ma.clone().multiply(new THREE.Matrix4().fromArray(c.rel)));
+      break;
     case "angle": {
       const cur = Math.acos(THREE.MathUtils.clamp(A.d.dot(B.d), -1, 1));
       const want = THREE.MathUtils.degToRad(c.value);
@@ -161,7 +178,8 @@ export function solveAssembly(matrices: Map<string, THREE.Matrix4>, fixed: Set<s
       const moveA = bFixed || (!aFixed && anchored.has(c.b.comp) && !anchored.has(c.a.comp));
       // swapping sides flips the sign of offsets measured along an aligned normal
       const negate = c.type === "flush" || (c.type === "insert" && c.flip);
-      if (moveA) correct(mb, ma, { ...c, a: c.b, b: c.a, value: negate ? -c.value : c.value });
+      const rel = c.rel && moveA ? new THREE.Matrix4().fromArray(c.rel).invert().toArray() : c.rel;
+      if (moveA) correct(mb, ma, { ...c, a: c.b, b: c.a, value: negate ? -c.value : c.value, rel });
       else correct(ma, mb, c);
       if (anchored.has(c.a.comp)) anchored.add(c.b.comp);
       if (anchored.has(c.b.comp)) anchored.add(c.a.comp);

@@ -726,7 +726,7 @@ export class Viewport {
 
   // ------------------------------------------------------------ reference ---
 
-  setRefs(list: { key: string; kind: "plane" | "axis" | "point"; plane?: PlaneDef; dir?: Vec3; label: string; size?: number }[]) {
+  setRefs(list: { key: string; kind: "plane" | "axis" | "point"; plane?: PlaneDef; dir?: Vec3; origin?: Vec3; label: string; size?: number }[]) {
     this.refLayer.clear();
     this.refs = [];
     const size = list[0]?.size ?? 50;
@@ -746,12 +746,14 @@ export class Viewport {
         pickMesh = fill;
       } else if (r.kind === "axis" && r.dir) {
         const d = new THREE.Vector3(...r.dir);
-        const geo = new THREE.BufferGeometry().setFromPoints([d.clone().multiplyScalar(-size * 0.7), d.clone().multiplyScalar(size * 0.7)]);
+        const o = new THREE.Vector3(...(r.origin ?? [0, 0, 0]));
+        const geo = new THREE.BufferGeometry().setFromPoints([d.clone().multiplyScalar(-size * 0.7).add(o), d.clone().multiplyScalar(size * 0.7).add(o)]);
         const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: "#c8a02c" }));
         g.add(line);
         pickMesh = line;
       } else {
         const sp = new THREE.Mesh(new THREE.SphereGeometry(size * 0.025, 12, 8), new THREE.MeshBasicMaterial({ color: "#c8a02c" }));
+        if (r.origin) sp.position.set(...r.origin);
         g.add(sp);
         pickMesh = sp;
       }

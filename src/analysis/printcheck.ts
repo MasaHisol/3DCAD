@@ -4,7 +4,7 @@
 export interface PrintCheckOptions {
   /** Build direction axis (0 = X, 1 = Y, 2 = Z), positive. */
   up: 0 | 1 | 2;
-  /** Overhang limit from horizontal-down (deg); faces steeper than this are fine (typ. 45°). */
+  /** Overhang limit measured from vertical (deg, typ. 45°): faces leaning further need support. */
   overhang: number;
   /** Minimum printable wall thickness (mm). */
   minWall: number;
@@ -45,7 +45,9 @@ function rayTri(o: number[], d: number[], P: Float32Array, a: number, b: number,
 
 export function printCheck(meshes: Mesh[], opt: PrintCheckOptions): PrintCheckResult {
   const up = opt.up;
-  const cosLim = Math.sin((opt.overhang * Math.PI) / 180); // normal·(-up) above this → overhang
+  // overhang angle measured from vertical (slicer convention): a downward face inclined more than
+  // `overhang` from vertical needs support ⇔ normal·(-up) > cos(90° − overhang) = sin(overhang)
+  const cosLim = Math.sin((opt.overhang * Math.PI) / 180);
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (const m of meshes)
     for (let i = 0; i < m.positions.length; i += 3)

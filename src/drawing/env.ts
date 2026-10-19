@@ -19,6 +19,7 @@ import {
   sheetSize,
   type Anno,
   type DimAnno,
+  type WeldAnno,
   type DimKind,
   type DrawingDoc,
   type DView,
@@ -44,6 +45,7 @@ type Tool =
   | "gdt"
   | "datum"
   | "balloon"
+  | "weld"
   | "centerline";
 
 const PROMPTS: Record<Tool, string> = {
@@ -60,6 +62,7 @@ const PROMPTS: Record<Tool, string> = {
   gdt: "幾何公差の引出し先 (エッジ) をクリックし、枠の位置をクリック",
   datum: "データムを付けるエッジをクリックし、記号の位置をクリック",
   balloon: "部品のエッジをクリックし、風船の位置をクリック",
+  weld: "溶接する箇所 (エッジ) をクリックし、基線の位置をクリック",
   centerline: "中心線を引く 2 本の線分 (または 2 つの円) をクリック",
 };
 
@@ -323,6 +326,49 @@ export class DrawingEnv {
       });
     if (!silent) toast(changed.length ? `${changed.length} 個の寸法を整列しました` : "重なっている寸法はありません", changed.length ? "ok" : "info");
     return changed.length;
+  }
+
+  /** Breakout (partial section) of the selected base / projected view: rectangle + depth. */
+  breakoutView() {
+    const sh = this.sheet;
+    const v = sh.views.find((x) => this.selected.has(x.id) && (x.kind === "base" || x.kind === "projected")) ?? sh.views.find((x) => x.kind === "base");
+    const g = v && this.geom.get(v.id);
+    if (!v || !g) return void toast("基準ビューまたは投影ビューを選択してください", "warn");
+    const [x0, y0, x1, y1] = g.bounds;
+    const cur = v.breakout?.pts;
+    const init = cur
+      ? [Math.min(...cur.map((p) => p[0])), Math.min(...cur.map((p) => p[1])), Math.max(...cur.map((p) => p[0])), Math.max(...cur.map((p) => p[1]))]
+      : [x0 + (x1 - x0) * 0.3, y0 + (y1 - y0) * 0.3, x0 + (x1 - x0) * 0.7, y0 + (y1 - y0) * 0.7];
+    const inp = (val: number) => h("input", { class: "field-input", value: formatNumber(val, 2) });
+    const ins = init.map(inp);
+    const depth = inp(v.breakout?.depth ?? 5);
+    depth.dataset.k = "breakout-depth";
+    const row = (l: string, e: HTMLElement) => h("label", { class: "field" }, h("span", {}, l), e);
+    modal({
+      title: `部分断面: ${v.label || "ビュー"}`,
+      icon: "section",
+      body: h("div", { class: "form-grid" }, row("範囲 X 最小", ins[0]), row("範囲 Y 最小", ins[1]), row("範囲 X 最大", ins[2]), row("範囲 Y 最大", ins[3]), row("深さ (手前から mm)", depth), h("p", { class: "muted" }, `ビュー座標 X ${formatNumber(x0, 1)}〜${formatNumber(x1, 1)}, Y ${formatNumber(y0, 1)}〜${formatNumber(y1, 1)} mm`)),
+      buttons: [
+        {
+          label: "解除",
+          onClick: () => {
+            this.mutate("部分断面を解除", (d) => delete d.sheets[this.activeSheet].views.find((x) => x.id === v.id)!.breakout);
+            void this.refresh(true);
+          },
+        },
+        {
+          label: "OK",
+          primary: true,
+          onClick: () => {
+            const [a, b, c, e] = ins.map((i) => Number(i.value));
+            const dep = Number(depth.value);
+            if (![a, b, c, e, dep].every(Number.isFinite) || !(dep > 0) || c <= a || e <= b) return void toast("範囲と深さを正しく入力してください", "warn");
+            this.mutate("部分断面", (d) => (d.sheets[this.activeSheet].views.find((x) => x.id === v.id)!.breakout = { pts: [[a, b], [c, b], [c, e], [a, e]], depth: dep }));
+            void this.refresh(true);
+          },
+        },
+      ],
+    });
   }
 
   /** Broken view: remove the middle of the longer direction (dialog with range). */
@@ -695,22 +741,79 @@ export class DrawingEnv {
   bom(): BomRow[] {
     if (this.source !== "assembly") return [];
     const asm = this.app.asm.doc;
+    const ed = this.doc?.bomEdits ?? {};
     return asm.parts
       .map((p, i) => ({
-        item: i + 1,
-        name: p.doc?.iprops["パーツ番号"] || p.name,
+        item: ed[p.id]?.item ?? i + 1,
+        name: ed[p.id]?.name || p.doc?.iprops["パーツ番号"] || p.name,
         qty: asm.components.filter((c) => c.partId === p.id).length,
-        material: p.kind === "step" ? "—" : (p.doc?.material ?? MATERIALS[0]).name,
-        note: p.doc?.iprops["説明"] ?? "",
+        material: ed[p.id]?.material || (p.kind === "step" ? "—" : (p.doc?.material ?? MATERIALS[0]).name),
+        note: ed[p.id]?.note ?? p.doc?.iprops["説明"] ?? "",
       }))
-      .filter((r) => r.qty > 0);
+      .filter((r) => r.qty > 0)
+      .sort((a, b) => a.item - b.item);
+  }
+
+  /** Edit the parts list (品番・品名・材質・備考); quantities follow the assembly. */
+  editPartsList() {
+    if (this.source !== "assembly") return;
+    const asm = this.app.asm.doc;
+    const parts = asm.parts.filter((p) => asm.components.some((c) => c.partId === p.id));
+    const ed = this.doc.bomEdits ?? {};
+    const inputs = parts.map((p) => {
+      const mk = (v: string | number, w = 120) => h("input", { class: "field-input", style: `width:${w}px`, value: String(v) });
+      const idx = asm.parts.indexOf(p) + 1;
+      return {
+        id: p.id,
+        item: mk(ed[p.id]?.item ?? idx, 50),
+        name: mk(ed[p.id]?.name || p.doc?.iprops["パーツ番号"] || p.name, 150),
+        material: mk(ed[p.id]?.material || (p.kind === "step" ? "—" : (p.doc?.material ?? MATERIALS[0]).name), 110),
+        note: mk(ed[p.id]?.note ?? p.doc?.iprops["説明"] ?? "", 140),
+        qty: asm.components.filter((c) => c.partId === p.id).length,
+      };
+    });
+    const tbl = h("table", { class: "ptable", "data-k": "bom-edit" }, h("tr", {}, ...["品番", "品名", "数量", "材質", "備考"].map((t) => h("th", {}, t))), ...inputs.map((i) => h("tr", {}, h("td", {}, i.item), h("td", {}, i.name), h("td", {}, String(i.qty)), h("td", {}, i.material), h("td", {}, i.note))));
+    modal({
+      title: "部品表を編集",
+      icon: "rectPattern",
+      width: 680,
+      body: h("div", {}, tbl, h("p", { class: "muted" }, "数量はアセンブリから自動で数えます。品番を変えると風船の番号も変わります。")),
+      buttons: [
+        { label: "キャンセル" },
+        {
+          label: "OK",
+          primary: true,
+          onClick: () => {
+            this.mutate("部品表を編集", (d) => {
+              // store only values that differ from the model (untouched ones keep following the parts)
+              const edits = { ...(d.bomEdits ?? {}) };
+              for (const i of inputs) {
+                const p = asm.parts.find((x) => x.id === i.id)!;
+                const auto = { item: asm.parts.indexOf(p) + 1, name: p.doc?.iprops["パーツ番号"] || p.name, material: p.kind === "step" ? "—" : (p.doc?.material ?? MATERIALS[0]).name, note: p.doc?.iprops["説明"] ?? "" };
+                const e: { name?: string; note?: string; item?: number; material?: string } = {};
+                const item = Number(i.item.value);
+                if (Number.isInteger(item) && item > 0 && item !== auto.item) e.item = item;
+                if (i.name.value !== auto.name) e.name = i.name.value;
+                if (i.material.value !== auto.material) e.material = i.material.value;
+                if (i.note.value !== auto.note) e.note = i.note.value;
+                if (Object.keys(e).length) edits[i.id] = e;
+                else delete edits[i.id];
+              }
+              d.bomEdits = edits;
+            });
+            this.render();
+          },
+        },
+      ],
+    });
   }
 
   private itemOfTag = (tag: number): number | undefined => {
     const compId = this.placements[tag];
     const comp = this.app.asm.doc.components.find((c) => c.id === compId);
     if (!comp) return undefined;
-    return this.app.asm.doc.parts.findIndex((p) => p.id === comp.partId) + 1 || undefined;
+    const ed = this.doc?.bomEdits?.[comp.partId]?.item;
+    return ed ?? (this.app.asm.doc.parts.findIndex((p) => p.id === comp.partId) + 1 || undefined);
   };
 
   /** Revision rows for the 改訂表 (part drawings). */
@@ -867,6 +970,7 @@ export class DrawingEnv {
     if (!id) return;
     const a = this.sheet.annos.find((x) => x.id === id);
     if (a) return void this.editAnno(a);
+    if (id === "__partslist") return this.editPartsList();
     const v = this.sheet.views.find((x) => x.id === id);
     if (v) this.editView(v);
   }
@@ -902,7 +1006,7 @@ export class DrawingEnv {
     let pv: string | null = null;
     const t = this.tool;
     const mark = (q: Vec2, color = "#f97316") => `<circle cx="${q[0]}" cy="${q[1]}" r="${1.4}" fill="${color}" stroke="none"/>`;
-    if (["dim", "hole", "leader", "surface", "gdt", "datum", "balloon", "centerline", "section", "detail"].includes(t)) {
+    if (["dim", "hole", "leader", "surface", "gdt", "datum", "balloon", "weld", "centerline", "section", "detail"].includes(t)) {
       const view = this.picks.view ? this.sheet.views.find((v) => v.id === this.picks.view) : undefined;
       const s = this.snap(e, view);
       if (s) {
@@ -1058,6 +1162,7 @@ export class DrawingEnv {
       case "gdt":
       case "surface":
       case "datum":
+      case "weld":
       case "balloon": {
         if (!this.picks.refs.length) {
           const s = this.snap(e);
@@ -1098,6 +1203,9 @@ export class DrawingEnv {
           let L = "A";
           for (let i = 0; i < 26 && used.has(L); i++) L = String.fromCharCode(65 + i + 1);
           this.mutate("データム", (d) => d.sheets[this.activeSheet].annos.push({ id: uid("a"), type: "datum", view: v.id, p: target, pos: toView(v, p), letter: L }));
+        } else if (t === "weld") {
+          const w = await weldDialog();
+          if (w) this.mutate("溶接記号", (d) => d.sheets[this.activeSheet].annos.push({ id: uid("a"), type: "weld", view: v.id, p: target, pos: toView(v, p), ...w }));
         } else if (t === "balloon") {
           const tag = this.picks.pts[0][0];
           this.mutate("風船", (d) => d.sheets[this.activeSheet].annos.push({ id: uid("a"), type: "balloon", view: v.id, p: target, pos: toView(v, p), tag }));
@@ -1234,6 +1342,7 @@ export class DrawingEnv {
     const label = h("input", { class: "field-input", value: v.label });
     const hidden = h("input", { type: "checkbox", checked: v.hidden });
     const cm = h("input", { type: "checkbox", checked: v.centerMarks });
+    const steps = h("textarea", { class: "field-input", rows: "3", "data-k": "section-steps" }, (v.section?.steps ?? []).map((s) => `${s.at}, ${s.offset}`).join("\n")) as HTMLTextAreaElement;
     const body = h(
       "div",
       { class: "settings" },
@@ -1242,6 +1351,8 @@ export class DrawingEnv {
       h("label", { class: "field check" }, hidden, h("span", {}, "隠れ線を表示")),
       h("label", { class: "field check" }, cm, h("span", {}, "中心マークを表示")),
       v.kind === "section" ? h("p", { class: "muted" }, "断面の向きを反転するには、ビューを削除して反対側に配置し直してください。") : null,
+      v.kind === "section" ? h("label", { class: "field" }, h("span", { class: "field-label" }, "階段断面 (位置, 奥行き)"), h("span", { class: "field-ctl" }, steps)) : null,
+      v.kind === "section" ? h("p", { class: "muted" }, "1 行に「切断線の始点からの距離, 奥へのずらし量」(mm) を入力すると、その位置から切断面が段違いになります。例: 40, 15") : null,
     );
     modal({
       title: "ビューを編集",
@@ -1269,6 +1380,15 @@ export class DrawingEnv {
               vv.label = label.value;
               vv.hidden = hidden.checked;
               vv.centerMarks = cm.checked;
+              if (vv.section) {
+                const st = steps.value
+                  .split("\n")
+                  .map((l) => (l.includes(",") ? l.split(",") : l.split(/\s+/)).map((x) => x.trim()).filter(Boolean).map(Number))
+                  .filter((x) => x.length === 2 && x.every(Number.isFinite))
+                  .map(([at, offset]) => ({ at, offset }));
+                if (st.length) vv.section.steps = st;
+                else delete vv.section.steps;
+              }
               for (const c of sh.views) if (c.parent === vv.id) this.align(sh, c);
             });
             void this.refresh();
@@ -1293,6 +1413,8 @@ export class DrawingEnv {
       void gdtDialog(a).then((r) => r && this.mutate("幾何公差", (d) => Object.assign(d.sheets[this.activeSheet].annos.find((x) => x.id === a.id)!, r)));
       return;
     }
+    if (a.type === "weld")
+      void weldDialog(a).then((w) => w && this.mutate("溶接記号", (d) => Object.assign(d.sheets[this.activeSheet].annos.find((x) => x.id === a.id)!, w)));
     if (a.type === "datum") {
       void promptDialog("データム", "記号", a.letter).then((t) => t && this.mutate("データム", (d) => ((d.sheets[this.activeSheet].annos.find((x) => x.id === a.id) as typeof a).letter = t.toUpperCase())));
     }
@@ -1596,6 +1718,7 @@ export class DrawingEnv {
             t("projected", "投影", "lookAt", "親ビューから投影ビュー (第三角法) / 等角図を作成します。"),
             t("section", "断面", "section", "切断線を引いて断面図 (A-A) を作成します。切断面にはハッチングが入ります。"),
             t("detail", "詳細", "search", "円で囲んだ部分を拡大した詳細図を作成します。"),
+            { id: "dw-breakout", label: "部分断面", icon: "section", tip: "ビューの一部を指定の深さまで取り除いて内部を見せます (ブレークアウト)。ビューを選択してから実行します。", action: () => this.breakoutView() },
             { id: "dw-break", label: "破断", icon: "split", tip: "長い部品の中間を省略した破断図にします (寸法は実寸で表示)。ビューを選択してから実行します。", action: () => void this.breakView() },
           ],
         },
@@ -1611,6 +1734,7 @@ export class DrawingEnv {
           items: [
             { stack: [t("note", "テキスト", "edit", "テキスト注記を配置します。", "small"), t("leader", "引出線注記", "edit", "引出線付きの注記を配置します。", "small"), t("surface", "表面性状", "pushpull", "表面性状記号 (Ra) を記入します。", "small")] },
             { stack: [t("gdt", "幾何公差", "iprops", "幾何公差の枠 (平面度・位置度 など) を記入します。", "small"), t("datum", "データム", "fix", "データム記号を記入します。", "small"), t("balloon", "風船", "circPattern", "部品の品番を示す風船を記入します (アセンブリ)。", "small")] },
+            t("weld", "溶接記号", "weld", "JIS の溶接記号 (隅肉・開先・スポット、全周・現場溶接) を記入します。"),
             { id: "dw-parts", label: "部品表", icon: "rectPattern", tip: "部品表 (品番・品名・数量・材質) の表示を切り替えます。", action: () => this.togglePartsList() },
           ],
         },
@@ -1744,6 +1868,7 @@ function moveAnno(sh: Sheet, id: string, o: Anno, dx: number, dy: number) {
     case "dim":
     case "datum":
     case "balloon":
+    case "weld":
       a.pos = [(o as DimAnno).pos[0] + dv[0], (o as DimAnno).pos[1] + dv[1]];
       break;
     case "note":
@@ -1764,6 +1889,36 @@ function moveAnno(sh: Sheet, id: string, o: Anno, dx: number, dy: number) {
     case "centerline":
       break;
   }
+}
+
+function weldDialog(init?: Partial<WeldAnno>): Promise<Omit<WeldAnno, "id" | "type" | "view" | "p" | "pos"> | null> {
+  return new Promise((resolve) => {
+    let result: Omit<WeldAnno, "id" | "type" | "view" | "p" | "pos"> | null = null;
+    const sel = (opts: [string, string][], v: string) => h("select", { class: "field-input" }, ...opts.map(([k, l]) => h("option", { value: k, selected: k === v }, l)));
+    const kind = sel([["fillet", "隅肉溶接 ◺"], ["v", "V 形開先"], ["bevel", "レ形開先"], ["square", "I 形開先"], ["spot", "スポット溶接"], ["plug", "プラグ溶接"]], init?.kind ?? "fillet");
+    const side = sel([["arrow", "矢の側"], ["other", "矢の反対側"], ["both", "両側"]], init?.side ?? "arrow");
+    const size = h("input", { class: "field-input", value: init?.size ?? "4" });
+    const length = h("input", { class: "field-input", value: init?.length ?? "", placeholder: "例: 50 (空欄 = 全長)" });
+    const around = h("input", { type: "checkbox", checked: init?.allAround ?? false });
+    const field = h("input", { type: "checkbox", checked: init?.field ?? false });
+    const row = (l: string, e: HTMLElement) => h("label", { class: "field" }, h("span", {}, l), e);
+    modal({
+      title: "溶接記号",
+      icon: "weld",
+      body: h("div", { class: "form-grid" }, row("種類", kind), row("溶接する側", side), row("寸法 (脚長 / 深さ)", size), row("長さ", length), row("全周溶接", around), row("現場溶接", field)),
+      onClose: () => resolve(result),
+      buttons: [
+        { label: "キャンセル" },
+        {
+          label: "OK",
+          primary: true,
+          onClick: () => {
+            result = { kind: kind.value as WeldAnno["kind"], side: side.value as WeldAnno["side"], size: size.value, length: length.value, allAround: around.checked, field: field.checked };
+          },
+        },
+      ],
+    });
+  });
 }
 
 function gdtDialog(init?: { symbol: string; value: string; datums: string }): Promise<{ symbol: string; value: string; datums: string } | null> {

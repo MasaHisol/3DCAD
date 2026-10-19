@@ -81,10 +81,32 @@ export function prepareDocument(doc: PartDocument, values: Map<string, number>) 
       f.plane = { ...f.base, origin: f.base.origin.map((o, i) => o + f.base.normal[i] * off) as Vec3 };
     }
   for (const f of doc.features)
+    if (f.type === "workpoint") {
+      try {
+        f.pos = [evalWith(values, f.x), evalWith(values, f.y), evalWith(values, f.z)];
+      } catch {
+        f.pos = undefined;
+      }
+    }
+  for (const f of doc.features)
     if (f.type === "sketch" && f.planeRef) {
       const wp = doc.features.find((x) => x.id === f.planeRef) as WorkPlaneFeature | undefined;
       if (wp?.plane) f.plane = wp.plane;
     }
+}
+
+/** A work axis expressed in a sketch plane (it must lie in, or parallel to, the plane). */
+function workAxisInPlane(doc: PartDocument, id: string, plane: PlaneDef): [Vec2, Vec2] {
+  const wa = doc.features.find((x) => x.id === id);
+  if (!wa || wa.type !== "workaxis") throw new Error("作業軸が見つかりません");
+  const n = plane.normal;
+  const along = wa.dir[0] * n[0] + wa.dir[1] * n[1] + wa.dir[2] * n[2];
+  if (Math.abs(along) > 1e-6) throw new Error("作業軸がスケッチ平面と平行ではありません");
+  const off = (wa.origin[0] - plane.origin[0]) * n[0] + (wa.origin[1] - plane.origin[1]) * n[1] + (wa.origin[2] - plane.origin[2]) * n[2];
+  if (Math.abs(off) > 1e-6) throw new Error(`作業軸がスケッチ平面上にありません (${Math.abs(off).toFixed(3)} mm 離れています)`);
+  const o = worldToPlane(plane, wa.origin);
+  const e = worldToPlane(plane, [wa.origin[0] + wa.dir[0], wa.origin[1] + wa.dir[1], wa.origin[2] + wa.dir[2]]);
+  return [o, [e[0] - o[0], e[1] - o[1]]];
 }
 
 export function resolveDocument(doc: PartDocument, values: Map<string, number>, upto = doc.endOfPart): Resolved {
@@ -108,7 +130,7 @@ export function resolveDocument(doc: PartDocument, values: Map<string, number>, 
   }
 
   for (const f of active) {
-    if (f.suppressed || f.type === "sketch" || f.type === "workplane") continue;
+    if (f.suppressed || f.type === "sketch" || f.type === "workplane" || f.type === "workaxis" || f.type === "workpoint") continue;
     try {
       const rf = resolveFeature(doc, f, sketches, num, values);
       if (rf) out.push(rf);
@@ -169,6 +191,7 @@ function resolveFeature(
       const { sk, st } = sketchOf(f.sketch);
       let axisOrigin: Vec2 = [0, 0], axisDir: Vec2 = [1, 0];
       if (f.axis === "Y") axisDir = [0, 1];
+      else if (f.axis.startsWith("wa:")) [axisOrigin, axisDir] = workAxisInPlane(doc, f.axis.slice(3), sk.plane);
       else if (f.axis !== "X") {
         const l = sk.entities.find((e) => e.id === f.axis) as SkLine | undefined;
         if (!l) throw new Error("回転軸が見つかりません");
@@ -200,6 +223,17 @@ function resolveFeature(
     }
     case "sweep": {
       const { sk, st } = sketchOf(f.sketch);
+      if (f.path === "3d") {
+        const pts = (f.points3d ?? "")
+          .split(/\n/)
+          .map((l) => l.trim())
+          .filter(Boolean)
+          // commas separate the coordinates (expressions may contain spaces); without commas, spaces do
+          .map((l) => (l.includes(",") ? l.split(",") : l.split(/\s+/)).map((e) => e.trim()).filter(Boolean).map((e) => evalWith(values, e)) as Vec3);
+        if (pts.length < 2 || pts.some((p) => p.length !== 3 || p.some((x) => !Number.isFinite(x)))) throw new Error("3D パスの点は「x, y, z」を 1 行に 1 点、2 点以上入力してください");
+        const bend = f.bend ? num(f, f.bend, "曲げ半径") : 0;
+        return { id: f.id, type: "sweep", plane: sk.plane, regions: regionsOf(st, f.profiles, f.profilePts), path: polylinePath(pts, bend), op: f.op };
+      }
       if (!f.path) throw new Error("パスを選択してください");
       const pathSk = doc.features.find((x) => x.id === f.path) as SketchFeature | undefined;
       if (!pathSk) throw new Error("パスのスケッチが見つかりません");
@@ -254,6 +288,25 @@ function resolveFeature(
       else plane = (doc.features.find((x) => x.id === t.id) as WorkPlaneFeature | undefined)?.plane;
       if (!plane) throw new Error("分割する平面が見つかりません");
       return { id: f.id, type: "split", plane, keep: f.keep };
+    }
+    case "emboss": {
+      const { sk } = sketchOf(f.sketch);
+      return { id: f.id, type: "emboss", plane: sk.plane, text: f.text, pos: [num(f, f.x, "X"), num(f, f.y, "Y")], size: num(f, f.size, "文字の高さ"), depth: num(f, f.depth, "深さ"), angle: num(f, f.angle, "角度"), op: f.op };
+    }
+    case "coil": {
+      const { sk, st } = sketchOf(f.sketch);
+      let axisOrigin: Vec2 = [0, 0], axisDir: Vec2 = [1, 0];
+      if (f.axis === "Y") axisDir = [0, 1];
+      else if (f.axis.startsWith("wa:")) [axisOrigin, axisDir] = workAxisInPlane(doc, f.axis.slice(3), sk.plane);
+      else if (f.axis !== "X") {
+        const l = sk.entities.find((e) => e.id === f.axis) as SkLine | undefined;
+        if (!l) throw new Error("コイルの軸を選択してください");
+        const p1 = sk.entities.find((e) => e.id === l.p1) as SkPoint, p2 = sk.entities.find((e) => e.id === l.p2) as SkPoint;
+        axisOrigin = [p1.x, p1.y];
+        axisDir = [p2.x - p1.x, p2.y - p1.y];
+      }
+      const regions = regionsOf(st, f.profiles.length ? f.profiles : st.regions.map((r, i) => (r.island ? -1 : i)).filter((i) => i >= 0));
+      return { id: f.id, type: "coil", plane: sk.plane, regions, axisOrigin, axisDir, pitch: num(f, f.pitch, "ピッチ"), turns: num(f, f.turns, "回転数"), leftHand: f.leftHand, op: f.op };
     }
     case "frame": {
       const size = findSize(f.section, f.size);
@@ -398,6 +451,43 @@ function resolveFeature(
 }
 
 /** Orders the non-construction curves of a sketch into one 3D path chain. */
+/** Polyline through 3D points with corners rounded to `bend` (tube / wire bending). */
+export function polylinePath(pts: Vec3[], bend: number): PathSeg[] {
+  const sub3 = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const len = (a: Vec3) => Math.hypot(a[0], a[1], a[2]);
+  const unit = (a: Vec3): Vec3 => {
+    const l = len(a) || 1;
+    return [a[0] / l, a[1] / l, a[2] / l];
+  };
+  const at = (p: Vec3, d: Vec3, t: number): Vec3 => [p[0] + d[0] * t, p[1] + d[1] * t, p[2] + d[2] * t];
+  const clean = pts.filter((p, i) => i === 0 || len(sub3(p, pts[i - 1])) > 1e-9);
+  if (clean.length < 2) throw new Error("3D パスには異なる 2 点以上が必要です");
+  const out: PathSeg[] = [];
+  let start = clean[0];
+  for (let i = 1; i < clean.length - 1; i++) {
+    const P = clean[i];
+    const u1 = unit(sub3(clean[i - 1], P)), u2 = unit(sub3(clean[i + 1], P));
+    const cos = u1[0] * u2[0] + u1[1] * u2[1] + u1[2] * u2[2];
+    const th = Math.acos(Math.max(-1, Math.min(1, cos))); // interior angle
+    if (th < 1e-6) throw new Error("3D パスが折り返しています (同じ線上を戻る点があります)");
+    if (bend <= 0 || th > Math.PI - 1e-6) {
+      out.push({ t: "line", a: start, b: P });
+      start = P;
+      continue;
+    }
+    const t = bend / Math.tan(th / 2);
+    if (t > len(sub3(clean[i - 1], P)) / 2 + 1e-9 || t > len(sub3(clean[i + 1], P)) / 2 + 1e-9) throw new Error("曲げ半径が大きすぎます (直線部が足りません)");
+    const A = at(P, u1, t), B = at(P, u2, t);
+    const m = unit([u1[0] + u2[0], u1[1] + u2[1], u1[2] + u2[2]]);
+    const M = at(P, m, bend / Math.sin(th / 2) - bend);
+    if (len(sub3(A, start)) > 1e-9) out.push({ t: "line", a: start, b: A });
+    out.push({ t: "arc", a: A, m: M, b: B });
+    start = B;
+  }
+  out.push({ t: "line", a: start, b: clean[clean.length - 1] });
+  return out;
+}
+
 export function sketchPath(sk: SketchFeature): PathSeg[] {
   const pts = new Map(sk.entities.filter((e): e is SkPoint => e.type === "point").map((p) => [p.id, p]));
   type Seg = { a: string; b: string; mid?: Vec2 };

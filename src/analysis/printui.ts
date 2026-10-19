@@ -1,6 +1,7 @@
 import type { App } from "../app";
 import type { Command } from "../commands/command";
 import { formatNumber } from "../core/expr";
+import { evalWith } from "../core/params";
 import { h } from "../ui/dom";
 import { PropertyPanel } from "../ui/panel";
 import { printCheck } from "./printcheck";
@@ -16,7 +17,7 @@ export class PrintCheckCommand implements Command {
     const p = this.panel;
     const s = p.section("条件");
     p.select(s, "造形方向 (上)", [{ value: "2", label: "+Z" }, { value: "1", label: "+Y" }, { value: "0", label: "+X" }], this.st.up, (v) => ((this.st.up = v), void this.run()));
-    p.expr(s, "オーバーハング限界", this.st.overhang, "deg", (e) => (this.st.overhang = e));
+    p.expr(s, "オーバーハング限界 (垂直から)", this.st.overhang, "deg", (e) => (this.st.overhang = e));
     p.expr(s, "最小肉厚", this.st.minWall, "mm", (e) => (this.st.minWall = e));
     p.expr(s, "材料密度", this.st.density, "g/cm³", (e) => (this.st.density = e));
     p.expr(s, "造形速度", this.st.rate, "mm³/s", (e) => (this.st.rate = e));
@@ -28,9 +29,15 @@ export class PrintCheckCommand implements Command {
     void this.run();
   }
   private async run() {
-    const num = (s: string) => Number(s);
+    const num = (s: string) => {
+      try {
+        return evalWith(this.app.values(), s);
+      } catch {
+        return NaN;
+      }
+    };
     const opt = { up: num(this.st.up) as 0 | 1 | 2, overhang: num(this.st.overhang), minWall: num(this.st.minWall) };
-    if (![opt.overhang, opt.minWall].every((x) => x > 0)) return this.panel.setError("値は正の数にしてください");
+    if (![opt.overhang, opt.minWall, num(this.st.density), num(this.st.rate)].every((x) => x > 0) || opt.overhang >= 90) return this.panel.setError("値は正の数 (オーバーハング限界は 90° 未満) にしてください");
     this.panel.setError(null);
     const bodies = this.app.bodies;
     if (!bodies.length) return void (this.out.textContent = "ボディがありません");

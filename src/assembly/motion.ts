@@ -33,6 +33,13 @@ export function residualVec(ma: THREE.Matrix4, mb: THREE.Matrix4, c: SolverConst
     }
     case "angle":
       return [Ad.dot(Bd) - Math.cos(THREE.MathUtils.degToRad(c.value))];
+    case "ball":
+      return [v.x, v.y, v.z];
+    case "rigid": {
+      if (!c.rel) return [];
+      const w = ma.clone().multiply(new THREE.Matrix4().fromArray(c.rel)).elements, m = mb.elements;
+      return [0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14].map((i) => (w[i] - m[i]) * (i >= 12 ? 1 : 100));
+    }
   }
 }
 

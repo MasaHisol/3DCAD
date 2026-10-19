@@ -20,6 +20,8 @@ export const FEATURE_LABELS: Record<FeatureType, string> = {
   split: "分割",
   rib: "リブ",
   frame: "フレーム",
+  coil: "コイル",
+  emboss: "文字",
   weld: "溶接",
   thicken: "厚み付け",
   sheetFace: "面",
@@ -36,6 +38,8 @@ export const FEATURE_LABELS: Record<FeatureType, string> = {
   sphere: "球",
   torus: "トーラス",
   workplane: "作業平面",
+  workaxis: "作業軸",
+  workpoint: "作業点",
   import: "インポート",
   move: "ボディを移動",
 };

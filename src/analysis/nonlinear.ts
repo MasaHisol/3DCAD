@@ -20,6 +20,8 @@ export interface PlasticResult {
   /** Load fraction reached (1 = full load carried). */
   loadFactor: number;
   collapsed: boolean;
+  /** Iterations did not settle (without runaway displacements): the result is incomplete. */
+  notConverged: boolean;
   /** Load–displacement curve: load fraction, max displacement (mm). */
   curve: { load: number; disp: number }[];
   /** Linear-elastic max displacement at full load (for comparison). */
@@ -38,17 +40,18 @@ export function solvePlastic(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, o
   const scaleBc = (f: number): FeaBoundary => ({
     ...bc,
     loads: bc.loads.map((l) => ({ ...l, force: l.force ? (l.force.map((x) => x * f) as [number, number, number]) : l.force, pressure: l.pressure !== undefined ? l.pressure * f : l.pressure })),
-    gravity: bc.gravity,
+    gravity: bc.gravity ? { ...bc.gravity, density: bc.gravity.density * f } : undefined,
   });
   const lin = solveFea(mesh, bc, mat, { ...opt, keepGauss: true });
   const ne = lin.elements;
   let s = new Float32Array(ne).fill(1);
   const curve: { load: number; disp: number }[] = [{ load: 0, disp: 0 }];
-  let last: FeaResult | null = null, lastS = s, loadFactor = 0, collapsed = false, iters = 0;
-  for (let si = 0; si < steps.length && !collapsed; si++) {
+  let last: FeaResult | null = null, lastS = s, loadFactor = 0, collapsed = false, notConverged = false, iters = 0;
+  for (let si = 0; si < steps.length && !collapsed && !notConverged; si++) {
     const lf = steps[si];
     const b = scaleBc(lf);
-    let r: FeaResult | null = null, ok = false;
+    let r: FeaResult | null = null, ok = false, blowup = false;
+    const hist: number[] = [];
     for (let it = 0; it < maxIter; it++) {
       iters++;
       r = solveFea(mesh, b, mat, { ...opt, keepGauss: true, elementScale: s });
@@ -67,14 +70,24 @@ export function solvePlastic(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, o
         change = Math.max(change, Math.abs(ns[e] - s[e]));
       }
       s = ns;
-      if (r.maxDisp > 50 * lin.maxDisp * Math.max(lf, 1e-6) + 1e-9) break;
+      hist.push(r.maxDisp);
+      if (r.maxDisp > 50 * lin.maxDisp * Math.max(lf, 1e-6) + 1e-9) {
+        blowup = true;
+        break;
+      }
       if (change < tol) {
         ok = true;
         break;
       }
     }
     if (!ok || !r) {
-      collapsed = true;
+      // displacements running away (or several times the linear value) = plastic collapse;
+      // otherwise the iteration simply did not settle and the result is reported as such
+      // still growing monotonically over the last iterations = no equilibrium at this load (collapse)
+      const tail = hist.slice(-6);
+      const growing = tail.length >= 4 && tail.every((d, i) => i === 0 || d > tail[i - 1]);
+      if (blowup || !r || growing || r.maxDisp > 3 * lin.maxDisp * lf) collapsed = true;
+      else notConverged = true;
       break;
     }
     last = r;
@@ -113,5 +126,5 @@ export function solvePlastic(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, o
       peps = Math.max(peps, sy / lastS[e] / E - sy / E);
     }
   }
-  return { result: last, loadFactor, collapsed, curve, linearDisp: lin.maxDisp, plasticFraction: yielded / total, maxPlasticStrain: peps, iterations: iters };
+  return { result: last, loadFactor, collapsed, notConverged, curve, linearDisp: lin.maxDisp, plasticFraction: yielded / total, maxPlasticStrain: peps, iterations: iters };
 }

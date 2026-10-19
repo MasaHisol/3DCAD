@@ -30,8 +30,19 @@ export function openToleranceStack(docName: string, params: Map<string, number>)
       style: `width:${w}px`,
       value: v === undefined ? "" : String(v),
       onChange: (e: Event) => {
-        const s = (e.target as HTMLInputElement).value.trim();
-        set(s === "" ? undefined : Number(s));
+        const el = e.target as HTMLInputElement;
+        const s = el.value.trim().replace(/^\+/, "");
+        const x = s === "" ? undefined : Number(s);
+        if (x !== undefined && !Number.isFinite(x)) {
+          // reject (not saved): keep the previous value
+          el.classList.add("invalid");
+          el.title = "数値を入力してください (例: 0.05, -0.02)";
+          el.value = v === undefined ? "" : String(v);
+          return;
+        }
+        el.classList.remove("invalid");
+        v = x;
+        set(x);
         update();
       },
     });

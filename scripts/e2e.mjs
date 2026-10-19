@@ -253,6 +253,50 @@ try {
   const brk = await page.evaluate(() => ({ lines: document.querySelectorAll(".dw-stage .break-line").length, w: document.querySelector(".dw-stage .dview").getBBox().width }));
   check("broken view", brk.lines === 2 && brk.w < w0 - 10, JSON.stringify({ ...brk, w0 }));
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/drawing-break.png` });
+  // weld symbol via the tool: click an edge of the base view, place the reference line, accept the dialog
+  await page.locator('[data-cmd="dw-weld"]').click();
+  {
+    const bb = await page.locator(".dw-stage .dview .visible-lines").first().boundingBox();
+    await page.mouse.click(bb.x + bb.width * 0.3, bb.y + bb.height - 1);
+    await page.mouse.click(bb.x + bb.width * 0.3 - 40, bb.y + bb.height + 40);
+    await page.locator(".modal-foot .btn.primary").click();
+    await page.keyboard.press("Escape");
+  }
+  await settle();
+  // stepped section of the base view (programmatic placement, offset 5 mm from mid-length)
+  await page.evaluate(async () => {
+    const dw = window.cad.drawing;
+    const sh = dw.doc.sheets[dw.activeSheet];
+    const v = sh.views.find((x) => x.kind === "base");
+    const g = dw.geom.get(v.id);
+    const [x0, y0, x1, y1] = g.bounds;
+    const cy = (y0 + y1) / 2;
+    const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+    const dir = cross(v.xAxis, v.dir);
+    dw.mutate("断面", (d) => d.sheets[dw.activeSheet].views.push({ id: "secS", label: "Z-Z", kind: "section", parent: v.id, dir, xAxis: v.xAxis, scale: v.scale, x: v.x, y: v.y + 120, hidden: false, centerMarks: false, section: { a: [x0 - 5, cy], b: [x1 + 5, cy], flip: false, steps: [{ at: (x1 - x0) / 2 + 5, offset: 5 }] } }));
+    await dw.refresh(true);
+  });
+  await settle();
+  const sw = await page.evaluate(() => ({ weld: document.querySelectorAll(".dw-stage .anno.weld").length, stepped: document.querySelectorAll(".dw-stage .stepped-cut").length, hatch: document.querySelectorAll('.dw-stage .dview[data-id="secS"] path[fill="url(#hatch)"]').length }));
+  check("weld symbol + stepped section", sw.weld === 1 && sw.stepped === 1 && sw.hatch === 1, JSON.stringify(sw));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/drawing-weld.png` });
+  // partial (breakout) section of the base view
+  await page.evaluate(() => window.cad.drawing.selected.clear());
+  await page.locator('[data-cmd="dw-breakout"]').click();
+  await page.locator('[data-k="breakout-depth"]').fill("20");
+  await page.locator(".modal-foot .btn.primary").click();
+  await settle();
+  await page
+    .waitForFunction(() => {
+      const v = window.cad.drawing.doc.sheets[window.cad.drawing.activeSheet].views.find((x) => x.kind === "base");
+      return document.querySelectorAll(`.dw-stage .dview[data-id="${v.id}"] path[fill="url(#hatch)"]`).length > 0;
+    }, null, { timeout: 60000 })
+    .catch(() => {});
+  const bo = await page.evaluate(() => {
+    const v = window.cad.drawing.doc.sheets[window.cad.drawing.activeSheet].views.find((x) => x.kind === "base");
+    return { line: document.querySelectorAll(".dw-stage .breakout-line").length, hatch: document.querySelectorAll(`.dw-stage .dview[data-id="${v.id}"] path[fill="url(#hatch)"]`).length };
+  });
+  check("breakout (partial section)", bo.line === 1 && bo.hatch >= 1, JSON.stringify(bo));
   await page.keyboard.press("Control+z");
   await page.keyboard.press("Control+y");
   await page.evaluate(() => window.cad.leaveDrawingEnv());
@@ -307,6 +351,21 @@ try {
   const frVol = await page.evaluate(() => window.cad.kernel.massProps());
   check("frame generator + cut list", fr.errors === 0 && cut.includes("4 本") && cut.includes("1400 mm") && Math.abs(frVol.volume / ((50 * 50 - 45.4 * 45.4) * 1400) - 1) < 1e-3, `${cut} vol=${frVol.volume?.toFixed(0)}`);
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/frame.png` });
+  // engraved Japanese text on the frame sketch plane
+  const v0 = (await page.evaluate(() => window.cad.kernel.massProps())).volume;
+  await page.locator(".rb-tab", { hasText: "3D モデル" }).click();
+  await page.locator('[data-cmd="emboss"]').click();
+  await page.locator('[data-k="emboss-text"]').fill("刻印 A-1");
+  {
+    const yIn = page.locator(".field", { hasText: "位置 Y" }).locator("input");
+    await yIn.fill("20");
+    await yIn.press("Tab");
+  }
+  await settle();
+  await page.keyboard.press("Enter");
+  await settle();
+  const em = await page.evaluate(async () => ({ errors: Object.keys(window.cad.featureErrors).length, v: (await window.cad.kernel.massProps()).volume }));
+  check("text engraving (Japanese)", em.errors === 0 && em.v < v0 - 1, `removed ${(v0 - em.v).toFixed(1)} mm³`);
   // 3D print check on the frame (no overhang when lying flat), tolerance stack-up, revisions
   await page.locator(".rb-tab", { hasText: "検査" }).click();
   await page.locator('[data-cmd="printcheck"]').click();
@@ -444,15 +503,28 @@ try {
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/explode.png` });
   await page.keyboard.press("Escape");
   await settle();
+  // component pattern: 3 copies of the loose pin along X, following the source
+  await page.evaluate(() => window.cad.asm.select(["c3"]));
+  await page.locator('[data-cmd="asm-pattern"]').click();
+  await page.locator(".modal-foot .btn.primary").click();
+  await settle();
+  const pat = await page.evaluate(() => {
+    const d = window.cad.asm.doc;
+    const src = d.components.find((c) => c.id === "c3");
+    const inst = d.components.filter((c) => c.patternOf);
+    return { n: inst.length, dx: inst.map((c) => +(c.matrix[12] - src.matrix[12]).toFixed(3)), dof: window.cad.asm.dof.perComp.get(inst[0]?.id)?.dof };
+  });
+  check("component pattern", pat.n === 2 && pat.dx.join() === "30,60" && pat.dof === 0, JSON.stringify(pat));
   await page.evaluate(() => window.cad.openDrawingEnv());
   await page.waitForFunction(() => window.cad.env === "drawing" && document.querySelectorAll(".dw-stage .dview").length >= 4, null, { timeout: 60000 });
   await settle();
   await page.evaluate(() => window.cad.leaveDrawingEnv());
   await settle();
+  const nComp = await page.evaluate(() => window.cad.asm.doc.components.length);
   await page.locator('[data-cmd="asm-library"]').click();
   await page.locator(".lib-item", { hasText: "六角穴付きボルト" }).click();
   await page.locator(".modal-foot .btn", { hasText: "アセンブリに配置" }).click();
-  await page.waitForFunction(() => window.cad.asm.doc.components.length === 4, null, { timeout: 60000 });
+  await page.waitForFunction((n) => window.cad.asm.doc.components.length === n + 1, nComp, { timeout: 60000 });
   await settle();
   check("library: bolt placed in assembly", (await page.evaluate(() => window.cad.asm.doc.parts.some((p) => p.doc?.iprops?.["規格"] === "ISO 4762"))) === true);
   await page.evaluate(() => window.cad.openDrawingEnv());
@@ -474,6 +546,12 @@ try {
   await page.evaluate(() => window.cad.drawing.switchSheet(0));
   await settle();
   check("assembly drawing + parts list", (await page.evaluate(() => document.querySelectorAll(".dw-stage .partslist").length)) === 1);
+  // edit the parts list: note of item 1
+  await page.evaluate(() => window.cad.drawing.editPartsList());
+  await page.locator('[data-k="bom-edit"] tr').nth(1).locator("input").nth(3).fill("焼入れ HRC40");
+  await page.locator(".modal-foot .btn.primary").click();
+  await settle();
+  check("parts list edit", (await page.evaluate(() => document.querySelector(".dw-stage .partslist").textContent)).includes("焼入れ HRC40"));
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/asm-drawing.png` });
 
   // learning center: start lesson 1-2 on its sample part; a parameter change completes the step automatically

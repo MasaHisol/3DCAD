@@ -46,6 +46,8 @@ export function solveTopology(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, 
   const { nx, ny, nz, ne, conn, elems } = G;
   const phi0 = Float64Array.from(G.phi as ArrayLike<number>);
   const { fixed, F } = assembleLoads(G, bc, mat, opt);
+  // non-design space: next to supports and applied loads (self weight / thermal loads act everywhere)
+  const Fapplied = bc.gravity || bc.thermal ? assembleLoads(G, { ...bc, gravity: undefined, thermal: undefined }, mat, opt).F : F;
   const p = topt.penal ?? 3, xmin = 1e-3;
   const vf = Math.min(0.95, Math.max(0.05, topt.volFrac));
   const maxIt = topt.iterations ?? 40;
@@ -54,7 +56,7 @@ export function solveTopology(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, 
   for (let e = 0; e < ne; e++)
     for (let n = 0; n < 8; n++) {
       const node = conn[e * 8 + n];
-      if (fixed[node] || F[node * 3] || F[node * 3 + 1] || F[node * 3 + 2]) passive[e] = 1;
+      if (fixed[node] || Fapplied[node * 3] || Fapplied[node * 3 + 1] || Fapplied[node * 3 + 2]) passive[e] = 1;
     }
   const x = new Float64Array(ne).fill(vf);
   for (let e = 0; e < ne; e++) if (passive[e]) x[e] = 1;

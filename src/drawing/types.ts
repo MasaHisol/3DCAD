@@ -32,9 +32,17 @@ export interface DView {
   hidden: boolean;
   centerMarks: boolean;
   /** Section: cutting line in the parent view (view mm), viewing side flipped or not. */
-  section?: { a: Vec2; b: Vec2; flip: boolean };
+  section?: {
+    a: Vec2;
+    b: Vec2;
+    flip: boolean;
+    /** Stepped section (階段断面): from `at` mm along a→b onwards the cut shifts `offset` mm deeper. */
+    steps?: { at: number; offset: number }[];
+  };
   /** Detail: circle in the parent view (view mm). */
   detail?: { c: Vec2; r: number };
+  /** Breakout (部分断面): polygon in view coords and depth from the front of the model (mm). */
+  breakout?: { pts: Vec2[]; depth: number };
   /** Broken view (破断図): ranges (view mm along the view x / y axis) removed from the display. */
   breaks?: { axis: "x" | "y"; a: number; b: number }[];
 }
@@ -131,6 +139,23 @@ export interface CenterlineAnno {
   b: Vec2;
 }
 
+/** Welding symbol (JIS Z 3021 / ISO 2553): arrow, reference line, symbol, size. */
+export interface WeldAnno {
+  id: string;
+  type: "weld";
+  view: string;
+  /** Arrow tip (view coords). */
+  p: Vec2;
+  /** Junction of arrow and reference line (view coords). */
+  pos: Vec2;
+  kind: "fillet" | "v" | "bevel" | "square" | "spot" | "plug";
+  side: "arrow" | "other" | "both";
+  size: string;
+  length: string;
+  allAround: boolean;
+  field: boolean;
+}
+
 /** Hole table (Inventor 穴テーブル): tags at the holes + coordinate table. */
 export interface HoleTableAnno {
   id: string;
@@ -156,7 +181,7 @@ export interface OrdinateAnno {
   pos: number;
 }
 
-export type Anno = DimAnno | NoteAnno | SurfaceAnno | GdtAnno | DatumAnno | BalloonAnno | CenterlineAnno | HoleTableAnno | OrdinateAnno;
+export type Anno = DimAnno | NoteAnno | SurfaceAnno | GdtAnno | DatumAnno | BalloonAnno | CenterlineAnno | HoleTableAnno | OrdinateAnno | WeldAnno;
 
 export interface TitleBlock {
   title: string;
@@ -194,6 +219,8 @@ export interface DrawingDoc {
   title: TitleBlock;
   /** Letters already used for section / detail views. */
   nextLetter: number;
+  /** Parts list edits per part id (assembly drawings): name, note, item number, material text. */
+  bomEdits?: Record<string, { name?: string; note?: string; item?: number; material?: string }>;
 }
 
 export function sheetSize(s: Sheet): [number, number] {

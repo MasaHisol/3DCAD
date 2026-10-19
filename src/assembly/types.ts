@@ -19,6 +19,8 @@ export interface AsmComponent {
   matrix: number[];
   grounded: boolean;
   visible?: boolean;
+  /** Instance of a component pattern (placed from the pattern's source). */
+  patternOf?: { pattern: string; index: number };
 }
 
 export type AsmGeom = "plane" | "axis";
@@ -35,7 +37,7 @@ export interface GeoRef {
   label: string;
 }
 
-export type AsmConstraintType = "mate" | "flush" | "insert" | "axis" | "angle";
+export type AsmConstraintType = "mate" | "flush" | "insert" | "axis" | "angle" | "rigid" | "ball";
 
 export interface AsmConstraint {
   id: string;
@@ -48,6 +50,8 @@ export interface AsmConstraint {
   /** Insert: aligned instead of opposed. Axis: opposed direction. */
   flip?: boolean;
   suppressed?: boolean;
+  /** Rigid joint: relative transform inv(Ma)·Mb captured when created (column-major). */
+  rel?: number[];
 }
 
 export interface AssemblyDocument {
@@ -57,6 +61,8 @@ export interface AssemblyDocument {
   parts: AsmPart[];
   components: AsmComponent[];
   constraints: AsmConstraint[];
+  /** Component patterns. */
+  patterns?: import("./pattern").AsmPattern[];
   params: Parameter[];
   iprops: Record<string, string>;
   drawing?: import("../drawing/types").DrawingDoc;

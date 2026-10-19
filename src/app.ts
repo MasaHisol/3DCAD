@@ -1,3 +1,4 @@
+import { validateAssembly, validatePart } from "./core/validate";
 import * as THREE from "three";
 import { DocumentStore, FEATURE_LABELS, MATERIALS, ORIGIN_PLANES, featureSketchRefs, newDocument, uid } from "./core/document";
 import { formatNumber } from "./core/expr";
@@ -460,6 +461,8 @@ export class App {
     this.store.doc.features.forEach((f, i) => {
       if (f.type === "workplane" && f.plane && i < this.store.doc.endOfPart && (f.visible !== false || this.showPlanePicker))
         list.push({ key: f.id, kind: "plane", plane: f.plane, label: f.name, size: size * 0.8 });
+      if (f.type === "workaxis" && i < this.store.doc.endOfPart && f.visible !== false) list.push({ key: f.id, kind: "axis", dir: f.dir, origin: f.origin, label: f.name, size });
+      if (f.type === "workpoint" && f.pos && i < this.store.doc.endOfPart && f.visible !== false) list.push({ key: f.id, kind: "point", origin: f.pos, label: f.name, size });
     });
     if (list.length) list[0].size = size;
     this.vp.setRefs(list);
@@ -954,8 +957,9 @@ export class App {
     toast("新しいアセンブリ — 「配置」(P) でパーツや STEP を配置します", "info");
   }
 
-  loadAssembly(doc: AssemblyDocument, name?: string) {
-    if (doc.format !== "3dcad-assembly") throw new Error("アセンブリ ファイルではありません");
+  loadAssembly(raw: AssemblyDocument, name?: string) {
+    const { doc, warnings } = validateAssembly(raw);
+    this.reportRepairs(warnings);
     this.asm.editingPart = null;
     this.asm.store.reset(doc, "load");
     this.asm.store.fileHandleName = name ?? null;
@@ -1324,7 +1328,8 @@ export class App {
         this.loadAssembly(JSON.parse(await f.text()) as AssemblyDocument, f.name);
         toast(`${f.name} を開きました`, "ok");
       } else if (ext === "3dcp" || ext === "json") {
-        const doc = JSON.parse(await f.text()) as PartDocument;
+        const { doc, warnings } = validatePart(JSON.parse(await f.text()));
+        this.reportRepairs(warnings);
         this.leaveAssembly();
         this.resetForLoad();
         this.store.load(doc);
@@ -1586,6 +1591,7 @@ export class App {
   }
 
   private autosaveTimer = 0;
+  private autosaveWarned = false;
   private scheduleAutosave() {
     clearTimeout(this.autosaveTimer);
     this.autosaveTimer = window.setTimeout(() => {
@@ -1595,8 +1601,11 @@ export class App {
           AUTOSAVE_KEY,
           JSON.stringify({ env: asmActive ? "assembly" : "part", part: asmActive ? null : this.store.doc, asm: asmActive ? this.asm.doc : null }),
         );
+        this.autosaveWarned = false;
       } catch {
-        /* quota / private mode */
+        // quota (large STEP imports) / private mode: tell the user once, the file must be saved manually
+        if (!this.autosaveWarned) toast("自動保存できませんでした (データが大きすぎます)。こまめに保存してください (Ctrl+S)", "warn", 8000);
+        this.autosaveWarned = true;
       }
     }, 800);
   }
@@ -1612,15 +1621,32 @@ export class App {
       if (saved.env === "assembly" && saved.asm?.components.length) {
         this.loadAssembly(saved.asm);
       } else if (saved.part?.format === "3dcad-part" && saved.part.features.length) {
-        this.store.load(saved.part);
+        const { doc, warnings } = validatePart(saved.part);
+        this.reportRepairs(warnings);
+        this.store.load(doc);
       } else {
         this.showWelcome();
         return;
       }
       toast("前回の作業内容を復元しました", "info", 2500);
-    } catch {
+    } catch (e) {
+      // keep the unreadable autosave instead of overwriting it with the next edit
+      try {
+        const s = localStorage.getItem(AUTOSAVE_KEY);
+        if (s) localStorage.setItem(`${AUTOSAVE_KEY}.broken`, s);
+      } catch {
+        /* ignore */
+      }
+      toast(`前回の作業内容を復元できませんでした: ${(e as Error).message}`, "warn", 8000);
       this.showWelcome();
     }
+  }
+
+  /** Tell the user what was repaired while opening a file. */
+  private reportRepairs(warnings: string[]) {
+    if (!warnings.length) return;
+    console.warn("file repairs:", warnings);
+    toast(`ファイルを修復して開きました: ${warnings.slice(0, 3).join(" / ")}${warnings.length > 3 ? ` 他 ${warnings.length - 3} 件` : ""}`, "warn", 8000);
   }
 
   private showWelcome() {

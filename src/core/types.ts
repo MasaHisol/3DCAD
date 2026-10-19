@@ -180,8 +180,12 @@ export interface SweepFeature extends FeatureBase {
   sketch: string;
   profiles: number[];
   profilePts?: Vec2[];
-  /** Sketch holding the path (open or closed chain of lines / arcs). */
+  /** Sketch holding the path (open or closed chain of lines / arcs), or "3d" for points3d. */
   path: string;
+  /** 3D path (3D スケッチ): one "x, y, z" point per line (numbers or expressions). */
+  points3d?: string;
+  /** Bend radius at the 3D path corners (0 = sharp). */
+  bend?: string;
   op: BoolOp;
 }
 
@@ -289,6 +293,33 @@ export interface RibFeature extends FeatureBase {
   flip: boolean;
 }
 
+/** Coil (Inventor コイル): profile swept along a helix around a sketch axis. */
+export interface CoilFeature extends FeatureBase {
+  type: "coil";
+  sketch: string;
+  profiles: number[];
+  /** Sketch line id or "X" / "Y". */
+  axis: string;
+  pitch: string;
+  turns: string;
+  leftHand: boolean;
+  op: BoolOp;
+}
+
+/** Text emboss / engrave (Inventor エンボス + テキスト) on a sketch plane. */
+export interface EmbossFeature extends FeatureBase {
+  type: "emboss";
+  /** Sketch giving the plane (place it on the face to mark). */
+  sketch: string;
+  text: string;
+  x: string;
+  y: string;
+  size: string;
+  depth: string;
+  angle: string;
+  op: "join" | "cut";
+}
+
 /** Frame generator (Inventor フレーム ジェネレータ): steel sections along sketch lines. */
 export interface FrameFeature extends FeatureBase {
   type: "frame";
@@ -374,6 +405,26 @@ export interface WorkPlaneFeature extends FeatureBase {
   plane?: PlaneDef;
 }
 
+/** Work axis (作業軸): origin axis, or a line / circle axis picked on the model (fixed where picked). */
+export interface WorkAxisFeature extends FeatureBase {
+  type: "workaxis";
+  origin: Vec3;
+  dir: Vec3;
+  label: string;
+  visible?: boolean;
+}
+
+/** Work point (作業点): parametric coordinates. */
+export interface WorkPointFeature extends FeatureBase {
+  type: "workpoint";
+  x: string;
+  y: string;
+  z: string;
+  visible?: boolean;
+  /** Resolved position (cache). */
+  pos?: Vec3;
+}
+
 export interface ImportFeature extends FeatureBase {
   type: "import";
   format: "step" | "stl";
@@ -417,6 +468,10 @@ export type Feature =
   | ImportFeature
   | MoveFeature
   | FrameFeature
+  | CoilFeature
+  | WorkAxisFeature
+  | WorkPointFeature
+  | EmbossFeature
   | WeldFeature;
 
 export type FeatureType = Feature["type"];

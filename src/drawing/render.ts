@@ -5,7 +5,7 @@ import type { Vec2 } from "../core/types";
 import type { Seg2, ViewGeometry } from "../kernel/protocol";
 import { holeTable } from "./annolayout";
 import { formatNumber } from "../core/expr";
-import { breakBands, dimText, dimValue, holeThread, linearPoints, sameCircles, toSheet } from "./geom";
+import { breakBands, cuttingLine, dimText, dimValue, holeThread, linearPoints, sameCircles, toSheet } from "./geom";
 import { scaleText, sheetSize, type Anno, type DimAnno, type DrawingDoc, type DView, type Sheet } from "./types";
 
 export interface BomRow {
@@ -267,6 +267,46 @@ function renderAnno(a: Anno, views: Map<string, DView>, ctx: RenderCtx): string 
       out += `<circle cx="${f(q[0])}" cy="${f(q[1])}" r="${R}"/>` + text(q[0], q[1] + 1.5, item ? String(item) : "?", 4.2);
       return out + "</g>";
     }
+    case "weld": {
+      const P = vS(a.view, a.p), Q = vS(a.view, a.pos);
+      if (!P || !Q) return "";
+      const L = 26, rx = Q[0] + (P[0] > Q[0] ? -L : L);
+      const x0 = Math.min(Q[0], rx), x1 = Math.max(Q[0], rx);
+      let out = open("weld");
+      out += `<path d="M${f(Q[0])} ${f(Q[1])}L${f(P[0])} ${f(P[1])}"/>` + arrow(P, Q, 3, 0.9);
+      out += `<path d="M${f(x0)} ${f(Q[1])}H${f(x1)}" stroke-width="${W.thin}"/>`;
+      // symbol at the middle of the reference line; arrow side below, other side above (JIS)
+      const sx = (x0 + x1) / 2;
+      const sym = (dir: 1 | -1) => {
+        const y = Q[1], s = 3.2 * dir;
+        switch (a.kind) {
+          case "fillet":
+            return `<path d="M${f(sx - 1.6)} ${f(y)}V${f(y + s)}L${f(sx + 1.6)} ${f(y)}"/>`;
+          case "v":
+            return `<path d="M${f(sx - 1.8)} ${f(y + s)}L${f(sx)} ${f(y)}L${f(sx + 1.8)} ${f(y + s)}"/>`;
+          case "bevel":
+            return `<path d="M${f(sx - 1)} ${f(y)}V${f(y + s)}M${f(sx - 1)} ${f(y)}L${f(sx + 1.8)} ${f(y + s)}"/>`;
+          case "square":
+            return `<path d="M${f(sx - 1)} ${f(y)}V${f(y + s)}M${f(sx + 1)} ${f(y)}V${f(y + s)}"/>`;
+          case "spot":
+            return `<circle cx="${f(sx)}" cy="${f(y)}" r="1.8"/>`;
+          case "plug":
+            return `<path d="M${f(sx - 2)} ${f(y)}V${f(y + s)}H${f(sx + 2)}V${f(y)}"/>`;
+        }
+      };
+      const label = (dir: 1 | -1) => {
+        const ty = Q[1] + (dir > 0 ? 3.6 : -1);
+        return (a.size ? text(sx - 2.6, ty, a.size, 2.8, "end") : "") + (a.length ? text(sx + 2.6, ty, a.length, 2.8, "start") : "");
+      };
+      if (a.kind === "spot") out += sym(1) + label(1);
+      else {
+        if (a.side !== "other") out += sym(1) + label(1);
+        if (a.side !== "arrow") out += sym(-1) + label(-1);
+      }
+      if (a.allAround) out += `<circle cx="${f(Q[0])}" cy="${f(Q[1])}" r="1.5"/>`;
+      if (a.field) out += `<path d="M${f(Q[0])} ${f(Q[1])}V${f(Q[1] - 5)}"/><path d="M${f(Q[0])} ${f(Q[1] - 5)}L${f(Q[0] + 3)} ${f(Q[1] - 4.2)}L${f(Q[0])} ${f(Q[1] - 3.4)}Z" fill="#000"/>`;
+      return out + "</g>";
+    }
     case "holetable": {
       const v = views.get(a.view), g = ctx.geom.get(a.view);
       if (!v || !g) return "";
@@ -385,18 +425,38 @@ function renderView(v: DView, ctx: RenderCtx, views: Map<string, DView>): string
     if (cm.length) out += `<path d="${cm.join("")}" stroke="#000" stroke-width="${W.fine}" stroke-dasharray="6 1.2 1 1.2"/>`;
   }
   out += "</g>" + breakLines;
+  if (v.breakout && v.breakout.pts.length >= 3) {
+    // irregular thin boundary (JIS: freehand line of the partial section)
+    const pts = v.breakout.pts.map((q) => toSheet(v, q));
+    const wav: string[] = [];
+    pts.forEach((a, i) => {
+      const b = pts[(i + 1) % pts.length];
+      const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const n = Math.max(2, Math.round(l / 3));
+      const nx = -(b[1] - a[1]) / (l || 1), ny = (b[0] - a[0]) / (l || 1);
+      for (let k = 0; k < n; k++) {
+        const t = k / n, w = Math.sin(k * 2.1 + i) * 0.6;
+        wav.push(`${f(a[0] + (b[0] - a[0]) * t + nx * w)} ${f(a[1] + (b[1] - a[1]) * t + ny * w)}`);
+      }
+    });
+    out += `<path d="M${wav.join("L")}Z" stroke="#000" stroke-width="${W.thin}" class="breakout-line"/>`;
+  }
   if (v.detail) out += `<circle cx="${f(v.x)}" cy="${f(v.y)}" r="${f(v.detail.r * v.scale)}" stroke="#000" stroke-width="${W.fine}"/>`;
   // cutting line / detail circle on this view for its children
   for (const c of views.values()) {
     if (c.parent !== v.id) continue;
     if (c.kind === "section" && c.section) {
-      const A = toSheet(v, c.section.a), B = toSheet(v, c.section.b);
-      const dx = B[0] - A[0], dy = B[1] - A[1];
+      const line = cuttingLine(v, c.section, c.dir).map((q) => toSheet(v, q));
+      const stepped = line.length > 2;
+      if (stepped) out += `<path d="M${line.map((q) => `${f(q[0])} ${f(q[1])}`).join("L")}" stroke="#000" stroke-width="${W.fine}" stroke-dasharray="10 1.5 1.5 1.5" class="stepped-cut"/>`;
+      const A = line[0], B = line[line.length - 1];
+      const sa = toSheet(v, c.section.a), sb = toSheet(v, c.section.b);
+      const dx = sb[0] - sa[0], dy = sb[1] - sa[1];
       const l = Math.hypot(dx, dy) || 1;
       const ux = dx / l, uy = dy / l;
       // arrows point the viewing direction: away from the kept material
       const nx = -uy * (c.section.flip ? -1 : 1), ny = ux * (c.section.flip ? -1 : 1);
-      out += `<path d="M${f(A[0] - ux * 3)} ${f(A[1] - uy * 3)}L${f(B[0] + ux * 3)} ${f(B[1] + uy * 3)}" stroke="#000" stroke-width="${W.fine}" stroke-dasharray="10 1.5 1.5 1.5"/>`;
+      if (!stepped) out += `<path d="M${f(A[0] - ux * 3)} ${f(A[1] - uy * 3)}L${f(B[0] + ux * 3)} ${f(B[1] + uy * 3)}" stroke="#000" stroke-width="${W.fine}" stroke-dasharray="10 1.5 1.5 1.5"/>`;
       for (const [P, s] of [
         [A, -1],
         [B, 1],
