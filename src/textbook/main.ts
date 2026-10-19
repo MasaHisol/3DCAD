@@ -2,9 +2,12 @@ import "./textbook.css";
 import { CHAPTERS, PARTS, TEXT_GLOSSARY } from "./content";
 import type { TextChapter } from "./types";
 import { mountWidgets } from "./widgets";
+import { installFigKit } from "./figkit";
 import { ROADMAP } from "../learn/roadmap";
 
 // ------------------------------------------------------------ progress ---
+
+installFigKit();
 
 const KEY = "3dcad.textbook.v1";
 interface Progress {

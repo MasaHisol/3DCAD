@@ -941,3 +941,116 @@ mark {
   fill: var(--tb-text-2);
   stroke: none;
 }
+
+/* ---------------------------------------------------------- figure kit ---
+   Shared look for every inline figure (see figkit.ts for the <defs>). */
+:root {
+  --k-line: #2b3340;
+  --k-line-2: #8b95a5;
+  --k-dim: #3d6fd6;
+  --k-steel-1: #f4f6f9;
+  --k-steel-2: #d5dbe3;
+  --k-steel-3: #a9b3c1;
+  --k-alu-1: #eef2f6;
+  --k-alu-2: #c9d3de;
+  --k-plastic-1: #fde7c8;
+  --k-plastic-2: #f4c387;
+  --k-accent-1: #8fb8ff;
+  --k-accent-2: #3d7be6;
+  --k-skin-1: #f8d9bf;
+  --k-skin-2: #e9b48f;
+  --k-hatch-bg: #eef1f5;
+  --k-fig-bg: linear-gradient(180deg, #fbfcfd, #f3f5f8);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --k-line: #d6dbe3;
+    --k-line-2: #7d8796;
+    --k-dim: #7fa8ff;
+    --k-steel-1: #6b7787;
+    --k-steel-2: #4c5664;
+    --k-steel-3: #343c47;
+    --k-alu-1: #5e6a7a;
+    --k-alu-2: #414b58;
+    --k-plastic-1: #9a6d3b;
+    --k-plastic-2: #6f4a24;
+    --k-accent-1: #5b8fe8;
+    --k-accent-2: #2d5cb3;
+    --k-skin-1: #b88a6b;
+    --k-skin-2: #8f6649;
+    --k-hatch-bg: #2c333d;
+    --k-fig-bg: linear-gradient(180deg, #262c35, #20262e);
+  }
+}
+:root[data-theme="dark"] {
+  --k-line: #d6dbe3;
+  --k-line-2: #7d8796;
+  --k-dim: #7fa8ff;
+  --k-steel-1: #6b7787;
+  --k-steel-2: #4c5664;
+  --k-steel-3: #343c47;
+  --k-alu-1: #5e6a7a;
+  --k-alu-2: #414b58;
+  --k-plastic-1: #9a6d3b;
+  --k-plastic-2: #6f4a24;
+  --k-accent-1: #5b8fe8;
+  --k-accent-2: #2d5cb3;
+  --k-skin-1: #b88a6b;
+  --k-skin-2: #8f6649;
+  --k-hatch-bg: #2c333d;
+  --k-fig-bg: linear-gradient(180deg, #262c35, #20262e);
+}
+/* static figures sit on a soft card */
+.tb-body > svg.tb-chart {
+  background: var(--k-fig-bg);
+  border: 1px solid var(--tb-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  margin: 14px 0 8px;
+}
+.tb-chart path,
+.tb-chart line,
+.tb-chart polyline,
+.tb-chart polygon,
+.tb-chart rect,
+.tb-chart circle,
+.tb-chart ellipse {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tb-chart text {
+  paint-order: stroke;
+  stroke: transparent;
+}
+/* kit classes */
+.tb-chart .k-part { fill: url(#k-steel); stroke: var(--k-line); stroke-width: 1.6; }
+.tb-chart .k-part-h { fill: url(#k-steel-h); stroke: var(--k-line); stroke-width: 1.6; }
+.tb-chart .k-alu { fill: url(#k-alu); stroke: var(--k-line); stroke-width: 1.6; }
+.tb-chart .k-plastic { fill: url(#k-plastic); stroke: var(--k-line); stroke-width: 1.6; }
+.tb-chart .k-accent { fill: url(#k-accent); stroke: var(--k-dim); stroke-width: 1.4; }
+.tb-chart .k-skin { fill: url(#k-skin); stroke: var(--k-line); stroke-width: 1.2; }
+.tb-chart .k-sphere { fill: url(#k-sphere); stroke: var(--k-line); stroke-width: 1.2; }
+.tb-chart .k-cut { fill: url(#k-hatch); stroke: var(--k-line); stroke-width: 1.6; }
+.tb-chart .k-cut2 { fill: url(#k-hatch2); stroke: var(--k-line); stroke-width: 1.6; }
+.tb-chart .k-ground { fill: url(#k-ground); stroke: none; }
+.tb-chart .k-shadow { filter: url(#k-shadow); }
+.tb-chart .k-glow { filter: url(#k-glow); }
+.tb-chart .k-edge { fill: none; stroke: var(--k-line); stroke-width: 1.6; }
+.tb-chart .k-thin { fill: none; stroke: var(--k-line-2); stroke-width: 0.9; }
+.tb-chart .k-hidden { fill: none; stroke: var(--k-line-2); stroke-width: 1; stroke-dasharray: 5 3; }
+.tb-chart .k-center { fill: none; stroke: var(--k-dim); stroke-width: 0.9; stroke-dasharray: 14 3 2 3; }
+.tb-chart .k-dimline { fill: none; stroke: var(--k-dim); stroke-width: 1; marker-start: url(#k-dim); marker-end: url(#k-dim); }
+.tb-chart .k-ext { fill: none; stroke: var(--k-dim); stroke-width: 0.8; }
+.tb-chart .k-dimtext { fill: var(--k-dim); font-size: 11.5px; font-weight: 600; }
+.tb-chart .k-force { fill: none; stroke: var(--tb-bad); stroke-width: 2.4; marker-end: url(#k-arrow-red); }
+.tb-chart .k-move { fill: none; stroke: var(--tb-accent); stroke-width: 2; marker-end: url(#k-arrow-blue); }
+.tb-chart .k-good { stroke: var(--tb-good); }
+.tb-chart .k-bad { stroke: var(--tb-bad); }
+.tb-chart .k-good-t { fill: var(--tb-good); font-weight: 700; font-size: 12.5px; }
+.tb-chart .k-bad-t { fill: var(--tb-bad); font-weight: 700; font-size: 12.5px; }
+.tb-chart .k-title { fill: var(--tb-text); font-size: 13px; font-weight: 700; }
+.tb-chart .k-note { fill: var(--tb-text-3); font-size: 11px; }
+.tb-chart .k-badge { fill: var(--tb-accent); }
+.tb-chart .k-badge-t { fill: #fff; font-size: 11px; font-weight: 700; }
+.tb-chart .k-panel { fill: var(--tb-surface); stroke: var(--tb-border); stroke-width: 1; }

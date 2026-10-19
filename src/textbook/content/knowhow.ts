@@ -162,15 +162,29 @@ export const KNOWHOW: TextChapter[] = [
   <li><b>ボス</b> (ねじ止めの円柱) は肉厚を均一にするため中空にし、根元を壁やリブでつなぐ</li>
   <li>角には R を付ける (内側 R ≈ 肉厚の 0.5 倍以上)。樹脂の流れが良くなり、応力集中も減る</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="リブの厚さとひけ">
-<path d="M40,60 L88,60 Q100,70 112,60 L170,60 L170,76 L108,76 L108,124 L92,124 L92,76 L40,76 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-<circle cx="100" cy="76" r="11" fill="none" stroke="var(--tb-bad)" stroke-dasharray="3 2"/>
-<text class="lbl" x="100" y="48" text-anchor="middle" style="fill:var(--tb-bad)">ひけ</text>
-<text class="lbl" x="105" y="150" text-anchor="middle" style="fill:var(--tb-bad)">リブ厚 = 肉厚 t → 交点が厚い</text>
-<path d="M300,60 L460,60 L460,76 L385,76 L384,120 L376,120 L375,76 L300,76 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-<text class="lbl" x="380" y="48" text-anchor="middle" style="fill:var(--tb-good)">表面は平ら</text>
-<text class="lbl" x="380" y="150" text-anchor="middle" style="fill:var(--tb-good)">リブ厚 0.5〜0.6t、高さ ≤ 3t (目安)</text>
-<text class="tick" x="260" y="185" text-anchor="middle">交点に内接する円が大きいほど冷えるのが遅く、ひけ・ボイドが出やすい</text>
+<svg class="tb-chart" viewBox="0 0 520 230" role="img" aria-label="リブの厚さとひけ">
+<rect class="k-panel" x="8" y="8" width="244" height="214" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="214" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text>
+<text class="k-title" x="46" y="32">リブ厚 = 肉厚 t</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text>
+<text class="k-title" x="306" y="32">リブ厚 0.5〜0.6 t</text>
+<g class="k-shadow"><path class="k-cut" d="M36,70 L112,70 Q130,80 148,70 L224,70 L224,92 L141,92 L141,170 L119,170 L119,92 L36,92 Z"/></g>
+<circle cx="130" cy="94" r="15" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.6" stroke-dasharray="4 3"/>
+<path d="M112,70 Q130,80 148,70" fill="none" style="stroke:var(--tb-bad)" stroke-width="2.6"/>
+<path class="k-move" d="M170,52 L140,72" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)"/>
+<text class="k-bad-t" x="174" y="50">ひけ (へこみ)</text>
+<line class="k-ext" x1="119" y1="172" x2="119" y2="190"/><line class="k-ext" x1="141" y1="172" x2="141" y2="190"/>
+<line class="k-dimline" x1="119" y1="186" x2="141" y2="186"/><text class="k-dimtext" x="152" y="190">t</text>
+<line class="k-ext" x1="226" y1="70" x2="240" y2="70"/><line class="k-ext" x1="226" y1="92" x2="240" y2="92"/>
+<line class="k-dimline" x1="236" y1="70" x2="236" y2="92"/><text class="k-dimtext" x="230" y="112" text-anchor="end">t</text>
+<text class="k-note" x="22" y="214">交点の内接円が大きい → 冷えにくく、ひけ・ボイド</text>
+<g class="k-shadow"><path class="k-cut" d="M296,70 L484,70 L484,92 L396,92 L395,170 L385,170 L384,92 L296,92 Z"/></g>
+<circle cx="390" cy="92" r="7" fill="none" style="stroke:var(--tb-good)" stroke-width="1.6" stroke-dasharray="4 3"/>
+<text class="k-good-t" x="390" y="58" text-anchor="middle">表面は平ら</text>
+<line class="k-ext" x1="384" y1="172" x2="384" y2="190"/><line class="k-ext" x1="396" y1="172" x2="396" y2="190"/>
+<line class="k-dimline" x1="370" y1="186" x2="384" y2="186" style="marker-start:none"/><line class="k-dimline" x1="410" y1="186" x2="396" y2="186" style="marker-start:none"/>
+<text class="k-dimtext" x="390" y="205" text-anchor="middle">0.5〜0.6 t</text>
+<line class="k-ext" x1="397" y1="170" x2="440" y2="170"/><line class="k-dimline" x1="436" y1="92" x2="436" y2="170"/><text class="k-dimtext" x="442" y="135">≤ 3 t</text>
 </svg>
 <p class="tb-caption">図: 樹脂成形品の断面。リブを肉厚と同じにすると、交点が厚肉になって表側にひけ (へこみ) が出る。リブは薄く、高さを抑える</p>
 <svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="ボスの設計">
