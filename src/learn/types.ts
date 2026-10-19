@@ -9,6 +9,8 @@ import type { PartDocument } from "../core/types";
 export interface LearnState {
   env: "part" | "assembly" | "drawing";
   mode: "model" | "sketch";
+  /** Which document the open drawing belongs to. */
+  drawingSource?: "part" | "assembly";
   part: PartDocument;
   asm: AssemblyDocument;
   /** Evaluated part parameters (name -> value). */

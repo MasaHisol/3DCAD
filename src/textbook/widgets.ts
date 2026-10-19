@@ -1,5 +1,7 @@
 // Interactive calculators embedded in the textbook pages (<div data-widget="...">).
 import { ANIM } from "./anim";
+import { ANIM2 } from "./anim2";
+import { ANIM3 } from "./anim3";
 import { fmt, lineChart } from "./chart";
 import {
   charHeight,
@@ -1315,7 +1317,7 @@ function diagram(kind: BeamCase, aRatio: number): string {
   return s + "</svg>";
 }
 
-Object.assign(WIDGETS, MORE, MORE2, MORE3, ANIM);
+Object.assign(WIDGETS, MORE, MORE2, MORE3, ANIM, ANIM2, ANIM3);
 
 export function mountWidgets(root: HTMLElement) {
   for (const el of root.querySelectorAll<HTMLElement>("[data-widget]")) {

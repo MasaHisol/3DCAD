@@ -2,7 +2,7 @@
 // 各ステップの check は LearnState の純関数で、操作が終わると自動で次へ進みます。
 import type { ExtrudeFeature, FilletFeature, FlangeFeature, HoleFeature, LoftFeature, PatternFeature, RevolveFeature, ShellFeature, ChamferFeature, SweepFeature } from "../core/types";
 import { sampleDocument } from "../samples";
-import { constraintCount, count, dims, drawing, editing, features, has, hasDim, near, sketches, userParams, usesUserParam, val, views } from "./checks";
+import { annos, constraintCount, count, dims, drawing, editing, features, has, hasDim, near, sketches, tolDims, userParams, usesUserParam, val, views } from "./checks";
 import { blockStarter, pinAssemblyStarter, plateStarter } from "./starters";
 import type { Chapter, Exercise, LearnState } from "./types";
 export { GLOSSARY } from "./glossary";
@@ -759,6 +759,209 @@ d2 = d0 * 0.2    (穴の直径は幅の 20 %)</pre>
       },
     ],
   },
+  // ---------------------------------------------------------------- 6+ ---
+  {
+    id: "drawing-pro",
+    title: "第 6 章 (続) CAD 製図を極める — 伝わる図面の描き方",
+    desc: "詳細図・中心線・穴注記、寸法の公差とはめあい、データムと幾何公差、表面性状、部分断面と破断、穴テーブル、組立図と部品表まで。JIS 製図のルールを CAD で実践します。",
+    lessons: [
+      {
+        id: "6-2",
+        title: "詳細図・中心線・穴注記 — 図形を正しく見せる",
+        minutes: 15,
+        level: 2,
+        goals: ["小さな部分を詳細図で拡大して示せる", "穴や対称形に中心線を引ける", "同じ穴をまとめた穴注記 (4×φ9 など) を記入できる"],
+        theory: `
+<p>図面は「形を正しく読み取れること」が第一です。投影図だけでは読み取りにくい部分を補う道具を使い分けます。</p>
+<table class="ln-table">
+  <tr><th>道具</th><th>使う場面</th><th>JIS のきまり</th></tr>
+  <tr><td><b>詳細図</b></td><td>小さな溝・R・面取りなど、尺度が小さくて読めない部分</td><td>元の図に細い実線の円と文字 (A) を描き、拡大図に「A (2:1)」のように尺度を添える</td></tr>
+  <tr><td><b>中心線</b></td><td>穴・軸・対称形の中心</td><td>細い一点鎖線。外形から少しはみ出させる</td></tr>
+  <tr><td><b>穴注記</b></td><td>同じ径の穴が複数あるとき</td><td>「4×φ9」のように個数と径をまとめ、引出線で 1 か所に記入</td></tr>
+</table>
+<p class="ln-note">このレッスンはサンプルの「ブラケット」(取付穴 4 個とボス) を使います。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>図面ビュー</b> で図面環境を開きます。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
+          { text: "<b>詳細</b> を選び、平面図の取付穴の 1 つをクリック (円の中心) → 少し離れた点をクリック (半径) → 用紙の空いた場所をクリックして詳細図を配置します。", tab: "drawing", ui: "dw-detail", check: (s) => views(s, "detail").length >= 1, hint: "1 回目のクリックが詳細図の中心、2 回目までの距離が半径になります。尺度は元のビューの 2 倍で作られます。" },
+          { text: "<b>中心線</b> を選び、平面図で向かい合う 2 つの取付穴の円を順にクリックして、穴の中心を結ぶ中心線を引きます。", tab: "drawing", ui: "dw-centerline", check: (s) => annos(s, "centerline").length >= 1, hint: "円の縁 (輪郭) をクリックすると円として認識されます。平行な 2 本の線分を選ぶと、その中間に中心線が引かれます。" },
+          { text: "<b>穴注記</b> を選び、取付穴の円をクリック → 注記を置く位置をクリックします。同じ径の穴の数が自動で数えられ「4×φ…」と記入されます。", tab: "drawing", ui: "dw-hole", check: (s) => dims(s).some((d) => d.type === "dim" && d.kind === "hole"), hint: "穴の円の輪郭をクリックしてから、外側の空いた位置をクリックします。" },
+          { text: "<b>モデルに戻る</b> で 3D に戻ります。レッスン完了です。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
+        ],
+        summary: ["読みにくい小さな部分は詳細図で拡大 (尺度を明記)", "穴・軸・対称形には細い一点鎖線の中心線", "同じ穴は「4×φ9」とまとめて 1 か所に"],
+        quiz: [
+          { q: "中心線に使う線の種類は?", choices: ["太い実線", "細い一点鎖線", "細い破線"], answer: 1, explain: "中心線は細い一点鎖線です。破線はかくれ線に使います。" },
+          { q: "φ9 の穴が 4 個あるとき、JIS の一般的な記入は?", choices: ["4 か所それぞれに φ9", "4×φ9 と 1 か所にまとめる", "穴径は書かない"], answer: 1, explain: "同じ寸法の穴は個数×径でまとめて記入し、図面をすっきりさせます。" },
+          { q: "詳細図に必ず添えるものは?", choices: ["識別文字と尺度", "材料名", "設計者名"], answer: 0, explain: "元の図の円に付けた文字 (A など) と、拡大した尺度 (2:1 など) を添えます。" },
+        ],
+        see: ["views", "dimensioning", "drawing"],
+      },
+      {
+        id: "6-3",
+        title: "寸法と公差・はめあい — 加工できる寸法を入れる",
+        minutes: 15,
+        level: 2,
+        goals: ["機能に必要な寸法を手で記入できる", "寸法に公差 (±) やはめあい記号 (H7 など) を付けられる", "普通公差を表題欄に記入できる"],
+        theory: `
+<p>図面の寸法は「加工者が測って確かめられる」ことが大切です。すべての寸法に厳しい公差を付けるとコストが跳ね上がるため、</p>
+<ul>
+  <li><b>機能に効く寸法</b> (はめあい・位置決め・組立に関わる) だけに個別の公差を付ける</li>
+  <li>それ以外は <b>普通公差</b> (JIS B 0405 の中級 m など) を表題欄付近にまとめて指示する</li>
+</ul>
+<table class="ln-table">
+  <tr><th>表し方</th><th>例</th><th>意味</th></tr>
+  <tr><td>両側公差</td><td>50 ±0.1</td><td>49.9〜50.1</td></tr>
+  <tr><td>片側公差</td><td>20 <sup>+0.1</sup><sub>0</sub></td><td>20.0〜20.1</td></tr>
+  <tr><td>はめあい記号</td><td>φ20 H7</td><td>穴基準のはめあい。H7 は φ20 で 0〜+0.021</td></tr>
+</table>
+<p>寸法の記入方法には、基準面からそろえる<b>並列寸法</b>、隣どうしをつなぐ<b>直列寸法</b>、原点からの値を書く<b>累進 (座標) 寸法</b>があり、誤差が積み重ならないのは並列・累進です。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>図面ビュー</b> で図面環境を開きます。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
+          { text: "<b>寸法</b> (<kbd>D</kbd>) を選び、正面図のプレートの上下 2 本の水平線を順にクリック → 外側をクリックして<b>板厚</b>の寸法を記入します。", tab: "drawing", ui: "dw-dim", check: (s) => dims(s).length >= 1, hint: "1 本の線分を選んでそのまま外側をクリックすると、その線分の長さが記入されます。" },
+          { text: "次に平面図でボスの穴 (中央の円) をクリック → 外側をクリックして<b>直径 (φ)</b> 寸法を記入します。", tab: "drawing", ui: "dw-dim", check: (s) => dims(s).some((d) => d.type === "dim" && (d.kind === "diameter" || d.kind === "radius")), hint: "円をクリックすると直径寸法、円弧なら半径寸法になります。" },
+          { text: "<b>Esc</b> で選択モードに戻り、いま記入した直径寸法を<b>ダブルクリック</b>します。公差の種類を<b>はめあい</b>にして <b>H7</b> と入力し、OK を押します。", tab: "drawing", check: (s) => tolDims(s, "fit").length >= 1, hint: "寸法の文字をダブルクリックすると編集画面が開きます。公差は「±」「上下の許容差」「はめあい」から選べます。" },
+          { text: "もう 1 つの寸法 (板厚など) をダブルクリックし、公差の種類を <b>±</b> にして <b>0.1</b> を入力します。", tab: "drawing", check: (s) => tolDims(s, "sym").length + tolDims(s, "dev").length >= 1 },
+          { text: "<b>シート設定</b> を開き、表題欄の<b>普通公差</b>に「JIS B 0405-m」と入力します。", tab: "drawing", ui: "dw-sheet", check: (s) => !!drawing(s)?.title.generalTol.trim(), hint: "普通公差は、個別に公差を書かない寸法すべてに適用される約束です。" },
+          { text: "<b>モデルに戻る</b> で 3D に戻ります。レッスン完了です。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
+        ],
+        summary: ["公差は機能に効く寸法にだけ — 他は普通公差でまとめる", "はめあいは記号 (H7/g6 など) で指示すると加工者に伝わる", "並列・累進寸法は誤差が積み重ならない"],
+        quiz: [
+          { q: "すべての寸法に ±0.01 の公差を付けると?", choices: ["品質が上がり安くなる", "加工・検査コストが大きく上がる", "何も変わらない"], answer: 1, explain: "厳しい公差は加工時間・検査・不良率を増やします。機能に必要な寸法だけに付けます。" },
+          { q: "個別の公差がない寸法の許容差を決めるのは?", choices: ["普通公差", "加工者の判断", "尺度"], answer: 0, explain: "JIS B 0405 などの普通公差を図面に指示しておくと、公差のない寸法にも許容範囲が決まります。" },
+          { q: "誤差が積み重なりやすい寸法の入れ方は?", choices: ["並列寸法", "累進寸法", "直列寸法"], answer: 2, explain: "直列寸法は各寸法の誤差が足し算されて端の位置がずれます。重要な位置は基準からの並列・累進で入れます。" },
+        ],
+        see: ["dimensioning", "tolerance", "tolerance-design"],
+      },
+      {
+        id: "6-4",
+        title: "データム・幾何公差・表面性状 — 形と仕上げを指示する",
+        minutes: 15,
+        level: 3,
+        goals: ["データム (基準) を図面に指示できる", "幾何公差 (平面度・平行度・位置度) の枠を記入できる", "表面性状 (Ra) を指示できる"],
+        theory: `
+<p>寸法公差は「大きさ」しか決めません。<b>平らさ・傾き・位置のずれ</b> は<b>幾何公差</b>で指示します。</p>
+<ol>
+  <li><b>データム</b>: 測定の基準になる面や軸。三角の記号と文字 (A, B …) で示す</li>
+  <li><b>幾何公差の枠</b>: [記号 | 公差値 | データム]。例 <code>⫽ 0.05 A</code> は「データム A に対して平行度 0.05 以内」</li>
+  <li><b>表面性状</b>: 面の粗さ。Ra 3.2 (一般的な切削面)、Ra 1.6 (はめあい面)、Ra 0.8 (摺動面) など</li>
+</ol>
+<table class="ln-table">
+  <tr><th>記号</th><th>名称</th><th>データム</th><th>使いどころ</th></tr>
+  <tr><td>⏥</td><td>平面度</td><td>不要</td><td>取付面・シール面</td></tr>
+  <tr><td>⫽</td><td>平行度</td><td>必要</td><td>上下の面の関係</td></tr>
+  <tr><td>⟂</td><td>直角度</td><td>必要</td><td>穴の軸と取付面</td></tr>
+  <tr><td>⌖</td><td>位置度</td><td>必要</td><td>ボルト穴の位置</td></tr>
+</table>
+<p class="ln-note">表面を細かくするほど加工は高くなります。機能のある面だけに指示しましょう。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>図面ビュー</b> で図面環境を開きます。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
+          { text: "<b>データム</b> を選び、正面図のプレート<b>底面</b> (下の水平線) をクリック → 少し下をクリックして、データム <b>A</b> を記入します。", tab: "drawing", ui: "dw-datum", check: (s) => annos(s, "datum").length >= 1, hint: "取付面 (相手部品に当たる面) を基準にするのが基本です。" },
+          { text: "<b>幾何公差</b> を選び、正面図のボスの<b>上面</b> (上の水平線) をクリック → 枠を置く位置をクリックします。特性を <b>⫽ 平行度</b>、公差値 0.05、データム A にして OK を押します。", tab: "drawing", ui: "dw-gdt", check: (s) => annos(s, "gdt").length >= 1 },
+          { text: "<b>表面性状</b> を選び、正面図のプレート底面をクリックして <b>Ra 1.6</b> と入力します。", tab: "drawing", ui: "dw-surface", check: (s) => annos(s, "surface").length >= 1, hint: "取付面のように機能のある面は細かく、それ以外は Ra 6.3〜12.5 程度で十分です。" },
+          { text: "<b>引出線注記</b> を選び、面取りや角をクリック → 位置をクリックして「指示なき角は C0.5」などの注記を入れてみましょう。", tab: "drawing", ui: "dw-leader", check: (s) => annos(s, "note").length >= 1 },
+          { text: "<b>モデルに戻る</b> で 3D に戻ります。レッスン完了です。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
+        ],
+        summary: ["寸法公差 = 大きさ、幾何公差 = 形・姿勢・位置", "幾何公差の多くはデータム (基準) と組で使う", "表面性状は機能のある面にだけ細かく指示する"],
+        quiz: [
+          { q: "平面度の指示にデータムは必要?", choices: ["必要", "不要", "2 つ必要"], answer: 1, explain: "平面度は面そのものの平らさなので、基準 (データム) を必要としない単独形体の公差です。" },
+          { q: "幾何公差の枠「⌖ φ0.1 A B」の意味は?", choices: ["データム A, B を基準に位置度 φ0.1 以内", "平面度 0.1", "直径 0.1 の穴"], answer: 0, explain: "位置度は基準 (A, B) からの理論的に正確な位置に対して、軸線が φ0.1 の円筒内にあることを求めます。" },
+          { q: "一般的な切削仕上げ面の表面粗さの目安は?", choices: ["Ra 0.05", "Ra 3.2", "Ra 100"], answer: 1, explain: "Ra 3.2 は一般的な旋削・フライス加工面、Ra 1.6 ははめあい面、Ra 0.8 以下は研削など高コストになります。" },
+        ],
+        see: ["gdt", "symbols", "tolerance-design"],
+      },
+      {
+        id: "6-5",
+        title: "断面のいろいろ — 部分断面と破断図",
+        minutes: 12,
+        level: 2,
+        goals: ["全断面・部分断面・破断図を使い分けられる", "部分断面で穴の内部を見せられる", "長い部品を破断図で短く表せる"],
+        theory: `
+<p>かくれ線 (破線) が多い図は読みにくくなります。内部の形は<b>断面</b>で見せるのが原則です。</p>
+<table class="ln-table">
+  <tr><th>種類</th><th>使う場面</th></tr>
+  <tr><td><b>全断面</b></td><td>部品全体を 1 つの平面で切る (第 6 章で作成)</td></tr>
+  <tr><td><b>片側断面</b></td><td>対称な部品の半分だけを切り、外形と内部を同時に見せる</td></tr>
+  <tr><td><b>部分断面</b></td><td>見せたい部分 (穴・ねじ) だけを破断線で囲んで切る</td></tr>
+  <tr><td><b>階段断面</b></td><td>一直線上にない複数の穴を、折れ曲がった切断線でまとめて見せる</td></tr>
+  <tr><td><b>破断図</b></td><td>長い軸・形材の中間を省略して用紙に収める (寸法は実寸で書く)</td></tr>
+</table>
+<p class="ln-note">ボルト・軸・ピン・リブなどは、長手方向に切っても断面にしない (ハッチングしない) のが JIS のきまりです。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>図面ビュー</b> で図面環境を開きます。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
+          { text: "正面図をクリックして選択し、<b>部分断面</b> を押します。範囲はそのまま、深さを <b>25</b> (部品の奥行の中央付近) にして OK を押すと、ボスの穴の内部が見えます。", tab: "drawing", ui: "dw-breakout", check: (s) => views(s).some((v) => !!v.breakout), hint: "深さは手前の面から切り取る距離です。穴の中心まで切ると内部の形がよくわかります。" },
+          { text: "次に平面図をクリックして選択し、<b>破断</b> を押して、そのまま OK を押します。中央が省略された破断図になります (寸法は実寸のまま)。", tab: "drawing", ui: "dw-break", check: (s) => views(s).some((v) => !!v.breaks?.length) },
+          { text: "<b>断面</b> を選び、平面図で 2 つの取付穴の中心を通る切断線を引いて断面図を配置します。", tab: "drawing", ui: "dw-section", check: (s) => views(s, "section").length >= 1, hint: "穴の円をクリックすると中心にスナップします。" },
+          { text: "<b>モデルに戻る</b> で 3D に戻ります。レッスン完了です。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
+        ],
+        summary: ["内部の形はかくれ線より断面で見せる", "部分断面は見せたい所だけ、破断図は長い部品を短く", "軸・ボルト・リブは長手方向に切っても断面にしない"],
+        quiz: [
+          { q: "長さ 1500 mm の丸棒を A4 に収めて描くには?", choices: ["尺度を 1:20 にする", "破断図で中間を省略する", "描かない"], answer: 1, explain: "破断図なら細部を読める尺度のまま中間を省略できます。寸法は実寸 (1500) で記入します。" },
+          { q: "長手方向に切っても断面にしないものは?", choices: ["ハウジング", "軸・ボルト", "フランジ"], answer: 1, explain: "軸・ボルト・ピン・キー・リブなどは切ると誤解を招くため、断面にしません。" },
+        ],
+        see: ["sections", "views"],
+      },
+      {
+        id: "6-6",
+        title: "穴テーブルと座標寸法 — 穴の多い部品の図面",
+        minutes: 10,
+        level: 2,
+        goals: ["座標 (累進) 寸法で穴位置を記入できる", "穴テーブルで穴の位置と径を表にできる", "寸法を整列して読みやすくできる"],
+        theory: `
+<p>穴の多い板金・プレートでは、寸法線を何十本も描くと図面が埋もれてしまいます。NC 加工では原点からの座標で穴を加工するため、</p>
+<ul>
+  <li><b>座標 (累進) 寸法</b>: 原点 0 からの距離を 1 本の寸法線上に並べて書く</li>
+  <li><b>穴テーブル</b>: 穴に記号 (A1, A2 …) を付け、X・Y 座標と径を表にまとめる</li>
+</ul>
+<p>どちらも<b>基準 (原点) を 1 つに決める</b>ので、誤差が積み重ならず、検査でも測りやすくなります。原点は通常、加工や組立の基準になる角や穴に置きます。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>図面ビュー</b> で図面環境を開きます。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
+          { text: "自動化パネルの <b>座標寸法</b> を選んでから <b>自動寸法</b> を押します。穴の位置が原点からの座標寸法で記入されます。", tab: "drawing", ui: "dw-style-ord", check: (s) => annos(s, "ordinate").length >= 1, hint: "先に「座標寸法」を押して方式を選び、そのあと「自動寸法」を押します。" },
+          { text: "<b>寸法を整列</b> を押して、重なった寸法を段に並べ替えます。", tab: "drawing", ui: "dw-arrange" },
+          { text: "<b>穴テーブル</b> を押します。穴に記号が付き、座標と径の表が用紙の右上に配置されます。", tab: "drawing", ui: "dw-holetable", check: (s) => annos(s, "holetable").length >= 1 },
+          { text: "<b>モデルに戻る</b> で 3D に戻ります。レッスン完了です。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
+        ],
+        summary: ["穴の多い部品は座標寸法か穴テーブルで", "原点 (基準) を 1 つに決めると誤差が積み重ならない", "NC 加工のプログラムとも対応がとりやすい"],
+        quiz: [
+          { q: "座標 (累進) 寸法の利点は?", choices: ["誤差が積み重ならず NC 加工と対応しやすい", "寸法の数が増える", "公差が不要になる"], answer: 0, explain: "すべて共通の原点から測るので、直列寸法のような誤差の累積がありません。" },
+          { q: "穴テーブルに書かれるものは?", choices: ["穴の記号・座標・径", "材料と重量", "加工時間"], answer: 0, explain: "記号 (A1 など) ごとに X・Y 座標と径 (と数) をまとめます。" },
+        ],
+        see: ["dimensioning", "dfm-sheet"],
+      },
+      {
+        id: "6-7",
+        title: "組立図と部品表 — アセンブリの図面",
+        minutes: 12,
+        level: 2,
+        goals: ["アセンブリから組立図を作れる", "部品表 (品番・品名・数量・材質) と風船を付けられる", "部品図をまとめて作る図面セットを使える"],
+        theory: `
+<p>製品は<b>組立図</b> (全体の組み方) と<b>部品図</b> (1 部品ごとの加工図) の組で図面化します。</p>
+<ul>
+  <li><b>部品表</b>: 品番・品名・数量・材質・備考の表。購入品 (ボルトなど) は規格と呼び (M6×20 など) を書く</li>
+  <li><b>風船 (バルーン)</b>: 組立図の各部品から引出線を出し、丸の中に部品表の品番を書く</li>
+  <li><b>組立図の寸法</b>: 外形・取付寸法・動く範囲など、組立と据付けに必要な寸法だけにする</li>
+</ul>
+<p class="ln-note">このレッスンはブラケットとピンの小さなアセンブリを使います。</p>`,
+        setup: { kind: "assembly", make: pinAssemblyStarter },
+        steps: [
+          { text: "<b>組立</b>タブの <b>図面ビュー</b> で組立図の図面環境を開きます。", tab: "assemble", ui: "asm-drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
+          { text: "<b>部品表</b> を押して、部品表を表示します (もう一度押すと非表示)。", tab: "drawing", ui: "dw-parts", check: (s) => (drawing(s)?.sheets ?? []).some((sh) => !!sh.partsList) },
+          { text: "<b>自動風船</b> を押して、部品表の品番に合わせた風船を配置します。", tab: "drawing", ui: "dw-autoballoon", check: (s) => annos(s, "balloon").length >= 1 },
+          { text: "<b>図面セット</b> を押して、部品ごとの部品図シートを一括で作ります。シートが増えたことを確認しましょう。", tab: "drawing", ui: "dw-set", check: (s) => (drawing(s)?.sheets.length ?? 0) >= 2, hint: "画面下のシートのタブで、組立図と部品図を切り替えられます。" },
+          { text: "<b>モデルに戻る</b> でアセンブリに戻ります。レッスン完了です。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "assembly" },
+        ],
+        summary: ["組立図 + 部品図 + 部品表 がひとそろいの図面", "風船の番号と部品表の品番を一致させる", "組立図の寸法は組立・据付けに必要なものだけ"],
+        quiz: [
+          { q: "風船 (バルーン) の中に書くものは?", choices: ["部品の重さ", "部品表の品番", "寸法"], answer: 1, explain: "風船の番号で部品表の行を引けるようにします。" },
+          { q: "購入品のボルトについて部品表に書くべきことは?", choices: ["規格と呼び (例 JIS B 1176 M6×20)", "加工方法", "何も書かない"], answer: 0, explain: "購入品は図面を描かない代わりに、規格と呼び寸法・材質・数量で特定します。" },
+        ],
+        see: ["drawing", "reading"],
+      },
+    ],
+  },
   // ------------------------------------------------------------------ 7 ---
   {
     id: "verify",
@@ -785,7 +988,7 @@ d2 = d0 * 0.2    (穴の直径は幅の 20 %)</pre>
         setup: { kind: "part", make: sampleDocument },
         steps: [
           { text: "<b>検査</b>タブの <b>応力解析</b> を開きます。", tab: "inspect", ui: "stress", check: (s) => s.command === "stress" },
-          { text: "パネルの<b>固定</b>でプレートの<b>底面</b>を、<b>荷重</b>でボスの<b>上面</b>を選び、力 1000 N のまま <b>解析を実行</b> します。", tab: "inspect", ui: "stress", check: (s) => s.analysisDone, hint: "選択欄をクリックしてアクティブにしてから面をクリックします。計算には数秒〜数十秒かかります。" },
+          { text: "パネルの<b>固定拘束</b>が選ばれた状態で <b>底面を追加</b> を押し、プレートの (見えない) 底面を固定にします。次に<b>荷重面</b>をクリックしてからボスの<b>上面</b>をクリックし、力 1000 N のまま <b>解析を実行</b> します。", tab: "inspect", ui: "stress", check: (s) => s.analysisDone, hint: "条件のボタン (固定拘束 / 荷重面) を押してアクティブにしてから面をクリックします。選んだ面はボタン左の四角と同じ色 (固定 = 緑、荷重 = 赤) で表示されます。裏側の面はモデルを回転させて選ぶこともできます。計算には数秒〜数十秒かかります。" },
           { text: "コンターの色 (青 = 低い → 赤 = 高い) で応力の大きい場所を確認し、<b>安全率</b>と<b>変位</b>の表示に切り替えてみましょう。" },
           { text: "パネルを閉じて解析を終了します。レッスン完了です。", check: (s) => s.command === null },
         ],
@@ -1269,6 +1472,30 @@ export const EXERCISES: Exercise[] = [
       { text: "角度拘束がある (駆動用)", check: (s) => s.asm.constraints.some((c) => !c.suppressed && c.type === "angle") },
     ],
     tips: ["リンク 1 本をパラメトリックに作り (長さをユーザ パラメータに)、長さ違いをファミリー表で作ると効率的です", "座学テキスト「機構 — リンクとカム」の計算ツールで、動きを先に確認しましょう", "クランクとベースの間に角度拘束を付け、「拘束を駆動」で 0〜360° 回します"],
+  },
+  {
+    id: "ex-drawing",
+    title: "演習 9: 製図 — ブラケットの部品図を仕上げる",
+    level: 2,
+    brief: "サンプルのブラケット (ファイル → サンプルを開く) の部品図を、加工者がそのまま作れるレベルまで仕上げます。「今のモデルでチェック」で図面の要件を確認します。",
+    spec: [
+      ["投影", "第三角法で正面図・平面図・側面図 + 断面図 1 つ以上"],
+      ["寸法", "外形・穴位置・穴径。ボスの穴にはめあい (H7 など)、機能寸法に ± 公差"],
+      ["幾何公差", "取付面をデータム A とし、平行度または直角度を 1 つ以上"],
+      ["仕上げ", "取付面に表面性状 (Ra)、普通公差を表題欄に"],
+      ["表題欄", "名称・図番・材料・設計者を記入"],
+    ],
+    requirements: [
+      { text: "投影ビューが 3 つ以上ある", check: (s) => views(s).filter((v) => v.kind !== "detail").length >= 3 },
+      { text: "断面図がある", check: (s) => views(s, "section").length >= 1 || views(s).some((v) => !!v.breakout) },
+      { text: "寸法が 8 個以上ある", check: (s) => dims(s).length + annos(s, "ordinate").length * 3 >= 8 },
+      { text: "はめあい公差の寸法がある", check: (s) => tolDims(s, "fit").length >= 1 },
+      { text: "± または上下の許容差付きの寸法がある", check: (s) => tolDims(s, "sym").length + tolDims(s, "dev").length >= 1 },
+      { text: "データムと幾何公差がある", check: (s) => annos(s, "datum").length >= 1 && annos(s, "gdt").length >= 1 },
+      { text: "表面性状の指示がある", check: (s) => annos(s, "surface").length >= 1 },
+      { text: "表題欄 (名称・図番・材料・設計者・普通公差) が記入されている", check: (s) => { const t = drawing(s)?.title; return !!t && [t.title, t.number, t.material, t.designer, t.generalTol].every((x) => !!x?.trim()); } },
+    ],
+    tips: ["まず自動寸法で骨組みを入れ、不要な寸法を消してから機能寸法に公差を付けると早く仕上がります", "データムは相手部品と接する取付面に置くのが基本です", "第 6 章 (続) のレッスン 6-2〜6-6 で各道具の使い方を復習できます"],
   },
 ];
 

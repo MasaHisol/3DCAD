@@ -13,6 +13,7 @@ export function learnState(app: App): LearnState {
   return {
     env: app.env,
     mode: app.mode,
+    drawingSource: app.drawing?.source,
     part: app.store.doc,
     asm: app.asm.doc,
     values: evaluateParams(app.store.doc.params),

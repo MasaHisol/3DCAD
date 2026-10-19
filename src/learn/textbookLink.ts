@@ -2,6 +2,20 @@
 
 /** Chapter titles for links (kept in sync with src/textbook/content by tests/learn.test.ts). */
 export const TEXTBOOK_TITLES: Record<string, string> = {
+  "stiffness-design": "剛性設計の考え方 — 強さより「硬さ」",
+  "stiffness-shape": "剛性を高める形状 — 断面・リブ・閉断面",
+  "joint-stiffness": "接合部・締結部・軸受の剛性",
+  "deflection-design": "変形の計算とたわみ許容値",
+  "vibration-modes": "多自由度振動・モード・危険速度",
+  "isolation-damping": "防振と制振 — 伝えない・揺れを止める",
+  "stiffness-vibration-practice": "剛性と振動の設計実務 — 目標設定から実測まで",
+  "id-history": "【初級】工業デザインの歴史と思想",
+  "visual-principles": "【中級】製品の造形原理 — 重さ・釣り合い・緊張感",
+  "product-semantics": "【中級】プロダクトセマンティクス — 形が意味を語る",
+  "renderings-models": "【中級】レンダリングとモデル — 考えを形にして伝える",
+  "design-engineering": "【上級】デザインと設計の協働 — 意匠を量産まで守る",
+  "circular-id": "【上級】循環型の工業デザイン — 長く使い、直し、戻す",
+  "design-evaluation": "【上級】デザイン評価手法 — 印象を測り、判断を共有する",
   process: "設計とは何か",
   concept: "要求仕様と構想設計",
   drawing: "機械製図の基礎",
