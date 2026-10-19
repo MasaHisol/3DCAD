@@ -157,6 +157,12 @@ export class Ribbon {
     this.tip.classList.remove("show");
   }
 
+  /** The tab exists and is shown in the current environment. */
+  isVisible(id: string): boolean {
+    const t = this.tabs.find((x) => x.id === id);
+    return !!t && (!t.visible || t.visible());
+  }
+
   /** Every command of the visible tabs (for the command search). */
   allCommands(): (RibbonButton & { tab: string })[] {
     const out: (RibbonButton & { tab: string })[] = [];

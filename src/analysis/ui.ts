@@ -120,6 +120,10 @@ export class StressCommand implements Command {
   private pulse: "step" | "halfsine" | "sine" = "step";
   private target = 20000;
   private result: AnyResult | null = null;
+  /** An analysis has produced a result (read by the learning guide). */
+  get hasResult(): boolean {
+    return !!this.result;
+  }
   private resultKind: AnalysisKind = "static";
   private convergence: { dVm: number; dDisp: number; elems: number } | null = null;
   private show: Show = "vm";

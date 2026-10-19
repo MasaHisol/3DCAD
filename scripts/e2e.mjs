@@ -553,6 +553,38 @@ try {
   await settle();
   check("parts list edit", (await page.evaluate(() => document.querySelector(".dw-stage .partslist").textContent)).includes("焼入れ HRC40"));
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/asm-drawing.png` });
+
+  // learning center: start lesson 1-2 on its sample part; a parameter change completes the step automatically
+  await page.evaluate(() => window.cad.leaveDrawingEnv());
+  await page.click(".tb-learn");
+  await page.locator(".ln-lesson", { hasText: "フィーチャ履歴" }).locator("button").click();
+  const discard = page.locator(".modal .btn.primary", { hasText: "破棄して続行" });
+  if (await discard.isVisible({ timeout: 1000 }).catch(() => false)) await discard.click();
+  await page.locator(".ln-coach .btn.primary", { hasText: "操作をはじめる" }).click();
+  await page.locator(".ln-coach .btn.primary", { hasText: "次へ" }).click();
+  await page.waitForSelector(".ln-glow", { timeout: 3000 }).catch(() => {});
+  const glow = await page.evaluate(() => [...document.querySelectorAll(".ln-glow")].map((e) => e.dataset.cmd));
+  await page.evaluate(() => window.cad.store.mutate("幅", (d) => (d.params.find((p) => p.name === "幅").expr = "100")));
+  await page.waitForFunction(() => document.querySelector(".ln-step.current")?.textContent.includes("板厚"), null, { timeout: 5000 }).catch(() => {});
+  const cur = await page.evaluate(() => document.querySelector(".ln-step.current")?.textContent ?? "");
+  check("learning: guided step auto-completes", glow.includes("params") && cur.includes("板厚"), JSON.stringify({ glow, cur: cur.slice(0, 30) }));
+  if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/learning.png` });
+
+  // textbook (separate page): every chapter renders and its calculators produce results
+  const tb = await browser.newPage({ viewport: { width: 1300, height: 860 } });
+  tb.on("pageerror", (e) => errors.push(`textbook: ${e.message}`));
+  await tb.goto(url + "textbook.html");
+  await tb.waitForSelector(".tb-hero");
+  const ids = await tb.evaluate(() => [...document.querySelectorAll(".tb-nav-part a")].map((a) => a.getAttribute("href")));
+  let widgetErrors = 0;
+  for (const href of ids) {
+    await tb.goto(url + "textbook.html" + href);
+    await tb.waitForSelector(".tb-article");
+    widgetErrors += await tb.evaluate(() => document.querySelectorAll(".tb-err").length + [...document.querySelectorAll("[data-widget]")].filter((w) => !w.querySelector(".tb-widget-out")?.children.length).length);
+  }
+  check("textbook: chapters and calculators", ids.length >= 20 && widgetErrors === 0, `${ids.length} chapters, ${widgetErrors} widget errors`);
+  if (process.env.E2E_SHOTS) await tb.screenshot({ path: `${process.env.E2E_SHOTS}/textbook.png` });
+  await tb.close();
 } catch (e) {
   check("run", false, e.message);
 } finally {

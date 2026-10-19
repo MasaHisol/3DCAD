@@ -31,6 +31,8 @@ import { openNativeInfo } from "./io/nativeDialog";
 import type { Rule, RuleContext, RuleResult } from "./rules/engine";
 import { DrawingEnv } from "./drawing/env";
 import { newAssembly, type AssemblyDocument } from "./assembly/types";
+import { openLearningCenter, startLessonById } from "./learn/center";
+import { listenForLessons, openTextbook } from "./learn/textbookLink";
 
 const AUTOSAVE_KEY = "3dcad.autosave.v2";
 
@@ -109,6 +111,7 @@ export class App {
       h(
         "div",
         { class: "tb-right" },
+        h("button", { class: "tb-learn", title: "学習センター — 3D 設計を基礎から学ぶ", onClick: () => openLearningCenter(this) }, iconEl("learn"), h("span", {}, "学習")),
         h("button", { class: "tb-search", title: "コマンドを検索 (Ctrl+K)", onClick: () => openCommandSearch(this) }, iconEl("search"), h("span", {}, "コマンドを検索"), h("kbd", {}, "Ctrl+K")),
         h("button", { class: "icon-btn", title: "オプション (マウス操作・表示)", onClick: () => this.openSettings() }, iconEl("settings")),
         h("button", { class: "icon-btn", title: "キーボード ショートカット", onClick: () => openShortcuts() }, iconEl("keyboard")),
@@ -208,6 +211,7 @@ export class App {
 
     this.restoreAutosave();
     this.refreshUI();
+    listenForLessons((id) => startLessonById(this, id));
     this.kernel
       .init()
       .then(() => {
@@ -1010,7 +1014,7 @@ export class App {
     this.activateAssembly();
   }
 
-  private async confirmDiscard(): Promise<boolean> {
+  async confirmDiscard(): Promise<boolean> {
     const dirty = this.asmDoc || this.asm.editingPart ? this.asm.store.dirty || this.store.dirty : this.store.dirty && this.store.doc.features.length > 0;
     if (!dirty) return true;
     return confirmDialog("変更の破棄", "保存されていない変更があります。破棄して続行しますか?", "破棄して続行");
@@ -1120,6 +1124,9 @@ export class App {
       { label: "図面を作成…", icon: "drawing", action: () => this.openDrawingEnv() },
       { label: "標準部品ライブラリ…", icon: "library", action: () => openLibrary(this) },
       { label: "iProperties…", icon: "iprops", action: () => openIProperties(this) },
+      { separator: true, label: "" },
+      { label: "学習センター (3D 設計を学ぶ)…", icon: "learn", action: () => openLearningCenter(this) },
+      { label: "座学テキスト (設計の基礎・構造力学・デザイン)", icon: "open", action: () => openTextbook() },
     ]);
   }
 
@@ -1658,12 +1665,12 @@ export class App {
         h(
           "div",
           { class: "wc-cards" },
+          card("learn", "3D 設計を学ぶ", "手を動かして基礎から学習", () => openLearningCenter(this)),
           card("new", "新規パーツ", "空のパーツから開始", () => this.commands.run("sketch")),
           card("assembly", "新規アセンブリ", "部品を配置して拘束", () => this.newAssembly()),
           card("part", "サンプル パーツ", "フィーチャ ツリー付きの部品", () => this.loadSample()),
           card("assembly", "サンプル アセンブリ", "ブラケット + ピン", () => this.loadSampleAssembly()),
           card("open", "開く / インポート", ".3dcp, STEP, STL", () => this.openFile()),
-          card("keyboard", "操作ガイド", "マウス操作とショートカット", () => openShortcuts()),
         ),
         h("p", { class: "wc-hint" }, "ヒント: 右クリックでマーキング メニュー、中ボタン ドラッグで画面移動、Shift+中ボタンでオービット"),
       ),
