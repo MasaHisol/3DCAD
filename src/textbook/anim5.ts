@@ -143,7 +143,7 @@ export const ANIM5: Record<string, (host: HTMLElement) => void> = {
     let rt = 2; // R/t
     let p = 1; // animation phase: 0..1 load, 1..2 unload
     let playing = !reduced();
-    select(ctl, Object.entries(mats).map(([k, v]) => [k, v.name] as [string, string]), m, (v) => ((m = v), (p = 0)));
+    select(ctl, Object.entries(mats).map(([k, v]) => [k, v.name] as [string, string]), m, (v) => ((m = v), (p = 0), draw()));
     slider(ctl, "内 R / 板厚", 1, 20, rt, 1, (v) => ((rt = v), draw()));
     button(ctl, "↻ もう一度", () => ((p = 0), (playing = !reduced()), draw(true)));
     const calc = () => {

@@ -193,3 +193,15 @@ describe("stress analysis accuracy (vs. closed-form solutions)", () => {
     expect(sampleVm(r, [75, 5, 5])).toBeCloseTo(10, 0);
   }, 60000);
 });
+
+describe("disconnected bodies", () => {
+  it("refuses a load on a part that is not connected to any support", () => {
+    const a = box(20, 10, 10), b = box(20, 10, 10);
+    // second box 10 mm away along x
+    const pos = [...a.mesh.positions, ...b.mesh.positions.map((v, i) => (i % 3 === 0 ? v + 30 : v))];
+    const idx = [...a.mesh.indices, ...b.mesh.indices.map((i) => i + 8)];
+    const mesh = { positions: pos, indices: idx };
+    const bc = { fixed: [a.faces.xmin], loads: [{ tris: b.faces.xmax.map((t) => t + 12), force: [0, -100, 0] as [number, number, number] }] };
+    expect(() => solveFea(mesh, bc, steel, { resolution: 20 })).toThrow(/固定拘束につながっていない/);
+  });
+});

@@ -2,6 +2,22 @@
 
 /** Chapter titles for links (kept in sync with src/textbook/content by tests/learn.test.ts). */
 export const TEXTBOOK_TITLES: Record<string, string> = {
+  "risk-assessment": "リスクアセスメントの進め方 (ISO 12100)",
+  "inherent-safety": "本質的安全設計 — 危険源をなくす・小さくする",
+  "guards-devices": "ガードと保護装置 — インターロックとライトカーテン",
+  "safety-control": "制御システムの安全 — PL・カテゴリ・非常停止",
+  "energy-safety": "電気・空圧・残留エネルギーの安全",
+  "safety-info": "使用上の情報 — 警告表示と取扱説明書",
+  "functional-safety": "機能安全・ソフトウェアと協働ロボット",
+  "safety-cases": "安全設計の事例とチェックリスト",
+  "op-posture-zones": "【上級】装置の作業姿勢と作業域を設計する",
+  "op-changeover": "【上級】段取り替え・治具交換の作業性",
+  "op-handling": "【上級】ワーク投入・取り出しとハンドリング",
+  "op-hmi-alarm": "【上級】操作盤 HMI 画面とアラームの設計",
+  "op-signal-lights": "【中級】表示灯・シグナルタワー・音の設計",
+  "op-daily-care": "【中級】日常保全を作業者ができる装置 — 見える化と点検ルート",
+  "op-learnability": "【中級】新人でも使える装置 — 学びやすさと標準作業",
+  "op-ux-eval": "【上級】装置 UX の評価 — 作業分析・時間研究・作業者テスト",
   "drawing-format": "線と図面様式 — 太さ・用紙・輪郭・表題欄・尺度",
   "projection-practice": "投影法の実際 — 第一角法と第三角法、図の配置と特殊な図示",
   "element-drawing-adv": "ねじ・歯車・ばねの図示の実際 — 組立状態・止まり穴・要目表",

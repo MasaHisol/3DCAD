@@ -11,6 +11,12 @@ export interface LearnState {
   mode: "model" | "sketch";
   /** Which document the open drawing belongs to. */
   drawingSource?: "part" | "assembly";
+  /** Running assembly command (constraint, drive, explode …). */
+  asmCommand?: string | null;
+  /** Assembly shown exploded. */
+  exploded?: boolean;
+  /** Kind of the open structural / thermal analysis. */
+  analysisKind?: string;
   part: PartDocument;
   asm: AssemblyDocument;
   /** Evaluated part parameters (name -> value). */
