@@ -16,6 +16,7 @@ import { KNOWHOW2 } from "./knowhow2";
 import { DESIGN2 } from "./design2";
 import { DESIGN3 } from "./design3";
 import { UX } from "./ux";
+import { UX2 } from "./ux2";
 import { SERVICE } from "./service";
 import { KNOWHOW } from "./knowhow";
 import { MECHANICS } from "./mechanics";
@@ -30,13 +31,13 @@ export const PARTS: Part[] = [
   { id: "mechatronics", title: "第 7 部 メカトロニクスと駆動", desc: "モーター・減速機・直動案内・空気圧・センサ・制御、電気の基礎、ロボットの運動学、動作パターンと振動抑制", color: "#7c3aed" },
   { id: "knowhow", title: "第 8 部 設計ノウハウ", desc: "加工法別の設計、組立性、CAD の作法、解析、熱処理、コスト、安全、測定・品質、標準化、設計文書、試験、公差設計、規格、信頼性、失敗事例", color: "#0f766e" },
   { id: "design", title: "第 9 部 デザイン・意匠", desc: "形と比率、CMF、ユーザ中心設計、サステナブル、デザインの進め方、スケッチ、造形と面、色彩、デザイン言語、意匠権、デザインレビュー", color: "#9333ea" },
-  { id: "ux", title: "第 10 部 人間工学・UX", desc: "人体寸法の使い方、操作具、表示とサイン、UI/UX の原則、ユニバーサルデザイン、作業姿勢と負担、UX リサーチ", color: "#db2777" },
+  { id: "ux", title: "第 10 部 人間工学・UX", desc: "人の感覚と情報処理、人体寸法、操作具、ターゲットの大きさ (フィッツの法則)、表示とサイン、UI/UX の原則、ヒューマンエラー、フィードバック、操作パネルの UX、ユニバーサル・インクルーシブデザイン、作業負担、UX リサーチと指標", color: "#db2777" },
   { id: "service", title: "第 11 部 配線・メンテナンスを考えた設計", desc: "配線設計、ケーブルベア、制御盤の配置、コネクタ、保全性、点検・給油、防塵防水 (IP)、保守のための情報", color: "#65a30d" },
 ];
 
 /** Reading order. The review chapter closes the know-how part. */
 const knowhow = [...KNOWHOW.filter((c) => c.id !== "review"), ...KNOWHOW_MORE, ...QUALITY, ...KNOWHOW2, ...KNOWHOW.filter((c) => c.id === "review")];
-export const CHAPTERS: TextChapter[] = [...CAD2D, ...CAD2D_ADV, ...CAD3D, ...BASICS, ...DRAFTING, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...MECHANICS3, ...ELEMENTS, ...MECHATRONICS, ...MECHATRONICS2, ...knowhow, ...DESIGN2.filter((c) => c.id === "design-process"), ...DESIGN3.filter((c) => c.id === "form-language"), ...DESIGN, ...DESIGN3.filter((c) => c.id !== "form-language"), ...DESIGN_MORE, ...DESIGN2.filter((c) => c.id !== "design-process"), ...UX, ...SERVICE];
+export const CHAPTERS: TextChapter[] = [...CAD2D, ...CAD2D_ADV, ...CAD3D, ...BASICS, ...DRAFTING, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...MECHANICS3, ...ELEMENTS, ...MECHATRONICS, ...MECHATRONICS2, ...knowhow, ...DESIGN2.filter((c) => c.id === "design-process"), ...DESIGN3.filter((c) => c.id === "form-language"), ...DESIGN, ...DESIGN3.filter((c) => c.id !== "form-language"), ...DESIGN_MORE, ...DESIGN2.filter((c) => c.id !== "design-process"), ...UX2.filter((c) => c.id === "human-senses"), ...UX, ...UX2.filter((c) => c.id !== "human-senses"), ...SERVICE];
 
 const EXTRA: GlossaryEntry[] = [
   { term: "応力", en: "Stress", desc: "単位面積あたりの内力。σ = F / A (MPa = N/mm²)。" },
