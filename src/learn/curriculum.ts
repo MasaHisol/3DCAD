@@ -962,6 +962,168 @@ d2 = d0 * 0.2    (穴の直径は幅の 20 %)</pre>
       },
     ],
   },
+  // ---------------------------------------------------------------- 6++ ---
+  {
+    id: "drawing-practice",
+    title: "第 6 章 (実践) 図面を一から組み立てる",
+    desc: "白紙のシートにビューを配置する、尺度とかくれ線を整える、階段断面・溶接記号を描く、モデル変更を図面に反映する、図番・版を管理して出力する — 実務の図面づくりの流れを一通り体験します。",
+    lessons: [
+      {
+        id: "6-8",
+        title: "白紙から図面を組み立てる — 用紙・基準ビュー・投影ビュー",
+        minutes: 15,
+        level: 2,
+        goals: ["用紙サイズと向きを選べる", "正面図を選んで基準ビューを配置できる", "投影ビューで平面図・側面図・等角図を追加し、尺度を変えられる"],
+        theory: `
+<p>自動配置に頼らず、<b>どの向きを正面図にするか</b>から自分で決めると、図面の質が大きく変わります。</p>
+<ul>
+  <li><b>正面図</b>は「その品物の形・機能を最もよく表す向き」。加工時の向き (旋盤なら軸を横) にそろえると現場で読みやすい</li>
+  <li>投影図は<b>必要最小限</b>に。正面図だけで形がわかれば 1 面図でもよい (板物は正面図 + 板厚 t の記入など)</li>
+  <li>かくれ線はなるべく使わず、必要なら断面で見せる</li>
+  <li>尺度は JIS の推奨値 (1:1, 1:2, 1:5, 2:1, 5:1 …) から選ぶ</li>
+</ul>
+<table class="ln-table">
+  <tr><th>用紙</th><th>大きさ (mm)</th><th>主な用途</th></tr>
+  <tr><td>A4</td><td>297 × 210</td><td>小物の部品図 (縦置きも多い)</td></tr>
+  <tr><td>A3</td><td>420 × 297</td><td>一般的な部品図・小さな組立図</td></tr>
+  <tr><td>A2〜A0</td><td>594 × 420 〜</td><td>組立図・配置図</td></tr>
+</table>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>図面ビュー</b> で図面環境を開きます。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
+          { text: "<b>シートを追加</b> を押して、白紙のシートを追加します。", tab: "drawing", ui: "dw-addsheet", check: (s) => (drawing(s)?.sheets.length ?? 0) >= 2 },
+          { text: "<b>シート設定</b> を開き、用紙サイズを <b>A4</b>、向きを<b>縦</b>にして OK を押します。", tab: "drawing", ui: "dw-sheet", check: (s) => !!drawing(s)?.sheets.some((sh, i) => i > 0 && sh.size === "A4" && !sh.landscape), hint: "追加したシート (シート2) が開いた状態で設定します。" },
+          { text: "<b>基準</b> を押して向きに <b>正面図</b> を選び、用紙の左上寄りをクリックして基準ビューを配置します。", tab: "drawing", ui: "dw-base", check: (s) => (drawing(s)?.sheets.slice(1).some((sh) => sh.views.length >= 1) ?? false) },
+          { text: "<b>投影</b> を選び、正面図をクリック → その<b>上</b>・<b>右</b>・<b>右上 (斜め)</b> をクリックして、平面図・右側面図・等角図を配置します。右クリックで終了します。", tab: "drawing", ui: "dw-projected", check: (s) => (drawing(s)?.sheets.slice(1).some((sh) => sh.views.filter((v) => v.kind === "projected").length >= 2) ?? false), hint: "第三角法なので、上をクリックすると平面図、右をクリックすると右側面図になります。斜めの位置では等角図になります。" },
+          { text: "左のブラウザで<b>正面図</b>をダブルクリックし、尺度を <b>1:2</b> に変えて OK を押します。投影ビューも一緒に縮小されます。", tab: "drawing", check: (s) => (drawing(s)?.sheets.slice(1).some((sh) => sh.views.some((v) => v.kind === "base" && Math.abs(v.scale - 0.5) < 1e-9)) ?? false), hint: "図面ブラウザのビューの行をダブルクリックすると「ビューを編集」が開きます。" },
+          { text: "<b>モデルに戻る</b> で 3D に戻ります。レッスン完了です。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
+        ],
+        summary: ["正面図は形と機能を最もよく表す向き (加工の向きにそろえる)", "投影図は必要最小限 — 第三角法で上に平面図・右に右側面図", "尺度は推奨値から選び、表題欄に明記"],
+        quiz: [
+          { q: "正面図に選ぶべき向きは?", choices: ["いちばん小さく見える向き", "形・機能を最もよく表す向き", "必ず上から見た向き"], answer: 1, explain: "正面図は品物の特徴を最もよく表す向きを選びます。旋削部品は軸を水平に置くのが一般的です。" },
+          { q: "JIS の推奨尺度でないものは?", choices: ["1:2", "1:3", "1:5"], answer: 1, explain: "推奨尺度は 1, 2, 5 の系列 (1:2, 1:5, 1:10 …) です。1:3 などは許容尺度で、なるべく使いません。" },
+        ],
+        see: ["views", "drawing", "reading"],
+      },
+      {
+        id: "6-9",
+        title: "階段断面とビューの編集 — かくれ線を減らす",
+        minutes: 12,
+        level: 3,
+        goals: ["断面図を階段断面に変えられる", "ビューのかくれ線・中心マークの表示を切り替えられる", "読みやすい図の見せ方を選べる"],
+        theory: `
+<p>一直線上にない複数の穴を 1 枚の断面で見せたいときは、切断線を途中で折り曲げた<b>階段断面</b>を使います。切断線の折れ目には太い線を、両端には矢印と記号 (A) を付けます。</p>
+<p>ビューごとに次の表示を整えます。</p>
+<ul>
+  <li><b>かくれ線</b>: 外形だけで形がわかるなら消す。内部は断面で示す</li>
+  <li><b>中心マーク</b>: 穴・円筒には必ず。等角図には付けない</li>
+  <li><b>ラベル</b>: 断面 A-A・詳細 B などは図と記号を対応させる</li>
+</ul>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>図面ビュー</b> で図面環境を開きます。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
+          { text: "<b>断面</b> を選び、平面図を横切る水平な切断線を引いて、断面図を配置します。", tab: "drawing", ui: "dw-section", check: (s) => views(s, "section").length >= 1 },
+          { text: "ブラウザの<b>断面 A</b> をダブルクリックし、<b>階段断面</b>の欄に「<code>40, 15</code>」(切断線の始点から 40 mm の位置で 15 mm 奥へずらす) と入力して OK を押します。", tab: "drawing", check: (s) => views(s, "section").some((v) => !!v.section?.steps?.length), hint: "数値は「切断線の始点からの距離, 奥へのずらし量」です。穴の位置に合わせて変えてみましょう。" },
+          { text: "次に<b>平面図</b>のビューをダブルクリックし、<b>隠れ線を表示</b>のチェックを外して OK を押します。", tab: "drawing", check: (s) => views(s).some((v) => (v.kind === "base" || v.kind === "projected") && v.label !== "等角図" && !v.hidden && !v.breakout) },
+          { text: "<b>モデルに戻る</b> で 3D に戻ります。レッスン完了です。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
+        ],
+        summary: ["一直線上にない形体は階段断面でまとめて見せる", "かくれ線は最小限 — 内部は断面で", "等角図には中心マーク・かくれ線を付けない"],
+        quiz: [
+          { q: "階段断面を使う場面は?", choices: ["一直線上にない複数の穴を 1 つの断面で見せたい", "部品が長すぎる", "対称な部品の半分を見せたい"], answer: 0, explain: "切断線を折り曲げて、離れた位置の穴やみぞを 1 つの断面図にまとめます。" },
+          { q: "かくれ線を多用するとどうなる?", choices: ["図が読みにくくなる", "加工が安くなる", "寸法が不要になる"], answer: 0, explain: "破線が重なると形が読み取りにくくなります。内部形状は断面図で示すのが原則です。" },
+        ],
+        see: ["sections", "views"],
+      },
+      {
+        id: "6-10",
+        title: "溶接記号 — 溶接構造物の図面",
+        minutes: 12,
+        level: 3,
+        goals: ["隅肉溶接の記号を記入できる", "矢の側・反対側の意味がわかる", "全周溶接・現場溶接の補助記号を使える"],
+        theory: `
+<p>フレームや架台などの溶接構造物では、どこを・どの形で・どれだけ溶接するかを<b>溶接記号</b> (JIS Z 3021) で指示します。</p>
+<ul>
+  <li><b>矢</b>が溶接する継手を指し、<b>基線</b>の上に記号を書く</li>
+  <li>記号が基線の<b>下</b> (矢の側) にあれば矢の指す側、<b>上</b>にあれば反対側を溶接 (JIS の基線 1 本の場合)</li>
+  <li>隅肉溶接は三角形の記号に<b>脚長</b> (例 6) と<b>長さ</b>を添える</li>
+  <li>旗の記号は<b>現場溶接</b>、矢と基線の交点の丸は<b>全周溶接</b></li>
+</ul>
+<p class="ln-note">脚長は薄いほうの板厚の 0.7 倍程度が目安。溶接しすぎはひずみとコストのもとです。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>図面ビュー</b> で図面環境を開きます。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
+          { text: "<b>溶接記号</b> を選び、正面図のボスと板の角 (つなぎ目) をクリック → 基線の位置をクリックします。種類 <b>隅肉</b>、脚長 <b>6</b> にして OK を押します。", tab: "drawing", ui: "dw-weld", check: (s) => annos(s, "weld").length >= 1, hint: "ボスと板が別部品の溶接構造だと考えて記入してみましょう。" },
+          { text: "もう一度 <b>溶接記号</b> で別の角に記入し、今度は <b>全周溶接</b> にチェックを入れます (ボスの周りを 1 周溶接する指示)。", tab: "drawing", ui: "dw-weld", check: (s) => annos(s, "weld").some((a) => a.type === "weld" && a.allAround) },
+          { text: "<b>モデルに戻る</b> で 3D に戻ります。レッスン完了です。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
+        ],
+        summary: ["溶接記号 = 矢 + 基線 + 記号 + 寸法", "矢の側か反対側かは記号の位置で区別", "全周 (○) と現場溶接 (旗) の補助記号"],
+        quiz: [
+          { q: "隅肉溶接の記号の形は?", choices: ["直角三角形", "円", "V 字"], answer: 0, explain: "隅肉溶接は直角三角形の記号です。V 字は V 形開先溶接です。" },
+          { q: "矢と基線の交点に描く小さな丸の意味は?", choices: ["現場溶接", "全周溶接", "スポット溶接"], answer: 1, explain: "交点の丸は全周溶接、旗は現場溶接を表します。" },
+        ],
+        see: ["weld-symbols", "symbols"],
+      },
+      {
+        id: "6-11",
+        title: "モデル変更と図面の連動 — 設計変更に強い図面",
+        minutes: 12,
+        level: 2,
+        goals: ["モデルを変えると図面が自動で更新されることを確かめる", "設計変更のあとに図面で確認すべき点がわかる", "版 (リビジョン) を上げて変更を記録できる"],
+        theory: `
+<p>3D CAD の図面は<b>モデルから生成</b>されているので、モデルを変えるとビューも寸法の値も追従します。ただし自動で済まないこともあります。</p>
+<ul>
+  <li>寸法が<b>消えた形状</b>を参照していないか (穴を消したら穴の寸法も消える)</li>
+  <li>寸法・注記が<b>重なっていないか</b> (寸法を整列で整える)</li>
+  <li>図番はそのまま、<b>版 (リビジョン)</b> を上げて変更内容を記録する</li>
+</ul>
+<p>改訂の記録 (いつ・誰が・何を・なぜ) は、現場の古い図面との取り違えを防ぐ大切な情報です。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>図面ビュー</b> で図面環境を開き、<b>自動寸法</b> で寸法を入れます。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && dims(s).length >= 1 },
+          { text: "<b>モデルに戻る</b> で 3D に戻ります。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
+          { text: "<b>3D モデル</b>タブの <b>パラメータ</b> (fx) で、ユーザ パラメータ <b>幅</b> を <code>100</code> に変更します。", tab: "model", ui: "params", check: (s) => near(s.values.get("幅"), 100) },
+          { text: "パラメータを閉じて、もう一度 <b>管理</b> → <b>図面ビュー</b> を開きます。ビューと寸法の値が新しい幅に更新されていることを確認しましょう。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && s.command === null },
+          { text: "<b>シート設定</b> を開き、表題欄の<b>版</b>に「B」、<b>図番</b>に「BR-001」を入力して OK を押します。", tab: "drawing", ui: "dw-sheet", check: (s) => !!drawing(s)?.title.revision.trim() && !!drawing(s)?.title.number.trim() },
+          { text: "<b>寸法を整列</b> を押して寸法の重なりを整え、<b>モデルに戻る</b> で終了します。レッスン完了です。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
+        ],
+        summary: ["図面はモデルから生成 — 形状変更は自動で反映", "変更後は寸法の欠落・重なりを確認", "図番は変えず版を上げて改訂を記録"],
+        quiz: [
+          { q: "部品の寸法を変更したとき、図面で行うことは?", choices: ["図番を新しくする", "版を上げて変更を記録する", "何もしない"], answer: 1, explain: "互換性のある変更なら図番はそのまま、版 (A→B) を上げて改訂欄に内容を記録します。互換性がなくなる変更は図番を変えるのが一般的です。" },
+          { q: "モデルの穴を削除すると、その穴の寸法は?", choices: ["参照先がなくなるので確認が必要", "自動で別の穴に付け替わる", "そのまま残る"], answer: 0, explain: "参照していた形状が消えると寸法も消えたり外れたりします。変更後は必ず図面を見直します。" },
+        ],
+        see: ["design-change", "3d-data-management", "drawing"],
+      },
+      {
+        id: "6-12",
+        title: "図面の出力と受け渡し — PDF・DXF・SVG",
+        minutes: 8,
+        level: 1,
+        goals: ["表題欄を完成させられる", "用途に合わせて PDF・DXF・SVG を使い分けられる"],
+        theory: `
+<table class="ln-table">
+  <tr><th>形式</th><th>中身</th><th>使い道</th></tr>
+  <tr><td><b>PDF</b></td><td>ベクター図面 (見る・印刷する)</td><td>見積・発注・承認・保管。相手の CAD を問わない</td></tr>
+  <tr><td><b>DXF</b></td><td>2D CAD データ (線・円・文字)</td><td>2D CAD での修正、レーザー・ワイヤ加工の外形データ</td></tr>
+  <tr><td><b>SVG</b></td><td>Web 用のベクター画像</td><td>マニュアル・Web ページ・プレゼン資料</td></tr>
+</table>
+<p>外注に出すときは <b>PDF (正式な指示) + STEP (3D 形状)</b> の組が基本です。データと図面の版が一致していることを必ず確認しましょう。</p>`,
+        setup: { kind: "part", make: sampleDocument },
+        steps: [
+          { text: "<b>管理</b>タブの <b>図面ビュー</b> で図面環境を開きます。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
+          { text: "<b>シート設定</b> で表題欄の<b>名称</b>・<b>図番</b>・<b>材料</b>・<b>設計者</b>を埋めます。", tab: "drawing", ui: "dw-sheet", check: (s) => { const t = drawing(s)?.title; return !!t && [t.title, t.number, t.material, t.designer].every((x) => !!x?.trim()); } },
+          { text: "<b>DXF</b> で書き出してみましょう (2D CAD やレーザー加工の外形データ用)。", tab: "drawing", ui: "dw-dxf" },
+          { text: "<b>PDF</b> で全シートを書き出します。", tab: "drawing", ui: "dw-pdf" },
+          { text: "<b>モデルに戻る</b> で 3D に戻ります。レッスン完了です。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
+        ],
+        summary: ["PDF = 正式な指示書、DXF = 2D CAD・加工データ、SVG = 資料用", "外注は PDF 図面 + STEP の組で", "図面とデータの版を一致させる"],
+        quiz: [
+          { q: "レーザー切断業者に外形データを渡すのに適した形式は?", choices: ["DXF", "JPEG", "Word"], answer: 0, explain: "DXF は線と円弧の正確な 2D データなので、加工機の CAM に取り込めます。" },
+          { q: "外注で正式な指示として扱われるのは?", choices: ["図面 (PDF)", "口頭の説明", "画面のスクリーンショット"], answer: 0, explain: "寸法・公差・材料・仕上げは図面が正式な指示書です。3D データは形状の参考として添えるのが一般的です。" },
+        ],
+        see: ["design-docs", "2d-data", "drawing"],
+      },
+    ],
+  },
   // ------------------------------------------------------------------ 7 ---
   {
     id: "verify",
@@ -1496,6 +1658,47 @@ export const EXERCISES: Exercise[] = [
       { text: "表題欄 (名称・図番・材料・設計者・普通公差) が記入されている", check: (s) => { const t = drawing(s)?.title; return !!t && [t.title, t.number, t.material, t.designer, t.generalTol].every((x) => !!x?.trim()); } },
     ],
     tips: ["まず自動寸法で骨組みを入れ、不要な寸法を消してから機能寸法に公差を付けると早く仕上がります", "データムは相手部品と接する取付面に置くのが基本です", "第 6 章 (続) のレッスン 6-2〜6-6 で各道具の使い方を復習できます"],
+  },
+  {
+    id: "ex-asmdrawing",
+    title: "演習 10: 製図 — 組立図と部品図のセット",
+    level: 2,
+    brief: "アセンブリ (演習 3 の小物ケースや、レッスン 5-1 のピン組立など) の図面一式を仕上げます。アセンブリを開いた状態で「今のモデルでチェック」を押します。",
+    spec: [
+      ["組立図", "正面・側面などの投影ビュー + 部品表 + 風船"],
+      ["部品図", "図面セットで部品ごとのシートを作り、それぞれに寸法"],
+      ["表題欄", "名称・図番・設計者・日付"],
+    ],
+    requirements: [
+      { text: "アセンブリの図面である", check: (s) => s.drawingSource === "assembly" || (!!s.asm.drawing && !s.part.drawing) },
+      { text: "部品表を表示している", check: (s) => (drawing(s)?.sheets ?? []).some((sh) => !!sh.partsList) },
+      { text: "風船が部品数以上ある", check: (s) => annos(s, "balloon").length >= 2 },
+      { text: "シートが 2 枚以上 (組立図 + 部品図)", check: (s) => (drawing(s)?.sheets.length ?? 0) >= 2 },
+      { text: "寸法が 6 個以上ある", check: (s) => dims(s).length >= 6 },
+      { text: "表題欄 (名称・図番・設計者・日付) が記入されている", check: (s) => { const t = drawing(s)?.title; return !!t && [t.title, t.number, t.designer, t.date].every((x) => !!x?.trim()); } },
+    ],
+    tips: ["「図面セット」で部品図を一括作成すると、各シートに寸法も自動で入ります", "組立図の寸法は外形・取付寸法など組立に必要なものだけにします", "レッスン 6-7 で手順を復習できます"],
+  },
+  {
+    id: "ex-plate-drawing",
+    title: "演習 11: 製図 — 穴の多いプレートの NC 加工用図面",
+    level: 2,
+    brief: "穴の多い取付プレートを設計し、NC 加工に渡す図面を作ります。穴位置は 1 つの原点からの座標で指示します。",
+    spec: [
+      ["形状", "100 × 80 程度の板、板厚 6〜10、穴 6 個以上 (2 種類以上の径)"],
+      ["寸法", "座標寸法 または 穴テーブル で穴位置を指示"],
+      ["公差", "位置決め穴 1 つにはめあい (H7)"],
+      ["幾何公差", "データム A (取付面) と位置度または平行度"],
+      ["表題欄", "名称・図番・材料・普通公差"],
+    ],
+    requirements: [
+      { text: "穴フィーチャが 2 つ以上ある", check: (s) => features(s, "hole").length >= 2 },
+      { text: "図面に座標寸法または穴テーブルがある", check: (s) => annos(s, "ordinate").length + annos(s, "holetable").length >= 1 },
+      { text: "はめあい公差の寸法がある", check: (s) => tolDims(s, "fit").length >= 1 },
+      { text: "データムと幾何公差がある", check: (s) => annos(s, "datum").length >= 1 && annos(s, "gdt").length >= 1 },
+      { text: "表題欄 (名称・図番・材料・普通公差) が記入されている", check: (s) => { const t = drawing(s)?.title; return !!t && [t.title, t.number, t.material, t.generalTol].every((x) => !!x?.trim()); } },
+    ],
+    tips: ["穴は矩形状パターンで並べると、変更にも強くなります", "原点は加工の基準になる角に置きます", "レッスン 6-3・6-4・6-6 を復習しましょう"],
   },
 ];
 
