@@ -647,9 +647,9 @@ export function filletWeld(leg: number, length: number, F: number, lines: number
 
 // ------------------------------------------------------------------ wire ---
 
-/** Copper wire: resistance (Ω), voltage drop (V, two-way), drop ratio and loss (W). ρ = 0.0178 Ω·mm²/m at 20 °C. */
+/** Copper wire: resistance (Ω), voltage drop (V, two-way), drop ratio and loss (W). ρ = 0.0172 Ω·mm²/m (annealed copper, 20 °C). */
 export function wireDrop(I: number, lengthM: number, area: number, V: number) {
-  const R = (0.0178 * 2 * lengthM) / area;
+  const R = (0.0172 * 2 * lengthM) / area;
   const dV = I * R;
   return { R, dV, ratio: dV / V, loss: I * I * R };
 }
