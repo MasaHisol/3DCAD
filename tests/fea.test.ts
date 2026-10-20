@@ -202,6 +202,6 @@ describe("disconnected bodies", () => {
     const idx = [...a.mesh.indices, ...b.mesh.indices.map((i) => i + 8)];
     const mesh = { positions: pos, indices: idx };
     const bc = { fixed: [a.faces.xmin], loads: [{ tris: b.faces.xmax.map((t) => t + 12), force: [0, -100, 0] as [number, number, number] }] };
-    expect(() => solveFea(mesh, bc, steel, { resolution: 20 })).toThrow(/固定拘束につながっていない/);
+    expect(() => solveFea(mesh, bc, steel, { resolution: 20 })).toThrow(/固定拘束につながっていません/);
   });
 });

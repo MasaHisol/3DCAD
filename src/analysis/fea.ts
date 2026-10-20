@@ -626,27 +626,6 @@ export function assembleLoads(G: FeaGrid, bc: FeaBoundary, mat: FeaMaterial, opt
         }
   }
   if (!fixedNodes) throw new Error("固定拘束の面に節点がありません (解像度を上げてください)");
-  // every element must be held (through its neighbours) by a support, otherwise the system is singular
-  // (e.g. an assembly part that does not touch the others gets the load and the result silently reads 0)
-  {
-    const parent = new Int32Array(nNodes).map((_, i) => i);
-    const find = (a: number): number => {
-      while (parent[a] !== a) a = parent[a] = parent[parent[a]];
-      return a;
-    };
-    for (let e = 0; e < ne; e++) {
-      const r = find(conn[e * 8]);
-      for (let k = 1; k < 8; k++) {
-        const q = find(conn[e * 8 + k]);
-        if (q !== r) parent[q] = r;
-      }
-    }
-    const held = new Set<number>();
-    for (let n = 0; n < nNodes; n++) if (fixed[n]) held.add(find(n));
-    for (let e = 0; e < ne; e++)
-      if (!held.has(find(conn[e * 8])))
-        throw new Error("固定拘束につながっていない部分があります (部品が離れているか、固定面のない部品があります)。部品同士が接触しているか、各部品に固定面があるか確認してください");
-  }
 
   // ---- loads: integrate the traction over each triangle and lump it on the nearest face nodes
   const F = new Float64Array(nNodes * 3);
@@ -760,6 +739,28 @@ export function assembleLoads(G: FeaGrid, bc: FeaBoundary, mat: FeaMaterial, opt
     }
   }
   if (!loadedNodes && !bc.gravity && !bc.thermal && !bc.submodel) throw new Error("荷重の面に節点がありません");
+  // a load (or self weight) on a part that no support holds makes the system singular:
+  // the result would silently read 0 (e.g. an assembly part that touches nothing).
+  // Unloaded free parts are harmless (they stay at rest), so only loaded ones are refused.
+  {
+    const parent = new Int32Array(nNodes).map((_, i) => i);
+    const find = (a: number): number => {
+      while (parent[a] !== a) a = parent[a] = parent[parent[a]];
+      return a;
+    };
+    for (let e = 0; e < ne; e++) {
+      const r = find(conn[e * 8]);
+      for (let k = 1; k < 8; k++) {
+        const q = find(conn[e * 8 + k]);
+        if (q !== r) parent[q] = r;
+      }
+    }
+    const held = new Set<number>();
+    for (let n = 0; n < nNodes; n++) if (fixed[n]) held.add(find(n));
+    for (let n = 0; n < nNodes; n++)
+      if ((F[n * 3] || F[n * 3 + 1] || F[n * 3 + 2]) && !held.has(find(n)))
+        throw new Error("荷重のかかる部分が固定拘束につながっていません (部品が離れているか、固定面のない部品に荷重がかかっています)。部品同士が接触しているか確認してください");
+  }
   return { fixed, fixedNodes, F, loadedNodes, gaussDT, prescribed };
 }
 
