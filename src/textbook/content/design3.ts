@@ -11,15 +11,8 @@ export const DESIGN3: TextChapter[] = [
     body: `
 <h2>基本立体が持つ印象</h2>
 <p>多くの製品は、箱 (直方体)・円柱・球の組合せや変形でできています。まず基本立体そのものの印象をつかみましょう。</p>
-<svg class="tb-chart" viewBox="0 0 520 190" aria-label="箱・円柱・球の印象">
-  <path d="M40,70 L110,70 L110,140 L40,140 Z M40,70 L65,50 L135,50 L110,70 M135,50 L135,120 L110,140" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <ellipse cx="260" cy="55" rx="40" ry="12" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2"/>
-  <path d="M220,55 L220,135 A40,12 0 0 0 300,135 L300,55" fill="none" stroke="currentColor" stroke-width="2"/>
-  <circle cx="420" cy="95" r="45" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2"/>
-  <ellipse cx="405" cy="78" rx="12" ry="8" fill="var(--tb-accent)" opacity="0.4"/>
-  <text class="lbl" x="88" y="170" text-anchor="middle">箱: 安定・実直・収納</text>
-  <text class="lbl" x="260" y="170" text-anchor="middle">円柱: 方向性・回す・握る</text>
-  <text class="lbl" x="420" y="170" text-anchor="middle">球: 柔らかい・親しみ・転がる</text>
+<svg class="tb-chart" viewBox="0 0 520 186" role="img" aria-label="箱・円柱・球の印象">
+<ellipse cx="92" cy="146" rx="62" ry="5" style="fill:var(--tb-text)" opacity="0.13"/><ellipse cx="260" cy="146" rx="50" ry="5" style="fill:var(--tb-text)" opacity="0.13"/><ellipse cx="420" cy="146" rx="44" ry="5" style="fill:var(--tb-text)" opacity="0.13"/><g class="k-shadow"><polygon points="40,70 65,48 145,48 120,70" style="fill:var(--k-steel-1);stroke:var(--k-line)" stroke-width="1.6" stroke-linejoin="round"/><polygon points="40,70 120,70 120,142 40,142" style="fill:var(--k-steel-2);stroke:var(--k-line)" stroke-width="1.6" stroke-linejoin="round"/><polygon points="120,70 145,48 145,120 120,142" style="fill:var(--k-steel-3);stroke:var(--k-line)" stroke-width="1.6" stroke-linejoin="round"/></g><g class="k-shadow"><path class="k-part-h" d="M220,52 L220,132 A40,12 0 0 0 300,132 L300,52 Z"/></g><ellipse cx="260" cy="52" rx="40" ry="12" style="fill:var(--k-steel-1);stroke:var(--k-line)" stroke-width="1.6"/><path d="M232,64 L232,136" fill="none" style="stroke:#ffffff" stroke-width="2.2" opacity="0.6"/><g class="k-shadow"><circle class="k-sphere" cx="420" cy="96" r="46"/></g><ellipse cx="404" cy="78" rx="12" ry="8" fill="#ffffff" opacity="0.7"/><text class="lbl" x="92" y="172" text-anchor="middle">箱: 安定・実直・収納</text><text class="lbl" x="260" y="172" text-anchor="middle">円柱: 方向性・回す・握る</text><text class="lbl" x="420" y="172" text-anchor="middle">球: 柔らかい・親しみ・転がる</text>
 </svg>
 <p class="tb-caption">図: 基本立体の印象。製品の役割に合った立体を骨格に選ぶ</p>
 <table class="tb-table">
@@ -30,15 +23,8 @@ export const DESIGN3: TextChapter[] = [
 </table>
 <h2>面取りと R — 角の表情</h2>
 <p>角の処理は印象を大きく左右します。<b>面取り (C)</b> は角を平面で落とし、<b>R (フィレット)</b> は円弧でつなぎます。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="ピン角・面取り・小R・大R">
-  <path d="M30,130 L30,40 L110,40" fill="none" stroke="currentColor" stroke-width="3"/>
-  <path d="M150,130 L150,60 L170,40 L230,40" fill="none" stroke="currentColor" stroke-width="3"/>
-  <path d="M270,130 L270,52 A12,12 0 0 1 282,40 L350,40" fill="none" stroke="currentColor" stroke-width="3"/>
-  <path d="M390,130 L390,90 A50,50 0 0 1 440,40 L490,40" fill="none" stroke="var(--tb-accent)" stroke-width="3"/>
-  <text class="lbl" x="70" y="155" text-anchor="middle">ピン角: 鋭い・危険</text>
-  <text class="lbl" x="190" y="155" text-anchor="middle">面取り: 硬質・精密</text>
-  <text class="lbl" x="310" y="155" text-anchor="middle">小 R: 端正</text>
-  <text class="lbl" x="440" y="155" text-anchor="middle">大 R: やさしい</text>
+<svg class="tb-chart" viewBox="0 0 520 172" role="img" aria-label="ピン角・面取り・小R・大R">
+<g class="k-shadow"><path class="k-alu" d="M24,136 L24,40 L110,40 L110,136 Z"/></g><text class="lbl" x="67" y="160" text-anchor="middle">ピン角: 鋭い・危険</text><g class="k-shadow"><path class="k-alu" d="M150,136 L150,60 L170,40 L236,40 L236,136 Z"/></g><text class="lbl" x="193" y="160" text-anchor="middle">面取り: 硬質・精密</text><g class="k-shadow"><path class="k-alu" d="M274,136 L274,52 A12,12 0 0 1 286,40 L360,40 L360,136 Z"/></g><text class="lbl" x="317" y="160" text-anchor="middle">小 R: 端正</text><g class="k-shadow"><path class="k-accent" d="M394,136 L394,90 A50,50 0 0 1 444,40 L496,40 L496,136 Z"/></g><text class="lbl" x="445" y="160" text-anchor="middle">大 R: やさしい</text><path d="M150,60 L170,40" style="stroke:#ffffff" stroke-width="5" opacity="0.9"/><path d="M150,60 L170,40" style="stroke:var(--k-line)" stroke-width="1.6" fill="none"/><path d="M277,52 A9,9 0 0 1 286,43" fill="none" style="stroke:#ffffff" stroke-width="2.4" opacity="0.9"/><path d="M399,90 A45,45 0 0 1 444,45" fill="none" style="stroke:#ffffff" stroke-width="8" opacity="0.35"/><circle cx="24" cy="40" r="7" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.6"/><path class="k-thin" d="M160,50 L200,24" marker-start="url(#k-dot)"/><text class="k-note" x="204" y="28">光る細い帯</text><path class="k-thin" d="M410,62 L380,24" marker-start="url(#k-dot)"/><text class="k-note" x="376" y="28" text-anchor="end">なだらかな光</text>
 </svg>
 <p class="tb-caption">図: 同じ角でも処理で性格が変わる。面取りには光る細い帯ができ、R は光がなだらかに変わる</p>
 <ul>
@@ -48,35 +34,14 @@ export const DESIGN3: TextChapter[] = [
 </ul>
 <h2>エッジの立て方</h2>
 <p>同じ R でも、<b>どの面を主役にするか</b>でエッジの効き方が変わります。正面の大きな面に小さな R をつけて側面との境を立てると、正面が「顔」として際立ちます。</p>
-<svg class="tb-chart" viewBox="0 0 520 160" aria-label="エッジを立てる・寝かせる">
-  <rect x="40" y="30" width="180" height="90" rx="4" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2.5"/>
-  <rect x="300" y="30" width="180" height="90" rx="30" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-  <line x1="44" y1="32" x2="216" y2="32" stroke="var(--tb-accent)" stroke-width="2"><animate attributeName="opacity" values="1;0.2;1" dur="3s" repeatCount="indefinite"/></line>
-  <text class="lbl" x="130" y="145" text-anchor="middle">エッジを立てる: シャープ・輪郭明快</text>
-  <text class="lbl" x="390" y="145" text-anchor="middle">エッジを寝かせる: 柔らか・輪郭があいまい</text>
+<svg class="tb-chart" viewBox="0 0 520 158" role="img" aria-label="エッジを立てる・寝かせる">
+<defs><linearGradient id="dz-soft" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2f5f9"/><stop offset="0.5" stop-color="#cfd6df"/><stop offset="1" stop-color="#a3adba"/></linearGradient></defs><ellipse cx="130" cy="126" rx="92" ry="4" style="fill:var(--tb-text)" opacity="0.13"/><ellipse cx="390" cy="126" rx="92" ry="4" style="fill:var(--tb-text)" opacity="0.13"/><g class="k-shadow"><rect class="k-alu" x="40" y="30" width="180" height="92" rx="4"/></g><g class="k-shadow"><rect x="300" y="30" width="180" height="92" rx="30" style="fill:url(#dz-soft);stroke:var(--k-line-2)" stroke-width="1"/></g><line x1="44" y1="33" x2="216" y2="33" style="stroke:var(--tb-accent)" stroke-width="2.4"><animate attributeName="opacity" values="1;0.2;1" dur="3s" repeatCount="indefinite"/></line><line x1="42.5" y1="36" x2="42.5" y2="118" style="stroke:#ffffff" stroke-width="1.6" opacity="0.8"/><rect x="312" y="38" width="156" height="30" rx="15" fill="#ffffff" opacity="0.35"/><text class="lbl" x="130" y="146" text-anchor="middle">エッジを立てる: シャープ・輪郭明快</text><text class="lbl" x="390" y="146" text-anchor="middle">エッジを寝かせる: 柔らか・輪郭があいまい</text>
 </svg>
 <p class="tb-caption">図: 小 R のエッジは光る線 (色の線) として輪郭を描く。大 R は輪郭がぼける</p>
 <h2>ゲシュタルトの原則 — 人はまとまりを見つける</h2>
 <p>人はバラバラの要素を、自動的に<b>グループ</b>として見ます。この性質を利用すると、ボタンの配置や分割線だけで「何と何が関係しているか」を伝えられます。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="近接・類同・閉合・連続">
-  <g fill="currentColor">
-    <circle cx="30" cy="50" r="7"/><circle cx="50" cy="50" r="7"/><circle cx="30" cy="70" r="7"/><circle cx="50" cy="70" r="7"/>
-    <circle cx="90" cy="50" r="7"/><circle cx="110" cy="50" r="7"/><circle cx="90" cy="70" r="7"/><circle cx="110" cy="70" r="7"/>
-  </g>
-  <g>
-    <circle cx="160" cy="50" r="7" fill="currentColor"/><circle cx="180" cy="50" r="7" fill="var(--tb-accent)"/><circle cx="200" cy="50" r="7" fill="currentColor"/><circle cx="220" cy="50" r="7" fill="var(--tb-accent)"/>
-    <circle cx="160" cy="70" r="7" fill="currentColor"/><circle cx="180" cy="70" r="7" fill="var(--tb-accent)"/><circle cx="200" cy="70" r="7" fill="currentColor"/><circle cx="220" cy="70" r="7" fill="var(--tb-accent)"/>
-  </g>
-  <g fill="none" stroke="currentColor" stroke-width="3">
-    <path d="M290,40 L340,40"/><path d="M350,40 L350,80"/><path d="M340,90 L290,90"/><path d="M280,80 L280,50"/>
-  </g>
-  <path d="M400,90 C430,20 460,110 500,40" fill="none" stroke="currentColor" stroke-width="3"/>
-  <path d="M400,40 C440,60 470,70 500,90" fill="none" stroke="var(--tb-accent)" stroke-width="3"/>
-  <text class="lbl" x="70" y="120" text-anchor="middle">近接</text><text class="tick" x="70" y="138" text-anchor="middle">近いものは仲間</text>
-  <text class="lbl" x="190" y="120" text-anchor="middle">類同</text><text class="tick" x="190" y="138" text-anchor="middle">同じ色・形は仲間</text>
-  <text class="lbl" x="315" y="120" text-anchor="middle">閉合</text><text class="tick" x="315" y="138" text-anchor="middle">すき間があっても四角</text>
-  <text class="lbl" x="450" y="120" text-anchor="middle">連続</text><text class="tick" x="450" y="138" text-anchor="middle">なめらかな線は 1 本</text>
-  <text class="lbl" x="260" y="180" text-anchor="middle">製品では: ボタンの群・色分け・分割線の流れで関係を伝える</text>
+<svg class="tb-chart" viewBox="0 0 520 192" role="img" aria-label="近接・類同・閉合・連続">
+<rect class="k-panel" x="8" y="8" width="120" height="146" rx="8"/><rect class="k-panel" x="136" y="8" width="120" height="146" rx="8"/><rect class="k-panel" x="264" y="8" width="120" height="146" rx="8"/><rect class="k-panel" x="392" y="8" width="120" height="146" rx="8"/><circle cx="36" cy="46" r="7" style="fill:var(--k-line)"/><circle cx="56" cy="46" r="7" style="fill:var(--k-line)"/><circle cx="36" cy="66" r="7" style="fill:var(--k-line)"/><circle cx="56" cy="66" r="7" style="fill:var(--k-line)"/><circle cx="84" cy="46" r="7" style="fill:var(--k-line)"/><circle cx="104" cy="46" r="7" style="fill:var(--k-line)"/><circle cx="84" cy="66" r="7" style="fill:var(--k-line)"/><circle cx="104" cy="66" r="7" style="fill:var(--k-line)"/><circle cx="164" cy="46" r="7" style="fill:var(--k-line)"/><circle cx="164" cy="66" r="7" style="fill:var(--k-line)"/><circle cx="184" cy="46" r="7" style="fill:var(--tb-accent)"/><circle cx="184" cy="66" r="7" style="fill:var(--tb-accent)"/><circle cx="204" cy="46" r="7" style="fill:var(--k-line)"/><circle cx="204" cy="66" r="7" style="fill:var(--k-line)"/><circle cx="224" cy="46" r="7" style="fill:var(--tb-accent)"/><circle cx="224" cy="66" r="7" style="fill:var(--tb-accent)"/><g fill="none" style="stroke:var(--k-line)" stroke-width="3"><path d="M290,36 L330,36"/><path d="M340,42 L340,74"/><path d="M330,82 L290,82"/><path d="M280,74 L280,44"/></g><path d="M396,82 C420,20 450,100 492,40" fill="none" style="stroke:var(--k-line)" stroke-width="3"/><path d="M396,40 C432,56 460,66 492,84" fill="none" style="stroke:var(--tb-accent)" stroke-width="3"/><text class="lbl" x="68" y="120" text-anchor="middle">近接</text><text class="tick" x="68" y="138" text-anchor="middle">近いものは仲間</text><text class="lbl" x="196" y="120" text-anchor="middle">類同</text><text class="tick" x="196" y="138" text-anchor="middle">同じ色・形は仲間</text><text class="lbl" x="324" y="120" text-anchor="middle">閉合</text><text class="tick" x="324" y="138" text-anchor="middle">すき間があっても四角</text><text class="lbl" x="452" y="120" text-anchor="middle">連続</text><text class="tick" x="452" y="138" text-anchor="middle">なめらかな線は 1 本</text><text class="lbl" x="260" y="180" text-anchor="middle">製品では: ボタンの群・色分け・分割線の流れで関係を伝える</text>
 </svg>
 <p class="tb-caption">図: ゲシュタルトの 4 原則。左から近接・類同・閉合・連続</p>
 <ul>
@@ -85,15 +50,8 @@ export const DESIGN3: TextChapter[] = [
   <li><b>閉合</b>: 分割線が途中で切れていても、人は 1 つの面として補って見る</li>
   <li><b>連続</b>: 窓の縁・分割線・ボタン列を 1 本の流れに乗せると、全体が整う</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="リモコンの配置の前後比較">
-  <rect x="60" y="20" width="110" height="130" rx="14" fill="none" stroke="currentColor" stroke-width="2"/>
-  <g fill="var(--tb-text-3)"><circle cx="85" cy="45" r="8"/><circle cx="120" cy="55" r="8"/><circle cx="145" cy="40" r="8"/><circle cx="90" cy="90" r="8"/><circle cx="135" cy="85" r="8"/><circle cx="110" cy="125" r="8"/></g>
-  <rect x="330" y="20" width="110" height="130" rx="14" fill="none" stroke="currentColor" stroke-width="2"/>
-  <circle cx="415" cy="42" r="8" fill="var(--tb-bad)"/>
-  <g fill="var(--tb-accent)"><circle cx="365" cy="80" r="8"/><circle cx="365" cy="105" r="8"/></g>
-  <g fill="var(--tb-text-3)"><circle cx="405" cy="80" r="8"/><circle cx="405" cy="105" r="8"/></g>
-  <text class="lbl" x="115" y="166" text-anchor="middle">前: ばらばら</text>
-  <text class="lbl" x="385" y="166" text-anchor="middle">後: 近接 + 類同でグループ化</text>
+<svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="リモコンの配置の前後比較">
+<defs><linearGradient id="dz-rm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4a5260"/><stop offset="1" stop-color="#22272f"/></linearGradient></defs><rect class="k-panel" x="8" y="8" width="248" height="198" rx="8"/><rect class="k-panel" x="264" y="8" width="248" height="198" rx="8"/><circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">前: ばらばら</text><circle class="k-badge" cx="284" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="284" y="32" text-anchor="middle">✓</text><text class="k-title" x="302" y="32">後: グループ化</text><g class="k-shadow"><rect x="77" y="42" width="110" height="138" rx="18" style="fill:url(#dz-rm);stroke:#11151a" stroke-width="1.4"/></g><path d="M95,46 L169,46" fill="none" style="stroke:#ffffff" stroke-width="1.4" opacity="0.5"/><g class="k-shadow"><rect x="333" y="42" width="110" height="138" rx="18" style="fill:url(#dz-rm);stroke:#11151a" stroke-width="1.4"/></g><path d="M351,46 L425,46" fill="none" style="stroke:#ffffff" stroke-width="1.4" opacity="0.5"/><circle cx="102" cy="67" r="8" style="fill:#9aa3b0;stroke:#11151a" stroke-width="1"/><circle cx="100" cy="64" r="3" fill="#ffffff" opacity="0.35"/><circle cx="137" cy="77" r="8" style="fill:#9aa3b0;stroke:#11151a" stroke-width="1"/><circle cx="135" cy="74" r="3" fill="#ffffff" opacity="0.35"/><circle cx="162" cy="62" r="8" style="fill:#9aa3b0;stroke:#11151a" stroke-width="1"/><circle cx="160" cy="59" r="3" fill="#ffffff" opacity="0.35"/><circle cx="107" cy="112" r="8" style="fill:#9aa3b0;stroke:#11151a" stroke-width="1"/><circle cx="105" cy="109" r="3" fill="#ffffff" opacity="0.35"/><circle cx="152" cy="107" r="8" style="fill:#9aa3b0;stroke:#11151a" stroke-width="1"/><circle cx="150" cy="104" r="3" fill="#ffffff" opacity="0.35"/><circle cx="127" cy="147" r="8" style="fill:#9aa3b0;stroke:#11151a" stroke-width="1"/><circle cx="125" cy="144" r="3" fill="#ffffff" opacity="0.35"/><circle cx="413" cy="64" r="8" style="fill:var(--tb-bad);stroke:#11151a" stroke-width="1"/><circle cx="411" cy="61" r="3" fill="#ffffff" opacity="0.35"/><rect x="349" y="86" width="40" height="60" rx="10" fill="none" style="stroke:var(--tb-accent)" stroke-width="1.2" stroke-dasharray="3 2"/><circle cx="369" cy="102" r="8" style="fill:var(--tb-accent);stroke:#11151a" stroke-width="1"/><circle cx="367" cy="99" r="3" fill="#ffffff" opacity="0.35"/><circle cx="369" cy="128" r="8" style="fill:var(--tb-accent);stroke:#11151a" stroke-width="1"/><circle cx="367" cy="125" r="3" fill="#ffffff" opacity="0.35"/><circle cx="411" cy="102" r="8" style="fill:#9aa3b0;stroke:#11151a" stroke-width="1"/><circle cx="409" cy="99" r="3" fill="#ffffff" opacity="0.35"/><circle cx="411" cy="128" r="8" style="fill:#9aa3b0;stroke:#11151a" stroke-width="1"/><circle cx="409" cy="125" r="3" fill="#ffffff" opacity="0.35"/><text class="k-note" x="456" y="68">電源</text><text class="k-note" x="388" y="202" text-anchor="middle">近接 + 類同でグループ化</text>
 </svg>
 <p class="tb-caption">図: 同じ 6 個 (後は 5 個) のボタンでも、配置と色で使い方が読み取れるようになる</p>
 <div class="tb-tip"><b>3DCAD Studio</b>: 同じ箱にフィレットと面取りをそれぞれかけ、リアル表示で光の映り方を見比べてみましょう。R の値をパラメータにしておくと、印象の変化を素早く試せます。</div>`,
@@ -126,20 +84,8 @@ export const DESIGN3: TextChapter[] = [
     body: `
 <h2>グリッドで考える</h2>
 <p>グリッドは、要素を置く位置の「マス目」です。先に余白 (マージン) と列 (カラム) の幅を決め、ボタン・表示窓・ロゴをその線に合わせて置きます。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="グリッドなしとグリッドありの操作パネル">
-  <rect x="20" y="20" width="220" height="140" rx="10" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="38" y="34" width="120" height="44" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <circle cx="200" cy="52" r="12" fill="none" stroke="currentColor"/>
-  <g fill="none" stroke="currentColor"><rect x="45" y="100" width="34" height="22"/><rect x="95" y="94" width="34" height="22"/><rect x="152" y="104" width="34" height="22"/></g>
-  <text class="tick" x="185" y="148">ロゴ</text>
-  <rect x="280" y="20" width="220" height="140" rx="10" fill="none" stroke="currentColor" stroke-width="2"/>
-  <g class="guide"><line x1="300" y1="20" x2="300" y2="160"/><line x1="480" y1="20" x2="480" y2="160"/><line x1="360" y1="20" x2="360" y2="160"/><line x1="420" y1="20" x2="420" y2="160"/><line x1="280" y1="40" x2="500" y2="40"/><line x1="280" y1="140" x2="500" y2="140"/></g>
-  <rect x="300" y="40" width="120" height="44" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <circle cx="450" cy="62" r="12" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <g fill="none" stroke="var(--tb-accent)" stroke-width="2"><rect x="300" y="104" width="48" height="22"/><rect x="360" y="104" width="48" height="22"/><rect x="420" y="104" width="48" height="22"/></g>
-  <text class="tick" x="480" y="152" text-anchor="end">ロゴ</text>
-  <text class="lbl" x="130" y="185" text-anchor="middle">前: 位置がばらばら</text>
-  <text class="lbl" x="390" y="185" text-anchor="middle">後: 余白・列・行にそろえる</text>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="グリッドなしとグリッドありの操作パネル">
+<defs><linearGradient id="dz-scr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c3440"/><stop offset="1" stop-color="#141920"/></linearGradient></defs><rect class="k-panel" x="8" y="8" width="248" height="194" rx="8"/><rect class="k-panel" x="264" y="8" width="248" height="194" rx="8"/><circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">前: 位置がばらばら</text><circle class="k-badge" cx="284" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="284" y="32" text-anchor="middle">✓</text><text class="k-title" x="302" y="32">後: 余白・列・行にそろえる</text><g class="k-shadow"><rect class="k-alu" x="22" y="42" width="220" height="140" rx="10"/></g><g class="k-shadow"><rect class="k-alu" x="278" y="42" width="220" height="140" rx="10"/></g><rect x="40" y="56" width="120" height="44" rx="3" style="fill:url(#dz-scr)"/><circle class="k-part-h" cx="202" cy="74" r="13"/><rect class="k-plastic" x="47" y="122" width="34" height="22" rx="3" stroke-width="1.2"/><rect class="k-plastic" x="97" y="116" width="34" height="22" rx="3" stroke-width="1.2"/><rect class="k-plastic" x="154" y="126" width="34" height="22" rx="3" stroke-width="1.2"/><text class="k-note" x="187" y="170">ロゴ</text><g style="stroke:var(--tb-accent)" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.8"><line x1="298" y1="42" x2="298" y2="182"/><line x1="478" y1="42" x2="478" y2="182"/><line x1="358" y1="42" x2="358" y2="182"/><line x1="418" y1="42" x2="418" y2="182"/><line x1="278" y1="62" x2="498" y2="62"/><line x1="278" y1="162" x2="498" y2="162"/></g><rect x="298" y="62" width="120" height="44" rx="3" style="fill:url(#dz-scr)"/><circle class="k-part-h" cx="448" cy="84" r="13"/><rect class="k-plastic" x="298" y="126" width="48" height="22" rx="3" stroke-width="1.2"/><rect class="k-plastic" x="358" y="126" width="48" height="22" rx="3" stroke-width="1.2"/><rect class="k-plastic" x="418" y="126" width="48" height="22" rx="3" stroke-width="1.2"/><text class="k-note" x="478" y="176" text-anchor="end">ロゴ</text>
 </svg>
 <p class="tb-caption">図: 同じ要素でも、グリッド (点線) に合わせるだけで整然と見える</p>
 <h2>余白と整列線</h2>
@@ -151,31 +97,14 @@ export const DESIGN3: TextChapter[] = [
 </ul>
 <h2>モジュール寸法</h2>
 <p>すべての寸法を基本単位 (モジュール) の倍数にすると、要素どうしが自然にそろいます。例えば 4 mm モジュールなら、余白 8、ボタン 12、ボタン間隔 4 … のように決めます。</p>
-<svg class="tb-chart" viewBox="0 0 520 130" aria-label="モジュール寸法">
-  <g stroke="var(--tb-text-3)" stroke-width="0.5">
-    <line x1="20" y1="30" x2="500" y2="30"/><line x1="20" y1="90" x2="500" y2="90"/>
-  </g>
-  <rect x="20" y="30" width="40" height="60" fill="none" stroke="currentColor" stroke-dasharray="3 3"/>
-  <rect x="60" y="30" width="120" height="60" fill="var(--tb-accent)" opacity="0.45"/>
-  <rect x="180" y="30" width="40" height="60" fill="none" stroke="currentColor" stroke-dasharray="3 3"/>
-  <rect x="220" y="30" width="120" height="60" fill="var(--tb-accent)" opacity="0.45"/>
-  <rect x="340" y="30" width="40" height="60" fill="none" stroke="currentColor" stroke-dasharray="3 3"/>
-  <rect x="380" y="30" width="80" height="60" fill="var(--tb-accent)" opacity="0.7"/>
-  <text class="tick" x="40" y="112" text-anchor="middle">4</text><text class="tick" x="120" y="112" text-anchor="middle">12</text><text class="tick" x="200" y="112" text-anchor="middle">4</text><text class="tick" x="280" y="112" text-anchor="middle">12</text><text class="tick" x="360" y="112" text-anchor="middle">4</text><text class="tick" x="420" y="112" text-anchor="middle">8</text>
-  <text class="lbl" x="490" y="66" text-anchor="end">mm</text>
+<svg class="tb-chart" viewBox="0 0 520 134" role="img" aria-label="モジュール寸法">
+<rect x="20" y="30" width="440" height="60" fill="url(#k-dots)" opacity="0.6"/><g style="stroke:var(--tb-border)" stroke-width="0.6"><line x1="20" y1="26" x2="20" y2="94"/><line x1="40" y1="26" x2="40" y2="94"/><line x1="60" y1="26" x2="60" y2="94"/><line x1="80" y1="26" x2="80" y2="94"/><line x1="100" y1="26" x2="100" y2="94"/><line x1="120" y1="26" x2="120" y2="94"/><line x1="140" y1="26" x2="140" y2="94"/><line x1="160" y1="26" x2="160" y2="94"/><line x1="180" y1="26" x2="180" y2="94"/><line x1="200" y1="26" x2="200" y2="94"/><line x1="220" y1="26" x2="220" y2="94"/><line x1="240" y1="26" x2="240" y2="94"/><line x1="260" y1="26" x2="260" y2="94"/><line x1="280" y1="26" x2="280" y2="94"/><line x1="300" y1="26" x2="300" y2="94"/><line x1="320" y1="26" x2="320" y2="94"/><line x1="340" y1="26" x2="340" y2="94"/><line x1="360" y1="26" x2="360" y2="94"/><line x1="380" y1="26" x2="380" y2="94"/><line x1="400" y1="26" x2="400" y2="94"/><line x1="420" y1="26" x2="420" y2="94"/><line x1="440" y1="26" x2="440" y2="94"/><line x1="460" y1="26" x2="460" y2="94"/></g><g class="k-shadow"><rect class="k-accent" x="60" y="34" width="120" height="52" rx="4" opacity="0.8"/></g><g class="k-shadow"><rect class="k-accent" x="220" y="34" width="120" height="52" rx="4" opacity="0.8"/></g><g class="k-shadow"><rect class="k-accent" x="380" y="34" width="80" height="52" rx="4"/></g><text class="k-title" x="120" y="64" text-anchor="middle" style="fill:#ffffff">部品</text><text class="k-title" x="280" y="64" text-anchor="middle" style="fill:#ffffff">部品</text><text class="k-title" x="420" y="64" text-anchor="middle" style="fill:#ffffff">部品</text><line class="k-dimline" x1="20" y1="106" x2="60" y2="106"/><text class="k-dimtext" x="40" y="124" text-anchor="middle">4</text><line class="k-dimline" x1="60" y1="106" x2="180" y2="106"/><text class="k-dimtext" x="120" y="124" text-anchor="middle">12</text><line class="k-dimline" x1="180" y1="106" x2="220" y2="106"/><text class="k-dimtext" x="200" y="124" text-anchor="middle">4</text><line class="k-dimline" x1="220" y1="106" x2="340" y2="106"/><text class="k-dimtext" x="280" y="124" text-anchor="middle">12</text><line class="k-dimline" x1="340" y1="106" x2="380" y2="106"/><text class="k-dimtext" x="360" y="124" text-anchor="middle">4</text><line class="k-dimline" x1="380" y1="106" x2="460" y2="106"/><text class="k-dimtext" x="420" y="124" text-anchor="middle">8</text><text class="lbl" x="500" y="64" text-anchor="end">mm</text><text class="k-note" x="20" y="18">1 マス = 4 mm</text>
 </svg>
 <p class="tb-caption">図: 4 mm モジュールでの寸法の並び (例)。余白・部品・すき間がすべて 4 の倍数</p>
 <h2>黄金比・白銀比の実例</h2>
 <p>比率は、外形だけでなく<b>内部の分割</b>にも使えます。例えば正面を上下に分割するとき、1 : 1 で真ん中を割ると単調ですが、黄金比 (約 0.382 : 0.618) で割ると主従がはっきりします。</p>
-<svg class="tb-chart" viewBox="0 0 520 190" aria-label="中央分割と黄金比分割">
-  <rect x="40" y="20" width="180" height="130" rx="8" fill="none" stroke="currentColor" stroke-width="2"/>
-  <line x1="40" y1="85" x2="220" y2="85" stroke="var(--tb-bad)" stroke-width="2"/>
-  <rect x="300" y="20" width="180" height="130" rx="8" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="300" y="20" width="180" height="50" rx="8" fill="var(--tb-surface-2)"/>
-  <line x1="300" y1="70" x2="480" y2="70" stroke="var(--tb-good)" stroke-width="2"/>
-  <text class="tick" x="490" y="48">0.382</text><text class="tick" x="490" y="115">0.618</text>
-  <text class="lbl" x="130" y="175" text-anchor="middle">1 : 1 — どちらが主役かあいまい</text>
-  <text class="lbl" x="390" y="175" text-anchor="middle">黄金比 — 上が操作部、下が本体</text>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="中央分割と黄金比分割">
+<rect class="k-panel" x="8" y="8" width="248" height="194" rx="8"/><rect class="k-panel" x="264" y="8" width="248" height="194" rx="8"/><circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">1 : 1</text><circle class="k-badge" cx="284" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="284" y="32" text-anchor="middle">✓</text><text class="k-title" x="302" y="32">黄金比</text><g class="k-shadow"><rect class="k-alu" x="40" y="44" width="170" height="130" rx="10"/><rect class="k-alu" x="296" y="44" width="170" height="130" rx="10"/></g><line x1="40" y1="109" x2="210" y2="109" style="stroke:var(--tb-bad)" stroke-width="2.2"/><path d="M296,93.7 L466,93.7 L466,54 Q466,44 456,44 L306,44 Q296,44 296,54 Z" style="fill:var(--k-steel-3)" opacity="0.8"/><line x1="296" y1="93.7" x2="466" y2="93.7" style="stroke:var(--tb-good)" stroke-width="2.2"/><circle class="k-accent" cx="320" cy="69" r="7"/><rect x="336" y="64" width="50" height="10" rx="3" style="fill:#1f252e"/><line class="k-dimline" x1="482" y1="44" x2="482" y2="93.7"/><text class="k-dimtext" x="486" y="72.8" text-anchor="start">0.382</text><line class="k-dimline" x1="482" y1="93.7" x2="482" y2="174"/><text class="k-dimtext" x="486" y="137.8" text-anchor="start">0.618</text><line class="k-ext" x1="212" y1="44" x2="230" y2="44"/><line class="k-ext" x1="212" y1="109" x2="230" y2="109"/><line class="k-dimline" x1="226" y1="44" x2="226" y2="109"/><line class="k-ext" x1="212" y1="109" x2="230" y2="109"/><line class="k-ext" x1="212" y1="174" x2="230" y2="174"/><line class="k-dimline" x1="226" y1="109" x2="226" y2="174"/><text class="k-note" x="132" y="194" text-anchor="middle">どちらが主役かあいまい</text><text class="k-note" x="380" y="194" text-anchor="middle">上が操作部、下が本体</text>
 </svg>
 <p class="tb-caption">図: 同じ外形の正面分割の前後比較</p>
 <table class="tb-table">
@@ -216,18 +145,8 @@ export const DESIGN3: TextChapter[] = [
     body: `
 <h2>樹脂の表面 — 金型の表面がそのまま写る</h2>
 <p>射出成形品の表面は、<b>金型の表面の転写</b>です。金型を磨けば鏡面に、エッチングで凹凸をつければシボになります。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="樹脂表面仕上げの断面模式図">
-  <text class="sec" x="20" y="22">断面 (拡大模式図)</text>
-  <rect x="30" y="80" width="130" height="40" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <line x1="30" y1="80" x2="160" y2="80" stroke="var(--tb-accent)" stroke-width="2"/>
-  <path d="M190,120 L190,82 l6,-5 l5,5 l7,-6 l5,6 l6,-4 l6,4 l5,-6 l7,6 l5,-5 l6,5 l6,-4 l6,4 l5,-6 l6,6 l5,-5 l6,5 l6,-4 l6,4 l4,-3 L320,120 Z" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <rect x="350" y="86" width="140" height="34" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <rect x="350" y="76" width="140" height="10" fill="var(--tb-accent)" opacity="0.6"/>
-  <rect x="350" y="72" width="140" height="4" fill="var(--tb-text-3)" opacity="0.6"/>
-  <text class="lbl" x="95" y="145" text-anchor="middle">鏡面</text><text class="tick" x="95" y="162" text-anchor="middle">金型を研磨</text>
-  <text class="lbl" x="255" y="145" text-anchor="middle">シボ</text><text class="tick" x="255" y="162" text-anchor="middle">金型をエッチング</text>
-  <text class="lbl" x="420" y="145" text-anchor="middle">塗装</text><text class="tick" x="420" y="162" text-anchor="middle">下塗り + 上塗り (クリア)</text>
-  <text class="tick" x="420" y="64" text-anchor="middle">クリア層</text>
+<svg class="tb-chart" viewBox="0 0 520 176" role="img" aria-label="樹脂表面仕上げの断面模式図">
+<text class="sec" x="20" y="22">断面 (拡大模式図)</text><g class="k-shadow"><rect class="k-cut" x="30" y="80" width="130" height="40"/></g><line x1="30" y1="80" x2="160" y2="80" style="stroke:var(--tb-accent)" stroke-width="2.4"/><path d="M60,40 L95,78 L130,40" fill="none" style="stroke:var(--tb-warn)" stroke-width="1.6" marker-end="url(#k-arrow)"/><g class="k-shadow"><path class="k-cut" d="M190,120 L190,82 l6,-5 l5,5 l7,-6 l5,6 l6,-4 l6,4 l5,-6 l7,6 l5,-5 l6,5 l6,-4 l6,4 l5,-6 l6,6 l5,-5 l6,5 l6,-4 l6,4 l4,-3 L320,120 Z"/></g><path d="M225,40 L255,76" fill="none" style="stroke:var(--tb-warn)" stroke-width="1.6"/><line x1="255" y1="76" x2="232.5" y2="63" style="stroke:var(--tb-warn)" stroke-width="1.1" marker-end="url(#k-arrow)"/><line x1="255" y1="76" x2="244" y2="52.4" style="stroke:var(--tb-warn)" stroke-width="1.1" marker-end="url(#k-arrow)"/><line x1="255" y1="76" x2="259.5" y2="50.4" style="stroke:var(--tb-warn)" stroke-width="1.1" marker-end="url(#k-arrow)"/><line x1="255" y1="76" x2="273.4" y2="57.6" style="stroke:var(--tb-warn)" stroke-width="1.1" marker-end="url(#k-arrow)"/><line x1="255" y1="76" x2="279.4" y2="67.1" style="stroke:var(--tb-warn)" stroke-width="1.1" marker-end="url(#k-arrow)"/><g class="k-shadow"><rect class="k-cut" x="350" y="86" width="140" height="34"/></g><rect x="350" y="76" width="140" height="10" style="fill:var(--tb-accent);stroke:var(--k-line)" stroke-width="1" opacity="0.85"/><rect x="350" y="71" width="140" height="5" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1" opacity="0.8"/><text class="lbl" x="95" y="145" text-anchor="middle">鏡面</text><text class="tick" x="95" y="162" text-anchor="middle">金型を研磨</text><text class="lbl" x="255" y="145" text-anchor="middle">シボ</text><text class="tick" x="255" y="162" text-anchor="middle">金型をエッチング</text><text class="lbl" x="420" y="145" text-anchor="middle">塗装</text><text class="tick" x="420" y="162" text-anchor="middle">下塗り + 上塗り (クリア)</text><path class="k-thin" d="M470,73 L476,52" marker-start="url(#k-dot)"/><text class="tick" x="480" y="50" text-anchor="end">クリア層</text>
 </svg>
 <p class="tb-caption">図: 樹脂の主な仕上げの断面。シボの深さは数十 µm 程度が多い (柄により異なる)</p>
 <table class="tb-table">
@@ -238,19 +157,8 @@ export const DESIGN3: TextChapter[] = [
   <tr><td>インモールド (IMD/IML)</td><td>印刷したフィルムを型内で一体化。柄・文字が摩耗しにくい</td><td>深い曲面はフィルムが追従しにくい。初期費用</td></tr>
 </table>
 <h2>金属の表面 — 削る・打つ・染める</h2>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="金属表面仕上げの模式図">
-  <rect x="30" y="30" width="140" height="90" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <g stroke="var(--tb-text-3)" stroke-width="1"><line x1="34" y1="40" x2="166" y2="40"/><line x1="34" y1="50" x2="166" y2="50"/><line x1="34" y1="58" x2="166" y2="58"/><line x1="34" y1="68" x2="166" y2="68"/><line x1="34" y1="77" x2="166" y2="77"/><line x1="34" y1="86" x2="166" y2="86"/><line x1="34" y1="96" x2="166" y2="96"/><line x1="34" y1="104" x2="166" y2="104"/><line x1="34" y1="112" x2="166" y2="112"/></g>
-  <rect x="30" y="30" width="20" height="90" fill="var(--tb-accent)" opacity="0.3"><animate attributeName="x" values="30;150;30" dur="5s" repeatCount="indefinite"/></rect>
-  <rect x="190" y="30" width="140" height="90" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <g fill="var(--tb-text-3)"><circle cx="205" cy="45" r="1.5"/><circle cx="230" cy="60" r="1.5"/><circle cx="255" cy="42" r="1.5"/><circle cx="280" cy="70" r="1.5"/><circle cx="310" cy="50" r="1.5"/><circle cx="215" cy="90" r="1.5"/><circle cx="245" cy="105" r="1.5"/><circle cx="270" cy="88" r="1.5"/><circle cx="300" cy="100" r="1.5"/><circle cx="320" cy="80" r="1.5"/><circle cx="235" cy="78" r="1.5"/><circle cx="290" cy="112" r="1.5"/></g>
-  <rect x="350" y="70" width="140" height="50" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <rect x="350" y="58" width="140" height="12" fill="var(--tb-accent)" opacity="0.55"/>
-  <g stroke="var(--tb-accent)"><line x1="365" y1="58" x2="365" y2="70"/><line x1="385" y1="58" x2="385" y2="70"/><line x1="405" y1="58" x2="405" y2="70"/><line x1="425" y1="58" x2="425" y2="70"/><line x1="445" y1="58" x2="445" y2="70"/><line x1="465" y1="58" x2="465" y2="70"/></g>
-  <text class="tick" x="420" y="50" text-anchor="middle">多孔質の酸化皮膜に染料 → 封孔</text>
-  <text class="lbl" x="100" y="145" text-anchor="middle">ヘアライン</text><text class="tick" x="100" y="162" text-anchor="middle">一方向の研磨目。光が帯になる</text>
-  <text class="lbl" x="260" y="145" text-anchor="middle">ブラスト</text><text class="tick" x="260" y="162" text-anchor="middle">粒を吹き付け均一な梨地</text>
-  <text class="lbl" x="420" y="145" text-anchor="middle">アルマイト</text><text class="tick" x="420" y="162" text-anchor="middle">アルミの陽極酸化</text>
+<svg class="tb-chart" viewBox="0 0 520 174" role="img" aria-label="金属表面仕上げの模式図">
+<defs><linearGradient id="dz-hl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c3cad3"/><stop offset="0.5" stop-color="#eef1f5"/><stop offset="1" stop-color="#aab3bf"/></linearGradient><radialGradient id="dz-bl" cx="0.4" cy="0.35" r="0.9"><stop offset="0" stop-color="#d8dde3"/><stop offset="1" stop-color="#9aa3ae"/></radialGradient><linearGradient id="dz-an" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f86e8"/><stop offset="1" stop-color="#2c5bb5"/></linearGradient><clipPath id="dz-hc"><rect x="30" y="30" width="140" height="90" rx="6"/></clipPath></defs><g class="k-shadow"><rect x="30" y="30" width="140" height="90" rx="6" style="fill:url(#dz-hl);stroke:var(--k-line)" stroke-width="1.4"/></g><g clip-path="url(#dz-hc)"><g style="stroke:#6b7480" stroke-width="0.6" opacity="0.6"><line x1="30" y1="33" x2="170" y2="33"/><line x1="30" y1="36.3" x2="170" y2="36.3"/><line x1="30" y1="39.6" x2="170" y2="39.6"/><line x1="30" y1="42.9" x2="170" y2="42.9"/><line x1="30" y1="46.2" x2="170" y2="46.2"/><line x1="30" y1="49.5" x2="170" y2="49.5"/><line x1="30" y1="52.8" x2="170" y2="52.8"/><line x1="30" y1="56.1" x2="170" y2="56.1"/><line x1="30" y1="59.4" x2="170" y2="59.4"/><line x1="30" y1="62.7" x2="170" y2="62.7"/><line x1="30" y1="66" x2="170" y2="66"/><line x1="30" y1="69.3" x2="170" y2="69.3"/><line x1="30" y1="72.6" x2="170" y2="72.6"/><line x1="30" y1="75.9" x2="170" y2="75.9"/><line x1="30" y1="79.2" x2="170" y2="79.2"/><line x1="30" y1="82.5" x2="170" y2="82.5"/><line x1="30" y1="85.8" x2="170" y2="85.8"/><line x1="30" y1="89.1" x2="170" y2="89.1"/><line x1="30" y1="92.4" x2="170" y2="92.4"/><line x1="30" y1="95.7" x2="170" y2="95.7"/><line x1="30" y1="99" x2="170" y2="99"/><line x1="30" y1="102.3" x2="170" y2="102.3"/><line x1="30" y1="105.6" x2="170" y2="105.6"/><line x1="30" y1="108.9" x2="170" y2="108.9"/><line x1="30" y1="112.2" x2="170" y2="112.2"/><line x1="30" y1="115.5" x2="170" y2="115.5"/><line x1="30" y1="118.8" x2="170" y2="118.8"/></g><rect x="30" y="30" width="20" height="90" fill="#ffffff" opacity="0.45"><animate attributeName="x" values="30;150;30" dur="5s" repeatCount="indefinite"/></rect></g><g class="k-shadow"><rect x="190" y="30" width="140" height="90" rx="6" style="fill:url(#dz-bl);stroke:var(--k-line)" stroke-width="1.4"/></g><g fill="#5d6672" opacity="0.55"><circle cx="276.2" cy="94.8" r="1.1"/><circle cx="318.4" cy="94.7" r="1.1"/><circle cx="197.8" cy="72.2" r="1.2"/><circle cx="279.7" cy="107.9" r="0.6"/><circle cx="255.9" cy="54.2" r="0.9"/><circle cx="269.8" cy="35.1" r="0.7"/><circle cx="230.9" cy="109.1" r="1"/><circle cx="215.1" cy="99.4" r="0.6"/><circle cx="275.5" cy="44.4" r="0.5"/><circle cx="309" cy="51.2" r="0.7"/><circle cx="323.7" cy="105.5" r="0.7"/><circle cx="320.9" cy="78.2" r="1"/><circle cx="221" cy="111.2" r="1"/><circle cx="321.6" cy="107.3" r="0.7"/><circle cx="241.7" cy="47.6" r="0.6"/><circle cx="202.6" cy="58.7" r="0.9"/><circle cx="194.4" cy="89.6" r="0.7"/><circle cx="234.9" cy="101.1" r="0.8"/><circle cx="235.7" cy="73.5" r="1"/><circle cx="201.5" cy="114" r="0.5"/><circle cx="293" cy="103.3" r="0.5"/><circle cx="298" cy="64" r="0.9"/><circle cx="195.2" cy="37.8" r="0.6"/><circle cx="320.1" cy="50.1" r="1"/><circle cx="316.7" cy="111.2" r="0.7"/><circle cx="240.8" cy="77" r="1"/><circle cx="208.3" cy="95.4" r="1.1"/><circle cx="307.5" cy="37" r="1.2"/><circle cx="206" cy="61.9" r="0.9"/><circle cx="315.2" cy="61.9" r="1.1"/><circle cx="266" cy="59.6" r="0.7"/><circle cx="217.4" cy="40.4" r="0.6"/><circle cx="285" cy="115.7" r="0.6"/><circle cx="200.4" cy="114.9" r="0.9"/><circle cx="247.6" cy="53.5" r="0.9"/><circle cx="303.1" cy="71.4" r="0.8"/><circle cx="201.4" cy="109.1" r="0.5"/><circle cx="259.2" cy="102.8" r="0.6"/><circle cx="290.6" cy="111.9" r="0.9"/><circle cx="298" cy="42.7" r="0.8"/><circle cx="213.7" cy="103.3" r="0.7"/><circle cx="253.8" cy="115.9" r="1.1"/><circle cx="322.8" cy="71.2" r="0.8"/><circle cx="290.3" cy="73.3" r="0.7"/><circle cx="247.3" cy="46" r="0.8"/><circle cx="324.5" cy="112.7" r="0.9"/><circle cx="259.9" cy="61.8" r="0.6"/><circle cx="229.9" cy="98.1" r="1.1"/><circle cx="241.7" cy="98.5" r="1"/><circle cx="285.7" cy="88.4" r="1"/><circle cx="242" cy="91.8" r="0.7"/><circle cx="258.1" cy="97.1" r="1"/><circle cx="232.8" cy="111.5" r="1"/><circle cx="270.6" cy="34.9" r="0.9"/><circle cx="227.1" cy="89.1" r="0.8"/><circle cx="301.8" cy="87.1" r="1.1"/><circle cx="239.9" cy="86.8" r="1"/><circle cx="303.3" cy="62.7" r="1.1"/><circle cx="308.8" cy="90.4" r="1.2"/><circle cx="320.3" cy="76.5" r="0.9"/><circle cx="215.9" cy="102.6" r="1.2"/><circle cx="257" cy="90.7" r="1"/><circle cx="290.4" cy="48.1" r="1"/><circle cx="270.7" cy="88.6" r="0.8"/><circle cx="276.3" cy="97.5" r="0.9"/><circle cx="289.1" cy="36.3" r="0.6"/><circle cx="252.2" cy="87.3" r="0.7"/><circle cx="284.5" cy="85.7" r="0.5"/><circle cx="256.2" cy="52.6" r="0.5"/><circle cx="211.6" cy="60" r="0.6"/><circle cx="219.5" cy="36.9" r="0.8"/><circle cx="244.2" cy="84.2" r="0.9"/><circle cx="225.4" cy="108.1" r="0.5"/><circle cx="247.5" cy="56.8" r="0.8"/><circle cx="209.2" cy="102.2" r="0.8"/><circle cx="198.8" cy="84.3" r="0.6"/><circle cx="266" cy="61.8" r="0.9"/><circle cx="320.5" cy="101.1" r="0.8"/><circle cx="301.3" cy="86.7" r="0.8"/><circle cx="212.8" cy="82.9" r="0.9"/><circle cx="320.4" cy="113.4" r="0.9"/><circle cx="240.3" cy="107.3" r="0.5"/><circle cx="208.2" cy="80.4" r="0.9"/><circle cx="212.6" cy="85.6" r="1.1"/><circle cx="243.6" cy="69.4" r="0.7"/><circle cx="232.5" cy="113.7" r="0.8"/><circle cx="320.9" cy="108.9" r="0.9"/><circle cx="228.3" cy="114.4" r="0.8"/><circle cx="248.8" cy="60.2" r="1.2"/><circle cx="258.9" cy="57.5" r="0.8"/><circle cx="210.1" cy="85" r="0.8"/><circle cx="232.7" cy="98.1" r="1.1"/><circle cx="195.7" cy="77.7" r="0.7"/><circle cx="317.5" cy="98.1" r="0.7"/><circle cx="229.3" cy="46.7" r="1.2"/><circle cx="232.7" cy="83.9" r="0.8"/><circle cx="279.1" cy="83.5" r="1"/><circle cx="209.6" cy="96.4" r="0.7"/><circle cx="264.4" cy="61.6" r="0.7"/><circle cx="263.9" cy="72.1" r="0.8"/><circle cx="292.3" cy="82.4" r="0.5"/><circle cx="227.3" cy="71.4" r="1.1"/><circle cx="311.2" cy="78.7" r="0.5"/><circle cx="296.7" cy="69.1" r="0.9"/><circle cx="287.5" cy="85.8" r="0.8"/><circle cx="314.3" cy="65.6" r="0.8"/><circle cx="306.5" cy="50.1" r="0.7"/><circle cx="303.6" cy="39.4" r="1.1"/><circle cx="285.7" cy="69.5" r="0.7"/><circle cx="297.1" cy="108.7" r="0.6"/><circle cx="257.2" cy="79" r="0.8"/><circle cx="237.7" cy="46.6" r="0.9"/><circle cx="301.2" cy="39.6" r="0.7"/><circle cx="302.2" cy="98.9" r="1"/><circle cx="197.4" cy="93.3" r="1.2"/><circle cx="325.8" cy="91.5" r="0.5"/><circle cx="305.2" cy="52" r="1"/><circle cx="319.7" cy="92.4" r="0.6"/><circle cx="232.6" cy="109.3" r="0.6"/><circle cx="274.6" cy="67.9" r="0.6"/><circle cx="276.2" cy="37.6" r="0.6"/><circle cx="244.1" cy="39.9" r="0.5"/><circle cx="269.9" cy="94.9" r="1.1"/><circle cx="211.7" cy="69.4" r="0.7"/><circle cx="273.2" cy="74.1" r="1.2"/><circle cx="243.4" cy="38.6" r="1"/><circle cx="213.9" cy="85.8" r="0.9"/><circle cx="314.2" cy="79.5" r="0.9"/><circle cx="228.7" cy="79.2" r="0.7"/><circle cx="293.1" cy="76.4" r="0.6"/><circle cx="224.9" cy="64.4" r="1"/><circle cx="217.7" cy="92.5" r="1"/><circle cx="205.3" cy="88.8" r="0.6"/><circle cx="210.5" cy="82.7" r="0.7"/><circle cx="309.8" cy="73.4" r="0.7"/><circle cx="299.1" cy="36.4" r="1"/><circle cx="201.1" cy="46.4" r="1.2"/><circle cx="283.9" cy="52.3" r="0.6"/><circle cx="322.4" cy="88.5" r="1.1"/><circle cx="212.4" cy="85.2" r="0.7"/><circle cx="225" cy="61.3" r="0.9"/><circle cx="240" cy="65.6" r="0.6"/><circle cx="303.7" cy="87.1" r="1.1"/><circle cx="251.2" cy="103.8" r="0.9"/><circle cx="272.2" cy="81" r="1"/><circle cx="246.2" cy="42" r="0.5"/><circle cx="220.7" cy="37.2" r="1.1"/><circle cx="257.5" cy="96.3" r="0.5"/><circle cx="256.1" cy="107" r="0.9"/><circle cx="250.6" cy="72.2" r="0.6"/><circle cx="214.4" cy="47" r="0.8"/><circle cx="244.9" cy="106.2" r="0.6"/><circle cx="227.5" cy="56.7" r="0.6"/><circle cx="231.9" cy="53.3" r="0.8"/><circle cx="198.2" cy="109.8" r="0.8"/><circle cx="317.8" cy="90.4" r="1"/><circle cx="256.3" cy="111.5" r="0.6"/><circle cx="282.3" cy="57.9" r="1"/><circle cx="290.3" cy="47.4" r="0.6"/><circle cx="197.3" cy="52.9" r="0.6"/></g><g class="k-shadow"><rect class="k-cut" x="350" y="74" width="140" height="46"/></g><rect x="350" y="58" width="140" height="16" style="fill:url(#dz-an);stroke:var(--k-line)" stroke-width="1"/><g style="stroke:#ffffff" stroke-width="1.6" opacity="0.7"><line x1="358" y1="59" x2="358" y2="70"/><line x1="368" y1="59" x2="368" y2="70"/><line x1="378" y1="59" x2="378" y2="70"/><line x1="388" y1="59" x2="388" y2="70"/><line x1="398" y1="59" x2="398" y2="70"/><line x1="408" y1="59" x2="408" y2="70"/><line x1="418" y1="59" x2="418" y2="70"/><line x1="428" y1="59" x2="428" y2="70"/><line x1="438" y1="59" x2="438" y2="70"/><line x1="448" y1="59" x2="448" y2="70"/><line x1="458" y1="59" x2="458" y2="70"/><line x1="468" y1="59" x2="468" y2="70"/><line x1="478" y1="59" x2="478" y2="70"/><line x1="488" y1="59" x2="488" y2="70"/></g><text class="tick" x="420" y="48" text-anchor="middle">多孔質の酸化皮膜に染料 → 封孔</text><text class="lbl" x="100" y="145" text-anchor="middle">ヘアライン</text><text class="tick" x="100" y="162" text-anchor="middle">一方向の研磨目。光が帯になる</text><text class="lbl" x="260" y="145" text-anchor="middle">ブラスト</text><text class="tick" x="260" y="162" text-anchor="middle">粒を吹き付け均一な梨地</text><text class="lbl" x="420" y="145" text-anchor="middle">アルマイト</text><text class="tick" x="420" y="162" text-anchor="middle">アルミの陽極酸化</text>
 </svg>
 <p class="tb-caption">図: 金属の仕上げ。ヘアラインは目の方向に光の帯が走る (帯が動くのは見る角度を変えた様子)</p>
 <ul>
@@ -301,20 +209,8 @@ export const DESIGN3: TextChapter[] = [
     lead: "射出成形品には、パーティングライン・ゲート跡・エジェクタピン跡・ウェルドライン・ヒケといった「成形の痕跡」が必ず生まれます。それらを見えない所へ導き、合わせ目の段差やすき間を意図的に設計して、量産品を美しく見せる方法を学びます。",
     body: `
 <h2>成形の痕跡を知る</h2>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="成形品に現れる痕跡">
-  <rect x="60" y="40" width="300" height="130" rx="18" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2"/>
-  <line x1="56" y1="105" x2="364" y2="105" stroke="var(--tb-accent)" stroke-width="2" stroke-dasharray="6 3"/>
-  <circle cx="210" cy="40" r="5" fill="var(--tb-warn)"/>
-  <path d="M290,40 C285,80 300,120 290,170" fill="none" stroke="var(--tb-bad)" stroke-width="1.5" stroke-dasharray="2 2"/>
-  <circle cx="110" cy="140" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="160" cy="140" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
-  <ellipse cx="240" cy="140" rx="18" ry="6" fill="var(--tb-text-3)" opacity="0.5"/>
-  <circle cx="320" cy="75" r="10" fill="none" stroke="currentColor"/>
-  <text class="tick" x="370" y="108">パーティングライン</text>
-  <text class="tick" x="218" y="30">ゲート跡</text>
-  <text class="tick" x="370" y="60">穴 → 下流にウェルド</text>
-  <text class="tick" x="300" y="190">ウェルドライン</text>
-  <text class="tick" x="80" y="190">エジェクタピン跡</text>
-  <text class="tick" x="215" y="162">ヒケ (リブの裏)</text>
+<svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="成形品に現れる痕跡">
+<ellipse cx="210" cy="172" rx="152" ry="5" style="fill:var(--tb-text)" opacity="0.13"/><g class="k-shadow"><rect class="k-plastic" x="60" y="44" width="300" height="126" rx="18"/></g><path d="M80,49 L340,49" fill="none" style="stroke:#ffffff" stroke-width="1.8" opacity="0.8"/><line x1="56" y1="107" x2="364" y2="107" style="stroke:var(--tb-accent)" stroke-width="2" stroke-dasharray="6 3"/><circle cx="210" cy="44" r="5" style="fill:var(--tb-warn);stroke:var(--k-line)" stroke-width="1"/><path d="M290,85 C286,110 298,140 290,170" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.6" stroke-dasharray="2 2"/><circle cx="110" cy="142" r="6" style="fill:var(--k-plastic-2);stroke:var(--k-line)" stroke-width="1.2"/><circle cx="160" cy="142" r="6" style="fill:var(--k-plastic-2);stroke:var(--k-line)" stroke-width="1.2"/><ellipse cx="226" cy="142" rx="18" ry="6" style="fill:var(--k-line)" opacity="0.25"/><circle cx="290" cy="74" r="10" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.4"/><path class="k-thin" d="M364,107 L376,107" marker-start="url(#k-dot)"/><text class="tick" x="380" y="111">パーティングライン</text><path class="k-thin" d="M210,39 L210,24" marker-start="url(#k-dot)"/><text class="tick" x="216" y="22">ゲート跡</text><path class="k-thin" d="M300,74 L376,66" marker-start="url(#k-dot)"/><text class="tick" x="380" y="70">穴 → 下流にウェルド</text><path class="k-thin" d="M292,158 L376,172" marker-start="url(#k-dot)"/><text class="tick" x="380" y="176">ウェルドライン</text><path class="k-thin" d="M110,148 L100,192" marker-start="url(#k-dot)"/><text class="tick" x="60" y="204">エジェクタピン跡</text><path class="k-thin" d="M226,148 L226,192" marker-start="url(#k-dot)"/><text class="tick" x="196" y="204">ヒケ (リブの裏)</text>
 </svg>
 <p class="tb-caption">図: 成形品に現れる主な痕跡 (模式図)。外観面にはできるだけ出さない</p>
 <table class="tb-table">
@@ -330,17 +226,8 @@ export const DESIGN3: TextChapter[] = [
 <div data-widget="anim-draft"></div>
 <h2>合わせ目 (見切り) の段差とすき間</h2>
 <p>上ケースと下ケースの合わせ目は、部品の寸法ばらつきや反りで、どうしても<b>ずれ</b>が生じます。ぴったり面一 (つらいち) を狙うと、0.05 mm のずれでも段差が目立ちます。そこで<b>あえて段差を付けて</b>、ずれを影の中に隠します。</p>
-<svg class="tb-chart" viewBox="0 0 520 210" aria-label="面一と意図的な段差の比較">
-  <text class="sec" x="20" y="20">断面 (合わせ目付近の拡大)</text>
-  <rect x="40" y="40" width="80" height="60" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <rect x="40" y="102" width="80" height="60" fill="var(--tb-surface-2)" stroke="currentColor"><animateTransform attributeName="transform" type="translate" values="0,0;3,0;-3,0;0,0" dur="3s" repeatCount="indefinite"/></rect>
-  <text class="lbl" x="90" y="185" text-anchor="middle">面一: ずれると逆段差が目立つ</text>
-  <rect x="300" y="40" width="80" height="60" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <rect x="300" y="102" width="74" height="60" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"><animateTransform attributeName="transform" type="translate" values="0,0;2,0;-2,0;0,0" dur="3s" repeatCount="indefinite"/></rect>
-  <line class="guide" x1="374" y1="100" x2="374" y2="175"/><line class="guide" x1="380" y1="100" x2="380" y2="175"/>
-  <text class="mark-t" x="390" y="140">段差 0.1〜0.3 mm</text>
-  <text class="mark-t" x="390" y="105">すき間</text>
-  <text class="lbl" x="350" y="185" text-anchor="middle">下を引っ込める: ずれても常に同じ向きの段差</text>
+<svg class="tb-chart" viewBox="0 0 520 212" role="img" aria-label="面一と意図的な段差の比較">
+<rect class="k-panel" x="8" y="8" width="248" height="196" rx="8"/><rect class="k-panel" x="264" y="8" width="248" height="196" rx="8"/><circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">面一</text><circle class="k-badge" cx="284" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="284" y="32" text-anchor="middle">✓</text><text class="k-title" x="302" y="32">意図的な段差</text><g class="k-shadow"><rect class="k-cut" x="60" y="44" width="90" height="62"/></g><rect class="k-cut2" x="60" y="108" width="90" height="62"><animateTransform attributeName="transform" type="translate" values="0,0;3,0;-3,0;0,0" dur="3s" repeatCount="indefinite"/></rect><line x1="150" y1="40" x2="150" y2="176" style="stroke:var(--tb-bad)" stroke-width="1" stroke-dasharray="3 3"/><text class="k-bad-t" x="132" y="192" text-anchor="middle">ずれると逆段差が目立つ</text><g class="k-shadow"><rect class="k-cut" x="300" y="44" width="90" height="62"/></g><rect class="k-cut2" x="300" y="108" width="84" height="62"><animateTransform attributeName="transform" type="translate" values="0,0;2,0;-2,0;0,0" dur="3s" repeatCount="indefinite"/></rect><line class="k-ext" x1="384" y1="172" x2="384" y2="182"/><line class="k-ext" x1="390" y1="108" x2="390" y2="182"/><line class="k-dimline" x1="370" y1="178" x2="384" y2="178" style="marker-start:none"/><line class="k-dimline" x1="404" y1="178" x2="390" y2="178" style="marker-start:none"/><text class="k-dimtext" x="410" y="150">段差</text><text class="k-dimtext" x="410" y="165">0.1〜0.3 mm</text><path class="k-thin" d="M392,107 L410,92" marker-start="url(#k-dot)"/><text class="mark-t" x="414" y="96">すき間</text><text class="k-good-t" x="388" y="196" text-anchor="middle">ずれても常に同じ向きの段差</text>
 </svg>
 <p class="tb-caption">図: 合わせ目の断面。ばらつき (左右の揺れ) があっても、意図した段差なら見た目が安定する</p>
 <ul>
@@ -351,14 +238,8 @@ export const DESIGN3: TextChapter[] = [
 </ul>
 <div class="tb-note">段差・すき間の具体値は、材料・部品の大きさ・成形メーカーの実力で変わります。ここでの値は<b>目安</b>であり、試作 (T0, T1) で実測して決めます。</div>
 <h2>ヒケを防ぐ外観面</h2>
-<svg class="tb-chart" viewBox="0 0 520 190" aria-label="リブとヒケ">
-  <path d="M30,50 L230,50 L230,70 L150,70 L150,140 L110,140 L110,70 L30,70 Z" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <path d="M110,50 Q130,58 150,50" fill="none" stroke="var(--tb-bad)" stroke-width="2.5"/>
-  <text class="mark-t" x="130" y="40" text-anchor="middle">ヒケ</text>
-  <text class="lbl" x="130" y="170" text-anchor="middle">リブが厚い (肉厚と同じ)</text>
-  <path d="M290,50 L490,50 L490,70 L400,70 L398,140 L382,140 L380,70 L290,70 Z" fill="var(--tb-surface-2)" stroke="var(--tb-good)" stroke-width="1.5"/>
-  <text class="mark-t" x="390" y="40" text-anchor="middle">外観面が平ら</text>
-  <text class="lbl" x="390" y="170" text-anchor="middle">リブを薄く (肉厚の 50〜60 % 目安)</text>
+<svg class="tb-chart" viewBox="0 0 520 194" role="img" aria-label="リブとヒケ">
+<rect class="k-panel" x="8" y="8" width="248" height="180" rx="8"/><rect class="k-panel" x="264" y="8" width="248" height="180" rx="8"/><circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">リブが厚い</text><circle class="k-badge" cx="284" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="284" y="32" text-anchor="middle">✓</text><text class="k-title" x="302" y="32">リブを薄く</text><g class="k-shadow"><path class="k-cut" d="M30,62 L110,62 Q130,72 150,62 L230,62 L230,82 L150,82 L150,150 L110,150 L110,82 L30,82 Z"/></g><path d="M110,62 Q130,72 150,62" fill="none" style="stroke:var(--tb-bad)" stroke-width="2.6"/><circle cx="130" cy="84" r="16" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.4" stroke-dasharray="4 3"/><text class="k-bad-t" x="178" y="54">ヒケ</text><path class="k-thin" d="M146,66 L174,52" marker-start="url(#k-dot)"/><text class="k-note" x="132" y="176" text-anchor="middle">(肉厚と同じ)</text><g class="k-shadow"><path class="k-cut" d="M290,62 L490,62 L490,82 L400,82 L398,150 L382,150 L380,82 L290,82 Z"/></g><text class="k-good-t" x="390" y="52" text-anchor="middle">外観面が平ら</text><text class="k-note" x="390" y="176" text-anchor="middle">肉厚の 50〜60 % 目安</text>
 </svg>
 <p class="tb-caption">図: リブ根元の肉だまりがヒケの原因。外観面の裏ほどリブ・ボスを薄く</p>
 <ul>
@@ -400,16 +281,8 @@ export const DESIGN3: TextChapter[] = [
     body: `
 <h2>カラーバリエーションの組み方</h2>
 <p>バリエーションは、売れ筋を支える<b>ベース色</b>と、話題をつくる<b>アクセント色</b>で構成するのが定石です。色数が増えるほど在庫と管理の負担が増えるので、役割を決めて絞ります。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="カラーバリエーションの構成">
-  <rect x="40" y="40" width="70" height="90" rx="10" fill="var(--tb-text-2)" stroke="currentColor"/>
-  <rect x="125" y="40" width="70" height="90" rx="10" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <rect x="210" y="40" width="70" height="90" rx="10" fill="var(--tb-text-3)" stroke="currentColor"/>
-  <rect x="330" y="40" width="70" height="90" rx="10" fill="var(--tb-accent)" stroke="currentColor"/>
-  <rect x="415" y="40" width="70" height="90" rx="10" fill="var(--tb-warn)" stroke="currentColor"/>
-  <line class="guide" x1="305" y1="30" x2="305" y2="150"/>
-  <text class="lbl" x="160" y="160" text-anchor="middle">ベース (無彩色・定番) 売上の大半</text>
-  <text class="lbl" x="408" y="160" text-anchor="middle">アクセント (限定・季節)</text>
-  <text class="tick" x="160" y="25" text-anchor="middle">長く売る</text><text class="tick" x="408" y="25" text-anchor="middle">話題・入れ替え</text>
+<svg class="tb-chart" viewBox="0 0 520 172" role="img" aria-label="カラーバリエーションの構成">
+<defs><linearGradient id="dz-cv0" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b4048"/><stop offset="1" stop-color="#1c1f24"/></linearGradient><linearGradient id="dz-cv1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7f7f5"/><stop offset="1" stop-color="#d9dbde"/></linearGradient><linearGradient id="dz-cv2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a7adb6"/><stop offset="1" stop-color="#7d848e"/></linearGradient><linearGradient id="dz-cv3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a8af0"/><stop offset="1" stop-color="#2557b8"/></linearGradient><linearGradient id="dz-cv4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb547"/><stop offset="1" stop-color="#e2861a"/></linearGradient></defs><ellipse cx="75" cy="132" rx="34" ry="3" style="fill:var(--tb-text)" opacity="0.13"/><g class="k-shadow"><rect x="40" y="40" width="70" height="90" rx="14" style="fill:url(#dz-cv0);stroke:var(--k-line)" stroke-width="1.2"/></g><circle cx="75" cy="92" r="20" fill="url(#k-dots)" style="stroke:#00000033" stroke-width="1"/><path d="M52,44 L98,44" fill="none" style="stroke:#ffffff" stroke-width="1.4" opacity="0.7"/><ellipse cx="160" cy="132" rx="34" ry="3" style="fill:var(--tb-text)" opacity="0.13"/><g class="k-shadow"><rect x="125" y="40" width="70" height="90" rx="14" style="fill:url(#dz-cv1);stroke:var(--k-line)" stroke-width="1.2"/></g><circle cx="160" cy="92" r="20" fill="url(#k-dots)" style="stroke:#00000033" stroke-width="1"/><path d="M137,44 L183,44" fill="none" style="stroke:#ffffff" stroke-width="1.4" opacity="0.7"/><ellipse cx="245" cy="132" rx="34" ry="3" style="fill:var(--tb-text)" opacity="0.13"/><g class="k-shadow"><rect x="210" y="40" width="70" height="90" rx="14" style="fill:url(#dz-cv2);stroke:var(--k-line)" stroke-width="1.2"/></g><circle cx="245" cy="92" r="20" fill="url(#k-dots)" style="stroke:#00000033" stroke-width="1"/><path d="M222,44 L268,44" fill="none" style="stroke:#ffffff" stroke-width="1.4" opacity="0.7"/><ellipse cx="365" cy="132" rx="34" ry="3" style="fill:var(--tb-text)" opacity="0.13"/><g class="k-shadow"><rect x="330" y="40" width="70" height="90" rx="14" style="fill:url(#dz-cv3);stroke:var(--k-line)" stroke-width="1.2"/></g><circle cx="365" cy="92" r="20" fill="url(#k-dots)" style="stroke:#00000033" stroke-width="1"/><path d="M342,44 L388,44" fill="none" style="stroke:#ffffff" stroke-width="1.4" opacity="0.7"/><ellipse cx="450" cy="132" rx="34" ry="3" style="fill:var(--tb-text)" opacity="0.13"/><g class="k-shadow"><rect x="415" y="40" width="70" height="90" rx="14" style="fill:url(#dz-cv4);stroke:var(--k-line)" stroke-width="1.2"/></g><circle cx="450" cy="92" r="20" fill="url(#k-dots)" style="stroke:#00000033" stroke-width="1"/><path d="M427,44 L473,44" fill="none" style="stroke:#ffffff" stroke-width="1.4" opacity="0.7"/><line class="guide" x1="305" y1="30" x2="305" y2="150"/><text class="lbl" x="160" y="160" text-anchor="middle">ベース (無彩色・定番) 売上の大半</text><text class="lbl" x="408" y="160" text-anchor="middle">アクセント (限定・季節)</text><text class="tick" x="160" y="25" text-anchor="middle">長く売る</text><text class="tick" x="408" y="25" text-anchor="middle">話題・入れ替え</text>
 </svg>
 <p class="tb-caption">図: ベース色とアクセント色の組み方 (例)。売上構成は製品分野によって大きく異なる</p>
 <ul>
@@ -419,15 +292,8 @@ export const DESIGN3: TextChapter[] = [
 </ul>
 <h2>限度見本 — 「ここまで良し」を物で決める</h2>
 <p>色・つや・シボは数値だけでは管理しきれません。<b>標準見本</b> (狙いの色) と、許容できる範囲の端を示す<b>限度見本</b> (明るい側・暗い側・赤み・青み など) を実物で用意し、関係者が同じものを持ちます。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="標準見本と限度見本">
-  <rect x="200" y="40" width="120" height="80" rx="6" fill="var(--tb-accent)" stroke="currentColor" stroke-width="2"/>
-  <rect x="60" y="55" width="90" height="50" rx="6" fill="var(--tb-accent)" opacity="0.7" stroke="currentColor"/>
-  <rect x="370" y="55" width="90" height="50" rx="6" fill="var(--tb-accent)" stroke="currentColor"/>
-  <rect x="370" y="55" width="90" height="50" rx="6" fill="var(--tb-text-2)" opacity="0.35"/>
-  <text class="lbl" x="260" y="140" text-anchor="middle">標準見本</text>
-  <text class="lbl" x="105" y="140" text-anchor="middle">限度 (明)</text>
-  <text class="lbl" x="415" y="140" text-anchor="middle">限度 (暗)</text>
-  <text class="tick" x="260" y="160" text-anchor="middle">この間に入れば合格</text>
+<svg class="tb-chart" viewBox="0 0 520 182" role="img" aria-label="標準見本と限度見本">
+<g class="k-shadow"><rect x="52" y="46" width="106" height="80" rx="6" style="fill:var(--tb-surface);stroke:var(--tb-border)" stroke-width="1"/></g><rect x="58" y="52" width="94" height="54" rx="4" fill="#7ea6ef"/><text class="k-note" x="105" y="119" text-anchor="middle">L* +</text><g class="k-shadow"><rect x="200" y="34" width="120" height="100" rx="6" style="fill:var(--tb-surface);stroke:var(--tb-border)" stroke-width="1"/></g><rect x="206" y="40" width="108" height="74" rx="4" fill="#3d6fd6"/><text class="k-note" x="260" y="127" text-anchor="middle">No. 0001</text><g class="k-shadow"><rect x="362" y="46" width="106" height="80" rx="6" style="fill:var(--tb-surface);stroke:var(--tb-border)" stroke-width="1"/></g><rect x="368" y="52" width="94" height="54" rx="4" fill="#2a4e9c"/><text class="k-note" x="415" y="119" text-anchor="middle">L* −</text><path d="M105,146 L105,154 L415,154 L415,146" fill="none" style="stroke:var(--tb-good)" stroke-width="1.6"/><text class="lbl" x="260" y="150" text-anchor="middle">標準見本</text><text class="lbl" x="105" y="142" text-anchor="middle">限度 (明)</text><text class="lbl" x="415" y="142" text-anchor="middle">限度 (暗)</text><text class="k-good-t" x="260" y="172" text-anchor="middle">この間に入れば合格</text>
 </svg>
 <p class="tb-caption">図: 標準見本と上下の限度見本。見本は退色するので保管条件と更新時期を決める</p>
 <h2>色差 ΔE</h2>
@@ -443,20 +309,8 @@ export const DESIGN3: TextChapter[] = [
 <div class="tb-note">許容値は<b>目安</b>で、業界・部位・色によって変わります。隣り合う部品は厳しく、離れた部品は緩くするのが一般的です。より人の感覚に近い式として ΔE00 (CIEDE2000) も広く使われるので、契約ではどの式で何以下かを明記します。</div>
 <h2>光源とメタメリズム</h2>
 <p>色の見え方は照明で変わります。測色や目視比較の基準光源として、昼光の <b>D65</b> (約 6500 K)、白熱電球の <b>A 光源</b> (約 2856 K) などが使われます。</p>
-<svg class="tb-chart" viewBox="0 0 520 210" aria-label="メタメリズム">
-  <text class="sec" x="20" y="22">D65 (昼光) の下</text>
-  <rect x="40" y="35" width="90" height="50" rx="6" fill="var(--tb-good)"/>
-  <rect x="150" y="35" width="90" height="50" rx="6" fill="var(--tb-good)"/>
-  <text class="tick" x="140" y="102" text-anchor="middle">同じ色に見える</text>
-  <text class="sec" x="280" y="22">A 光源 (白熱灯) の下</text>
-  <rect x="300" y="35" width="90" height="50" rx="6" fill="var(--tb-good)"/>
-  <rect x="410" y="35" width="90" height="50" rx="6" fill="var(--tb-warn)" opacity="0.8"/>
-  <text class="tick" x="400" y="102" text-anchor="middle">違って見える</text>
-  <text class="sec" x="20" y="130">分光反射率 (模式)</text>
-  <line class="axis" x1="40" y1="195" x2="500" y2="195"/>
-  <path d="M40,180 C120,175 180,130 260,135 C340,140 400,170 500,175" fill="none" stroke="currentColor" stroke-width="2"/>
-  <path d="M40,185 C100,160 180,150 230,135 C300,120 360,175 420,165 C460,158 480,145 500,150" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="tick" x="45" y="208">短波長 (青)</text><text class="tick" x="500" y="208" text-anchor="end">長波長 (赤)</text>
+<svg class="tb-chart" viewBox="0 0 520 232" role="img" aria-label="メタメリズム">
+<defs><linearGradient id="dz-spec" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5b3df5"/><stop offset="0.2" stop-color="#2f80ed"/><stop offset="0.4" stop-color="#27ae60"/><stop offset="0.6" stop-color="#f2c94c"/><stop offset="0.8" stop-color="#f2994a"/><stop offset="1" stop-color="#eb5757"/></linearGradient></defs><rect class="k-panel" x="8" y="8" width="248" height="104" rx="8"/><rect class="k-panel" x="264" y="8" width="248" height="104" rx="8"/><circle cx="28" cy="26" r="7" fill="#fff6d8" style="stroke:var(--k-line-2)"/><text class="k-title" x="42" y="30">D65 (昼光) の下</text><circle cx="284" cy="26" r="7" fill="#ffb547" style="stroke:var(--k-line-2)"/><text class="k-title" x="298" y="30">A 光源 (白熱灯) の下</text><g class="k-shadow"><rect x="36" y="42" width="88" height="44" rx="6" fill="#5aa36a"/></g><path d="M44,46 L116,46" fill="none" style="stroke:#ffffff" stroke-width="1.2" opacity="0.5"/><g class="k-shadow"><rect x="140" y="42" width="88" height="44" rx="6" fill="#5aa36a"/></g><path d="M148,46 L220,46" fill="none" style="stroke:#ffffff" stroke-width="1.2" opacity="0.5"/><g class="k-shadow"><rect x="292" y="42" width="88" height="44" rx="6" fill="#6f9a4a"/></g><path d="M300,46 L372,46" fill="none" style="stroke:#ffffff" stroke-width="1.2" opacity="0.5"/><g class="k-shadow"><rect x="396" y="42" width="88" height="44" rx="6" fill="#9a8f3f"/></g><path d="M404,46 L476,46" fill="none" style="stroke:#ffffff" stroke-width="1.2" opacity="0.5"/><text class="k-good-t" x="132" y="104" text-anchor="middle">同じ色に見える</text><text class="k-bad-t" x="388" y="104" text-anchor="middle">違って見える</text><text class="sec" x="20" y="134">分光反射率 (模式)</text><line class="axis" x1="40" y1="200" x2="500" y2="200"/><rect x="40" y="203" width="460" height="6" fill="url(#dz-spec)" rx="2"/><path d="M40,185 C120,180 180,140 260,140 C340,140 400,175 500,180" fill="none" style="stroke:var(--tb-text)" stroke-width="2"/><path d="M40,190 C100,165 180,155 230,140 C300,125 360,180 420,170 C460,163 480,150 500,155" fill="none" style="stroke:var(--tb-accent)" stroke-width="2"/><text class="tick" x="45" y="224">短波長 (青)</text><text class="tick" x="500" y="224" text-anchor="end">長波長 (赤)</text>
 </svg>
 <p class="tb-caption">図: メタメリズム (条件等色)。分光反射率の形が違う 2 つの色は、ある光源では一致しても別の光源ではずれる</p>
 <ul>
@@ -500,14 +354,8 @@ export const DESIGN3: TextChapter[] = [
     body: `
 <h2>経年変化 — 劣化か、味わいか</h2>
 <p>時間とともに物は必ず変化します。その変化が「汚れ・劣化」に見えるか「味わい (エイジング)」に見えるかは、素材と仕上げの選び方で決まります。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="経年変化と魅力">
-  <line class="axis" x1="50" y1="160" x2="500" y2="160"/><line class="axis" x1="50" y1="160" x2="50" y2="20"/>
-  <text class="lbl" x="56" y="30">魅力</text><text class="lbl" x="495" y="180" text-anchor="end">使用年数 →</text>
-  <path d="M55,50 C150,60 250,110 495,140" fill="none" stroke="var(--tb-bad)" stroke-width="2.5"/>
-  <path d="M55,70 C150,70 250,55 495,35" fill="none" stroke="var(--tb-good)" stroke-width="2.5"/>
-  <text class="mark-t" x="400" y="128">塗装の剥げ・樹脂の黄変</text>
-  <text class="mark-t" x="330" y="40">革・真鍮・無垢材</text>
-  <circle r="5" fill="var(--tb-accent)"><animateMotion dur="6s" repeatCount="indefinite" path="M55,70 C150,70 250,55 495,35"/></circle>
+<svg class="tb-chart" viewBox="0 0 520 190" role="img" aria-label="経年変化と魅力">
+<line class="grid" x1="50" y1="90" x2="500" y2="90"/><path d="M55,70 C150,70 250,55 495,35 L495,140 C250,110 150,60 55,50 Z" style="fill:var(--tb-good)" opacity="0.08"/><line class="axis" x1="50" y1="160" x2="500" y2="160"/><line class="axis" x1="50" y1="160" x2="50" y2="20"/><text class="lbl" x="56" y="30">魅力</text><text class="lbl" x="495" y="180" text-anchor="end">使用年数 →</text><path d="M55,50 C150,60 250,110 495,140" fill="none" style="stroke:var(--tb-bad)" stroke-width="2.6"/><path d="M55,70 C150,70 250,55 495,35" fill="none" style="stroke:var(--tb-good)" stroke-width="2.6"/><text class="mark-t" x="300" y="150">塗装の剥げ・樹脂の黄変</text><text class="mark-t" x="330" y="26">革・真鍮・無垢材</text><circle r="6" style="fill:var(--tb-accent)" class="k-glow"><animateMotion dur="6s" repeatCount="indefinite" path="M55,70 C150,70 250,55 495,35"/></circle>
 </svg>
 <p class="tb-caption">図: 経年変化の 2 つの方向 (概念図)。新品が最も美しい物と、使うほど良くなる物</p>
 <ul>
@@ -523,14 +371,8 @@ export const DESIGN3: TextChapter[] = [
   <tr><td>重さ</td><td>質量と重心の位置</td><td>適度な重さは安定感・信頼感。手持ち品は軽さが優先</td></tr>
   <tr><td>操作感</td><td>荷重とストロークの関係 (クリック感)、ダイヤルの節度</td><td>押し始めに抵抗が増え、ある点で急に抜けると「押した」感じが明確</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="スイッチの荷重とストローク">
-  <line class="axis" x1="60" y1="160" x2="480" y2="160"/><line class="axis" x1="60" y1="160" x2="60" y2="20"/>
-  <text class="lbl" x="66" y="30">荷重</text><text class="lbl" x="475" y="180" text-anchor="end">ストローク →</text>
-  <path d="M60,160 L200,60 L260,120 L330,110 L400,30" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <circle cx="200" cy="60" r="4" fill="currentColor"/><circle cx="260" cy="120" r="4" fill="currentColor"/>
-  <text class="mark-t" x="205" y="52">ピーク荷重</text>
-  <text class="mark-t" x="265" y="140">急に抜ける → クリック感</text>
-  <line class="guide" x1="200" y1="60" x2="200" y2="160"/><line class="guide" x1="260" y1="120" x2="260" y2="160"/>
+<svg class="tb-chart" viewBox="0 0 520 190" role="img" aria-label="スイッチの荷重とストローク">
+<line class="grid" x1="60" y1="60" x2="480" y2="60"/><line class="grid" x1="60" y1="110" x2="480" y2="110"/><path d="M60,160 L200,60 L260,120 L330,110 L400,30 L400,160 Z" style="fill:var(--tb-accent)" opacity="0.1"/><line class="axis" x1="60" y1="160" x2="480" y2="160"/><line class="axis" x1="60" y1="160" x2="60" y2="20"/><text class="lbl" x="66" y="30">荷重</text><text class="lbl" x="475" y="180" text-anchor="end">ストローク →</text><path d="M60,160 L200,60 L260,120 L330,110 L400,30" fill="none" style="stroke:var(--tb-accent)" stroke-width="2.6"/><line class="guide" x1="200" y1="60" x2="200" y2="160"/><line class="guide" x1="260" y1="120" x2="260" y2="160"/><circle cx="200" cy="60" r="4.5" style="fill:var(--tb-surface);stroke:var(--tb-text)" stroke-width="2"/><circle cx="260" cy="120" r="4.5" style="fill:var(--tb-surface);stroke:var(--tb-text)" stroke-width="2"/><line class="k-ext" x1="204" y1="60" x2="290" y2="60"/><line class="k-dimline" x1="284" y1="60" x2="284" y2="120"/><text class="mark-t" x="150" y="52" text-anchor="middle">ピーク荷重</text><text class="k-dimtext" x="290" y="92">落差</text><text class="mark-t" x="265" y="142">急に抜ける → クリック感</text><g class="k-shadow"><rect class="k-part" x="420" y="120" width="50" height="18" rx="2"/><rect class="k-plastic" x="432" y="104" width="26" height="16" rx="3"/></g><path class="k-force" d="M445,74 L445,100" stroke-width="2"/>
 </svg>
 <p class="tb-caption">図: タクトスイッチの荷重−ストローク特性 (模式図)。ピークから落ちる量が「クリック感」をつくる</p>
 <div class="tb-note">感性品質は、言葉 (「しっとり」「カチッと」) と物理量 (荷重、音圧、周波数、表面粗さ) を<b>対応づけて</b>評価すると、設計目標にできます。複数の人に試作を比べてもらう官能評価で、好まれる範囲を探ります。</div>
@@ -542,14 +384,8 @@ export const DESIGN3: TextChapter[] = [
   <li><b>物語</b>: 産地・素材・作り手・開発の背景。ただし事実に基づくこと (誇張は信頼を失う)</li>
 </ul>
 <h2>長く使われるデザイン</h2>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="長寿命化の要素">
-  <circle cx="260" cy="85" r="34" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="lbl" x="260" y="90" text-anchor="middle">長く使う</text>
-  <g stroke="var(--tb-text-3)"><line x1="226" y1="78" x2="140" y2="45"/><line x1="226" y1="95" x2="140" y2="130"/><line x1="294" y1="78" x2="380" y2="45"/><line x1="294" y1="95" x2="380" y2="130"/></g>
-  <text class="lbl" x="135" y="40" text-anchor="end">飽きない形</text>
-  <text class="lbl" x="135" y="138" text-anchor="end">直せる構造</text>
-  <text class="lbl" x="385" y="40">美しく古びる素材</text>
-  <text class="lbl" x="385" y="138">愛着 (物語・体験)</text>
+<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="長寿命化の要素">
+<circle cx="260" cy="85" r="40" class="k-accent k-shadow"/><text class="k-title" x="260" y="90" text-anchor="middle" style="fill:#ffffff">長く使う</text><g class="k-shadow"><rect class="k-panel" x="16" y="18" width="130" height="40" rx="8"/></g><text class="lbl" x="81" y="43" text-anchor="middle">飽きない形</text><g class="k-shadow"><rect class="k-panel" x="16" y="112" width="130" height="40" rx="8"/></g><text class="lbl" x="81" y="137" text-anchor="middle">直せる構造</text><g class="k-shadow"><rect class="k-panel" x="374" y="18" width="130" height="40" rx="8"/></g><text class="lbl" x="439" y="43" text-anchor="middle">美しく古びる素材</text><g class="k-shadow"><rect class="k-panel" x="374" y="112" width="130" height="40" rx="8"/></g><text class="lbl" x="439" y="137" text-anchor="middle">愛着 (物語・体験)</text><g style="stroke:var(--k-line-2)" stroke-width="1.4" fill="none"><path d="M224,70 L146,40"/><path d="M224,100 L146,130"/><path d="M296,70 L374,40"/><path d="M296,100 L374,130"/></g>
 </svg>
 <p class="tb-caption">図: 長く使われる製品を支える 4 つの要素</p>
 <ul>

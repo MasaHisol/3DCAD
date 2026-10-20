@@ -11,21 +11,11 @@ export const KNOWHOW3: TextChapter[] = [
     body: `
 <h2>機能から考える</h2>
 <p>いきなり形を描き始めると、「なぜこの形なのか」を説明できない設計になります。まず<b>目的 → 機能 → 手段 (形)</b> の順に分解します。</p>
-<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="目的・機能・手段の分解">
-  <rect x="180" y="16" width="160" height="34" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="mark-t" x="260" y="38" text-anchor="middle">目的: 箱を棚へ載せる</text>
-  <rect x="30" y="86" width="130" height="34" rx="6" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <text class="lbl" x="95" y="108" text-anchor="middle">機能: つかむ</text>
-  <rect x="195" y="86" width="130" height="34" rx="6" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <text class="lbl" x="260" y="108" text-anchor="middle">機能: 持ち上げる</text>
-  <rect x="360" y="86" width="130" height="34" rx="6" fill="var(--tb-surface-2)" stroke="currentColor"/>
-  <text class="lbl" x="425" y="108" text-anchor="middle">機能: 位置で止める</text>
-  <line class="guide" x1="260" y1="50" x2="95" y2="86"/><line class="guide" x1="260" y1="50" x2="260" y2="86"/><line class="guide" x1="260" y1="50" x2="425" y2="86"/>
-  <text class="tick" x="95" y="150" text-anchor="middle">吸着 / 爪 / 磁石</text>
-  <text class="tick" x="260" y="150" text-anchor="middle">ボールねじ / ベルト / シリンダ</text>
-  <text class="tick" x="425" y="150" text-anchor="middle">センサ + 停止 / ストッパ</text>
-  <line class="guide" x1="95" y1="120" x2="95" y2="138"/><line class="guide" x1="260" y1="120" x2="260" y2="138"/><line class="guide" x1="425" y1="120" x2="425" y2="138"/>
-  <text class="lbl" x="260" y="190" text-anchor="middle">手段 (形・部品) は機能ごとに複数の候補から選ぶ</text>
+<svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="目的・機能・手段の分解">
+<g class="k-shadow"><rect class="k-accent" x="170" y="16" width="180" height="36" rx="8"/></g>
+<text x="260" y="39" text-anchor="middle" style="fill:#fff;font-size:13px;font-weight:700">目的: 箱を棚へ載せる</text>
+<path class="k-thin" d="M260,52 L260,68 L95,68 L95,84" style="stroke-width:1.4"/><g class="k-shadow"><rect x="30" y="84" width="130" height="34" rx="6" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.4"/></g><text class="lbl" x="95" y="106" text-anchor="middle">機能: つかむ</text><rect x="45" y="136" width="100" height="20" rx="10" style="fill:var(--tb-accent);fill-opacity:0.13;stroke:var(--tb-accent)" stroke-width="0.8"/><text class="tick" x="95" y="150" text-anchor="middle" style="fill:var(--tb-text-2)">吸着</text><rect x="45" y="162" width="100" height="20" rx="10" style="fill:var(--tb-accent);fill-opacity:0.13;stroke:var(--tb-accent)" stroke-width="0.8"/><text class="tick" x="95" y="176" text-anchor="middle" style="fill:var(--tb-text-2)">爪</text><rect x="45" y="188" width="100" height="20" rx="10" style="fill:var(--tb-accent);fill-opacity:0.13;stroke:var(--tb-accent)" stroke-width="0.8"/><text class="tick" x="95" y="202" text-anchor="middle" style="fill:var(--tb-text-2)">磁石</text><line class="k-thin" x1="95" y1="118" x2="95" y2="136"/><path class="k-thin" d="M260,52 L260,68 L260,68 L260,84" style="stroke-width:1.4"/><g class="k-shadow"><rect x="195" y="84" width="130" height="34" rx="6" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.4"/></g><text class="lbl" x="260" y="106" text-anchor="middle">機能: 持ち上げる</text><rect x="210" y="136" width="100" height="20" rx="10" style="fill:var(--tb-accent);fill-opacity:0.13;stroke:var(--tb-accent)" stroke-width="0.8"/><text class="tick" x="260" y="150" text-anchor="middle" style="fill:var(--tb-text-2)">ボールねじ</text><rect x="210" y="162" width="100" height="20" rx="10" style="fill:var(--tb-accent);fill-opacity:0.13;stroke:var(--tb-accent)" stroke-width="0.8"/><text class="tick" x="260" y="176" text-anchor="middle" style="fill:var(--tb-text-2)">ベルト</text><rect x="210" y="188" width="100" height="20" rx="10" style="fill:var(--tb-accent);fill-opacity:0.13;stroke:var(--tb-accent)" stroke-width="0.8"/><text class="tick" x="260" y="202" text-anchor="middle" style="fill:var(--tb-text-2)">シリンダ</text><line class="k-thin" x1="260" y1="118" x2="260" y2="136"/><path class="k-thin" d="M260,52 L260,68 L425,68 L425,84" style="stroke-width:1.4"/><g class="k-shadow"><rect x="360" y="84" width="130" height="34" rx="6" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.4"/></g><text class="lbl" x="425" y="106" text-anchor="middle">機能: 位置で止める</text><rect x="375" y="136" width="100" height="20" rx="10" style="fill:var(--tb-accent);fill-opacity:0.13;stroke:var(--tb-accent)" stroke-width="0.8"/><text class="tick" x="425" y="150" text-anchor="middle" style="fill:var(--tb-text-2)">センサ + 停止</text><rect x="375" y="162" width="100" height="20" rx="10" style="fill:var(--tb-accent);fill-opacity:0.13;stroke:var(--tb-accent)" stroke-width="0.8"/><text class="tick" x="425" y="176" text-anchor="middle" style="fill:var(--tb-text-2)">ストッパ</text><line class="k-thin" x1="425" y1="118" x2="425" y2="136"/>
+<text class="lbl" x="260" y="230" text-anchor="middle">手段 (形・部品) は機能ごとに複数の候補から選ぶ</text>
 </svg>
 <p class="tb-caption">図: 目的を機能に分け、機能ごとに手段の候補を並べる。候補を比べてから形にすると、選んだ理由を説明できる</p>
 <ul>
@@ -40,15 +30,12 @@ export const KNOWHOW3: TextChapter[] = [
   <li>力・応力は「F = ma」「σ = F/A」「σ = M/Z」の 1 行で桁を出す</li>
   <li>概算と詳細計算 (解析) が 2〜3 倍以上違ったら、どちらかの条件が間違っている</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="設計の繰り返しの流れ">
-  <rect x="20" y="60" width="100" height="40" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="70" y="85" text-anchor="middle">ポンチ絵</text>
-  <rect x="145" y="60" width="100" height="40" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="195" y="85" text-anchor="middle">概算</text>
-  <rect x="270" y="60" width="100" height="40" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="320" y="85" text-anchor="middle">3D モデル</text>
-  <rect x="395" y="60" width="100" height="40" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="445" y="85" text-anchor="middle">詳細計算・解析</text>
-  <line x1="120" y1="80" x2="145" y2="80" stroke="var(--tb-accent)" stroke-width="2"/><line x1="245" y1="80" x2="270" y2="80" stroke="var(--tb-accent)" stroke-width="2"/><line x1="370" y1="80" x2="395" y2="80" stroke="var(--tb-accent)" stroke-width="2"/>
-  <path d="M445,100 C445,150 70,150 70,104" fill="none" class="guide"/>
-  <text class="tick" x="260" y="160" text-anchor="middle">合わなければ早い段階に戻る。戻るのは失敗ではなく設計の普通の進み方</text>
-  <text class="tick" x="132" y="45" text-anchor="middle">安い・速い</text><text class="tick" x="408" y="45" text-anchor="middle">高い・遅い</text>
+<svg class="tb-chart" viewBox="0 0 520 172" role="img" aria-label="設計の繰り返しの流れ">
+<line class="k-move" x1="80" y1="40" x2="440" y2="40" style="stroke:var(--tb-text-3);marker-end:url(#k-arrow)"/>
+<text class="tick" x="70" y="44" text-anchor="end">安い・速い</text><text class="tick" x="448" y="44">高い・遅い</text>
+<g class="k-shadow"><rect x="20" y="60" width="100" height="40" rx="8" style="fill:var(--tb-accent);fill-opacity:0.12;stroke:var(--tb-accent)" stroke-width="1.5"/></g><text class="lbl" x="70" y="85" text-anchor="middle">ポンチ絵</text><line class="k-move" x1="122" y1="80" x2="143" y2="80" style="stroke-width:1.6"/><g class="k-shadow"><rect x="145" y="60" width="100" height="40" rx="8" style="fill:var(--tb-accent);fill-opacity:0.22;stroke:var(--tb-accent)" stroke-width="1.5"/></g><text class="lbl" x="195" y="85" text-anchor="middle">概算</text><line class="k-move" x1="247" y1="80" x2="268" y2="80" style="stroke-width:1.6"/><g class="k-shadow"><rect x="270" y="60" width="100" height="40" rx="8" style="fill:var(--tb-accent);fill-opacity:0.34;stroke:var(--tb-accent)" stroke-width="1.5"/></g><text class="lbl" x="320" y="85" text-anchor="middle">3D モデル</text><line class="k-move" x1="372" y1="80" x2="393" y2="80" style="stroke-width:1.6"/><g class="k-shadow"><rect x="395" y="60" width="100" height="40" rx="8" style="fill:var(--tb-accent);fill-opacity:0.48;stroke:var(--tb-accent)" stroke-width="1.5"/></g><text class="lbl" x="445" y="85" text-anchor="middle">詳細計算・解析</text>
+<path d="M445,102 C445,150 70,150 70,104" fill="none" style="stroke:var(--tb-warn);marker-end:url(#k-arrow)" stroke-width="1.6" stroke-dasharray="5 3"/>
+<text class="tick" x="260" y="164" text-anchor="middle">合わなければ早い段階に戻る。戻るのは失敗ではなく設計の普通の進み方</text>
 </svg>
 <p class="tb-caption">図: 安く速い手段 (手描き・概算) で大きな間違いを先につぶし、時間のかかる作業は後に回す</p>
 <h2>作る人・使う人・直す人を想像する</h2>
@@ -116,22 +103,24 @@ export const KNOWHOW3: TextChapter[] = [
 </ol>
 <p>最初は部品を<b>直方体の箱</b>で表し、外形寸法と質量だけを持たせます。形を作り込むのは配置が固まってからです。重いもの・大きいものから先に、力の流れが短くなるように置きます。</p>
 <h2>動線と保守スペース</h2>
-<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="装置の平面レイアウト">
-  <rect x="140" y="40" width="240" height="110" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-  <text class="lbl" x="260" y="64" text-anchor="middle">装置本体</text>
-  <rect x="160" y="80" width="70" height="50" fill="none" stroke="var(--tb-accent)" stroke-width="1.5"/><text class="tick" x="195" y="110" text-anchor="middle">駆動部</text>
-  <rect x="290" y="80" width="70" height="50" fill="none" stroke="var(--tb-accent)" stroke-width="1.5"/><text class="tick" x="325" y="110" text-anchor="middle">作業部</text>
-  <rect x="390" y="40" width="50" height="110" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/><text class="tick" x="415" y="99" text-anchor="middle">盤</text>
-  <rect x="140" y="150" width="240" height="40" fill="var(--tb-good)" opacity="0.15" stroke="var(--tb-good)" stroke-dasharray="4 3"/>
-  <text class="lbl" x="260" y="175" text-anchor="middle" style="fill:var(--tb-good)">作業者側 (操作・ワーク出し入れ)</text>
-  <rect x="80" y="40" width="60" height="110" fill="var(--tb-warn)" opacity="0.15" stroke="var(--tb-warn)" stroke-dasharray="4 3"/>
-  <text class="tick" x="110" y="92" text-anchor="middle">保守</text><text class="tick" x="110" y="108" text-anchor="middle">空間</text>
-  <rect x="440" y="40" width="50" height="110" fill="var(--tb-warn)" opacity="0.15" stroke="var(--tb-warn)" stroke-dasharray="4 3"/>
-  <text class="tick" x="465" y="92" text-anchor="middle">扉の</text><text class="tick" x="465" y="108" text-anchor="middle">開閉</text>
-  <polyline points="230,105 290,105" fill="none" stroke="var(--tb-accent)" stroke-width="2" stroke-dasharray="6 4"/>
-  <path d="M390,60 L250,60 L250,80" fill="none" stroke="var(--tb-bad)" stroke-width="1.5" stroke-dasharray="2 3"/>
-  <text class="tick" x="320" y="54" text-anchor="middle">配線ルート</text>
-  <text class="tick" x="260" y="212" text-anchor="middle">点線の領域は物を置かない空間としてモデルに入れておく</text>
+<svg class="tb-chart" viewBox="0 0 520 226" role="img" aria-label="装置の平面レイアウト">
+<rect x="80" y="40" width="60" height="110" rx="4" style="fill:var(--tb-warn);fill-opacity:0.12;stroke:var(--tb-warn)" stroke-dasharray="4 3"/>
+<rect x="440" y="40" width="58" height="110" rx="4" style="fill:var(--tb-warn);fill-opacity:0.12;stroke:var(--tb-warn)" stroke-dasharray="4 3"/>
+<path d="M440,44 A46,46 0 0 1 486,90" fill="none" style="stroke:var(--tb-warn)" stroke-width="1.2"/><line x1="440" y1="44" x2="486" y2="90" style="stroke:var(--tb-warn)" stroke-width="1.2"/>
+<rect x="140" y="150" width="240" height="44" rx="4" style="fill:var(--tb-good);fill-opacity:0.12;stroke:var(--tb-good)" stroke-dasharray="4 3"/>
+<g class="k-shadow"><rect class="k-alu" x="140" y="40" width="240" height="110" rx="3"/><rect class="k-plastic" x="390" y="40" width="50" height="110" rx="3"/>
+<rect class="k-part" x="160" y="80" width="70" height="50" rx="3"/><rect class="k-part" x="290" y="80" width="70" height="50" rx="3"/></g>
+<text class="lbl" x="260" y="62" text-anchor="middle">装置本体</text>
+<text class="tick" x="195" y="110" text-anchor="middle" style="fill:var(--tb-text-2)">駆動部</text><text class="tick" x="325" y="110" text-anchor="middle" style="fill:var(--tb-text-2)">作業部</text>
+<text class="tick" x="415" y="99" text-anchor="middle" style="fill:var(--tb-text)">盤</text>
+<line x1="230" y1="105" x2="290" y2="105" style="stroke:var(--tb-accent)" stroke-width="2" stroke-dasharray="6 4"/>
+<path d="M390,70 L250,70 L250,80" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.5" stroke-dasharray="2 3"/>
+<text class="tick" x="345" y="64" text-anchor="middle">配線ルート</text>
+<text class="tick" x="110" y="92" text-anchor="middle">保守</text><text class="tick" x="110" y="108" text-anchor="middle">空間</text>
+<text class="tick" x="470" y="116" text-anchor="middle">扉の</text><text class="tick" x="470" y="132" text-anchor="middle">開閉</text>
+<ellipse cx="420" cy="182" rx="20" ry="9" style="fill:var(--tb-accent);fill-opacity:0.5;stroke:var(--k-line)"/><circle class="k-skin" cx="420" cy="182" r="7"/>
+<text class="lbl" x="250" y="177" text-anchor="middle" style="fill:var(--tb-good)">作業者側 (操作・ワーク出し入れ)</text>
+<text class="tick" x="260" y="216" text-anchor="middle">点線の領域は物を置かない空間としてモデルに入れておく</text>
 </svg>
 <p class="tb-caption">図: 平面レイアウトの例。作業者側・保守空間・扉の開閉範囲を「空間の部品」として確保し、配線は動く部分を避けて最短に通す</p>
 <ul>
@@ -142,22 +131,27 @@ export const KNOWHOW3: TextChapter[] = [
 </ul>
 <h2>重心と転倒</h2>
 <p>背の高い装置や台車では<b>転倒</b>の確認が欠かせません。重心が支点 (転倒の軸になる底面の縁) の真上を越えると倒れます。</p>
-<svg class="tb-chart" viewBox="0 0 520 230" role="img" aria-label="転倒角の求め方">
-  <line class="axis" x1="40" y1="200" x2="250" y2="200"/>
-  <rect x="80" y="40" width="120" height="160" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-  <circle class="mark" cx="140" cy="100" r="5"/><text class="mark-t" x="150" y="96">G</text>
-  <line class="guide" x1="140" y1="100" x2="140" y2="200"/><line class="guide" x1="140" y1="100" x2="200" y2="200"/>
-  <text class="tick" x="170" y="215" text-anchor="middle">b/2</text><text class="tick" x="132" y="155" text-anchor="end">h</text>
-  <circle cx="200" cy="200" r="4" fill="var(--tb-accent)"/><text class="tick" x="208" y="196">支点</text>
-  <text class="lbl" x="140" y="28" text-anchor="middle">tan θ = (b/2) / h</text>
-  <g>
-    <animateTransform attributeName="transform" type="rotate" values="0 460 200;-20.6 460 200;-20.6 460 200;0 460 200" keyTimes="0;0.4;0.7;1" dur="5s" repeatCount="indefinite"/>
-    <rect x="340" y="40" width="120" height="160" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-    <circle class="mark" cx="400" cy="100" r="5"/>
-    <line x1="400" y1="100" x2="460" y2="200" stroke="var(--tb-bad)" stroke-width="1.5"/>
-  </g>
-  <line class="axis" x1="300" y1="200" x2="500" y2="200"/>
-  <text class="lbl" x="400" y="225" text-anchor="middle">θ まで傾くと重心が支点の真上に来る</text>
+<svg class="tb-chart" viewBox="0 0 520 236" role="img" aria-label="転倒角の求め方">
+<text class="lbl" x="140" y="24" text-anchor="middle">tan θ = (b/2) / h</text>
+<rect class="k-ground" x="30" y="201" width="230" height="10"/><line class="k-edge" x1="30" y1="200" x2="260" y2="200"/>
+<g class="k-shadow"><rect class="k-part" x="80" y="40" width="120" height="160" rx="2"/></g>
+<line class="k-center" x1="140" y1="34" x2="140" y2="206"/>
+<line x1="140" y1="100" x2="200" y2="200" style="stroke:var(--tb-bad)" stroke-width="1.4" stroke-dasharray="4 3"/>
+<circle class="mark" cx="140" cy="100" r="5"/><text class="mark-t" x="150" y="96">G</text>
+<path d="M140,130 A30,30 0 0 0 155.4,125.7" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.4"/><text class="k-bad-t" x="148" y="146">θ</text>
+<line class="k-ext" x1="136" y1="100" x2="62" y2="100"/><line class="k-dimline" x1="68" y1="100" x2="68" y2="200"/><text class="k-dimtext" x="62" y="154" text-anchor="end">h</text>
+<line class="k-ext" x1="140" y1="204" x2="140" y2="226"/><line class="k-ext" x1="200" y1="204" x2="200" y2="226"/><line class="k-dimline" x1="140" y1="220" x2="200" y2="220"/><text class="k-dimtext" x="210" y="224">b/2</text>
+<circle cx="200" cy="200" r="4" style="fill:var(--tb-accent)"/><text class="tick" x="208" y="194">支点</text>
+<rect class="k-ground" x="290" y="201" width="220" height="10"/><line class="k-edge" x1="290" y1="200" x2="510" y2="200"/>
+<line class="k-center" x1="460" y1="70" x2="460" y2="206"/>
+<g>
+<animateTransform attributeName="transform" type="rotate" values="0 460 200;-31 460 200;-31 460 200;0 460 200" keyTimes="0;0.4;0.7;1" dur="5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;0 0 1 1;.45 0 .55 1"/>
+<rect class="k-part" x="340" y="40" width="120" height="160" rx="2" style="filter:url(#k-shadow)"/>
+<circle class="mark" cx="400" cy="100" r="5"/>
+<line x1="400" y1="100" x2="460" y2="200" style="stroke:var(--tb-bad)" stroke-width="1.6"/>
+</g>
+<circle cx="460" cy="200" r="4" style="fill:var(--tb-accent)"/>
+<text class="lbl" x="400" y="24" text-anchor="middle">θ まで傾くと重心が支点の真上に来る</text>
 </svg>
 <p class="tb-caption">図: 転倒角 θ。重心 G の高さ h と、重心から支点までの水平距離 b/2 で決まる。右は θ まで傾けた状態 (ここが倒れる境目)</p>
 <div class="tb-formula">転倒角 θ = tan⁻¹ ( (b/2) / h )　　横から押して倒れる力 F = W × (b/2) / h_F</div>
@@ -208,19 +202,22 @@ export const KNOWHOW3: TextChapter[] = [
 <div class="tb-formula">V (価値) = F (機能) / C (コスト)</div>
 <p>VE では部品を「物」ではなく「機能」として見て、その機能にいくら払っているかを考えます。価値を上げる方向は 4 つあります。</p>
 <svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="価値を上げる方向">
-  <line class="axis" x1="80" y1="190" x2="480" y2="190"/><line class="axis" x1="80" y1="20" x2="80" y2="190"/>
-  <text class="lbl" x="476" y="210" text-anchor="end">コスト C</text><text class="lbl" x="86" y="16">機能 F</text>
-  <circle cx="300" cy="110" r="7" fill="var(--tb-text-3)"/><text class="tick" x="310" y="128">現状</text>
-  <line x1="300" y1="110" x2="200" y2="110" stroke="var(--tb-good)" stroke-width="2.5"/><polygon points="200,110 210,105 210,115" fill="var(--tb-good)"/>
-  <line x1="300" y1="110" x2="300" y2="50" stroke="var(--tb-good)" stroke-width="2.5"/><polygon points="300,50 295,60 305,60" fill="var(--tb-good)"/>
-  <line x1="300" y1="110" x2="220" y2="55" stroke="var(--tb-good)" stroke-width="2.5"/><polygon points="220,55 225.5,64.9 231.2,56.6" fill="var(--tb-good)"/>
-  <line x1="300" y1="110" x2="360" y2="40" stroke="var(--tb-accent)" stroke-width="2" stroke-dasharray="5 3"/><polygon points="360,40 349.5,44.4 357.1,50.9" fill="var(--tb-accent)"/>
-  <text class="tick" x="195" y="104" text-anchor="end">① 同じ機能で安く</text>
-  <text class="tick" x="306" y="46">② 同じコストで機能向上</text>
-  <text class="tick" x="215" y="48" text-anchor="end">③ 安く + 機能向上</text>
-  <text class="tick" x="366" y="34">④ 少し高く、大きく機能向上</text>
-  <line x1="300" y1="110" x2="380" y2="150" stroke="var(--tb-bad)" stroke-width="2" stroke-dasharray="2 3"/>
-  <text class="tick" x="386" y="160" style="fill:var(--tb-bad)">× 機能を削って安く (コスト削減ではなく品質低下)</text>
+<path d="M80,190 L80,20 L300,20 L300,110 Z" style="fill:var(--tb-good);fill-opacity:0.06"/>
+<line class="grid" x1="80" y1="190" x2="460" y2="20"/><line class="grid" x1="80" y1="190" x2="480" y2="110"/>
+<text class="tick" x="474" y="104" text-anchor="end">V 一定</text>
+<line class="axis" x1="80" y1="190" x2="480" y2="190"/><line class="axis" x1="80" y1="20" x2="80" y2="190"/>
+<text class="lbl" x="476" y="210" text-anchor="end">コスト C</text><text class="lbl" x="86" y="16">機能 F</text>
+<line class="k-move" x1="300" y1="110" x2="204" y2="110" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green);stroke-width:2.4"/>
+<line class="k-move" x1="300" y1="110" x2="300" y2="54" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green);stroke-width:2.4"/>
+<line class="k-move" x1="300" y1="110" x2="224" y2="58" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green);stroke-width:2.4"/>
+<line class="k-move" x1="300" y1="110" x2="400" y2="64" style="stroke-dasharray:5 3"/>
+<line class="k-move" x1="300" y1="110" x2="376" y2="148" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red);stroke-dasharray:2 3"/>
+<circle cx="300" cy="110" r="7" style="fill:var(--tb-text-3);stroke:var(--tb-surface)" stroke-width="2"/><text class="tick" x="290" y="130" text-anchor="end">現状</text>
+<text class="tick" x="198" y="104" text-anchor="end">① 同じ機能で安く</text>
+<text class="tick" x="296" y="46" text-anchor="end">② 同じコストで機能向上</text>
+<text class="tick" x="216" y="76" text-anchor="end">③ 安く + 機能向上</text>
+<text class="tick" x="500" y="50" text-anchor="end">④ 少し高く、大きく機能向上</text>
+<text class="tick" x="500" y="172" text-anchor="end" style="fill:var(--tb-bad)">× 機能を削って安く (コスト削減ではなく品質低下)</text>
 </svg>
 <p class="tb-caption">図: 価値を上げる 4 つの方向 (緑・青)。必要な機能を削って安くするのは VE ではない</p>
 <p>VE の手順は「対象を決める → 機能を定義する (動詞 + 名詞) → 機能ごとのコストを出す → 価値の低い機能 (払いすぎ) を見つける → 代替案を出す → 評価して提案」です。</p>
@@ -236,15 +233,15 @@ export const KNOWHOW3: TextChapter[] = [
   <tr><td>購入品</td><td>標準品・推奨品を使っているか</td><td>特注品 → カタログ品、メーカー・型式の統一</td></tr>
   <tr><td>数量</td><td>まとめて作れないか</td><td>共通化でロットを大きく (段取り費の分散)</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="コストダウン前後の内訳 (例)">
-  <line class="axis" x1="60" y1="170" x2="460" y2="170"/>
-  <rect x="130" y="50" width="80" height="40" fill="var(--tb-text-3)" opacity="0.6"/><rect x="130" y="90" width="80" height="48" fill="var(--tb-accent)" opacity="0.7"/><rect x="130" y="138" width="80" height="32" fill="var(--tb-warn)" opacity="0.7"/>
-  <text class="tick" x="170" y="74" text-anchor="middle">材料 300</text><text class="tick" x="170" y="118" text-anchor="middle">加工 600</text><text class="tick" x="170" y="158" text-anchor="middle">組立 300</text>
-  <text class="lbl" x="170" y="40" text-anchor="middle">前: 1,200 円 (4 部品)</text>
-  <rect x="310" y="104" width="80" height="20" fill="var(--tb-text-3)" opacity="0.6"/><rect x="310" y="124" width="80" height="34" fill="var(--tb-accent)" opacity="0.7"/><rect x="310" y="158" width="80" height="12" fill="var(--tb-warn)" opacity="0.7"/>
-  <text class="tick" x="400" y="118">材料 150</text><text class="tick" x="400" y="145">加工 400</text><text class="tick" x="400" y="168">組立 100</text>
-  <text class="lbl" x="350" y="94" text-anchor="middle" style="fill:var(--tb-good)">後: 650 円 (1 部品)</text>
-  <text class="tick" x="260" y="192" text-anchor="middle">高さはコストに比例 (数値は例、円/台)</text>
+<svg class="tb-chart" viewBox="0 0 520 204" role="img" aria-label="コストダウン前後の内訳 (例)">
+<line class="axis" x1="60" y1="170" x2="460" y2="170"/>
+<rect x="130" y="50" width="80" height="40" rx="3" style="fill:var(--tb-text-3);fill-opacity:0.6"/><rect x="130" y="90" width="80" height="48" style="fill:var(--tb-accent);fill-opacity:0.75"/><rect x="130" y="138" width="80" height="32" style="fill:var(--tb-warn);fill-opacity:0.75"/>
+<text class="tick" x="170" y="74" text-anchor="middle" style="fill:var(--tb-text)">材料 300</text><text class="tick" x="170" y="118" text-anchor="middle" style="fill:var(--tb-text)">加工 600</text><text class="tick" x="170" y="158" text-anchor="middle" style="fill:var(--tb-text)">組立 300</text>
+<text class="lbl" x="170" y="40" text-anchor="middle">前: 1,200 円 (4 部品)</text>
+<rect x="310" y="104" width="80" height="20" rx="3" style="fill:var(--tb-text-3);fill-opacity:0.6"/><rect x="310" y="124" width="80" height="34" style="fill:var(--tb-accent);fill-opacity:0.75"/><rect x="310" y="158" width="80" height="12" style="fill:var(--tb-warn);fill-opacity:0.75"/>
+<text class="tick" x="400" y="118">材料 150</text><text class="tick" x="400" y="145">加工 400</text><text class="tick" x="400" y="168">組立 100</text>
+<text class="k-good-t" x="350" y="94" text-anchor="middle">後: 650 円 (1 部品)</text>
+<text class="tick" x="260" y="194" text-anchor="middle">高さはコストに比例 (数値は例、円/台)</text>
 </svg>
 <p class="tb-caption">図: 4 部品の溶接ブラケットを 1 枚の曲げ板金に統合した例。組立費の減少が大きい</p>
 <h2>事例</h2>
@@ -293,18 +290,24 @@ export const KNOWHOW3: TextChapter[] = [
     body: `
 <h2>位置決めの原則 (3-2-1)</h2>
 <p>空間に置かれた物体には 6 つの自由度 (X・Y・Z 方向の移動と、各軸まわりの回転) があります。これを<b>必要最小限の 6 点</b>で押さえるのが 3-2-1 の原則です。</p>
-<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="3-2-1 の位置決め">
-  <polygon points="100,90 160,50 320,50 260,90" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-  <polygon points="260,90 320,50 320,130 260,170" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-  <rect x="100" y="90" width="160" height="80" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-  <polygon points="130,182 124,194 136,194" fill="var(--tb-accent)"/><polygon points="230,182 224,194 236,194" fill="var(--tb-accent)"/><polygon points="295,160 289,172 301,172" fill="var(--tb-accent)"/>
-  <circle cx="140" cy="130" r="6" fill="var(--tb-good)"/><circle cx="220" cy="130" r="6" fill="var(--tb-good)"/>
-  <circle cx="290" cy="110" r="6" fill="var(--tb-warn)"/>
-  <text class="lbl" x="360" y="70" style="fill:var(--tb-accent)">▲ 底面 3 点: Z 移動と 2 つの傾きを止める</text>
-  <text class="lbl" x="360" y="100" style="fill:var(--tb-good)">● 側面 2 点: Y 移動と Z 軸回転</text>
-  <text class="lbl" x="360" y="130" style="fill:var(--tb-warn)">● 端面 1 点: X 移動</text>
-  <text class="tick" x="360" y="160">3 + 2 + 1 = 6 自由度</text>
-  <text class="tick" x="210" y="212" text-anchor="middle">押さえ (クランプ) は基準点に押し付ける向きに</text>
+<svg class="tb-chart" viewBox="0 0 520 226" role="img" aria-label="3-2-1 の位置決め">
+<g class="k-shadow">
+<polygon points="100,90 160,50 320,50 260,90" style="fill:var(--k-steel-1);stroke:var(--k-line)" stroke-width="1.6"/>
+<polygon points="260,90 320,50 320,130 260,170" style="fill:var(--k-steel-3);stroke:var(--k-line)" stroke-width="1.6"/>
+<rect class="k-part" x="100" y="90" width="160" height="80"/>
+</g>
+<path class="k-accent" d="M130,172 L123,190 L137,190 Z"/><path class="k-accent" d="M230,172 L223,190 L237,190 Z"/><path class="k-accent" d="M295,154 L288,172 L302,172 Z"/>
+<circle class="k-sphere" cx="140" cy="130" r="7" style="stroke:var(--tb-good);stroke-width:2"/><circle class="k-sphere" cx="220" cy="130" r="7" style="stroke:var(--tb-good);stroke-width:2"/>
+<circle class="k-sphere" cx="290" cy="110" r="7" style="stroke:var(--tb-warn);stroke-width:2"/>
+<line class="k-force" x1="200" y1="22" x2="200" y2="62"/><line class="k-force" x1="62" y1="130" x2="96" y2="130"/>
+<line class="k-move" x1="40" y1="206" x2="80" y2="206" style="stroke:var(--k-line-2);marker-end:url(#k-arrow)"/><line class="k-move" x1="40" y1="206" x2="40" y2="170" style="stroke:var(--k-line-2);marker-end:url(#k-arrow)"/><line class="k-move" x1="40" y1="206" x2="64" y2="190" style="stroke:var(--k-line-2);marker-end:url(#k-arrow)"/>
+<text class="tick" x="86" y="210">X</text><text class="tick" x="44" y="168">Z</text><text class="tick" x="68" y="188">Y</text>
+<text class="lbl" x="344" y="56" style="fill:var(--tb-accent)">▲ 底面 3 点</text><text class="tick" x="358" y="72">Z 移動と 2 つの傾きを止める</text>
+<text class="lbl" x="344" y="98" style="fill:var(--tb-good)">● 側面 2 点</text><text class="tick" x="358" y="114">Y 移動と Z 軸回転</text>
+<text class="lbl" x="344" y="140" style="fill:var(--tb-warn)">● 端面 1 点</text><text class="tick" x="358" y="156">X 移動</text>
+<text class="lbl" x="344" y="184">3 + 2 + 1 = 6 自由度</text>
+<text class="tick" x="214" y="18">押さえ (クランプ)</text>
+<text class="tick" x="260" y="214" text-anchor="middle">押さえ (クランプ) は基準点に押し付ける向きに</text>
 </svg>
 <p class="tb-caption">図: 3-2-1 の原則。広い面に 3 点、長い側面に 2 点、端面に 1 点。点はできるだけ離して置くと姿勢が安定する</p>
 <ul>
@@ -315,14 +318,16 @@ export const KNOWHOW3: TextChapter[] = [
 <h2>ピンと穴、丸ピンと長穴</h2>
 <p>板状の部品は、底面で 3 自由度を止めたあと、<b>2 本のピン</b>で残り 3 自由度 (X・Y・回転) を決めるのが定番です。</p>
 <svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="丸穴と長穴による位置決め">
-  <rect x="60" y="40" width="400" height="110" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-  <circle cx="120" cy="95" r="12" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="120" cy="95" r="9" fill="var(--tb-accent)"/>
-  <rect x="380" y="83" width="44" height="24" rx="12" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="402" cy="95" r="9" fill="var(--tb-accent)"/>
-  <line class="guide" x1="120" y1="95" x2="402" y2="95"/>
-  <text class="lbl" x="120" y="132" text-anchor="middle">丸穴: X・Y を決める</text>
-  <text class="lbl" x="402" y="132" text-anchor="middle">長穴: 回転だけ止める</text>
-  <text class="tick" x="260" y="88" text-anchor="middle">ピン間距離 L</text>
-  <text class="tick" x="260" y="180" text-anchor="middle">長穴は 2 本のピンを結ぶ線の方向に長くする (ピン間距離の誤差を逃がす)</text>
+<g class="k-shadow"><rect class="k-alu" x="60" y="40" width="400" height="110" rx="6"/></g>
+<circle cx="120" cy="95" r="12" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.6"/><circle class="k-sphere" cx="120" cy="95" r="9"/>
+<rect x="378" y="83" width="48" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.6"/>
+<circle class="k-sphere" cy="95" r="9"><animate attributeName="cx" values="402;396;408;402" dur="3s" repeatCount="indefinite"/></circle>
+<line class="k-center" x1="104" y1="95" x2="440" y2="95"/>
+<line class="k-ext" x1="120" y1="80" x2="120" y2="60"/><line class="k-ext" x1="402" y1="80" x2="402" y2="60"/>
+<line class="k-dimline" x1="120" y1="66" x2="402" y2="66"/><text class="k-dimtext" x="261" y="61" text-anchor="middle">ピン間距離 L</text>
+<text class="lbl" x="76" y="132">丸穴: X・Y を決める</text>
+<text class="lbl" x="444" y="132" text-anchor="end">長穴: 回転だけ止める</text>
+<text class="tick" x="260" y="180" text-anchor="middle">長穴は 2 本のピンを結ぶ線の方向に長くする (ピン間距離の誤差を逃がす)</text>
 </svg>
 <p class="tb-caption">図: 1 本目は丸穴で位置を、2 本目は長穴 (またはひし形ピン) で回転だけを決める。両方を丸穴にするとピン間距離の誤差で入らなくなる</p>
 <ul>
@@ -388,23 +393,18 @@ export const KNOWHOW3: TextChapter[] = [
 </table>
 <h2>影響調査 — どこまで波及するか</h2>
 <svg class="tb-chart" viewBox="0 0 520 230" role="img" aria-label="設計変更の影響範囲">
-  <rect x="200" y="96" width="120" height="40" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-bad)" stroke-width="2"/>
-  <text class="mark-t" x="260" y="121" text-anchor="middle">変更する部品</text>
-  <g stroke="var(--tb-text-3)" stroke-dasharray="4 3">
-    <line x1="200" y1="105" x2="120" y2="40"/><line x1="320" y1="105" x2="400" y2="40"/>
-    <line x1="200" y1="116" x2="110" y2="116"/><line x1="320" y1="116" x2="410" y2="116"/>
-    <line x1="200" y1="128" x2="120" y2="192"/><line x1="320" y1="128" x2="400" y2="192"/>
-  </g>
-  <rect x="30" y="22" width="170" height="34" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)"/><text class="lbl" x="115" y="44" text-anchor="middle">使われ先 (他機種・組品)</text>
-  <rect x="330" y="22" width="170" height="34" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)"/><text class="lbl" x="415" y="44" text-anchor="middle">在庫・発注残・仕掛品</text>
-  <rect x="10" y="99" width="100" height="34" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)"/><text class="lbl" x="60" y="121" text-anchor="middle">金型・治具</text>
-  <rect x="410" y="99" width="100" height="34" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)"/><text class="lbl" x="460" y="121" text-anchor="middle">図面・部品表</text>
-  <rect x="30" y="176" width="170" height="34" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)"/><text class="lbl" x="115" y="198" text-anchor="middle">保守部品・市場品</text>
-  <rect x="330" y="176" width="170" height="34" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)"/><text class="lbl" x="415" y="198" text-anchor="middle">検査・認証・説明書</text>
-  <circle cx="260" cy="116" r="70" fill="none" stroke="var(--tb-bad)" stroke-width="1" opacity="0.6">
-    <animate attributeName="r" values="62;118;62" dur="4s" repeatCount="indefinite"/>
-    <animate attributeName="opacity" values="0.6;0;0.6" dur="4s" repeatCount="indefinite"/>
-  </circle>
+<circle cx="260" cy="116" r="70" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.2" opacity="0.6">
+<animate attributeName="r" values="62;118;62" dur="4s" repeatCount="indefinite"/>
+<animate attributeName="opacity" values="0.6;0;0.6" dur="4s" repeatCount="indefinite"/>
+</circle>
+<g style="stroke:var(--tb-text-3)" stroke-dasharray="4 3">
+<line x1="200" y1="105" x2="120" y2="56"/><line x1="320" y1="105" x2="400" y2="56"/>
+<line x1="200" y1="116" x2="110" y2="116"/><line x1="320" y1="116" x2="410" y2="116"/>
+<line x1="200" y1="128" x2="120" y2="176"/><line x1="320" y1="128" x2="400" y2="176"/>
+</g>
+<g class="k-shadow"><rect x="30" y="22" width="170" height="34" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/></g><text class="lbl" x="115" y="44" text-anchor="middle">使われ先 (他機種・組品)</text><g class="k-shadow"><rect x="330" y="22" width="170" height="34" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/></g><text class="lbl" x="415" y="44" text-anchor="middle">在庫・発注残・仕掛品</text><g class="k-shadow"><rect x="10" y="99" width="100" height="34" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/></g><text class="lbl" x="60" y="121" text-anchor="middle">金型・治具</text><g class="k-shadow"><rect x="410" y="99" width="100" height="34" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/></g><text class="lbl" x="460" y="121" text-anchor="middle">図面・部品表</text><g class="k-shadow"><rect x="30" y="176" width="170" height="34" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/></g><text class="lbl" x="115" y="198" text-anchor="middle">保守部品・市場品</text><g class="k-shadow"><rect x="330" y="176" width="170" height="34" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/></g><text class="lbl" x="415" y="198" text-anchor="middle">検査・認証・説明書</text>
+<g class="k-shadow"><rect x="200" y="96" width="120" height="40" rx="8" style="fill:var(--tb-bad);fill-opacity:0.14;stroke:var(--tb-bad)" stroke-width="2"/></g>
+<text class="mark-t" x="260" y="121" text-anchor="middle">変更する部品</text>
 </svg>
 <p class="tb-caption">図: 1 つの部品の変更は、使われ先・在庫・型・図面・保守・認証へと波紋のように広がる。変更前にすべての方向を調べる</p>
 <table class="tb-table">
@@ -419,21 +419,20 @@ export const KNOWHOW3: TextChapter[] = [
 </table>
 <h2>互換性 — 部品番号を変える・変えない</h2>
 <p>判断の基本は<b>「新旧の部品を区別せずに使ってよいか」</b>です。どの使われ先でも、新品と旧品を入れ替えて組めて、機能・品質・寿命が同等なら<b>互換</b>です。</p>
-<svg class="tb-chart" viewBox="0 0 520 230" role="img" aria-label="部品番号の判断">
-  <rect x="160" y="14" width="200" height="36" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"/>
-  <text class="lbl" x="260" y="37" text-anchor="middle">旧品 → 新品に置き換えられる?</text>
-  <rect x="160" y="88" width="200" height="36" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="1.5"/>
-  <text class="lbl" x="260" y="111" text-anchor="middle">新品 → 旧品に戻しても使える?</text>
-  <line x1="260" y1="50" x2="260" y2="88" stroke="var(--tb-good)" stroke-width="2"/><text class="tick" x="266" y="74">はい</text>
-  <line x1="360" y1="32" x2="420" y2="32" stroke="var(--tb-bad)" stroke-width="2"/><line x1="420" y1="32" x2="420" y2="160" stroke="var(--tb-bad)" stroke-width="2"/><text class="tick" x="388" y="26">いいえ</text>
-  <line x1="260" y1="124" x2="260" y2="160" stroke="var(--tb-good)" stroke-width="2"/><text class="tick" x="266" y="146">はい</text>
-  <line x1="160" y1="106" x2="90" y2="106" stroke="var(--tb-warn)" stroke-width="2"/><line x1="90" y1="106" x2="90" y2="160" stroke="var(--tb-warn)" stroke-width="2"/><text class="tick" x="100" y="100">いいえ</text>
-  <rect x="190" y="160" width="140" height="54" rx="6" fill="var(--tb-good)" opacity="0.18" stroke="var(--tb-good)"/>
-  <text class="lbl" x="260" y="182" text-anchor="middle">完全互換</text><text class="tick" x="260" y="202" text-anchor="middle">番号そのまま、版 (Rev) を上げる</text>
-  <rect x="20" y="160" width="140" height="54" rx="6" fill="var(--tb-warn)" opacity="0.18" stroke="var(--tb-warn)"/>
-  <text class="lbl" x="90" y="182" text-anchor="middle">片互換</text><text class="tick" x="90" y="202" text-anchor="middle">新番号 (旧品の代替可と明記)</text>
-  <rect x="360" y="160" width="140" height="54" rx="6" fill="var(--tb-bad)" opacity="0.15" stroke="var(--tb-bad)"/>
-  <text class="lbl" x="430" y="182" text-anchor="middle">非互換</text><text class="tick" x="430" y="202" text-anchor="middle">新番号、使われ先も変更</text>
+<svg class="tb-chart" viewBox="0 0 520 234" role="img" aria-label="部品番号の判断">
+<g class="k-shadow"><rect x="160" y="14" width="200" height="36" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.5"/><rect x="160" y="88" width="200" height="36" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.5"/></g>
+<text class="lbl" x="260" y="37" text-anchor="middle">旧品 → 新品に置き換えられる?</text>
+<text class="lbl" x="260" y="111" text-anchor="middle">新品 → 旧品に戻しても使える?</text>
+<path class="k-move" d="M260,50 L260,86" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green)"/><text class="tick" x="266" y="72">はい</text>
+<path class="k-move" d="M360,32 L430,32 L430,158" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)"/><text class="tick" x="380" y="26">いいえ</text>
+<path class="k-move" d="M260,124 L260,158" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green)"/><text class="tick" x="266" y="146">はい</text>
+<path class="k-move" d="M160,106 L90,106 L90,158" style="stroke:var(--tb-warn);marker-end:url(#k-arrow)"/><text class="tick" x="100" y="100">いいえ</text>
+<rect x="190" y="160" width="140" height="64" rx="8" style="fill:var(--tb-good);fill-opacity:0.15;stroke:var(--tb-good)"/>
+<text class="lbl" x="260" y="183" text-anchor="middle">完全互換</text><text class="tick" x="260" y="201" text-anchor="middle">番号そのまま、</text><text class="tick" x="260" y="216" text-anchor="middle">版 (Rev) を上げる</text>
+<rect x="20" y="160" width="140" height="64" rx="8" style="fill:var(--tb-warn);fill-opacity:0.15;stroke:var(--tb-warn)"/>
+<text class="lbl" x="90" y="183" text-anchor="middle">片互換</text><text class="tick" x="90" y="201" text-anchor="middle">新番号</text><text class="tick" x="90" y="216" text-anchor="middle">(旧品の代替可と明記)</text>
+<rect x="360" y="160" width="140" height="64" rx="8" style="fill:var(--tb-bad);fill-opacity:0.13;stroke:var(--tb-bad)"/>
+<text class="lbl" x="430" y="183" text-anchor="middle">非互換</text><text class="tick" x="430" y="201" text-anchor="middle">新番号、</text><text class="tick" x="430" y="216" text-anchor="middle">使われ先も変更</text>
 </svg>
 <p class="tb-caption">図: 部品番号の判断の例。新旧の入れ替えが両方向に成り立つなら版の変更だけ、片方向なら新番号 + 代替関係の登録、成り立たなければ新番号</p>
 <ul>
@@ -483,24 +482,10 @@ export const KNOWHOW3: TextChapter[] = [
     body: `
 <h2>観点の全体像</h2>
 <svg class="tb-chart" viewBox="0 0 520 260" role="img" aria-label="設計チェックの 12 観点">
-  <circle cx="260" cy="130" r="48" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="mark-t" x="260" y="126" text-anchor="middle">設計</text><text class="tick" x="260" y="143" text-anchor="middle">12 の観点</text>
-  <g stroke="var(--tb-text-3)" stroke-dasharray="3 3">
-    <line x1="260" y1="82" x2="260" y2="40"/><line x1="284" y1="88" x2="320" y2="52"/><line x1="302" y1="106" x2="370" y2="80"/><line x1="308" y1="130" x2="380" y2="130"/><line x1="302" y1="154" x2="370" y2="180"/><line x1="284" y1="172" x2="320" y2="208"/>
-    <line x1="260" y1="178" x2="260" y2="220"/><line x1="236" y1="172" x2="200" y2="208"/><line x1="218" y1="154" x2="150" y2="180"/><line x1="212" y1="130" x2="140" y2="130"/><line x1="218" y1="106" x2="150" y2="80"/><line x1="236" y1="88" x2="200" y2="52"/>
-  </g>
-  <text class="lbl" x="260" y="32" text-anchor="middle">機能</text>
-  <text class="lbl" x="326" y="48" text-anchor="start">強度</text>
-  <text class="lbl" x="376" y="78" text-anchor="start">剛性</text>
-  <text class="lbl" x="386" y="134" text-anchor="start">熱</text>
-  <text class="lbl" x="376" y="190" text-anchor="start">振動</text>
-  <text class="lbl" x="326" y="222" text-anchor="start">製造</text>
-  <text class="lbl" x="260" y="238" text-anchor="middle">組立</text>
-  <text class="lbl" x="194" y="222" text-anchor="end">保守</text>
-  <text class="lbl" x="144" y="190" text-anchor="end">安全</text>
-  <text class="lbl" x="134" y="134" text-anchor="end">環境</text>
-  <text class="lbl" x="144" y="78" text-anchor="end">コスト</text>
-  <text class="lbl" x="194" y="48" text-anchor="end">図面</text>
+<g style="stroke:var(--tb-text-3)" stroke-dasharray="3 3"><line x1="260.0" y1="78.0" x2="260.0" y2="30.0"/><line x1="286.0" y1="85.0" x2="335.0" y2="43.4"/><line x1="305.0" y1="104.0" x2="389.9" y2="80.0"/><line x1="312.0" y1="130.0" x2="410.0" y2="130.0"/><line x1="305.0" y1="156.0" x2="389.9" y2="180.0"/><line x1="286.0" y1="175.0" x2="335.0" y2="216.6"/><line x1="260.0" y1="182.0" x2="260.0" y2="230.0"/><line x1="234.0" y1="175.0" x2="185.0" y2="216.6"/><line x1="215.0" y1="156.0" x2="130.1" y2="180.0"/><line x1="208.0" y1="130.0" x2="110.0" y2="130.0"/><line x1="215.0" y1="104.0" x2="130.1" y2="80.0"/><line x1="234.0" y1="85.0" x2="185.0" y2="43.4"/></g>
+<g class="k-shadow"><circle class="k-accent" cx="260" cy="130" r="48"/></g>
+<text x="260" y="128" text-anchor="middle" style="fill:#fff;font-size:15px;font-weight:700">設計</text><text x="260" y="146" text-anchor="middle" style="fill:#fff;font-size:11px">12 の観点</text>
+<rect x="237.0" y="18.0" width="46" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="260.0" y="34.0" text-anchor="middle">機能</text><rect x="312.0" y="31.4" width="46" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="335.0" y="47.4" text-anchor="middle">強度</text><rect x="366.9" y="68.0" width="46" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="389.9" y="84.0" text-anchor="middle">剛性</text><rect x="393.5" y="118.0" width="33" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="410.0" y="134.0" text-anchor="middle">熱</text><rect x="366.9" y="168.0" width="46" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="389.9" y="184.0" text-anchor="middle">振動</text><rect x="312.0" y="204.6" width="46" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="335.0" y="220.6" text-anchor="middle">製造</text><rect x="237.0" y="218.0" width="46" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="260.0" y="234.0" text-anchor="middle">組立</text><rect x="162.0" y="204.6" width="46" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="185.0" y="220.6" text-anchor="middle">保守</text><rect x="107.1" y="168.0" width="46" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="130.1" y="184.0" text-anchor="middle">安全</text><rect x="87.0" y="118.0" width="46" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="110.0" y="134.0" text-anchor="middle">環境</text><rect x="100.6" y="68.0" width="59" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="130.1" y="84.0" text-anchor="middle">コスト</text><rect x="162.0" y="31.4" width="46" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="185.0" y="47.4" text-anchor="middle">図面</text>
 </svg>
 <p class="tb-caption">図: 設計チェックの 12 の観点。ひとつの観点だけ深く見るのではなく、全周を一通り確認する</p>
 <h2>観点別チェック項目</h2>
@@ -521,14 +506,9 @@ export const KNOWHOW3: TextChapter[] = [
 </table>
 <h2>レビューの段階ごとの使い方</h2>
 <p>すべての項目を毎回同じ深さで見る必要はありません。設計の段階に合わせて<b>重点を変えます</b>。</p>
-<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="段階ごとのチェックの重点">
-  <text class="lbl" x="150" y="30" text-anchor="middle">構想 DR</text><text class="lbl" x="260" y="30" text-anchor="middle">詳細 DR</text><text class="lbl" x="370" y="30" text-anchor="middle">出図前</text><text class="lbl" x="470" y="30" text-anchor="middle">試作後</text>
-  <text class="tick" x="80" y="62" text-anchor="end">機能・安全</text><text class="tick" x="80" y="97" text-anchor="end">強度・熱・振動</text><text class="tick" x="80" y="132" text-anchor="end">製造・組立・保守</text><text class="tick" x="80" y="167" text-anchor="end">図面・コスト</text>
-  <circle cx="150" cy="58" r="12" fill="var(--tb-accent)"/><circle cx="260" cy="58" r="8" fill="var(--tb-accent)" opacity="0.6"/><circle cx="370" cy="58" r="5" fill="var(--tb-accent)" opacity="0.4"/><circle cx="470" cy="58" r="12" fill="var(--tb-accent)"/>
-  <circle cx="150" cy="93" r="8" fill="var(--tb-accent)" opacity="0.6"/><circle cx="260" cy="93" r="12" fill="var(--tb-accent)"/><circle cx="370" cy="93" r="5" fill="var(--tb-accent)" opacity="0.4"/><circle cx="470" cy="93" r="12" fill="var(--tb-accent)"/>
-  <circle cx="150" cy="128" r="5" fill="var(--tb-accent)" opacity="0.4"/><circle cx="260" cy="128" r="12" fill="var(--tb-accent)"/><circle cx="370" cy="128" r="8" fill="var(--tb-accent)" opacity="0.6"/><circle cx="470" cy="128" r="8" fill="var(--tb-accent)" opacity="0.6"/>
-  <circle cx="150" cy="163" r="5" fill="var(--tb-accent)" opacity="0.4"/><circle cx="260" cy="163" r="8" fill="var(--tb-accent)" opacity="0.6"/><circle cx="370" cy="163" r="12" fill="var(--tb-accent)"/><circle cx="470" cy="163" r="5" fill="var(--tb-accent)" opacity="0.4"/>
-  <text class="tick" x="290" y="205" text-anchor="middle">円が大きいほど重点 (一例。製品・会社によって変わる)</text>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="段階ごとのチェックの重点">
+<rect x="106" y="16" width="88" height="22" rx="11" style="fill:var(--tb-accent);fill-opacity:0.15"/><text class="lbl" x="150" y="31" text-anchor="middle">構想 DR</text><rect x="213" y="16" width="88" height="22" rx="11" style="fill:var(--tb-accent);fill-opacity:0.15"/><text class="lbl" x="257" y="31" text-anchor="middle">詳細 DR</text><rect x="320" y="16" width="88" height="22" rx="11" style="fill:var(--tb-accent);fill-opacity:0.15"/><text class="lbl" x="364" y="31" text-anchor="middle">出図前</text><rect x="427" y="16" width="88" height="22" rx="11" style="fill:var(--tb-accent);fill-opacity:0.15"/><text class="lbl" x="471" y="31" text-anchor="middle">試作後</text><rect x="10" y="44" width="500" height="32" rx="6" style="fill:var(--tb-surface-2)"/><text class="tick" x="92" y="64" text-anchor="end" style="fill:var(--tb-text-2)">機能・安全</text><circle cx="150" cy="60" r="12" style="fill:var(--tb-accent);fill-opacity:1"/><circle cx="257" cy="60" r="8" style="fill:var(--tb-accent);fill-opacity:0.6"/><circle cx="364" cy="60" r="5" style="fill:var(--tb-accent);fill-opacity:0.35"/><circle cx="471" cy="60" r="12" style="fill:var(--tb-accent);fill-opacity:1"/><text class="tick" x="92" y="99" text-anchor="end" style="fill:var(--tb-text-2)">強度・熱・振動</text><circle cx="150" cy="95" r="8" style="fill:var(--tb-accent);fill-opacity:0.6"/><circle cx="257" cy="95" r="12" style="fill:var(--tb-accent);fill-opacity:1"/><circle cx="364" cy="95" r="5" style="fill:var(--tb-accent);fill-opacity:0.35"/><circle cx="471" cy="95" r="12" style="fill:var(--tb-accent);fill-opacity:1"/><rect x="10" y="114" width="500" height="32" rx="6" style="fill:var(--tb-surface-2)"/><text class="tick" x="92" y="134" text-anchor="end" style="fill:var(--tb-text-2)">製造・組立・保守</text><circle cx="150" cy="130" r="5" style="fill:var(--tb-accent);fill-opacity:0.35"/><circle cx="257" cy="130" r="12" style="fill:var(--tb-accent);fill-opacity:1"/><circle cx="364" cy="130" r="8" style="fill:var(--tb-accent);fill-opacity:0.6"/><circle cx="471" cy="130" r="8" style="fill:var(--tb-accent);fill-opacity:0.6"/><text class="tick" x="92" y="169" text-anchor="end" style="fill:var(--tb-text-2)">図面・コスト</text><circle cx="150" cy="165" r="5" style="fill:var(--tb-accent);fill-opacity:0.35"/><circle cx="257" cy="165" r="8" style="fill:var(--tb-accent);fill-opacity:0.6"/><circle cx="364" cy="165" r="12" style="fill:var(--tb-accent);fill-opacity:1"/><circle cx="471" cy="165" r="5" style="fill:var(--tb-accent);fill-opacity:0.35"/>
+<text class="tick" x="290" y="198" text-anchor="middle">円が大きいほど重点 (一例。製品・会社によって変わる)</text>
 </svg>
 <p class="tb-caption">図: 段階ごとのチェックの重点の例。構想段階では機能・安全、詳細段階では強度と作りやすさ、出図前は図面、試作後は試験結果との照合に重点を置く</p>
 <h2>チェックリストを生かすコツ</h2>

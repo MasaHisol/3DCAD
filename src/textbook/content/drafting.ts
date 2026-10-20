@@ -34,15 +34,27 @@ export const DRAFTING: TextChapter[] = [
   <tr><td>回転投影図</td><td>アームなどが斜めに出ていて実形が出ない</td><td>その部分を投影面に平行な位置まで<b>回転させて</b>描く。必要なら作図線を残す</td></tr>
   <tr><td>部分拡大図</td><td>細部が小さくて寸法が入らない</td><td>細い実線の円で囲み英大文字を付け、別の場所に尺度を添えて拡大して描く (例: A 部 5:1)</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="補助投影図の例">
-  <path d="M40,160 L200,160 L200,110 L140,50 L40,50 Z" fill="none" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <text class="tick" x="80" y="185">正面図 (斜面は縮んで見える)</text>
-  <line class="guide" x1="170" y1="80" x2="290" y2="-40" transform="translate(40,60)"/>
-  <g transform="translate(330,40) rotate(45)">
-    <rect x="0" y="0" width="85" height="60" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-    <circle cx="42" cy="30" r="12" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
+<svg class="tb-chart" viewBox="0 0 520 262" role="img" aria-label="補助投影図の例">
+  <line class="k-thin" x1="140" y1="110" x2="157" y2="93"/><line class="k-thin" x1="200" y1="170" x2="217" y2="153"/>
+  <path d="M40,230 L200,230 L200,170 L140,110 L40,110 Z" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <path class="k-hidden" d="M161.5,131.5 L143.8,149.2 L160.8,166.2 L178.5,148.5"/>
+  <line class="k-center" x1="152" y1="158" x2="242" y2="68"/>
+  <g transform="translate(161.2,88.8) rotate(45)">
+    <rect x="0" y="-60" width="84.85" height="60" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="2.2"/>
+    <circle cx="42.4" cy="-30" r="12" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/>
+    <line class="k-center" x1="24" y1="-30" x2="61" y2="-30"/>
   </g>
-  <text class="mark-t" x="360" y="190">補助投影図 (斜面の実形)</text>
+  <text class="k-title" x="120" y="252" text-anchor="middle">正面図</text>
+  <text class="k-note" x="52" y="214">斜面は線に見える</text>
+  <path d="M262,40 L238,58" fill="none" style="stroke:var(--tb-accent)" stroke-width="1" marker-end="url(#k-arrow-blue)"/>
+  <text class="mark-t" x="266" y="36" style="fill:var(--tb-accent)">補助投影図 (斜面の実形)</text>
+  <text class="k-note" x="266" y="52">斜面に垂直な方向から見た図</text>
+  <rect x="320" y="120" width="160" height="60" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <line class="k-edge" x1="420" y1="120" x2="420" y2="180" style="stroke-width:2.2"/>
+  <ellipse cx="450" cy="150" rx="8.5" ry="12" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/>
+  <line class="k-center" x1="436" y1="150" x2="464" y2="150"/><line class="k-center" x1="450" y1="132" x2="450" y2="168"/>
+  <text class="k-title" x="400" y="204" text-anchor="middle">(参考) 平面図</text>
+  <text class="k-bad-t" x="400" y="222" text-anchor="middle">斜面は縮み、穴は楕円に見える</text>
 </svg>
 <h2>対称図示記号と省略</h2>
 <ul>
@@ -85,19 +97,21 @@ export const DRAFTING: TextChapter[] = [
   <tr><td>組合せ断面図</td><td>2 つ以上の平面で切る。平行な平面 = <b>階段断面</b>、交わる平面 = 鋭角 (角度をもつ) 断面</td><td>位置のずれた穴、放射状の穴</td></tr>
   <tr><td>多数の断面図</td><td>形が連続的に変わる部品を、複数の位置の断面で示す (切断線の延長上や順に並べる)</td><td>フック、タービン翼、段付き軸</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 190" aria-label="全断面と片側断面">
-  <defs><pattern id="tbHatchS" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="var(--tb-text-2)" stroke-width="1"/></pattern></defs>
-  <text class="lbl" x="40" y="20">全断面</text>
-  <rect x="40" y="40" width="160" height="110" fill="url(#tbHatchS)" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <rect x="95" y="40" width="50" height="110" fill="var(--tb-bg, #fff)" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <line class="guide" x1="120" y1="30" x2="120" y2="160"/>
-  <text class="lbl" x="290" y="20">片側断面</text>
-  <rect x="290" y="40" width="160" height="110" fill="none" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <rect x="370" y="40" width="80" height="110" fill="url(#tbHatchS)" stroke="none"/>
-  <rect x="370" y="40" width="25" height="110" fill="var(--tb-bg, #fff)" stroke="none"/>
-  <line x1="395" y1="40" x2="395" y2="150" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <line class="guide" x1="370" y1="30" x2="370" y2="160"/>
-  <text class="tick" x="300" y="175">左半分: 外形、右半分: 断面</text>
+<svg class="tb-chart" viewBox="0 0 520 212" role="img" aria-label="全断面と片側断面">
+  <rect class="k-panel" x="8" y="8" width="244" height="196" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="196" rx="8"/>
+  <circle class="k-badge" cx="28" cy="28" r="10"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">1</text><text class="k-title" x="46" y="32">全断面</text>
+  <circle class="k-badge" cx="288" cy="28" r="10"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">2</text><text class="k-title" x="306" y="32">片側断面</text>
+  <path class="k-cut" d="M50,50 L105,50 L105,170 L75,170 L75,80 L50,80 Z" style="stroke-width:2.2"/>
+  <path class="k-cut" d="M155,50 L210,50 L210,80 L185,80 L185,170 L155,170 Z" style="stroke-width:2.2"/>
+  <line class="k-edge" x1="105" y1="50" x2="155" y2="50" style="stroke-width:2.2"/><line class="k-edge" x1="105" y1="170" x2="155" y2="170" style="stroke-width:2.2"/>
+  <line class="k-center" x1="130" y1="42" x2="130" y2="180"/>
+  <text class="k-note" x="130" y="196" text-anchor="middle">中心を通る 1 平面で全体を切る</text>
+  <path d="M390,50 L310,50 L310,80 L335,80 L335,170 L390,170" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <path class="k-cut" d="M415,50 L470,50 L470,80 L445,80 L445,170 L415,170 Z" style="stroke-width:2.2"/>
+  <line class="k-edge" x1="390" y1="50" x2="415" y2="50" style="stroke-width:2.2"/><line class="k-edge" x1="390" y1="170" x2="415" y2="170" style="stroke-width:2.2"/>
+  <line class="k-center" x1="390" y1="42" x2="390" y2="180"/>
+  <text class="lbl" x="350" y="64" text-anchor="middle">外形</text><text class="lbl" x="458" y="190" text-anchor="middle">断面</text>
+  <text class="k-note" x="326" y="196" text-anchor="middle">かくれ線なし</text>
 </svg>
 <p>片側断面図では、外形側に<b>かくれ線を描かない</b>のが原則です (内部は断面側でわかるため)。外形と断面の境界は中心線です。</p>
 <h2>切断線と矢示</h2>
@@ -162,18 +176,31 @@ export const DRAFTING: TextChapter[] = [
   <tr><td>累進寸法</td><td>基準を起点記号 (小さな白丸) とし、1 本の寸法線上に基準からの距離を書く</td><td>並列寸法と同じ意味で、場所をとらない</td></tr>
   <tr><td>座標寸法</td><td>穴の位置を X・Y の表にする</td><td>累積しない。穴の多い板に</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="直列寸法と累進寸法">
-  <text class="lbl" x="20" y="20">直列寸法</text>
-  <line class="axis" x1="40" y1="60" x2="240" y2="60"/>
-  <line class="tick" x1="40" y1="45" x2="40" y2="75" stroke="var(--tb-text-2)"/><line x1="100" y1="45" x2="100" y2="75" stroke="var(--tb-text-2)"/><line x1="170" y1="45" x2="170" y2="75" stroke="var(--tb-text-2)"/><line x1="240" y1="45" x2="240" y2="75" stroke="var(--tb-text-2)"/>
-  <text class="tick" x="70" y="54" text-anchor="middle">30</text><text class="tick" x="135" y="54" text-anchor="middle">35</text><text class="tick" x="205" y="54" text-anchor="middle">35</text>
-  <text class="lbl" x="280" y="20">累進寸法</text>
-  <line class="axis" x1="300" y1="60" x2="500" y2="60"/>
-  <circle cx="300" cy="60" r="4" fill="none" stroke="var(--tb-accent)" stroke-width="1.5"/>
-  <line x1="360" y1="45" x2="360" y2="75" stroke="var(--tb-text-2)"/><line x1="430" y1="45" x2="430" y2="75" stroke="var(--tb-text-2)"/><line x1="500" y1="45" x2="500" y2="75" stroke="var(--tb-text-2)"/>
-  <text class="mark-t" x="300" y="90" text-anchor="middle">0</text><text class="tick" x="360" y="40" text-anchor="middle">30</text><text class="tick" x="430" y="40" text-anchor="middle">65</text><text class="tick" x="500" y="40" text-anchor="middle">100</text>
-  <text class="tick" x="40" y="130">各 ±0.2 なら全長は最大 ±0.6 ずれる</text>
-  <text class="tick" x="300" y="130">基準から直接 → 各位置は ±0.2</text>
+<svg class="tb-chart" viewBox="0 0 520 196" role="img" aria-label="直列寸法と累進寸法">
+  <rect class="k-panel" x="8" y="8" width="244" height="180" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="180" rx="8"/>
+  <circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-warn)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">!</text><text class="k-title" x="46" y="32">直列寸法</text>
+  <circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">累進寸法</text>
+  <g class="k-shadow"><rect x="30" y="86" width="200" height="50" class="k-alu"/></g>
+  <circle cx="90" cy="111" r="8" style="fill:var(--tb-surface)" class="k-edge"/><circle cx="160" cy="111" r="8" style="fill:var(--tb-surface)" class="k-edge"/>
+  <line class="k-center" x1="90" y1="78" x2="90" y2="144"/><line class="k-center" x1="160" y1="78" x2="160" y2="144"/>
+  <line class="k-ext" x1="30" y1="84" x2="30" y2="54"/><line class="k-ext" x1="230" y1="84" x2="230" y2="54"/>
+  <line class="k-ext" x1="90" y1="76" x2="90" y2="54"/><line class="k-ext" x1="160" y1="76" x2="160" y2="54"/>
+  <line class="k-dimline" x1="30" y1="60" x2="90" y2="60"/><line class="k-dimline" x1="90" y1="60" x2="160" y2="60"/><line class="k-dimline" x1="160" y1="60" x2="230" y2="60"/>
+  <text class="k-dimtext" x="60" y="55" text-anchor="middle">30</text><text class="k-dimtext" x="125" y="55" text-anchor="middle">35</text><text class="k-dimtext" x="195" y="55" text-anchor="middle">35</text>
+  <text class="k-note" x="130" y="162" text-anchor="middle" style="fill:var(--tb-bad)">各 ±0.2 なら全長は最大 ±0.6 ずれる</text>
+  <text class="k-note" x="130" y="178" text-anchor="middle">誤差が順に積み重なる</text>
+  <g class="k-shadow"><rect x="290" y="86" width="200" height="50" class="k-alu"/></g>
+  <circle cx="350" cy="111" r="8" style="fill:var(--tb-surface)" class="k-edge"/><circle cx="420" cy="111" r="8" style="fill:var(--tb-surface)" class="k-edge"/>
+  <line class="k-center" x1="350" y1="78" x2="350" y2="144"/><line class="k-center" x1="420" y1="78" x2="420" y2="144"/>
+  <line class="k-ext" x1="290" y1="84" x2="290" y2="54"/><line class="k-ext" x1="490" y1="84" x2="490" y2="54"/>
+  <line class="k-ext" x1="350" y1="76" x2="350" y2="54"/><line class="k-ext" x1="420" y1="76" x2="420" y2="54"/>
+  <line class="k-dimline" x1="290" y1="62" x2="490" y2="62" style="marker-start:none"/>
+  <line class="k-dimline" x1="290" y1="62" x2="350" y2="62" style="marker-start:none"/><line class="k-dimline" x1="290" y1="62" x2="420" y2="62" style="marker-start:none"/>
+  <circle cx="290" cy="62" r="3.5" style="fill:var(--tb-surface);stroke:var(--k-dim)" stroke-width="1.2"/>
+  <text class="k-dimtext" x="296" y="76">0</text>
+  <text class="k-dimtext" x="346" y="56" text-anchor="end">30</text><text class="k-dimtext" x="416" y="56" text-anchor="end">65</text><text class="k-dimtext" x="486" y="56" text-anchor="end">100</text>
+  <text class="k-note" x="390" y="162" text-anchor="middle" style="fill:var(--tb-good)">基準から直接 → 各位置は ±0.2</text>
+  <text class="k-note" x="390" y="178" text-anchor="middle">起点は小さな白丸で示す</text>
 </svg>
 <h2>穴の寸法記入</h2>
 <p>穴は直径だけでなく<b>加工方法</b>を指示できます。引出線で「個数 × 直径 + 加工法」を書きます。</p>
@@ -239,18 +266,30 @@ export const DRAFTING: TextChapter[] = [
   <tr><td>完全ねじ部の境界</td><td colspan="2">太い実線</td></tr>
   <tr><td>断面のハッチング</td><td colspan="2">山の頂の線 (おねじは外径、めねじは内径) まで引く</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="おねじとめねじの略画法">
-  <text class="lbl" x="30" y="20">おねじ</text>
-  <rect x="30" y="60" width="180" height="80" fill="none" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <line x1="30" y1="70" x2="150" y2="70" stroke="var(--tb-text-2)" stroke-width="1"/>
-  <line x1="30" y1="130" x2="150" y2="130" stroke="var(--tb-text-2)" stroke-width="1"/>
-  <line x1="150" y1="60" x2="150" y2="140" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <line class="guide" x1="20" y1="100" x2="220" y2="100"/>
-  <text class="tick" x="40" y="160">細線 = 谷径 / 太線 = 完全ねじ部の境界</text>
-  <text class="lbl" x="300" y="20">端面から見た図</text>
-  <circle cx="400" cy="100" r="45" fill="none" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <path d="M400,63 A37,37 0 1 1 363,100" fill="none" stroke="var(--tb-accent)" stroke-width="1.2"/>
-  <text class="mark-t" x="400" y="170" text-anchor="middle">谷径: 細線で約 3/4 円</text>
+<svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="おねじとめねじの略画法">
+  <rect class="k-panel" x="8" y="8" width="244" height="198" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="198" rx="8"/>
+  <text class="k-title" x="22" y="32">おねじ</text><text class="k-title" x="282" y="32">めねじ (断面)</text>
+  <path d="M170,75 L32,75 L26,81 L26,119 L32,125 L170,125" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <path class="k-thin" d="M170,75 q6,12 0,25 q-6,13 0,25"/>
+  <line class="k-thin" x1="26" y1="81" x2="130" y2="81"/><line class="k-thin" x1="26" y1="119" x2="130" y2="119"/>
+  <line class="k-edge" x1="130" y1="75" x2="130" y2="125" style="stroke-width:2.2"/>
+  <line class="k-center" x1="18" y1="100" x2="180" y2="100"/>
+  <circle cx="215" cy="100" r="25" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/>
+  <path class="k-thin" d="M234,100 A19,19 0 1 1 215,81" style="stroke:var(--k-line)"/>
+  <line class="k-center" x1="184" y1="100" x2="246" y2="100"/><line class="k-center" x1="215" y1="69" x2="215" y2="131"/>
+  <line class="k-thin" x1="60" y1="81" x2="52" y2="56"/><text class="k-note" x="30" y="52">谷径 = 細線</text>
+  <line class="k-thin" x1="130" y1="126" x2="112" y2="176"/><text class="k-note" x="22" y="190">完全ねじ部の境界 = 太線</text>
+  <text class="k-note" x="244" y="152" text-anchor="end">端面: 谷径は</text><text class="k-note" x="244" y="166" text-anchor="end">細線で約 3/4 円</text>
+  <path class="k-cut" d="M284,70 L333,70 L333,130 L284,130 Z" style="stroke-width:2.2"/>
+  <path class="k-cut" d="M367,70 L416,70 L416,130 L367,130 Z" style="stroke-width:2.2"/>
+  <line class="k-thin" x1="328" y1="70" x2="328" y2="130" style="stroke:var(--k-line)"/><line class="k-thin" x1="372" y1="70" x2="372" y2="130" style="stroke:var(--k-line)"/>
+  <line class="k-center" x1="350" y1="58" x2="350" y2="142"/>
+  <circle cx="465" cy="100" r="17" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/>
+  <path class="k-thin" d="M487,100 A22,22 0 1 1 465,78" style="stroke:var(--k-line)"/>
+  <line class="k-center" x1="436" y1="100" x2="494" y2="100"/><line class="k-center" x1="465" y1="71" x2="465" y2="129"/>
+  <text class="k-note" x="282" y="152">内径 (下穴) = 太線、谷径 = 細線</text>
+  <text class="k-note" x="282" y="168">ハッチングは太線 (内径) まで</text>
+  <text class="k-note" x="282" y="184">端面: 谷径の細線は約 3/4 円</text>
 </svg>
 <h2>ねじの呼び方</h2>
 <div class="tb-formula">M10 × 1.25 − 6H　=　メートル細目ねじ・呼び径 10 mm・ピッチ 1.25 mm・めねじの公差域クラス 6H</div>
@@ -305,22 +344,28 @@ export const DRAFTING: TextChapter[] = [
     lead: "溶接構造物の図面では、どこを・どんな形で・どれだけ溶接するかを溶接記号 (JIS Z 3021) で指示します。基線の上下で意味が変わるなど独特のルールがあり、読み違えると溶接位置が逆になります。",
     body: `
 <h2>溶接記号の構成</h2>
-<svg class="tb-chart" viewBox="0 0 520 210" aria-label="溶接記号の構成">
-  <line x1="40" y1="170" x2="140" y2="100" stroke="var(--tb-text)" stroke-width="2"/>
-  <path d="M40,170 L52,154 L58,163 Z" fill="var(--tb-text)"/>
-  <line x1="140" y1="100" x2="400" y2="100" stroke="var(--tb-text)" stroke-width="2"/>
-  <line x1="400" y1="100" x2="430" y2="75" stroke="var(--tb-text)" stroke-width="2"/><line x1="400" y1="100" x2="430" y2="125" stroke="var(--tb-text)" stroke-width="2"/>
-  <path d="M230,102 L230,126 L254,102 Z" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="mark-t" x="222" y="120" text-anchor="end">6</text>
-  <text class="mark-t" x="262" y="120">50</text>
-  <circle cx="140" cy="100" r="8" fill="none" stroke="var(--tb-accent)" stroke-width="1.8"/>
-  <line x1="140" y1="100" x2="140" y2="62" stroke="var(--tb-accent)" stroke-width="1.5"/><path d="M140,62 L162,69 L140,76 Z" fill="var(--tb-accent)"/>
-  <text class="tick" x="60" y="190">矢 (溶接部を指す)</text>
-  <text class="tick" x="270" y="90">基線</text>
-  <text class="tick" x="438" y="104">尾</text>
-  <text class="tick" x="170" y="60">現場溶接 (旗)</text>
-  <text class="tick" x="150" y="150">全周 (円)</text>
-  <text class="tick" x="230" y="150">基線の下 = 矢の側の隅肉 脚長 6・長さ 50</text>
+<svg class="tb-chart" viewBox="0 0 520 222" role="img" aria-label="溶接記号の構成">
+  <g class="k-shadow">
+    <rect class="k-cut" x="16" y="180" width="124" height="16"/>
+    <rect class="k-cut2" x="78" y="112" width="14" height="68"/>
+  </g>
+  <path d="M92,180 L106,180 L92,166 Z" style="fill:var(--tb-accent);stroke:var(--k-line)" stroke-width="1.2"/>
+  <text class="k-note" x="20" y="174">T 継手</text>
+  <path d="M160,100 L101,173" fill="none" style="stroke:var(--k-line)" stroke-width="1.6" marker-end="url(#k-arrow)"/>
+  <line x1="160" y1="100" x2="400" y2="100" style="stroke:var(--k-line)" stroke-width="1.6"/>
+  <path d="M400,100 L426,76 M400,100 L426,124" fill="none" style="stroke:var(--k-line)" stroke-width="1.6"/>
+  <circle cx="160" cy="100" r="7" fill="none" style="stroke:var(--tb-accent)" stroke-width="1.8"/>
+  <line x1="160" y1="93" x2="160" y2="60" style="stroke:var(--tb-accent)" stroke-width="1.6"/><path d="M160,60 L184,67 L160,74 Z" style="fill:var(--tb-accent)"/>
+  <path d="M250,102 L250,126 L274,102 Z" fill="none" style="stroke:var(--tb-accent)" stroke-width="2"/>
+  <text class="k-dimtext" x="244" y="120" text-anchor="end">6</text><text class="k-dimtext" x="280" y="120">50</text>
+  <text class="lbl" x="320" y="92">基線</text>
+  <text class="lbl" x="432" y="104">尾</text>
+  <text class="lbl" x="190" y="66">現場溶接 (旗)</text>
+  <text class="lbl" x="174" y="128">全周 (円)</text>
+  <text class="lbl" x="134" y="156">矢 (溶接部を指す)</text>
+  <text class="k-note" x="262" y="142" text-anchor="middle">隅肉記号</text>
+  <text class="k-note" x="300" y="200">基線の下 = 矢の側の隅肉</text>
+  <text class="k-note" x="300" y="215">脚長 6・長さ 50</text>
 </svg>
 <ul>
   <li><b>矢</b>: 溶接する継手の位置を指す。レ形・J 形など開先を片側だけにとる場合は、<b>開先をとる部材の側</b>に矢を向ける (必要なら矢を折る)</li>
@@ -387,22 +432,26 @@ export const DRAFTING: TextChapter[] = [
   <li><b>第 3 次データム (C)</b>: A・B に直角な面。1 点で接して残り 1 自由度を拘束</li>
 </ol>
 <p>記入枠の <code>[⌖ | φ0.2 | A | B | C]</code> は、A → B → C の<b>順番</b>で部品を固定して測るという意味です。順番を変えると測定結果が変わるので、組立時の当たり面の順に合わせて決めます。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="幾何公差の記入枠とデータム記号">
-  <rect x="40" y="40" width="300" height="36" fill="none" stroke="var(--tb-text)" stroke-width="1.8"/>
-  <line x1="90" y1="40" x2="90" y2="76" stroke="var(--tb-text)" stroke-width="1.5"/>
-  <line x1="190" y1="40" x2="190" y2="76" stroke="var(--tb-text)" stroke-width="1.5"/>
-  <line x1="240" y1="40" x2="240" y2="76" stroke="var(--tb-text)" stroke-width="1.5"/>
-  <line x1="290" y1="40" x2="290" y2="76" stroke="var(--tb-text)" stroke-width="1.5"/>
-  <text class="lbl" x="65" y="64" text-anchor="middle">⌖</text>
-  <text class="lbl" x="140" y="64" text-anchor="middle">φ0.2 Ⓜ</text>
-  <text class="lbl" x="215" y="64" text-anchor="middle">A</text><text class="lbl" x="265" y="64" text-anchor="middle">B</text><text class="lbl" x="315" y="64" text-anchor="middle">C</text>
-  <text class="tick" x="45" y="100">記号</text><text class="tick" x="110" y="100">公差域 (φ = 円筒)</text><text class="tick" x="200" y="100">第 1 次・2 次・3 次データム</text>
-  <rect x="410" y="30" width="36" height="32" fill="none" stroke="var(--tb-accent)" stroke-width="1.8"/>
-  <text class="mark-t" x="428" y="52" text-anchor="middle">A</text>
-  <line x1="428" y1="62" x2="428" y2="110" stroke="var(--tb-accent)" stroke-width="1.5"/>
-  <path d="M418,110 L438,110 L428,126 Z" fill="var(--tb-accent)"/>
-  <line x1="380" y1="128" x2="480" y2="128" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <text class="tick" x="430" y="150" text-anchor="middle">データム記号 (塗りつぶし三角)</text>
+<svg class="tb-chart" viewBox="0 0 520 196" role="img" aria-label="幾何公差の記入枠とデータム記号">
+  <rect x="30" y="34" width="300" height="36" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.6"/>
+  <path d="M80,34 V70 M180,34 V70 M230,34 V70 M280,34 V70" style="stroke:var(--k-line)" stroke-width="1.4"/>
+  <circle cx="55" cy="52" r="8" fill="none" style="stroke:var(--k-line)" stroke-width="1.6"/><path d="M42,52 H68 M55,39 V65" style="stroke:var(--k-line)" stroke-width="1.6"/>
+  <text class="mark-t" x="112" y="58" text-anchor="middle" style="font-size:14px">φ0.2</text>
+  <circle cx="152" cy="52" r="8" fill="none" style="stroke:var(--k-line)" stroke-width="1.2"/><text class="mark-t" x="152" y="56" text-anchor="middle" style="font-size:10px">M</text>
+  <text class="mark-t" x="205" y="58" text-anchor="middle" style="font-size:14px">A</text><text class="mark-t" x="255" y="58" text-anchor="middle" style="font-size:14px">B</text><text class="mark-t" x="305" y="58" text-anchor="middle" style="font-size:14px">C</text>
+  <path class="k-thin" d="M55,72 V82 M130,72 V82 M205,72 V82 M255,72 V82 M305,72 V82"/>
+  <text class="k-note" x="55" y="96" text-anchor="middle">記号</text>
+  <text class="k-note" x="130" y="96" text-anchor="middle">公差域</text><text class="k-note" x="130" y="110" text-anchor="middle">(φ = 円筒)</text>
+  <text class="k-note" x="205" y="96" text-anchor="middle">第 1 次</text><text class="k-note" x="255" y="96" text-anchor="middle">第 2 次</text><text class="k-note" x="305" y="96" text-anchor="middle">第 3 次</text>
+  <text class="k-note" x="255" y="110" text-anchor="middle">データム</text>
+  <text class="k-note" x="30" y="140">位置度の例: 穴の軸線は、データム A・B・C から</text>
+  <text class="k-note" x="30" y="155">決まる理論位置を中心に φ0.2 の円筒内にあること</text>
+  <g class="k-shadow"><rect class="k-part" x="380" y="130" width="120" height="36"/></g>
+  <path d="M430,130 L450,130 L440,117 Z" style="fill:var(--k-line)"/>
+  <line x1="440" y1="117" x2="440" y2="70" style="stroke:var(--k-line)" stroke-width="1.4"/>
+  <rect x="424" y="38" width="32" height="32" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.6"/>
+  <text class="mark-t" x="440" y="59" text-anchor="middle" style="font-size:14px">A</text>
+  <text class="k-note" x="508" y="186" text-anchor="end">データム記号 (塗りつぶし三角)</text>
 </svg>
 <h2>公差域の形</h2>
 <table class="tb-table">
@@ -486,31 +535,34 @@ export const DRAFTING: TextChapter[] = [
 </table>
 <h2>練習問題 1</h2>
 <p>次の三面図 (第三角法) が表す立体を答えてください。</p>
-<svg class="tb-chart" viewBox="0 0 520 260" aria-label="練習問題1の三面図">
-  <text class="tick" x="40" y="22">平面図</text>
-  <rect x="40" y="30" width="160" height="70" fill="none" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <line x1="100" y1="30" x2="100" y2="100" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <text class="tick" x="40" y="132">正面図</text>
-  <path d="M40,240 L200,240 L200,190 L100,190 L100,140 L40,140 Z" fill="none" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <text class="tick" x="250" y="132">右側面図</text>
-  <rect x="250" y="140" width="70" height="100" fill="none" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <line x1="250" y1="190" x2="320" y2="190" stroke="var(--tb-text)" stroke-width="2.5"/>
+<svg class="tb-chart" viewBox="0 0 520 262" role="img" aria-label="練習問題1の三面図">
+  <path class="k-thin" d="M40,104 V136 M100,104 V136 M200,104 V136 M204,140 H246 M204,190 H246 M204,240 H246" stroke-dasharray="3 3"/>
+  <rect x="40" y="30" width="160" height="70" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <line class="k-edge" x1="100" y1="30" x2="100" y2="100" style="stroke-width:2.2"/>
+  <path d="M40,240 L200,240 L200,190 L100,190 L100,140 L40,140 Z" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <rect x="250" y="140" width="70" height="100" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <line class="k-edge" x1="250" y1="190" x2="320" y2="190" style="stroke-width:2.2"/>
+  <text class="k-title" x="40" y="22">平面図</text><text class="k-title" x="40" y="258">正面図</text><text class="k-title" x="250" y="258">右側面図</text>
+  <text class="k-note" x="360" y="40">第三角法</text>
+  <text class="k-note" x="360" y="56">平面図は正面図の上、</text><text class="k-note" x="360" y="72">右側面図は右に置く</text>
+  <text class="k-note" x="360" y="88">細い点線 = 投影の対応</text>
 </svg>
 <h2>練習問題 2</h2>
 <p>次の三面図 (第三角法) が表す立体を答えてください。破線はかくれ線です。</p>
-<svg class="tb-chart" viewBox="0 0 520 260" aria-label="練習問題2の三面図">
-  <text class="tick" x="40" y="22">平面図</text>
-  <rect x="40" y="30" width="160" height="80" fill="none" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <circle cx="120" cy="70" r="20" fill="none" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <line class="guide" x1="120" y1="40" x2="120" y2="100"/><line class="guide" x1="90" y1="70" x2="150" y2="70"/>
-  <text class="tick" x="40" y="142">正面図</text>
-  <rect x="40" y="150" width="160" height="60" fill="none" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <line x1="100" y1="150" x2="100" y2="210" stroke="var(--tb-text-2)" stroke-width="1.2" stroke-dasharray="6 4"/>
-  <line x1="140" y1="150" x2="140" y2="210" stroke="var(--tb-text-2)" stroke-width="1.2" stroke-dasharray="6 4"/>
-  <text class="tick" x="250" y="142">右側面図</text>
-  <rect x="250" y="150" width="80" height="60" fill="none" stroke="var(--tb-text)" stroke-width="2.5"/>
-  <line x1="270" y1="150" x2="270" y2="210" stroke="var(--tb-text-2)" stroke-width="1.2" stroke-dasharray="6 4"/>
-  <line x1="310" y1="150" x2="310" y2="210" stroke="var(--tb-text-2)" stroke-width="1.2" stroke-dasharray="6 4"/>
+<svg class="tb-chart" viewBox="0 0 520 262" role="img" aria-label="練習問題2の三面図">
+  <path class="k-thin" d="M40,114 V146 M100,114 V146 M140,114 V146 M200,114 V146 M204,150 H246 M204,210 H246" stroke-dasharray="3 3"/>
+  <rect x="40" y="30" width="160" height="80" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <circle cx="120" cy="70" r="20" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/>
+  <line class="k-center" x1="120" y1="42" x2="120" y2="98"/><line class="k-center" x1="92" y1="70" x2="148" y2="70"/>
+  <rect x="40" y="150" width="160" height="60" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <line class="k-hidden" x1="100" y1="150" x2="100" y2="210"/><line class="k-hidden" x1="140" y1="150" x2="140" y2="210"/>
+  <line class="k-center" x1="120" y1="142" x2="120" y2="218"/>
+  <rect x="250" y="150" width="80" height="60" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <line class="k-hidden" x1="270" y1="150" x2="270" y2="210"/><line class="k-hidden" x1="310" y1="150" x2="310" y2="210"/>
+  <line class="k-center" x1="290" y1="142" x2="290" y2="218"/>
+  <text class="k-title" x="40" y="22">平面図</text><text class="k-title" x="40" y="236">正面図</text><text class="k-title" x="250" y="236">右側面図</text>
+  <line class="k-hidden" x1="370" y1="40" x2="410" y2="40"/><text class="k-note" x="418" y="44">かくれ線</text>
+  <line class="k-center" x1="370" y1="62" x2="410" y2="62"/><text class="k-note" x="418" y="66">中心線</text>
 </svg>
 <div class="tb-tip"><b>3DCAD Studio では</b>: 練習として、自分で立体をモデリングし、図面環境で<b>基準ビュー</b>と<b>投影ビュー</b>を配置して三面図と比べてみましょう。完成した図面は<b>表題欄・改訂表</b>を入れて <b>PDF/DXF/SVG 出力</b>できます。</div>`,
     points: ["表題欄 → 投影法 → 図の配置 → 形 → 寸法 → 公差・表面性状 → 注記の順に読む", "最初に投影法記号を確認する (第三角法 / 第一角法)", "寸法は書かれた数値だけを読み、図から測らない", "改訂欄・参考寸法・溶接記号の上下など読み違いやすい点を意識する"],

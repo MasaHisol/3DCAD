@@ -32,19 +32,18 @@ export const STIFFNESS: TextChapter[] = [
 </ul>
 <h2>剛性ループ (力の流れの輪)</h2>
 <p>工具とワーク、プローブと測定物のように、相対位置が重要な 2 点の間には、力が回って戻る閉じた経路 (<b>剛性ループ / 構造ループ</b>) があります。ループ上のすべての要素が直列ばねになります。</p>
-<svg class="tb-chart" viewBox="0 0 520 230" aria-label="剛性ループ">
-  <rect x="70" y="190" width="380" height="20" class="sec"/>
-  <rect x="90" y="40" width="40" height="150" class="sec"/>
-  <rect x="130" y="40" width="200" height="26" class="sec"/>
-  <rect x="290" y="66" width="24" height="60" class="sec"/>
-  <rect x="250" y="160" width="120" height="30" class="sec"/>
-  <path d="M302,130 L302,158 M310,190 L310,200 L110,200 L110,60 L300,52 L302,128" fill="none" stroke="var(--tb-accent)" stroke-width="3" stroke-dasharray="7 5"/>
-  <text class="lbl" x="110" y="32" text-anchor="middle">コラム</text>
-  <text class="lbl" x="230" y="32" text-anchor="middle">アーム</text>
-  <text class="lbl" x="330" y="100">工具</text>
-  <text class="lbl" x="380" y="180">ワーク・テーブル</text>
-  <text class="lbl" x="260" y="225" text-anchor="middle">ベース</text>
-  <text class="mark-t" x="140" y="120">剛性ループ: すべて直列</text>
+<svg class="tb-chart" viewBox="0 0 520 250" role="img" aria-label="剛性ループ">
+<rect class="k-ground" x="50" y="212" width="420" height="10"/><line class="k-edge" x1="50" y1="212" x2="470" y2="212"/>
+<g class="k-shadow"><rect class="k-part" x="60" y="186" width="400" height="26" rx="3"/><rect class="k-part" x="90" y="40" width="45" height="146"/><rect class="k-part" x="90" y="40" width="260" height="32" rx="3"/><rect class="k-part" x="296" y="72" width="48" height="36" rx="2"/><rect class="k-alu" x="240" y="168" width="180" height="18" rx="2"/><rect class="k-alu" x="280" y="142" width="90" height="26" rx="2"/><path class="k-part-h" d="M314,108 L326,108 L326,132 L320,140 L314,132 Z"/></g>
+<path d="M320,128 L320,88 L112,58 L112,198 L330,198 L330,156" style="fill:none;stroke:var(--tb-accent);stroke-dasharray:8 5;marker-end:url(#k-arrow-blue)" stroke-width="3"/>
+<text class="lbl" x="84" y="120" text-anchor="end">コラム</text>
+<text class="lbl" x="220" y="30" text-anchor="middle">アーム</text>
+<text class="lbl" x="354" y="126">工具</text>
+<line class="k-thin" x1="352" y1="122" x2="328" y2="122"/>
+<text class="lbl" x="378" y="160">ワーク</text>
+<text class="lbl" x="426" y="182">テーブル</text>
+<text class="lbl" x="260" y="240" text-anchor="middle">ベース</text>
+<text class="mark-t" x="150" y="124" style="fill:var(--tb-accent)">剛性ループ: すべて直列</text>
 </svg>
 <p>ループを<b>短く小さく</b>するほど、剛性も熱変形も有利です。門形 (ガントリー) 構造が片持ち (C 形) より精度を出しやすいのは、ループが閉じて対称になるからです。</p>
 <h2>剛性バジェット</h2>
@@ -114,14 +113,25 @@ export const STIFFNESS: TextChapter[] = [
 <h2>ねじり剛性 — 閉断面と開断面は桁違い</h2>
 <div class="tb-formula">閉断面 (ブレットの式): J = 4A₀² t / s　　開断面: J = Σ b t³ / 3</div>
 <p>A₀ は肉厚中心線で囲まれた面積、s は中心線の周長です。開断面 (チャンネル、L 形、スリット入りパイプ) は t³ にしか比例しないため、ねじりに極端に弱くなります。</p>
-<svg class="tb-chart" viewBox="0 0 520 190" aria-label="閉断面と開断面">
-  <rect x="80" y="40" width="100" height="100" fill="none" stroke="var(--tb-accent)" stroke-width="8"/>
-  <path d="M330,40 L430,40 L430,140 L330,140 L330,96 M330,84 L330,40" fill="none" stroke="var(--tb-bad)" stroke-width="8"/>
-  <text class="lbl" x="130" y="170" text-anchor="middle">閉断面 (角パイプ)</text>
-  <text class="lbl" x="380" y="170" text-anchor="middle">スリット入り (開断面)</text>
-  <text class="mark-t" x="130" y="95" text-anchor="middle">J ≈ 221 000</text>
-  <text class="mark-t" x="380" y="95" text-anchor="middle">J ≈ 512</text>
-  <text class="tick" x="260" y="95" text-anchor="middle">約 430 倍</text>
+<svg class="tb-chart" viewBox="0 0 520 250" role="img" aria-label="閉断面と開断面">
+<rect class="k-panel" x="8" y="8" width="244" height="214" rx="8"/>
+<rect class="k-panel" x="268" y="8" width="244" height="214" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✓</text><text class="k-title" x="46" y="32">閉断面 (角パイプ)</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✕</text><text class="k-title" x="306" y="32">スリット入り (開断面)</text>
+<g class="k-shadow"><path class="k-cut" d="M84,66 H176 V158 H84 Z M92,74 V150 H168 V74 Z" fill-rule="evenodd"/></g>
+<line class="k-move" x1="112" y1="70" x2="148" y2="70" stroke-width="1.6"/><line class="k-move" x1="172" y1="94" x2="172" y2="130" stroke-width="1.6"/><line class="k-move" x1="148" y1="154" x2="112" y2="154" stroke-width="1.6"/><line class="k-move" x1="88" y1="130" x2="88" y2="94" stroke-width="1.6"/>
+<path class="k-force" d="M196,70 A72,72 0 0 1 196,154" stroke-width="2"/>
+<text class="mark-t" x="216" y="116" style="fill:var(--tb-bad)">T</text>
+<text class="mark-t" x="130" y="184" text-anchor="middle">J ≈ 221 000</text>
+<text class="k-note" x="130" y="204" text-anchor="middle">せん断流れが断面を一周</text>
+<g class="k-shadow"><path class="k-cut" d="M344,106 V66 H436 V158 H344 V118 H352 V150 H428 V74 H352 V106 Z"/></g>
+<line class="" x1="336" y1="104" x2="336" y2="84" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)" stroke-width="2"/>
+<line class="" x1="336" y1="120" x2="336" y2="140" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)" stroke-width="2"/>
+<path class="k-force" d="M456,70 A72,72 0 0 1 456,154" stroke-width="2"/>
+<text class="mark-t" x="476" y="116" style="fill:var(--tb-bad)">T</text>
+<text class="mark-t" x="390" y="184" text-anchor="middle">J ≈ 512</text>
+<text class="k-note" x="390" y="204" text-anchor="middle">スリット面がずれて大きくねじれる</text>
+<text class="lbl" x="260" y="240" text-anchor="middle">同じ材料・寸法でも、ねじり剛性は約 430 倍の差</text>
 </svg>
 <ul>
   <li>板金フレームは<b>端を閉じる</b> (箱にする、ふたを溶接・リベット止めする) だけでねじり剛性が激増します。</li>
@@ -186,15 +196,27 @@ export const STIFFNESS: TextChapter[] = [
 <h2>ボルト締結部の剛性</h2>
 <div class="tb-formula">ボルト kb = E Ab / lk　　被締結部 kc = E Ac / lk　(Ac: 等価円筒の面積)</div>
 <p>被締結部は座面から円すい状に広がる領域で圧縮力を受け、一般に kc はボルトの 3〜10 倍硬くなります。外力 W のうちボルトに加わるのは内力係数 φ = kb/(kb+kc) 倍だけです (詳しくは「ボルト締結」の章)。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="ボルト締結部の圧縮円すい">
-  <rect x="140" y="50" width="240" height="50" class="sec"/>
-  <rect x="140" y="100" width="240" height="50" class="sec"/>
-  <rect x="248" y="30" width="24" height="140" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <rect x="228" y="18" width="64" height="14" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <rect x="228" y="168" width="64" height="14" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <path d="M228,50 L190,100 L228,150 M292,50 L330,100 L292,150" fill="none" stroke="var(--tb-accent)" stroke-width="2.5" stroke-dasharray="6 4"/>
-  <text class="mark-t" x="340" y="104">圧縮円すい (約 30°)</text>
-  <text class="lbl" x="110" y="80" text-anchor="end">部材 1</text><text class="lbl" x="110" y="130" text-anchor="end">部材 2</text>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="ボルト締結部の圧縮円すい">
+<g class="k-shadow"><rect class="k-cut" x="140" y="60" width="240" height="45"/><rect class="k-cut2" x="140" y="105" width="240" height="45"/></g>
+<rect class="" x="244" y="60" width="32" height="90" style="fill:var(--tb-surface)"/>
+<path d="M222,60 L196,105 L222,150 L298,150 L324,105 L298,60 Z" style="fill:var(--tb-accent);fill-opacity:0.28;stroke:var(--tb-accent);stroke-dasharray:6 4" stroke-width="2"/>
+<g class="k-shadow"><rect class="k-part-h" x="248" y="36" width="24" height="140"/><rect class="k-part" x="222" y="40" width="76" height="20" rx="2"/><rect class="k-part" x="222" y="150" width="76" height="22" rx="2"/></g>
+<line class="k-thin" x1="246" y1="40" x2="246" y2="60"/>
+<line class="k-thin" x1="274" y1="40" x2="274" y2="60"/>
+<line class="k-thin" x1="246" y1="150" x2="246" y2="172"/>
+<line class="k-thin" x1="274" y1="150" x2="274" y2="172"/>
+<line class="k-center" x1="260" y1="26" x2="260" y2="186"/>
+<line class="k-ext" x1="298" y1="60" x2="298" y2="92"/>
+<path class="k-thin" d="M298,86 A26,26 0 0 0 311,82.5" style="stroke:var(--k-dim)"/>
+<text class="k-dimtext" x="300" y="100" style="stroke:var(--tb-surface);stroke-width:3px">30°</text>
+<text class="mark-t" x="388" y="100">圧縮円すい</text>
+<text class="mark-t" x="388" y="116">(約 30°)</text>
+<line class="k-thin" x1="386" y1="104" x2="320" y2="112" style="marker-end:url(#k-arrow)"/>
+<text class="lbl" x="130" y="86" text-anchor="end">部材 1</text>
+<text class="lbl" x="130" y="132" text-anchor="end">部材 2</text>
+<text class="lbl" x="310" y="30">ボルト</text>
+<line class="k-thin" x1="308" y1="27" x2="286" y2="42"/>
+<text class="k-note" x="260" y="202" text-anchor="middle">締付力は頭・ナットの座面から約 30° で広がって部材に伝わる</text>
 </svg>
 <h3>モーメントを受ける継手</h3>
 <p>柱の根元・アームの付け根などのボルト継手は、モーメントで<b>口開き</b>すると回転剛性が急に低下します。</p>
@@ -265,16 +287,13 @@ export const STIFFNESS: TextChapter[] = [
 <p>支持条件だけで、中央集中荷重のたわみは両端支持 → 両端固定で <b>1/4</b> になります。ただし「固定」が本当に固定になっているか (継手の回転剛性) を必ず確認しましょう。</p>
 <h2>重ね合わせの原理</h2>
 <p>線形弾性の範囲では、複数の荷重によるたわみは各荷重単独のたわみの和です。自重 (等分布) + 搭載物 (集中) のように分けて計算し、足し合わせます。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="重ね合わせ">
-  <line class="axis" x1="30" y1="60" x2="150" y2="60"/><path d="M30,60 Q90,95 150,60" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <text class="lbl" x="90" y="40" text-anchor="middle">自重 w</text>
-  <text class="lbl" x="180" y="80" text-anchor="middle">+</text>
-  <line class="axis" x1="210" y1="60" x2="330" y2="60"/><path d="M210,60 Q270,110 330,60" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <text class="lbl" x="270" y="40" text-anchor="middle">集中 F</text>
-  <text class="lbl" x="360" y="80" text-anchor="middle">=</text>
-  <line class="axis" x1="390" y1="60" x2="510" y2="60"/><path d="M390,60 Q450,140 510,60" fill="none" stroke="var(--tb-bad)" stroke-width="2.5"/>
-  <text class="lbl" x="450" y="40" text-anchor="middle">合計</text>
-  <text class="tick" x="270" y="160" text-anchor="middle">線形範囲なら、たわみ・傾き・応力はすべて足し算できる</text>
+<svg class="tb-chart" viewBox="0 0 520 190" role="img" aria-label="重ね合わせ">
+<rect class="k-panel" x="8" y="12" width="154" height="148" rx="8"/><text class="k-title" x="85" y="34" text-anchor="middle">自重 w</text><line class="" x1="25" y1="50" x2="145" y2="50" style="stroke:var(--tb-bad)" stroke-width="1.6"/><line class="k-force" x1="25" y1="50" x2="25" y2="71" stroke-width="1.6"/><line class="k-force" x1="45" y1="50" x2="45" y2="71" stroke-width="1.6"/><line class="k-force" x1="65" y1="50" x2="65" y2="71" stroke-width="1.6"/><line class="k-force" x1="85" y1="50" x2="85" y2="71" stroke-width="1.6"/><line class="k-force" x1="105" y1="50" x2="105" y2="71" stroke-width="1.6"/><line class="k-force" x1="125" y1="50" x2="125" y2="71" stroke-width="1.6"/><line class="k-force" x1="145" y1="50" x2="145" y2="71" stroke-width="1.6"/><path class="k-hidden" d="M25,82 Q85,102 145,82" style="stroke:var(--tb-accent)"/><g class="k-shadow"><rect class="k-part-h" x="21" y="73" width="128" height="9" rx="1"/></g><path class="k-part" d="M25,82 L17,94 L33,94 Z"/><circle class="k-edge" cx="25" cy="82" r="2.6" style="fill:var(--tb-surface)"/><rect class="k-ground" x="11" y="94" width="28" height="7"/><line class="k-edge" x1="11" y1="94" x2="39" y2="94"/><path class="k-part" d="M145,82 L137,91.6 L153,91.6 Z"/><circle class="k-edge" cx="145" cy="82" r="2.6" style="fill:var(--tb-surface)"/><circle class="k-sphere" cx="141" cy="94.8" r="3"/><circle class="k-sphere" cx="149" cy="94.8" r="3"/><rect class="k-ground" x="131" y="98" width="28" height="7"/><line class="k-edge" x1="131" y1="98" x2="159" y2="98"/><text class="k-dimtext" x="85" y="120" text-anchor="middle">δ1</text>
+<text class="k-title" x="172" y="92" text-anchor="middle">+</text>
+<rect class="k-panel" x="182" y="12" width="154" height="148" rx="8"/><text class="k-title" x="259" y="34" text-anchor="middle">集中 F</text><line class="k-force" x1="259" y1="42" x2="259" y2="71"/><path class="k-hidden" d="M199,82 Q259,110 319,82" style="stroke:var(--tb-accent)"/><g class="k-shadow"><rect class="k-part-h" x="195" y="73" width="128" height="9" rx="1"/></g><path class="k-part" d="M199,82 L191,94 L207,94 Z"/><circle class="k-edge" cx="199" cy="82" r="2.6" style="fill:var(--tb-surface)"/><rect class="k-ground" x="185" y="94" width="28" height="7"/><line class="k-edge" x1="185" y1="94" x2="213" y2="94"/><path class="k-part" d="M319,82 L311,91.6 L327,91.6 Z"/><circle class="k-edge" cx="319" cy="82" r="2.6" style="fill:var(--tb-surface)"/><circle class="k-sphere" cx="315" cy="94.8" r="3"/><circle class="k-sphere" cx="323" cy="94.8" r="3"/><rect class="k-ground" x="305" y="98" width="28" height="7"/><line class="k-edge" x1="305" y1="98" x2="333" y2="98"/><text class="k-dimtext" x="259" y="124" text-anchor="middle">δ2</text>
+<text class="k-title" x="346" y="92" text-anchor="middle">=</text>
+<rect class="k-panel" x="356" y="12" width="154" height="148" rx="8"/><text class="k-title" x="433" y="34" text-anchor="middle">合計</text><line class="" x1="373" y1="50" x2="493" y2="50" style="stroke:var(--tb-bad)" stroke-width="1.6"/><line class="k-force" x1="373" y1="50" x2="373" y2="71" stroke-width="1.6"/><line class="k-force" x1="393" y1="50" x2="393" y2="71" stroke-width="1.6"/><line class="k-force" x1="413" y1="50" x2="413" y2="71" stroke-width="1.6"/><line class="k-force" x1="433" y1="50" x2="433" y2="71" stroke-width="1.6"/><line class="k-force" x1="453" y1="50" x2="453" y2="71" stroke-width="1.6"/><line class="k-force" x1="473" y1="50" x2="473" y2="71" stroke-width="1.6"/><line class="k-force" x1="493" y1="50" x2="493" y2="71" stroke-width="1.6"/><line class="k-force" x1="433" y1="42" x2="433" y2="71"/><path class="k-hidden" d="M373,82 Q433,130 493,82" style="stroke:var(--tb-accent)"/><g class="k-shadow"><rect class="k-part-h" x="369" y="73" width="128" height="9" rx="1"/></g><path class="k-part" d="M373,82 L365,94 L381,94 Z"/><circle class="k-edge" cx="373" cy="82" r="2.6" style="fill:var(--tb-surface)"/><rect class="k-ground" x="359" y="94" width="28" height="7"/><line class="k-edge" x1="359" y1="94" x2="387" y2="94"/><path class="k-part" d="M493,82 L485,91.6 L501,91.6 Z"/><circle class="k-edge" cx="493" cy="82" r="2.6" style="fill:var(--tb-surface)"/><circle class="k-sphere" cx="489" cy="94.8" r="3"/><circle class="k-sphere" cx="497" cy="94.8" r="3"/><rect class="k-ground" x="479" y="98" width="28" height="7"/><line class="k-edge" x1="479" y1="98" x2="507" y2="98"/><text class="k-dimtext" x="433" y="134" text-anchor="middle">δ1 + δ2</text>
+<text class="tick" x="260" y="180" text-anchor="middle">線形範囲なら、たわみ・傾き・応力はすべて足し算できる</text>
 </svg>
 <p>ねじり・せん断たわみ・継手の回転による変位も、同じように足し合わせます。短く太いはり (L/h &lt; 5 程度) では<b>せん断たわみ</b>が無視できなくなります。</p>
 <h2>たわみ許容値の目安</h2>
@@ -370,16 +389,25 @@ export const STIFFNESS: TextChapter[] = [
   <li>軸受やハウジングの剛性が低いと危険速度は計算より下がる</li>
 </ul>
 <h3>キャンベル線図</h3>
-<svg class="tb-chart" viewBox="0 0 520 240" aria-label="キャンベル線図">
-  <line class="axis" x1="60" y1="200" x2="490" y2="200"/><line class="axis" x1="60" y1="200" x2="60" y2="20"/>
-  <line class="grid" x1="60" y1="140" x2="480" y2="140"/><line class="grid" x1="60" y1="70" x2="480" y2="70"/>
-  <line x1="60" y1="200" x2="480" y2="110" stroke="var(--tb-accent)" stroke-width="2"/>
-  <line x1="60" y1="200" x2="300" y2="20" stroke="var(--tb-accent)" stroke-width="2" stroke-dasharray="6 4"/>
-  <circle class="mark" cx="340" cy="140" r="5"/><circle class="mark" cx="140" cy="140" r="5"/><circle class="mark" cx="233" cy="70" r="5"/>
-  <text class="tick" x="484" y="144">1 次モード</text><text class="tick" x="484" y="74">2 次モード</text>
-  <text class="tick" x="484" y="106">1× 回転</text><text class="tick" x="306" y="26">n× (羽根数・歯数)</text>
-  <text class="lbl" x="480" y="225" text-anchor="end">回転数</text><text class="lbl" x="66" y="20">周波数</text>
-  <text class="mark-t" x="150" y="190">交点 = 共振の危険がある回転数</text>
+<svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="キャンベル線図">
+<rect class="" x="60" y="134" width="380" height="12" style="fill:var(--tb-warn);opacity:0.14"/>
+<rect class="" x="60" y="64" width="380" height="12" style="fill:var(--tb-warn);opacity:0.14"/>
+<line class="" x1="60" y1="140" x2="440" y2="140" style="stroke:var(--tb-warn)" stroke-width="2"/>
+<line class="" x1="60" y1="70" x2="440" y2="70" style="stroke:var(--tb-warn)" stroke-width="2"/>
+<line class="axis" x1="60" y1="200" x2="490" y2="200"/>
+<line class="axis" x1="60" y1="200" x2="60" y2="20"/>
+<line class="" x1="60" y1="200" x2="440" y2="118.6" style="stroke:var(--tb-accent)" stroke-width="2.4"/>
+<line class="" x1="60" y1="200" x2="300" y2="20" style="stroke:var(--tb-accent);stroke-dasharray:7 4" stroke-width="2.4"/>
+<circle class="mark" cx="340" cy="140" r="6" style="fill:var(--tb-bad)" filter="url(#k-glow)"/>
+<circle class="mark" cx="140" cy="140" r="6" filter="url(#k-glow)"/>
+<circle class="mark" cx="233" cy="70" r="6" filter="url(#k-glow)"/>
+<text class="tick" x="446" y="144">1 次モード</text>
+<text class="tick" x="446" y="74">2 次モード</text>
+<text class="tick" x="446" y="116" style="fill:var(--tb-accent)">1× 回転</text>
+<text class="tick" x="306" y="26" style="fill:var(--tb-accent)">n× (羽根数・歯数)</text>
+<text class="lbl" x="480" y="225" text-anchor="end">回転数</text>
+<text class="lbl" x="66" y="16">周波数</text>
+<text class="mark-t" x="250" y="192" style="fill:var(--tb-bad)">交点 = 共振の危険がある回転数</text>
 </svg>
 <p>横軸に回転数、縦軸に周波数をとり、固有振動数 (横線) と加振の次数線 (1×、2×、羽根数×…) を重ねます。<b>運転範囲内に交点がない</b>ことを確認します。</p>`,
     points: [
@@ -456,17 +484,30 @@ export const STIFFNESS: TextChapter[] = [
 <p>損失係数 η と減衰比 ζ の関係は η ≈ 2ζ です。粘弾性材料は温度と周波数で特性が大きく変わるので、使用条件でのデータを確認します。</p>
 <h2>動吸振器 (ダイナミックダンパー)</h2>
 <p>主構造に小さな質量 ma とばね ka を付け、その固有振動数を問題の周波数に合わせると、副質量が逆位相で揺れて主構造の振動を打ち消します。</p>
-<svg class="tb-chart" viewBox="0 0 520 210" aria-label="動吸振器">
-  <rect x="60" y="185" width="200" height="12" class="sec"/>
-  <path d="M160,185 l0,-6 l-12,-6 l24,-8 l-24,-8 l24,-8 l-12,-6 l0,-6" fill="none" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <rect x="110" y="107" width="100" height="40" class="sec"/><text class="lbl" x="160" y="132" text-anchor="middle">主質量 M</text>
-  <path d="M160,107 l0,-5 l-9,-5 l18,-6 l-18,-6 l18,-6 l-9,-5 l0,-5" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <rect x="130" y="45" width="60" height="24" fill="var(--tb-accent)" opacity="0.5"/><text class="lbl" x="160" y="62" text-anchor="middle">ma</text>
-  <text class="tick" x="180" y="90">ka</text><text class="tick" x="180" y="168">K</text>
-  <text class="mark-t" x="290" y="70">最適同調: fa / fn = 1 / (1 + μ)</text>
-  <text class="mark-t" x="290" y="100">最適減衰: ζopt = √(3μ / 8(1 + μ)³)</text>
-  <text class="tick" x="290" y="130">μ = ma / M (質量比、0.05〜0.2 程度)</text>
-  <text class="tick" x="290" y="155">減衰なしでは同調点の両側に新たなピークが出る</text>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="動吸振器">
+<rect class="k-ground" x="60" y="196" width="200" height="10"/><line class="k-edge" x1="60" y1="196" x2="260" y2="196"/>
+<path class="k-edge" d="M160,196 L160,190 L171,187.9 L149,183.6 L171,179.4 L149,175.1 L171,170.9 L149,166.6 L171,162.4 L149,158.1 L160,156 L160,150"/>
+<g class="k-shadow"><rect class="k-part" x="110" y="110" width="100" height="40" rx="3"/></g>
+<text class="lbl" x="160" y="135" text-anchor="middle">主質量 M</text>
+<path class="k-edge" d="M142,110 L142,105 L151,103.2 L133,99.8 L151,96.2 L133,92.8 L151,89.2 L133,85.8 L151,82.2 L133,78.8 L142,77 L142,72" style="stroke:var(--tb-accent)"/>
+<line class="k-edge" x1="182" y1="110" x2="182" y2="96" style="stroke:var(--tb-accent)"/>
+<path class="k-edge" d="M174,82 L174,98 L190,98 L190,82" style="stroke:var(--tb-accent)"/>
+<line class="k-edge" x1="182" y1="72" x2="182" y2="92" style="stroke:var(--tb-accent)"/>
+<line class="k-edge" x1="176" y1="92" x2="188" y2="92" style="stroke:var(--tb-accent)"/>
+<g class="k-shadow"><rect class="k-accent" x="126" y="46" width="68" height="26" rx="3"/></g>
+<text class="lbl" x="160" y="64" text-anchor="middle" style="fill:#fff">ma</text>
+<text class="tick" x="124" y="94" text-anchor="end">ka</text>
+<text class="tick" x="196" y="90">ca</text>
+<text class="tick" x="176" y="176">K</text>
+<line class="k-force" x1="226" y1="150" x2="226" y2="116"/>
+<text class="tick" x="232" y="140" style="fill:var(--tb-bad)">加振</text>
+<rect class="k-panel" x="262" y="22" width="250" height="172" rx="8"/>
+<text class="mark-t" x="276" y="52">最適同調: fa / fn = 1 / (1 + μ)</text>
+<text class="mark-t" x="276" y="80">最適減衰: ζopt = √(3μ / 8(1 + μ)³)</text>
+<text class="tick" x="276" y="110">μ = ma / M (質量比、0.05〜0.2 程度)</text>
+<text class="tick" x="276" y="140">減衰なしでは同調点の両側に</text>
+<text class="tick" x="276" y="156">新たなピークが出る</text>
+<text class="k-note" x="276" y="182">主振動系 M に小さな ma・ka・ca を付加</text>
 </svg>
 <ul>
   <li>減衰のない動吸振器は 1 つの周波数だけに効き、前後に 2 つの新しい共振ピークができる</li>
@@ -532,19 +573,30 @@ export const STIFFNESS: TextChapter[] = [
   <li>FEA のひずみエネルギー分布を見ると、どこを補強すれば効くかがわかる。</li>
 </ul>
 <h2>ハンマリング試験 (打撃試験)</h2>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="ハンマリング試験と周波数応答">
-  <rect x="30" y="150" width="170" height="14" class="sec"/>
-  <rect x="50" y="110" width="130" height="40" class="sec"/>
-  <rect x="140" y="98" width="14" height="12" fill="var(--tb-accent)"/>
-  <text class="tick" x="147" y="92" text-anchor="middle">加速度計</text>
-  <line x1="70" y1="60" x2="90" y2="104" stroke="var(--tb-text-2)" stroke-width="4"/><circle cx="92" cy="106" r="5" fill="var(--tb-bad)"/>
-  <text class="tick" x="60" y="52">インパルスハンマ</text>
-  <line class="axis" x1="250" y1="190" x2="500" y2="190"/><line class="axis" x1="250" y1="190" x2="250" y2="30"/>
-  <path d="M250,170 C300,168 320,160 335,120 C340,60 345,40 350,40 C355,40 360,60 365,120 C380,165 410,172 430,150 C440,110 445,100 450,100 C455,100 460,115 470,160 L500,170" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line class="guide" x1="341" y1="62" x2="359" y2="62"/>
-  <text class="mark-t" x="364" y="56">半値幅 Δf</text>
-  <text class="tick" x="350" y="205" text-anchor="middle">f₁</text><text class="tick" x="450" y="205" text-anchor="middle">f₂</text>
-  <text class="lbl" x="500" y="215" text-anchor="end">周波数</text><text class="lbl" x="256" y="30">応答 / 力 (FRF)</text>
+<svg class="tb-chart" viewBox="0 0 520 230" role="img" aria-label="ハンマリング試験と周波数応答">
+<rect class="k-ground" x="24" y="184" width="200" height="10"/><line class="k-edge" x1="24" y1="184" x2="224" y2="184"/>
+<g class="k-shadow"><rect class="k-part" x="30" y="166" width="188" height="18" rx="2"/><rect class="k-alu" x="50" y="118" width="136" height="48" rx="2"/><rect class="k-accent" x="138" y="104" width="16" height="14" rx="2"/></g>
+<path class="k-edge" d="M154,110 C182,110 190,80 200,58" stroke-width="1.4"/>
+<rect class="k-panel" x="176" y="34" width="64" height="24" rx="4"/>
+<text class="tick" x="208" y="50" text-anchor="middle">FFT 解析</text>
+<text class="k-note" x="118" y="146" text-anchor="middle">加速度計</text>
+<line class="" x1="46" y1="50" x2="84" y2="104" style="stroke:var(--k-line)" stroke-width="7" stroke-linecap="round"/>
+<line class="" x1="46" y1="50" x2="84" y2="104" style="stroke:var(--k-plastic-2)" stroke-width="4.5" stroke-linecap="round"/>
+<rect class="k-part" x="72" y="98" width="34" height="14" rx="3" transform="rotate(-35 89 105)"/>
+<circle class="" cx="102" cy="113" r="4.5" style="fill:var(--tb-bad)"/>
+<path class="k-thin" d="M108,122 l6,-6 M100,124 l0,-8 M114,128 l8,-2" style="stroke:var(--tb-bad)"/>
+<text class="tick" x="14" y="36">インパルスハンマ</text>
+<line class="axis" x1="260" y1="200" x2="505" y2="200"/>
+<line class="axis" x1="260" y1="200" x2="260" y2="26"/>
+<g transform="translate(260,10) scale(0.96,1) translate(-250,0)"><path d="M250,170 C300,168 320,160 335,120 C340,60 345,40 350,40 C355,40 360,60 365,120 C380,165 410,172 430,150 C440,110 445,100 450,100 C455,100 460,115 470,160 L500,170" style="fill:none;stroke:var(--tb-accent)" stroke-width="2.6" vector-effect="non-scaling-stroke"/></g>
+<line class="k-dimline" x1="347" y1="72" x2="365" y2="72"/>
+<line class="guide" x1="356" y1="50" x2="356" y2="200"/>
+<line class="guide" x1="452" y1="110" x2="452" y2="200"/>
+<text class="mark-t" x="372" y="70">半値幅 Δf</text>
+<text class="tick" x="356" y="216" text-anchor="middle">f₁</text>
+<text class="tick" x="452" y="216" text-anchor="middle">f₂</text>
+<text class="lbl" x="505" y="228" text-anchor="end">周波数</text>
+<text class="lbl" x="266" y="22">応答 / 力 (FRF)</text>
 </svg>
 <ul>
   <li>力センサー付きハンマで叩き、加速度計で応答を測り、FFT アナライザで<b>周波数応答関数 (FRF)</b>を求める</li>

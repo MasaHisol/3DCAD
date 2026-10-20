@@ -16,17 +16,38 @@ export const MECHANICS2: TextChapter[] = [
 <div class="tb-formula">σ1,2 = (σx + σy)/2 ± √( ((σx − σy)/2)² + τxy² )<br>主方向: tan 2θ = 2τxy / (σx − σy)<br>最大せん断応力: τmax = √( ((σx − σy)/2)² + τxy² ) = (σ1 − σ2)/2</div>
 <h2>モールの応力円</h2>
 <p>横軸に σ、縦軸に τ をとると、点 (σx, τxy) と (σy, −τxy) を結ぶ線分を直径とする円が描けます。円が横軸と交わる点が主応力、円の半径が最大せん断応力 (面内) です。円上で角度 2θ 回ることが、実際の要素を θ 回すことに対応します。</p>
-<svg class="tb-chart" viewBox="0 0 520 240" aria-label="モールの応力円">
-  <line class="axis" x1="30" y1="120" x2="500" y2="120"/><line class="axis" x1="80" y1="225" x2="80" y2="15"/>
-  <circle cx="280" cy="120" r="90" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line class="guide" x1="217" y1="56" x2="343" y2="184"/>
-  <circle class="mark" cx="343" cy="184" r="4"/><text class="mark-t" x="350" y="200">(σx, τxy)</text>
-  <circle class="mark" cx="217" cy="56" r="4"/><text class="mark-t" x="150" y="48">(σy, −τxy)</text>
-  <circle class="mark" cx="370" cy="120" r="4"/><text class="mark-t" x="374" y="112">σ1</text>
-  <circle class="mark" cx="190" cy="120" r="4"/><text class="mark-t" x="170" y="112">σ2</text>
-  <line class="sec" x1="280" y1="120" x2="280" y2="30"/><text class="tick" x="286" y="70">R = τmax</text>
-  <text class="tick" x="268" y="138">C</text>
-  <text class="lbl" x="495" y="138" text-anchor="end">σ</text><text class="lbl" x="86" y="25">τ</text>
+<svg class="tb-chart" viewBox="0 0 520 250" role="img" aria-label="モールの応力円">
+<circle class="" cx="280" cy="125" r="90" style="fill:var(--tb-accent);fill-opacity:0.07;stroke:var(--tb-accent)"/>
+<line class="axis" x1="30" y1="125" x2="500" y2="125"/>
+<line class="axis" x1="80" y1="235" x2="80" y2="15"/>
+<line class="guide" x1="217" y1="61" x2="343" y2="189"/>
+<path class="k-thin" d="M310,125 A30,30 0 0 1 301,146" style="stroke:var(--k-dim)"/>
+<text class="k-dimtext" x="318" y="148">2θ</text>
+<circle class="mark" cx="343" cy="189" r="4"/>
+<text class="mark-t" x="350" y="205">(σx, τxy)</text>
+<circle class="mark" cx="217" cy="61" r="4"/>
+<text class="mark-t" x="150" y="53">(σy, −τxy)</text>
+<circle class="mark" cx="370" cy="125" r="4"/>
+<text class="mark-t" x="374" y="117">σ1</text>
+<circle class="mark" cx="190" cy="125" r="4"/>
+<text class="mark-t" x="170" y="117">σ2</text>
+<line class="" x1="280" y1="125" x2="280" y2="35" style="stroke:var(--tb-bad)" stroke-width="1.8"/>
+<text class="tick" x="286" y="75">R = τmax</text>
+<circle class="k-edge" cx="280" cy="125" r="3" style="fill:var(--k-line)"/>
+<text class="tick" x="268" y="143">C</text>
+<rect class="k-part" x="424" y="40" width="52" height="52"/>
+<line class="k-force" x1="477" y1="66" x2="506" y2="66"/>
+<line class="k-force" x1="423" y1="66" x2="394" y2="66"/>
+<line class="k-force" x1="450" y1="39" x2="450" y2="16"/>
+<line class="k-force" x1="450" y1="93" x2="450" y2="114"/>
+<line class="" x1="458" y1="33" x2="480" y2="33" style="stroke:var(--tb-warn);marker-end:url(#k-arrow)" stroke-width="2"/>
+<line class="" x1="483" y1="48" x2="483" y2="84" style="stroke:var(--tb-warn);marker-end:url(#k-arrow)" stroke-width="2"/>
+<text class="tick" x="504" y="58" text-anchor="end">σx</text>
+<text class="tick" x="442" y="24" text-anchor="end">σy</text>
+<text class="tick" x="484" y="26">τxy</text>
+<text class="k-note" x="450" y="152" text-anchor="middle">要素の応力</text>
+<text class="lbl" x="495" y="143" text-anchor="end">σ</text>
+<text class="lbl" x="86" y="25">τ</text>
 </svg>
 <div data-widget="mohr"></div>
 <h2>相当応力 (破損の判定)</h2>
@@ -72,13 +93,28 @@ export const MECHANICS2: TextChapter[] = [
 <p>内径 D、板厚 t の円筒に内圧 p がかかると、周方向 (フープ) と軸方向に引張応力が生じます。半分に切った自由体図で力のつり合いを考えると導けます。</p>
 <div class="tb-formula">周方向応力 σθ = pD / (2t)　　軸方向応力 σz = pD / (4t)　　球: σ = pD / (4t)</div>
 <p>周方向は軸方向の 2 倍です。そのため円筒容器は<b>軸方向に沿って割れる</b> (縦割れ) ことが多く、同じ容量・圧力なら球は円筒の半分の板厚で済みます。</p>
-<svg class="tb-chart" viewBox="0 0 520 180" aria-label="円筒の周方向応力">
-  <rect x="60" y="50" width="300" height="80" rx="40" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line class="guide" x1="210" y1="50" x2="210" y2="130"/>
-  <line class="sec" x1="370" y1="90" x2="420" y2="90"/><text class="mark-t" x="425" y="94">σz = pD/4t</text>
-  <line class="sec" x1="210" y1="45" x2="210" y2="15"/><text class="mark-t" x="218" y="25">σθ = pD/2t</text>
-  <text class="tick" x="180" y="95">内圧 p</text>
-  <text class="lbl" x="60" y="160">内径 D・板厚 t</text>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="円筒の周方向応力">
+<g class="k-shadow"><path class="k-part" d="M60,60 L300,60 A16,40 0 0 1 300,140 L60,140 A16,40 0 0 1 60,60 Z"/></g>
+<ellipse class="k-thin" cx="300" cy="100" rx="16" ry="40"/>
+<rect class="" x="162" y="86" width="28" height="28" style="fill:var(--tb-surface);stroke:var(--k-line)"/>
+<line class="k-force" x1="176" y1="85" x2="176" y2="56"/>
+<line class="k-force" x1="176" y1="115" x2="176" y2="144"/>
+<line class="k-force" x1="191" y1="100" x2="222" y2="100" style="stroke:var(--tb-accent);marker-end:url(#k-arrow-blue)"/>
+<line class="k-force" x1="161" y1="100" x2="130" y2="100" style="stroke:var(--tb-accent);marker-end:url(#k-arrow-blue)"/>
+<text class="mark-t" x="186" y="40">σθ = pD/2t (周方向)</text>
+<line class="k-thin" x1="184" y1="44" x2="180" y2="58"/>
+<text class="mark-t" x="228" y="104" style="fill:var(--tb-accent)">σz = pD/4t</text>
+<text class="lbl" x="60" y="170">内径 D・板厚 t</text>
+<text class="k-note" x="60" y="188">周方向は軸方向の 2 倍 → 軸に沿って縦割れしやすい</text>
+<path class="k-cut" fill-rule="evenodd" d="M410,40 A62,62 0 1 1 409.9,40 Z M410,50 A52,52 0 1 0 410.1,50 Z"/>
+<line class="k-force" x1="422.9" y1="107.4" x2="450.7" y2="118.8" stroke-width="1.8"/><line class="k-force" x1="415.4" y1="114.9" x2="426.8" y2="142.7" stroke-width="1.8"/><line class="k-force" x1="404.6" y1="114.9" x2="393.2" y2="142.7" stroke-width="1.8"/><line class="k-force" x1="397.1" y1="107.4" x2="369.3" y2="118.8" stroke-width="1.8"/><line class="k-force" x1="397.1" y1="96.6" x2="369.3" y2="85.2" stroke-width="1.8"/><line class="k-force" x1="404.6" y1="89.1" x2="393.2" y2="61.3" stroke-width="1.8"/><line class="k-force" x1="415.4" y1="89.1" x2="426.8" y2="61.3" stroke-width="1.8"/><line class="k-force" x1="422.9" y1="96.6" x2="450.7" y2="85.2" stroke-width="1.8"/>
+<text class="tick" x="352" y="40" text-anchor="end">内圧 p</text>
+<line class="k-thin" x1="354" y1="44" x2="384" y2="70"/>
+<line class="k-dimline" x1="358" y1="182" x2="462" y2="182"/><text class="k-dimtext" x="410" y="177" text-anchor="middle">D</text>
+<line class="k-ext" x1="358" y1="102" x2="358" y2="186"/>
+<line class="k-ext" x1="462" y1="102" x2="462" y2="186"/>
+<text class="k-dimtext" x="484" y="52">t</text>
+<line class="k-thin" x1="482" y1="54" x2="462" y2="62"/>
 </svg>
 <h2>薄肉とみなせる条件</h2>
 <p>板厚方向の応力分布を一様とみなすため、目安として <b>t/D &lt; 1/10 程度</b>で使います。厚肉になると内面の応力が大きくなるので、厚肉円筒の式 (ラメの式) や解析で確認します。</p>
@@ -132,13 +168,27 @@ export const MECHANICS2: TextChapter[] = [
   <tr><td>一端固定他端支持・中央集中 P</td><td>固定端 3PL/16</td><td>約 PL³/(107EI)</td></tr>
 </table>
 <p>両端固定にすると、単純支持と比べて最大モーメントは半分、たわみは 1/4 になります。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="両端固定はりの曲げモーメント図">
-  <line class="axis" x1="60" y1="90" x2="460" y2="90"/>
-  <line class="axis" x1="60" y1="30" x2="60" y2="150"/><line class="axis" x1="460" y1="30" x2="460" y2="150"/>
-  <path d="M60,40 L260,140 L460,40" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <text class="mark-t" x="66" y="36">−PL/8</text><text class="mark-t" x="400" y="36">−PL/8</text>
-  <text class="mark-t" x="240" y="160">+PL/8</text>
-  <text class="lbl" x="200" y="80">曲げモーメント図 (中央集中荷重)</text>
+<svg class="tb-chart" viewBox="0 0 520 250" role="img" aria-label="両端固定はりの曲げモーメント図">
+<rect class="k-ground" x="46" y="30" width="14" height="62"/><line class="k-edge" x1="60" y1="30" x2="60" y2="92"/>
+<rect class="k-ground" x="460" y="30" width="14" height="62"/><line class="k-edge" x1="460" y1="30" x2="460" y2="92"/>
+<path class="k-hidden" d="M60,68 C140,68 180,86 260,86 C340,86 380,68 460,68" style="stroke:var(--tb-accent)"/>
+<g class="k-shadow"><rect class="k-part-h" x="60" y="54" width="400" height="14"/></g>
+<line class="k-force" x1="260" y1="12" x2="260" y2="51"/>
+<text class="mark-t" x="270" y="26" style="fill:var(--tb-bad)">P</text>
+<text class="k-note" x="268" y="106">たわみ (誇張)</text>
+<line class="guide" x1="160" y1="92" x2="160" y2="200"/>
+<line class="guide" x1="360" y1="92" x2="360" y2="200"/>
+<path d="M60,170 L60,135 L64,136.4 L68,137.8 L72,139.2 L76,140.6 L80,142 L84,143.4 L88,144.8 L92,146.2 L96,147.6 L100,149 L104,150.4 L108,151.8 L112,153.2 L116,154.6 L120,156 L124,157.4 L128,158.8 L132,160.2 L136,161.6 L140,163 L144,164.4 L148,165.8 L152,167.2 L156,168.6 L160,170 L160,170 Z" style="fill:var(--tb-bad);fill-opacity:0.18"/>
+<path d="M360,170 L360,170 L364,168.6 L368,167.2 L372,165.8 L376,164.4 L380,163 L384,161.6 L388,160.2 L392,158.8 L396,157.4 L400,156 L404,154.6 L408,153.2 L412,151.8 L416,150.4 L420,149 L424,147.6 L428,146.2 L432,144.8 L436,143.4 L440,142 L444,140.6 L448,139.2 L452,137.8 L456,136.4 L460,135 L460,170 Z" style="fill:var(--tb-bad);fill-opacity:0.18"/>
+<path d="M160,170 L160,170 L164,171.4 L168,172.8 L172,174.2 L176,175.6 L180,177 L184,178.4 L188,179.8 L192,181.2 L196,182.6 L200,184 L204,185.4 L208,186.8 L212,188.2 L216,189.6 L220,191 L224,192.4 L228,193.8 L232,195.2 L236,196.6 L240,198 L244,199.4 L248,200.8 L252,202.2 L256,203.6 L260,205 L264,203.6 L268,202.2 L272,200.8 L276,199.4 L280,198 L284,196.6 L288,195.2 L292,193.8 L296,192.4 L300,191 L304,189.6 L308,188.2 L312,186.8 L316,185.4 L320,184 L324,182.6 L328,181.2 L332,179.8 L336,178.4 L340,177 L344,175.6 L348,174.2 L352,172.8 L356,171.4 L360,170 L360,170 Z" style="fill:var(--tb-accent);fill-opacity:0.18"/>
+<path d="M60,135 L64,136.4 L68,137.8 L72,139.2 L76,140.6 L80,142 L84,143.4 L88,144.8 L92,146.2 L96,147.6 L100,149 L104,150.4 L108,151.8 L112,153.2 L116,154.6 L120,156 L124,157.4 L128,158.8 L132,160.2 L136,161.6 L140,163 L144,164.4 L148,165.8 L152,167.2 L156,168.6 L160,170 L164,171.4 L168,172.8 L172,174.2 L176,175.6 L180,177 L184,178.4 L188,179.8 L192,181.2 L196,182.6 L200,184 L204,185.4 L208,186.8 L212,188.2 L216,189.6 L220,191 L224,192.4 L228,193.8 L232,195.2 L236,196.6 L240,198 L244,199.4 L248,200.8 L252,202.2 L256,203.6 L260,205 L264,203.6 L268,202.2 L272,200.8 L276,199.4 L280,198 L284,196.6 L288,195.2 L292,193.8 L296,192.4 L300,191 L304,189.6 L308,188.2 L312,186.8 L316,185.4 L320,184 L324,182.6 L328,181.2 L332,179.8 L336,178.4 L340,177 L344,175.6 L348,174.2 L352,172.8 L356,171.4 L360,170 L364,168.6 L368,167.2 L372,165.8 L376,164.4 L380,163 L384,161.6 L388,160.2 L392,158.8 L396,157.4 L400,156 L404,154.6 L408,153.2 L412,151.8 L416,150.4 L420,149 L424,147.6 L428,146.2 L432,144.8 L436,143.4 L440,142 L444,140.6 L448,139.2 L452,137.8 L456,136.4 L460,135" style="fill:none;stroke:var(--tb-accent)" stroke-width="2.4"/>
+<line class="axis" x1="60" y1="170" x2="460" y2="170"/>
+<text class="mark-t" x="64" y="128">−PL/8</text>
+<text class="mark-t" x="456" y="128" text-anchor="end">−PL/8</text>
+<text class="mark-t" x="260" y="224" text-anchor="middle">+PL/8</text>
+<text class="tick" x="160" y="214" text-anchor="middle">M = 0 (L/4)</text>
+<text class="tick" x="360" y="214" text-anchor="middle">M = 0</text>
+<text class="lbl" x="260" y="244" text-anchor="middle">曲げモーメント図 (中央集中荷重)</text>
 </svg>
 <h2>重ね合わせの原理で解く</h2>
 <p>線形弾性の範囲では、複数の荷重による変形は個々の荷重による変形の和です。一端固定他端支持はり (等分布) なら、支点を外した片持ちはりのたわみ wL⁴/(8EI) を、先端の反力 R によるたわみ RL³/(3EI) で打ち消す条件から <b>R = 3wL/8</b> が求まります。</p>
@@ -181,13 +231,33 @@ export const MECHANICS2: TextChapter[] = [
 <p>重さ W が高さ h から落ちて弾性体に当たるとき、位置エネルギーとひずみエネルギーのつり合い W(h + δ) = kδ²/2 から次が得られます。</p>
 <div class="tb-formula">衝撃係数 n = 1 + √(1 + 2h / δst)<br>最大たわみ δ = n × δst　　最大荷重 F = n × W　(δst = W/k: 静的たわみ)</div>
 <p>h = 0 で n = 2 になります。<b>δst が大きい (柔らかい) ほど n は小さく</b>なります。</p>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="衝撃係数とh/δst">
-  <line class="axis" x1="50" y1="190" x2="500" y2="190"/><line class="axis" x1="50" y1="190" x2="50" y2="15"/>
-  <line class="grid" x1="50" y1="110" x2="500" y2="110"/><line class="grid" x1="50" y1="30" x2="500" y2="30"/>
-  <path d="M50,174 L95,146 L140,135 L230,121 L320,111 L410,103 L500,96" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <text class="tick" x="44" y="178" text-anchor="end">2</text><text class="tick" x="44" y="114" text-anchor="end">10</text><text class="tick" x="44" y="34" text-anchor="end">20</text>
-  <text class="tick" x="95" y="205" text-anchor="middle">10</text><text class="tick" x="230" y="205" text-anchor="middle">40</text><text class="tick" x="500" y="205" text-anchor="middle">100</text>
-  <text class="lbl" x="495" y="180" text-anchor="end">h / δst</text><text class="lbl" x="56" y="22">衝撃係数 n</text>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="衝撃係数とh/δst">
+<line class="grid" x1="50" y1="114" x2="500" y2="114"/>
+<line class="grid" x1="50" y1="34" x2="500" y2="34"/>
+<line class="axis" x1="50" y1="190" x2="500" y2="190"/>
+<line class="axis" x1="50" y1="190" x2="50" y2="15"/>
+<path d="M50,178 L54.5,172.1 L59,168.1 L68,162 L77,157.2 L95,149.3 L117.5,141.5 L140,134.8 L185,123.5 L230,114 L275,105.6 L320,98 L365,91 L410,84.5 L455,78.4 L500,72.6" style="fill:none;stroke:var(--tb-accent)" stroke-width="2.8"/>
+<circle class="mark" cx="50" cy="178" r="4"/>
+<text class="tick" x="70" y="177">h = 0 でも n = 2</text>
+<text class="tick" x="44" y="182" text-anchor="end">2</text>
+<text class="tick" x="44" y="118" text-anchor="end">10</text>
+<text class="tick" x="44" y="38" text-anchor="end">20</text>
+<text class="tick" x="95" y="205" text-anchor="middle">10</text>
+<text class="tick" x="230" y="205" text-anchor="middle">40</text>
+<text class="tick" x="500" y="205" text-anchor="middle">100</text>
+<g class="k-shadow"><rect class="k-part" x="334" y="122" width="40" height="18" rx="2"/></g>
+<text class="tick" x="354" y="135" text-anchor="middle">W</text>
+<path class="k-edge" d="M354,158 L354,161 L345,162 L363,164 L345,166 L363,168 L345,170 L363,172 L345,174 L363,176 L354,177 L354,180"/>
+<rect class="k-part" x="338" y="154" width="32" height="5" rx="1"/>
+<rect class="k-ground" x="320" y="180" width="70" height="8"/><line class="k-edge" x1="320" y1="180" x2="390" y2="180"/>
+<line class="k-move" x1="354" y1="141" x2="354" y2="152" style="stroke-dasharray:3 2"/>
+<line class="k-dimline" x1="396" y1="140" x2="396" y2="155"/>
+<line class="k-ext" x1="376" y1="140" x2="400" y2="140"/>
+<line class="k-ext" x1="372" y1="155" x2="400" y2="155"/>
+<text class="k-dimtext" x="404" y="151">h</text>
+<text class="tick" x="404" y="176">δst = W / k</text>
+<text class="lbl" x="440" y="207" text-anchor="end">h / δst</text>
+<text class="lbl" x="56" y="14">衝撃係数 n</text>
 </svg>
 <h2>緩衝材の考え方</h2>
 <ul>
@@ -274,14 +344,26 @@ export const MECHANICS2: TextChapter[] = [
 <p>FEM は形状を小さな<b>要素</b>に分け、要素の角などの<b>節点</b>の変位を未知数として解きます。各要素の「力と変位の関係」(<b>要素剛性マトリクス</b>) を組み立てて全体の連立方程式にします。</p>
 <div class="tb-formula">[K]{u} = {F}　　([K]: 全体剛性マトリクス、{u}: 節点変位、{F}: 節点力)</div>
 <h2>ばね要素 2 つの手計算</h2>
-<svg class="tb-chart" viewBox="0 0 520 120" aria-label="ばね要素 2 つのモデル">
-  <line class="axis" x1="40" y1="30" x2="40" y2="90"/>
-  <path d="M40,60 L70,60 L80,45 L100,75 L120,45 L140,75 L150,60 L180,60" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <path d="M190,60 L230,60 L240,45 L260,75 L280,45 L300,75 L310,60 L340,60" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <circle class="mark" cx="40" cy="60" r="5"/><circle class="mark" cx="185" cy="60" r="5"/><circle class="mark" cx="345" cy="60" r="5"/>
-  <line class="sec" x1="350" y1="60" x2="410" y2="60"/><text class="mark-t" x="415" y="64">F = 600 N</text>
-  <text class="tick" x="40" y="108" text-anchor="middle">節点1 (固定)</text><text class="tick" x="185" y="108" text-anchor="middle">節点2</text><text class="tick" x="345" y="108" text-anchor="middle">節点3</text>
-  <text class="lbl" x="110" y="30" text-anchor="middle">k1</text><text class="lbl" x="265" y="30" text-anchor="middle">k2</text>
+<svg class="tb-chart" viewBox="0 0 520 140" role="img" aria-label="ばね要素 2 つのモデル">
+<rect class="k-ground" x="26" y="30" width="14" height="70"/><line class="k-edge" x1="40" y1="30" x2="40" y2="100"/>
+<path class="k-edge" d="M40,65 L62,65 L66.8,77 L76.4,53 L86,77 L95.6,53 L105.2,77 L114.8,53 L124.4,77 L134,53 L143.6,77 L153.2,53 L158,65 L180,65" style="stroke:var(--tb-accent)" stroke-width="2.4"/>
+<path class="k-edge" d="M190,65 L212,65 L217.3,77 L227.9,53 L238.5,77 L249.1,53 L259.7,77 L270.3,53 L280.9,77 L291.5,53 L302.1,77 L312.7,53 L318,65 L340,65" style="stroke:var(--tb-accent)" stroke-width="2.4"/>
+<circle class="k-sphere" cx="40" cy="65" r="7"/>
+<circle class="k-sphere" cx="185" cy="65" r="7"/>
+<circle class="k-sphere" cx="345" cy="65" r="7"/>
+<line class="k-force" x1="353" y1="65" x2="420" y2="65"/>
+<text class="mark-t" x="426" y="70">F = 600 N</text>
+<circle class="k-badge" cx="110" cy="30" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="110" y="34" text-anchor="middle">1</text>
+<text class="lbl" x="126" y="34">k1</text>
+<circle class="k-badge" cx="265" cy="30" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="265" y="34" text-anchor="middle">2</text>
+<text class="lbl" x="281" y="34">k2</text>
+<line class="k-move" x1="185" y1="92" x2="215" y2="92"/>
+<text class="tick" x="185" y="108" text-anchor="middle">u2</text>
+<line class="k-move" x1="345" y1="92" x2="375" y2="92"/>
+<text class="tick" x="345" y="108" text-anchor="middle">u3</text>
+<text class="tick" x="40" y="128" text-anchor="middle">節点1 (固定)</text>
+<text class="tick" x="185" y="128" text-anchor="middle">節点2</text>
+<text class="tick" x="345" y="128" text-anchor="middle">節点3</text>
 </svg>
 <p>ばね要素 1 つの剛性マトリクスは k[[1, −1], [−1, 1]] です。k1 = 1000 N/mm、k2 = 2000 N/mm を重ねると次のようになります。</p>
 <pre class="tb-pre">| k1    −k1      0  | |u1|   |R1|

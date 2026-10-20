@@ -16,16 +16,33 @@ export const MECHANICS3: TextChapter[] = [
 <h2>修正グッドマン線図</h2>
 <p>横軸に σm、縦軸に σa をとり、(0, σw) と (σB, 0) を直線で結びます。応力の点がこの線の内側にあれば疲労破壊しないと判定します。</p>
 <div class="tb-formula">σa/σw + σm/σB = 1/S　　(S: 疲労安全率)</div>
-<svg class="tb-chart" viewBox="0 0 520 260" aria-label="修正グッドマン線図">
-  <line class="grid" x1="60" y1="130" x2="480" y2="130"/><line class="grid" x1="270" y1="30" x2="270" y2="220"/>
-  <line class="axis" x1="60" y1="220" x2="490" y2="220"/><line class="axis" x1="60" y1="225" x2="60" y2="20"/>
-  <line x1="60" y1="60" x2="460" y2="220" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line class="guide" x1="60" y1="220" x2="160" y2="153"/>
-  <line class="sec" x1="60" y1="116" x2="320" y2="220"/>
-  <circle class="mark" cx="160" cy="153" r="4"/><text class="mark-t" x="166" y="168">(σm, σa)</text>
-  <text class="tick" x="54" y="64" text-anchor="end">σw</text><text class="tick" x="460" y="236" text-anchor="middle">σB</text>
-  <text class="tick" x="250" y="100">限界線 (S = 1)</text><text class="tick" x="200" y="190">σw/S〜σB/S の線</text>
-  <text class="lbl" x="485" y="250" text-anchor="end">平均応力 σm</text><text class="lbl" x="66" y="30">応力振幅 σa</text>
+<svg class="tb-chart" viewBox="0 0 520 260" role="img" aria-label="修正グッドマン線図">
+<path d="M60,60 L460,220 L60,220 Z" style="fill:var(--tb-good);fill-opacity:0.09"/>
+<line class="grid" x1="60" y1="130" x2="480" y2="130"/>
+<line class="grid" x1="270" y1="30" x2="270" y2="220"/>
+<line class="axis" x1="60" y1="220" x2="490" y2="220"/>
+<line class="axis" x1="60" y1="225" x2="60" y2="20"/>
+<line class="" x1="60" y1="60" x2="460" y2="220" style="stroke:var(--tb-accent)" stroke-width="2.8"/>
+<line class="guide" x1="60" y1="220" x2="160" y2="153"/>
+<line class="" x1="60" y1="116" x2="320" y2="220" style="stroke:var(--tb-warn);stroke-dasharray:7 4" stroke-width="2"/>
+<circle class="mark" cx="160" cy="153" r="4.5"/>
+<text class="mark-t" x="160" y="140" text-anchor="middle">(σm, σa)</text>
+<text class="tick" x="54" y="64" text-anchor="end">σw</text>
+<text class="tick" x="460" y="236" text-anchor="middle">σB</text>
+<text class="mark-t" x="250" y="106" style="fill:var(--tb-accent)">限界線 (S = 1)</text>
+<text class="tick" x="70" y="212" style="fill:var(--tb-warn)">σw/S〜σB/S の線</text>
+<text class="k-good-t" x="340" y="206">安全側</text>
+<rect class="k-panel" x="330" y="14" width="180" height="104" rx="8"/>
+<line class="k-center" x1="345" y1="66" x2="495" y2="66"/>
+<line class="k-thin" x1="345" y1="44" x2="495" y2="44" style="stroke-dasharray:3 3"/>
+<line class="k-thin" x1="345" y1="88" x2="495" y2="88" style="stroke-dasharray:3 3"/>
+<path d="M345,66 L346.5,63.2 L348,60.5 L349.5,57.9 L351,55.4 L352.5,53.1 L354,50.9 L355.5,49 L357,47.4 L358.5,46.1 L360,45.1 L361.5,44.4 L363,44 L364.5,44 L366,44.4 L367.5,45.1 L369,46.1 L370.5,47.4 L372,49 L373.5,50.9 L375,53.1 L376.5,55.4 L378,57.9 L379.5,60.5 L381,63.2 L382.5,66 L384,68.8 L385.5,71.5 L387,74.1 L388.5,76.6 L390,78.9 L391.5,81.1 L393,83 L394.5,84.6 L396,85.9 L397.5,86.9 L399,87.6 L400.5,88 L402,88 L403.5,87.6 L405,86.9 L406.5,85.9 L408,84.6 L409.5,83 L411,81.1 L412.5,78.9 L414,76.6 L415.5,74.1 L417,71.5 L418.5,68.8 L420,66 L421.5,63.2 L423,60.5 L424.5,57.9 L426,55.4 L427.5,53.1 L429,50.9 L430.5,49 L432,47.4 L433.5,46.1 L435,45.1 L436.5,44.4 L438,44 L439.5,44 L441,44.4 L442.5,45.1 L444,46.1 L445.5,47.4 L447,49 L448.5,50.9 L450,53.1 L451.5,55.4 L453,57.9 L454.5,60.5 L456,63.2 L457.5,66 L459,68.8 L460.5,71.5 L462,74.1 L463.5,76.6 L465,78.9 L466.5,81.1 L468,83 L469.5,84.6 L471,85.9 L472.5,86.9 L474,87.6 L475.5,88 L477,88 L478.5,87.6 L480,86.9 L481.5,85.9 L483,84.6 L484.5,83 L486,81.1 L487.5,78.9 L489,76.6 L490.5,74.1 L492,71.5 L493.5,68.8 L495,66" style="fill:none;stroke:var(--tb-accent)" stroke-width="2"/>
+<line class="k-dimline" x1="500" y1="66" x2="500" y2="44"/>
+<text class="k-dimtext" x="496" y="38" text-anchor="end">σa</text>
+<text class="k-note" x="340" y="30">応力の時間変化</text>
+<text class="k-note" x="352" y="110">σm (平均)</text>
+<text class="lbl" x="485" y="250" text-anchor="end">平均応力 σm</text>
+<text class="lbl" x="66" y="16">応力振幅 σa</text>
 </svg>
 <p>原点と応力点を結ぶ直線 (荷重が比例して増える場合) が限界線と交わるまでの倍率が S です。降伏を避けるため、σm + σa ≤ σy (ランガー線) もあわせて確認します。</p>
 <div data-widget="goodman"></div>
@@ -86,13 +103,26 @@ export const MECHANICS3: TextChapter[] = [
 <p>等脚の隅肉では、脚長 s の直角二等辺三角形の高さが理論<b>のど厚</b>です。</p>
 <div class="tb-formula">a = s × cos45° ≒ 0.7 s　　τ = F / (a · Σl)</div>
 <p>Σl は有効溶接長の合計です。始端・終端はクレーターなどで欠陥が出やすいため、実長から脚長分程度を差し引くことがあります。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="隅肉溶接ののど厚">
-  <line class="axis" x1="80" y1="160" x2="440" y2="160"/><line class="axis" x1="200" y1="160" x2="200" y2="20"/>
-  <polygon points="200,160 300,160 200,60" fill="var(--tb-accent)" opacity="0.35"/>
-  <line class="sec" x1="200" y1="160" x2="250" y2="110"/>
-  <text class="mark-t" x="232" y="150">a = 0.7s</text>
-  <text class="tick" x="250" y="178" text-anchor="middle">脚長 s</text><text class="tick" x="192" y="112" text-anchor="end">脚長 s</text>
-  <text class="lbl" x="420" y="150" text-anchor="end">板 A</text><text class="lbl" x="210" y="35">板 B</text>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="隅肉溶接ののど厚">
+<g class="k-shadow"><rect class="k-cut" x="60" y="150" width="400" height="26"/><rect class="k-cut2" x="240" y="40" width="25" height="110"/><path d="M240,150 L180,150 L240,90 Z" style="fill:var(--tb-warn);fill-opacity:0.55;stroke:var(--k-line)" stroke-width="1.6"/><path d="M265,150 L325,150 L265,90 Z" style="fill:var(--tb-warn);fill-opacity:0.55;stroke:var(--k-line)" stroke-width="1.6"/></g>
+<line class="" x1="265" y1="150" x2="295" y2="120" style="stroke:var(--tb-bad)" stroke-width="2.4"/>
+<text class="mark-t" x="340" y="92">のど厚 a = 0.7s</text>
+<line class="k-thin" x1="338" y1="96" x2="286" y2="128" style="marker-end:url(#k-arrow)"/>
+<text class="k-note" x="340" y="110">(のど断面のせん断で評価)</text>
+<line class="k-ext" x1="265" y1="178" x2="265" y2="200"/>
+<line class="k-ext" x1="325" y1="178" x2="325" y2="200"/>
+<line class="k-dimline" x1="265" y1="194" x2="325" y2="194"/>
+<text class="k-dimtext" x="295" y="190" text-anchor="middle">脚長 s</text>
+<line class="k-ext" x1="236" y1="90" x2="152" y2="90"/>
+<line class="k-ext" x1="176" y1="150" x2="152" y2="150"/>
+<text class="k-dimtext" x="150" y="124" text-anchor="end">脚長 s</text>
+<line class="k-dimline" x1="158" y1="90" x2="158" y2="150"/>
+<line class="k-force" x1="252" y1="38" x2="252" y2="12"/>
+<text class="mark-t" x="262" y="22" style="fill:var(--tb-bad)">F</text>
+<text class="lbl" x="452" y="168" text-anchor="end">板 A</text>
+<text class="lbl" x="232" y="60" text-anchor="end">板 B</text>
+<text class="k-note" x="372" y="140">溶接ビード</text>
+<line class="k-thin" x1="370" y1="137" x2="306" y2="138"/>
 </svg>
 <div data-widget="weld"></div>
 <h2>曲げを受ける隅肉の概算</h2>
@@ -144,18 +174,33 @@ export const MECHANICS3: TextChapter[] = [
     body: `
 <h2>締付線図</h2>
 <p>締め付けるとボルトは伸び、被締結物 (部材) は縮みます。両者をばね定数 kb (ボルト)、kc (部材) のばねとみなします。部材はボルトより断面が大きいので、ふつう kc は kb の数倍です。</p>
-<svg class="tb-chart" viewBox="0 0 520 250" aria-label="締付線図">
-  <line class="axis" x1="50" y1="220" x2="490" y2="220"/><line class="axis" x1="50" y1="225" x2="50" y2="20"/>
-  <line x1="50" y1="220" x2="250" y2="90" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line class="sec" x1="250" y1="90" x2="400" y2="220"/>
-  <line x1="250" y1="90" x2="290" y2="64" stroke="var(--tb-accent)" stroke-width="2.5" stroke-dasharray="5 3"/>
-  <line class="guide" x1="250" y1="90" x2="250" y2="220"/><line class="guide" x1="290" y1="64" x2="290" y2="125"/>
-  <line class="guide" x1="50" y1="90" x2="250" y2="90"/>
-  <circle class="mark" cx="250" cy="90" r="4"/>
-  <text class="tick" x="44" y="94" text-anchor="end">Ff</text>
-  <text class="tick" x="296" y="80">ΔF = φF</text><text class="tick" x="296" y="110">部材の圧縮減少</text>
-  <text class="mark-t" x="120" y="140">ボルト (傾き kb)</text><text class="mark-t" x="335" y="165">部材 (傾き kc)</text>
-  <text class="lbl" x="485" y="240" text-anchor="end">伸び・縮み</text><text class="lbl" x="56" y="30">力</text>
+<svg class="tb-chart" viewBox="0 0 520 250" role="img" aria-label="締付線図">
+<path d="M50,230 L250,100 L400,230 Z" style="fill:var(--tb-accent);fill-opacity:0.07"/>
+<line class="axis" x1="50" y1="230" x2="490" y2="230"/>
+<line class="axis" x1="50" y1="235" x2="50" y2="20"/>
+<line class="" x1="50" y1="230" x2="250" y2="100" style="stroke:var(--tb-accent)" stroke-width="2.8"/>
+<line class="" x1="250" y1="100" x2="400" y2="230" style="stroke:var(--tb-warn)" stroke-width="2.8"/>
+<line class="" x1="250" y1="100" x2="290" y2="74" style="stroke:var(--tb-accent);stroke-dasharray:5 3" stroke-width="2.8"/>
+<line class="guide" x1="250" y1="100" x2="250" y2="230"/>
+<line class="guide" x1="50" y1="100" x2="250" y2="100"/>
+<line class="" x1="290" y1="74" x2="290" y2="134.7" style="stroke:var(--tb-bad)" stroke-width="3"/>
+<circle class="mark" cx="250" cy="100" r="4.5"/>
+<circle class="mark" cx="290" cy="74" r="3.5"/>
+<text class="tick" x="44" y="104" text-anchor="end">Ff</text>
+<line class="k-dimline" x1="300" y1="74" x2="300" y2="100"/>
+<text class="k-dimtext" x="306" y="90">ΔF = φF</text>
+<line class="k-dimline" x1="300" y1="100" x2="300" y2="134.7"/>
+<text class="tick" x="306" y="122">部材の圧縮減少</text>
+<text class="mark-t" x="282" y="66" text-anchor="end" style="fill:var(--tb-bad)">外力 F</text>
+<text class="mark-t" x="140" y="200" style="fill:var(--tb-accent)">ボルト (傾き kb)</text>
+<text class="mark-t" x="340" y="160" style="fill:var(--tb-warn)">部材 (傾き kc)</text>
+<rect class="k-panel" x="410" y="12" width="100" height="112" rx="8"/>
+<g class="k-shadow"><rect class="k-cut" x="420" y="50" width="80" height="20"/><rect class="k-cut2" x="420" y="70" width="80" height="20"/><rect class="k-part-h" x="454" y="34" width="12" height="72"/><rect class="k-part" x="442" y="38" width="36" height="12" rx="1.5"/><rect class="k-part" x="442" y="90" width="36" height="12" rx="1.5"/></g>
+<line class="k-force" x1="432" y1="48" x2="432" y2="22"/>
+<line class="k-force" x1="432" y1="92" x2="432" y2="116"/>
+<text class="mark-t" x="490" y="30" style="fill:var(--tb-bad)">F</text>
+<text class="lbl" x="485" y="246" text-anchor="end">伸び・縮み</text>
+<text class="lbl" x="56" y="18">力</text>
 </svg>
 <p>初期締付力 Ff の状態で軸方向の外力 F を加えると、ボルトはさらに伸び、部材の圧縮は減ります。外力のうちボルトに加わる割合が<b>内力係数 φ</b>です。</p>
 <div class="tb-formula">φ = kb / (kb + kc)<br>ボルト荷重 Fb = Ff + φF　　部材の残留締付力 Fc = Ff − (1 − φ)F<br>分離限界 F_sep = Ff / (1 − φ)</div>
@@ -282,18 +327,29 @@ export const MECHATRONICS2: TextChapter[] = [
 <h2>順運動学 (2 リンク平面アーム)</h2>
 <p>リンク長 L1, L2、第 1 関節角 θ1 (x 軸から)、第 2 関節角 θ2 (第 1 リンクから) のとき、先端位置は</p>
 <div class="tb-formula">x = L1 cos θ1 + L2 cos(θ1 + θ2)<br>y = L1 sin θ1 + L2 sin(θ1 + θ2)</div>
-<svg class="tb-chart" viewBox="0 0 520 260" aria-label="2 リンク平面アーム">
-  <line class="axis" x1="60" y1="230" x2="490" y2="230"/><line class="axis" x1="80" y1="240" x2="80" y2="20"/>
-  <path class="guide" d="M 80 30 A 200 200 0 0 1 280 230" fill="none"/>
-  <path class="guide" d="M 80 190 A 40 40 0 0 1 120 230" fill="none"/>
-  <line x1="80" y1="230" x2="210" y2="155" stroke="var(--tb-accent)" stroke-width="4"/>
-  <line x1="210" y1="155" x2="232" y2="71" stroke="var(--tb-accent)" stroke-width="4"/>
-  <circle class="mark" cx="80" cy="230" r="5"/><circle class="mark" cx="210" cy="155" r="5"/><circle class="mark" cx="232" cy="71" r="5"/>
-  <text class="mark-t" x="140" y="180">L1</text><text class="mark-t" x="228" y="120">L2</text>
-  <text class="tick" x="120" y="222">θ1</text><text class="tick" x="222" y="150">θ2</text>
-  <text class="mark-t" x="240" y="66">(x, y)</text>
-  <text class="tick" x="290" y="60">作業領域の外周 r = L1 + L2</text>
-  <text class="lbl" x="485" y="250" text-anchor="end">x</text><text class="lbl" x="86" y="30">y</text>
+<svg class="tb-chart" viewBox="0 0 520 275" role="img" aria-label="2 リンク平面アーム">
+<path d="M290,240 A210,210 0 0 0 80,30 L80,190 A50,50 0 0 1 130,240 Z" style="fill:var(--tb-accent);fill-opacity:0.08"/>
+<line class="axis" x1="60" y1="240" x2="490" y2="240"/>
+<line class="axis" x1="80" y1="250" x2="80" y2="20"/>
+<path class="guide" d="M80,30 A210,210 0 0 1 290,240" style="fill:none"/>
+<path class="guide" d="M80,190 A50,50 0 0 1 130,240" style="fill:none"/>
+<path class="k-thin" d="M120,240 A40,40 0 0 0 114.6,220" style="stroke:var(--k-dim)"/>
+<text class="k-dimtext" x="126" y="237">θ1</text>
+<line class="k-center" x1="192.6" y1="175" x2="222" y2="158"/>
+<path class="k-thin" d="M213.4,163 A24,24 0 0 0 198.8,151.8" style="stroke:var(--k-dim)"/>
+<text class="k-dimtext" x="222" y="152">θ2</text>
+<g class="k-shadow"><rect class="k-part" x="64" y="236" width="32" height="14" rx="2"/><line class="" x1="80" y1="240" x2="192.6" y2="175" style="stroke:var(--k-line)" stroke-width="15" stroke-linecap="round"/><line class="" x1="80" y1="240" x2="192.6" y2="175" style="stroke:var(--k-alu-2)" stroke-width="11.5" stroke-linecap="round"/><line class="" x1="192.6" y1="175" x2="213.3" y2="97.7" style="stroke:var(--k-line)" stroke-width="15" stroke-linecap="round"/><line class="" x1="192.6" y1="175" x2="213.3" y2="97.7" style="stroke:var(--k-alu-2)" stroke-width="11.5" stroke-linecap="round"/></g>
+<rect class="k-ground" x="54" y="250" width="52" height="8"/><line class="k-edge" x1="54" y1="250" x2="106" y2="250"/>
+<circle class="k-sphere" cx="80" cy="240" r="7"/>
+<circle class="k-sphere" cx="192.6" cy="175" r="7"/>
+<circle class="k-accent" cx="213.3" cy="97.7" r="6"/>
+<text class="mark-t" x="150" y="222">L1</text>
+<text class="mark-t" x="218" y="132">L2</text>
+<text class="mark-t" x="202" y="92" text-anchor="end">(x, y)</text>
+<text class="tick" x="296" y="60">作業領域の外周 r = L1 + L2</text>
+<line class="k-thin" x1="300" y1="66" x2="262" y2="134" style="marker-end:url(#k-arrow)"/>
+<text class="lbl" x="485" y="266" text-anchor="end">x</text>
+<text class="lbl" x="86" y="28">y</text>
 </svg>
 <h2>逆運動学 — 肘上と肘下</h2>
 <p>目標 (x, y) から関節角を求めます。余弦定理から</p>
@@ -336,15 +392,26 @@ export const MECHATRONICS2: TextChapter[] = [
     body: `
 <h2>台形加減速と S 字加減速</h2>
 <p><b>台形</b>は一定加速度で加速し、一定速度で移動し、一定減速度で止まります。計算が簡単ですが、加速度が階段状に変わるため衝撃が出ます。<b>S 字</b>は加速度をなめらかに立ち上げ、加速度の変化率 (<b>ジャーク</b> [mm/s³]) を有限にします。</p>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="台形と S 字の速度パターン">
-  <line class="grid" x1="60" y1="60" x2="480" y2="60"/>
-  <line class="axis" x1="60" y1="190" x2="490" y2="190"/><line class="axis" x1="60" y1="195" x2="60" y2="20"/>
-  <polyline points="60,190 140,60 380,60 460,190" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <path class="sec" d="M 60 190 C 110 190 120 60 170 60 L 350 60 C 400 60 410 190 460 190" fill="none"/>
-  <text class="mark-t" x="150" y="52">台形</text><text class="tick" x="240" y="80">S 字 (加速度の変化がなめらか)</text>
-  <text class="tick" x="100" y="206" text-anchor="middle">加速 ta</text><text class="tick" x="420" y="206" text-anchor="middle">減速</text>
-  <text class="tick" x="54" y="64" text-anchor="end">vmax</text>
-  <text class="lbl" x="485" y="215" text-anchor="end">時間</text><text class="lbl" x="66" y="30">速度</text>
+<svg class="tb-chart" viewBox="0 0 520 300" role="img" aria-label="台形と S 字の速度パターン">
+<line class="grid" x1="60" y1="50" x2="480" y2="50"/>
+<line class="axis" x1="60" y1="170" x2="490" y2="170"/>
+<line class="axis" x1="60" y1="175" x2="60" y2="20"/>
+<path d="M60,170 L140,50 L380,50 L460,170" style="fill:none;stroke:var(--tb-accent)" stroke-width="2.6"/>
+<path d="M60,170 C110,170 120,50 170,50 L350,50 C400,50 410,170 460,170" style="fill:none;stroke:var(--tb-good);stroke-dasharray:7 4" stroke-width="2.6"/>
+<text class="mark-t" x="140" y="42" text-anchor="middle" style="fill:var(--tb-accent)">台形</text>
+<text class="mark-t" x="160" y="92" style="fill:var(--tb-good)">S 字 (加速度の変化がなめらか)</text>
+<text class="tick" x="100" y="186" text-anchor="middle">加速 ta</text>
+<text class="tick" x="420" y="186" text-anchor="middle">減速</text>
+<text class="tick" x="54" y="54" text-anchor="end">vmax</text>
+<text class="lbl" x="66" y="28">速度</text>
+<line class="axis" x1="60" y1="245" x2="490" y2="245"/>
+<line class="axis" x1="60" y1="285" x2="60" y2="200"/>
+<path d="M60,245 L60,220 L140,220 L140,245 L380,245 L380,270 L460,270 L460,245" style="fill:none;stroke:var(--tb-accent)" stroke-width="2.4"/>
+<path d="M60,245 L60,245 L62.8,244.8 L65.5,244.1 L68.2,243 L71,241.6 L73.8,239.7 L76.5,237.6 L79.2,235.2 L82,232.6 L84.8,229.8 L87.5,227 L90.2,224.2 L93,221.4 L95.8,218.8 L98.5,216.4 L101.2,214.3 L104,212.4 L106.8,211 L109.5,209.9 L112.2,209.2 L115,209 L117.8,209.2 L120.5,209.9 L123.2,211 L126,212.4 L128.8,214.3 L131.5,216.4 L134.2,218.8 L137,221.4 L139.8,224.2 L142.5,227 L145.2,229.8 L148,232.6 L150.8,235.2 L153.5,237.6 L156.2,239.7 L159,241.6 L161.8,243 L164.5,244.1 L167.2,244.8 L170,245 L350,245 L350,245 L352.8,245.2 L355.5,245.9 L358.2,247 L361,248.4 L363.8,250.3 L366.5,252.4 L369.2,254.8 L372,257.4 L374.8,260.2 L377.5,263 L380.2,265.8 L383,268.6 L385.8,271.2 L388.5,273.6 L391.2,275.7 L394,277.6 L396.8,279 L399.5,280.1 L402.2,280.8 L405,281 L407.8,280.8 L410.5,280.1 L413.2,279 L416,277.6 L418.8,275.7 L421.5,273.6 L424.2,271.2 L427,268.6 L429.8,265.8 L432.5,263 L435.2,260.2 L438,257.4 L440.8,254.8 L443.5,252.4 L446.2,250.3 L449,248.4 L451.8,247 L454.5,245.9 L457.2,245.2 L460,245" style="fill:none;stroke:var(--tb-good);stroke-dasharray:7 4" stroke-width="2.4"/>
+<text class="lbl" x="66" y="208">加速度</text>
+<text class="tick" x="196" y="230">台形: 階段状に急変 → 衝撃・残留振動</text>
+<text class="tick" x="196" y="268" style="fill:var(--tb-good)">S 字: なめらか (ジャーク有限)</text>
+<text class="lbl" x="485" y="296" text-anchor="end">時間</text>
 </svg>
 <div class="tb-formula">台形の移動時間 T = S / vmax + ta　(加速時間 ta = vmax / a、加減速が等しい場合)</div>
 <table class="tb-table">

@@ -11,17 +11,19 @@ export const UX2: TextChapter[] = [
     body: `
 <h2>情報処理の流れ</h2>
 <p>人の情報処理は、おおまかに <b>知覚 (感覚) → 認知 (判断) → 運動 (操作)</b> の段階で考えると整理しやすくなります。どの段階にも時間と容量の限界があり、<b>注意</b>がその全体を配分しています。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="人の情報処理モデル">
-  <defs><marker id="hs-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--tb-accent)"/></marker></defs>
-  <rect x="20" y="50" width="90" height="50" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="mark-t" x="65" y="80" text-anchor="middle">刺激</text>
-  <rect x="140" y="50" width="100" height="50" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="2"/><text class="mark-t" x="190" y="72" text-anchor="middle">知覚</text><text class="tick" x="190" y="90" text-anchor="middle">視・聴・触</text>
-  <rect x="270" y="50" width="100" height="50" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="2"/><text class="mark-t" x="320" y="72" text-anchor="middle">認知・判断</text><text class="tick" x="320" y="90" text-anchor="middle">記憶と照合</text>
-  <rect x="400" y="50" width="100" height="50" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-accent)" stroke-width="2"/><text class="mark-t" x="450" y="72" text-anchor="middle">運動</text><text class="tick" x="450" y="90" text-anchor="middle">手足で操作</text>
-  <path d="M110,75 L138,75 M240,75 L268,75 M370,75 L398,75" stroke="var(--tb-accent)" stroke-width="2" marker-end="url(#hs-ar)"/>
-  <path d="M450,100 L450,140 L65,140 L65,102" stroke="var(--tb-text-3)" fill="none" stroke-dasharray="4 3" marker-end="url(#hs-ar)"/>
-  <text class="tick" x="260" y="158" text-anchor="middle">操作の結果が次の刺激になる (フィードバック)</text>
-  <rect x="140" y="12" width="230" height="22" rx="4" fill="none" stroke="var(--tb-warn)"/><text class="tick" x="255" y="28" text-anchor="middle">注意 (限られた資源を配分)</text>
-  <circle r="5" fill="var(--tb-accent)"><animateMotion path="M65,75 L450,75 L450,140 L65,140 z" dur="6s" repeatCount="indefinite"/></circle>
+<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="人の情報処理モデル">
+
+<rect x="140" y="10" width="230" height="24" rx="12" style="fill:var(--tb-warn);stroke:var(--tb-warn)" fill-opacity="0.15"/><text class="mark-t" x="255" y="27" text-anchor="middle">注意 (限られた資源を配分)</text>
+<path d="M190,34 L190,48 M320,34 L320,48 M450,34 L370,22" class="guide" fill="none"/>
+<g class="k-shadow"><rect class="k-panel" x="20" y="50" width="90" height="52"/><rect class="k-panel" x="140" y="50" width="100" height="52" style="stroke:var(--tb-accent)" stroke-width="1.6"/><rect class="k-panel" x="270" y="50" width="100" height="52" style="stroke:var(--tb-accent)" stroke-width="1.6"/><rect class="k-panel" x="400" y="50" width="100" height="52" style="stroke:var(--tb-accent)" stroke-width="1.6"/></g>
+<text class="mark-t" x="65" y="81" text-anchor="middle">刺激</text>
+<text class="mark-t" x="190" y="72" text-anchor="middle">知覚</text><text class="tick" x="190" y="90" text-anchor="middle">視・聴・触</text>
+<text class="mark-t" x="320" y="72" text-anchor="middle">認知・判断</text><text class="tick" x="320" y="90" text-anchor="middle">記憶と照合</text>
+<text class="mark-t" x="450" y="72" text-anchor="middle">運動</text><text class="tick" x="450" y="90" text-anchor="middle">手足で操作</text>
+<path d="M112,76 L138,76 M242,76 L268,76 M372,76 L398,76" class="k-move"/>
+<path d="M450,102 L450,136 L65,136 L65,104" class="k-hidden" style="marker-end:url(#k-arrow)"/>
+<text class="tick" x="260" y="156" text-anchor="middle">操作の結果が次の刺激になる (フィードバック)</text>
+<circle r="5" style="fill:var(--tb-accent)" class="k-glow"><animateMotion path="M65,76 L450,76 L450,136 L65,136 z" dur="6s" repeatCount="indefinite"/></circle>
 </svg>
 <p class="tb-caption">図: 知覚 → 認知 → 運動 の流れとフィードバックのループ。</p>
 <h2>視覚・聴覚・触覚の特性</h2>
@@ -32,14 +34,19 @@ export const UX2: TextChapter[] = [
   <tr><td>触覚</td><td>見ずに位置や状態が分かる、手元で即時</td><td>情報量は少ない。手袋で弱まる</td><td>クリック感、凸点、形の違い、振動</td></tr>
 </table>
 <p>視野の中心 (中心視) でははっきり見えますが、数度離れると細部は急に見えにくくなります。そのため<b>重要な表示は視線の中心近く</b>に置き、周辺に置くなら点滅など動きで気づかせます。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="視野の中心と周辺">
-  <path d="M260,180 L80,40 A230,230 0 0 1 440,40 z" fill="color-mix(in srgb, var(--tb-accent) 10%, transparent)" stroke="var(--tb-text-3)"/>
-  <path d="M260,180 L225,40 A145,145 0 0 1 295,40 z" fill="color-mix(in srgb, var(--tb-accent) 35%, transparent)" stroke="var(--tb-accent)"/>
-  <circle cx="260" cy="185" r="6" fill="var(--tb-text-2)"/>
-  <text class="mark-t" x="260" y="80" text-anchor="middle">中心視</text><text class="tick" x="260" y="96" text-anchor="middle">細部・文字</text>
-  <text class="mark-t" x="140" y="90" text-anchor="middle">周辺視</text><text class="tick" x="140" y="106" text-anchor="middle">動き・明滅に敏感</text>
-  <circle cx="400" cy="90" r="8" fill="var(--tb-warn)"><animate attributeName="opacity" values="1;0.15;1" dur="1s" repeatCount="indefinite"/></circle>
-  <text class="tick" x="415" y="94">点滅で気づかせる</text>
+<svg class="tb-chart" viewBox="0 0 520 230" role="img" aria-label="視野の中心と周辺">
+
+<path d="M260,180 L80,40 A230,230 0 0 1 440,40 z" style="fill:var(--tb-accent);stroke:var(--tb-text-3)" fill-opacity="0.08"/>
+<path d="M260,180 L225,40 A145,145 0 0 1 295,40 z" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.3"/>
+<text class="mark-t" x="260" y="80" text-anchor="middle">中心視</text><text class="tick" x="260" y="96" text-anchor="middle">細部・文字</text>
+<text class="mark-t" x="140" y="90" text-anchor="middle">周辺視</text><text class="tick" x="140" y="106" text-anchor="middle">動き・明滅に敏感</text>
+<circle cx="400" cy="90" r="8" style="fill:var(--tb-warn)" class="k-glow"><animate attributeName="opacity" values="1;0.15;1" dur="1s" repeatCount="indefinite"/></circle>
+<text class="tick" x="415" y="94">点滅で気づかせる</text>
+<g class="k-shadow"><rect x="212" y="200" width="96" height="26" rx="13" style="fill:var(--k-accent-1);stroke:var(--k-line)" stroke-width="1.4"/>
+<ellipse class="k-skin" cx="243" cy="198" rx="4" ry="6"/><ellipse class="k-skin" cx="277" cy="198" rx="4" ry="6"/>
+<circle class="k-skin" cx="260" cy="198" r="17"/><path d="M243,201 A17,17 0 0 0 277,201 Q260,188 243,201 Z" fill="#4a3728"/>
+<path d="M256,182 L260,176 L264,182" class="k-skin" stroke-width="1"/></g>
+<circle cx="254" cy="186" r="1.6" style="fill:var(--k-line)"/><circle cx="266" cy="186" r="1.6" style="fill:var(--k-line)"/>
 </svg>
 <p class="tb-caption">図: 視野の中心と周辺 (角度は概念的)。周辺に置く表示は点滅や動きで注意を引く。</p>
 <h2>反応時間とヒックの法則</h2>
@@ -94,22 +101,27 @@ export const UX2: TextChapter[] = [
 <h2>フィッツの法則</h2>
 <p>ポール・フィッツ (1954) は、目標へ手を素早く正確に動かす時間 MT が、距離 D と目標の幅 W で決まることを示しました。広く使われる形 (シャノン形) は次のとおりです。</p>
 <div class="tb-formula">MT = a + b × log₂(D/W + 1)　　ID = log₂(D/W + 1) [bit] を難易度指数と呼ぶ</div>
-<svg class="tb-chart" viewBox="0 0 520 150" aria-label="フィッツの法則の距離と幅">
-  <circle cx="60" cy="75" r="8" fill="var(--tb-text-3)"/><text class="tick" x="60" y="105" text-anchor="middle">開始点</text>
-  <rect x="380" y="45" width="40" height="60" rx="4" fill="color-mix(in srgb, var(--tb-accent) 30%, transparent)" stroke="var(--tb-accent)" stroke-width="2"/>
-  <line class="guide" x1="60" y1="125" x2="400" y2="125"/><text class="mark-t" x="230" y="140" text-anchor="middle">距離 D (中心まで)</text>
-  <line x1="380" y1="30" x2="420" y2="30" stroke="var(--tb-text-2)"/><text class="mark-t" x="400" y="24" text-anchor="middle">幅 W</text>
-  <circle r="6" fill="var(--tb-bad)"><animateMotion path="M60,75 C200,40 330,70 400,75" dur="2.5s" repeatCount="indefinite"/></circle>
-  <text class="tick" x="440" y="80">D が大きく W が小さいほど遅い</text>
+<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="フィッツの法則の距離と幅">
+
+<circle cx="60" cy="75" r="5" style="fill:var(--tb-text-3)"/><text class="tick" x="60" y="100" text-anchor="middle">開始点</text>
+<g class="k-shadow"><rect class="k-accent" x="380" y="45" width="40" height="60" rx="5"/></g>
+<line class="k-center" x1="400" y1="40" x2="400" y2="132"/>
+<path d="M60,75 C200,40 330,70 400,75" class="guide" fill="none"/>
+<line class="k-ext" x1="380" y1="42" x2="380" y2="24"/><line class="k-ext" x1="420" y1="42" x2="420" y2="24"/><line class="k-dimline" x1="380" y1="28" x2="420" y2="28"/>
+<text class="k-dimtext" x="430" y="32">幅 W</text>
+<line class="k-ext" x1="60" y1="84" x2="60" y2="128"/><line class="k-dimline" x1="60" y1="124" x2="400" y2="124"/>
+<text class="k-dimtext" x="230" y="140" text-anchor="middle">距離 D (中心まで)</text>
+<g><path d="M0,0 L0,17 L4.5,13 L8,20 L11,18.5 L7.5,12 L13,12 Z" fill="#fff" stroke="#111" stroke-width="1.2" stroke-linejoin="round"/><animateMotion path="M60,75 C200,40 330,70 400,75" dur="2.5s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.7;1" calcMode="spline" keySplines="0.3 0 0.2 1;0 0 1 1"/></g>
+<text class="k-note" x="260" y="160" text-anchor="middle">D が大きく W が小さいほど遅い</text>
 </svg>
 <p class="tb-caption">図: 距離 D と幅 W。動きは「大きく速い移動 → 目標近くでの細かい修正」の 2 段階になる。</p>
 <p>実際に試してみましょう。大きさと距離の違うターゲットを順にクリック (タップ) すると、所要時間が ID に対してほぼ直線に並ぶはずです。</p>
 <div data-widget="anim-fitts"></div>
 <p>計算例 (a = 0.1 s、b = 0.15 s/bit と仮定): D = 200 mm、W = 20 mm → ID = log₂(11) ≈ 3.46 bit、MT ≈ 0.62 s。W を 40 mm にすると ID = log₂(6) ≈ 2.58、MT ≈ 0.49 s。<b>幅を 2 倍にしても時間は半分にはならない</b>点に注意しましょう。</p>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="MT と ID の関係">
+<svg class="tb-chart" role="img" viewBox="0 0 520 220" aria-label="MT と ID の関係">
   <line class="axis" x1="50" y1="180" x2="480" y2="180"/><line class="axis" x1="50" y1="180" x2="50" y2="20"/>
   <line class="grid" x1="50" y1="140" x2="480" y2="140"/><line class="grid" x1="50" y1="100" x2="480" y2="100"/><line class="grid" x1="50" y1="60" x2="480" y2="60"/>
-  <line x1="50" y1="153" x2="470" y2="41" stroke="var(--tb-accent)" stroke-width="2.5"/>
+  <line style="stroke:var(--tb-accent)" x1="50" y1="153" x2="470" y2="41" stroke-width="2.5"/>
   <circle class="mark" cx="153" cy="128" r="4"/><circle class="mark" cx="230" cy="102" r="4"/><circle class="mark" cx="270" cy="96" r="4"/><circle class="mark" cx="330" cy="76" r="4"/><circle class="mark" cx="410" cy="60" r="4"/>
   <text class="tick" x="50" y="196" text-anchor="middle">0</text><text class="tick" x="155" y="196" text-anchor="middle">1</text><text class="tick" x="260" y="196" text-anchor="middle">2</text><text class="tick" x="365" y="196" text-anchor="middle">3</text><text class="tick" x="470" y="196" text-anchor="middle">4</text>
   <text class="lbl" x="480" y="214" text-anchor="end">ID [bit]</text><text class="lbl" x="56" y="16">MT</text>
@@ -127,16 +139,21 @@ export const UX2: TextChapter[] = [
 <div class="tb-note">各社ガイドラインの数値は改訂されることがあり、単位 (pt・dp・px) も物理寸法と一致しません。ここでは<b>概略の目安</b>です。組込み機器では画面の画素ピッチから<b>物理寸法 (mm)</b> に換算して確認し、手袋使用・振動・高齢者を想定する場合は 15〜20 mm 程度以上と大きめにします。ボタン間のすき間も誤タッチ防止に重要です。</div>
 <h2>端と角の効用、配置の工夫</h2>
 <p>マウス操作では、カーソルは画面の端で止まるため、<b>端や角にあるターゲットは実質的に無限の幅</b>を持ち、勢いよく動かしても外しません。メニューバーを画面上端に置く設計はこの効用を使っています。</p>
-<svg class="tb-chart" viewBox="0 0 520 180" aria-label="画面の端と角のターゲット">
-  <rect x="30" y="20" width="220" height="140" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <rect x="30" y="20" width="40" height="22" fill="var(--tb-good)"/><text class="tick" x="80" y="35">角: 2 方向で止まる</text>
-  <rect x="100" y="138" width="80" height="22" fill="var(--tb-good)" opacity="0.7"/><text class="tick" x="140" y="132" text-anchor="middle">端: 1 方向で止まる</text>
-  <rect x="120" y="80" width="30" height="16" fill="var(--tb-bad)" opacity="0.7"/><text class="tick" x="135" y="112" text-anchor="middle">中央の小ボタン</text>
-  <circle r="5" fill="var(--tb-accent)"><animateMotion path="M200,110 L40,25" dur="2s" repeatCount="indefinite"/></circle>
-  <rect x="300" y="20" width="190" height="140" rx="10" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <rect x="315" y="110" width="75" height="36" rx="6" fill="var(--tb-accent)"/><rect x="400" y="110" width="75" height="36" rx="6" fill="none" stroke="var(--tb-text-2)"/>
-  <text x="352" y="133" text-anchor="middle" fill="#fff" font-size="12">決定</text><text class="tick" x="437" y="133" text-anchor="middle">取消</text>
-  <text class="tick" x="395" y="50" text-anchor="middle">タッチ画面では端は「止まらない」</text><text class="tick" x="395" y="68" text-anchor="middle">→ 大きさとすき間で確保</text>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="画面の端と角のターゲット">
+
+<g class="k-shadow"><rect class="k-part" x="132" y="166" width="16" height="16"/><rect class="k-part" x="100" y="180" width="80" height="8" rx="3"/>
+<rect class="k-part" x="20" y="10" width="240" height="158" rx="6"/></g>
+<rect x="30" y="20" width="220" height="140" style="fill:var(--tb-surface-2);stroke:var(--k-line)"/>
+<rect x="30" y="20" width="40" height="22" style="fill:var(--tb-good)"/><text class="tick" x="78" y="35">角: 2 方向で止まる</text>
+<rect x="100" y="138" width="80" height="22" style="fill:var(--tb-good)" opacity="0.75"/><text class="tick" x="140" y="132" text-anchor="middle">端: 1 方向で止まる</text>
+<rect x="120" y="78" width="30" height="16" rx="2" style="fill:var(--tb-bad)" opacity="0.75"/><text class="tick" x="135" y="110" text-anchor="middle">中央の小ボタン</text>
+<g><path d="M0,0 L0,17 L4.5,13 L8,20 L11,18.5 L7.5,12 L13,12 Z" fill="#fff" stroke="#111" stroke-width="1.2" stroke-linejoin="round"/><animateMotion path="M200,110 L40,25" dur="2s" repeatCount="indefinite"/></g>
+<g class="k-shadow"><rect class="k-part" x="292" y="12" width="206" height="170" rx="14"/></g>
+<rect x="302" y="22" width="186" height="150" rx="4" style="fill:var(--tb-surface-2);stroke:var(--k-line)"/>
+<rect x="312" y="118" width="78" height="40" rx="6" style="fill:var(--tb-accent)"/><rect x="400" y="118" width="78" height="40" rx="6" style="fill:var(--tb-surface);stroke:var(--tb-text-2)" stroke-width="1.5"/>
+<text x="351" y="143" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">決定</text><text class="mark-t" x="439" y="143" text-anchor="middle">取消</text>
+<text class="tick" x="395" y="46" text-anchor="middle">タッチ画面では端は「止まらない」</text><text class="tick" x="395" y="64" text-anchor="middle">→ 大きさとすき間で確保</text>
+<g transform="translate(360,140)"><g><animateTransform attributeName="transform" type="translate" values="0,-14;0,0;0,-14" dur="2.4s" repeatCount="indefinite"/><g transform="scale(0.6)"><rect x="-8" y="-86" width="30" height="24" rx="4" style="fill:var(--k-accent-1);stroke:var(--k-line)" stroke-width="1.2"/><rect class="k-skin" x="-8" y="-64" width="30" height="30" rx="10"/><path d="M14,-52 q7,0 7,5 M14,-44 q7,0 7,5" class="k-thin"/><rect class="k-skin" x="-11" y="-50" width="9" height="18" rx="4.5" transform="rotate(-12 -6 -41)"/><rect class="k-skin" x="-5" y="-40" width="10" height="40" rx="5"/><path d="M-3,-3 q3,-5 6,0" class="k-thin"/></g></g></g>
 </svg>
 <p class="tb-caption">図: マウスでは角と端が狙いやすい (左)。タッチ画面には端で止まる効果がないため、大きさと間隔で確保する (右)。</p>
 <ul>
@@ -195,16 +212,16 @@ export const UX2: TextChapter[] = [
   <tr><td>ミステイク</td><td>意図 (計画・判断) そのものが誤り</td><td>表示を誤解して逆の操作を選ぶ</td><td>分かりやすい表示と概念モデル、教育、確認</td></tr>
   <tr><td>違反</td><td>ルールを意図的に破る</td><td>安全カバーを外して作業</td><td>ルールに従うほうが楽な設計 (面倒な安全装置は無効化される)</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 190" aria-label="エラーの分類の木">
-  <rect x="190" y="10" width="140" height="28" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="mark-t" x="260" y="29" text-anchor="middle">不安全行為</text>
-  <path d="M260,38 L260,52 M110,52 L410,52 M110,52 L110,66 M410,52 L410,66" stroke="var(--tb-text-3)" fill="none"/>
-  <rect x="40" y="66" width="140" height="28" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="mark-t" x="110" y="85" text-anchor="middle">意図しない行為</text>
-  <rect x="340" y="66" width="140" height="28" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="mark-t" x="410" y="85" text-anchor="middle">意図した行為</text>
-  <path d="M110,94 L110,108 M60,108 L160,108 M60,108 L60,122 M160,108 L160,122 M410,94 L410,108 M360,108 L460,108 M360,108 L360,122 M460,108 L460,122" stroke="var(--tb-text-3)" fill="none"/>
-  <rect x="20" y="122" width="80" height="28" rx="6" fill="color-mix(in srgb, var(--tb-accent) 25%, transparent)" stroke="var(--tb-accent)"/><text class="mark-t" x="60" y="141" text-anchor="middle">スリップ</text>
-  <rect x="120" y="122" width="80" height="28" rx="6" fill="color-mix(in srgb, var(--tb-accent) 25%, transparent)" stroke="var(--tb-accent)"/><text class="mark-t" x="160" y="141" text-anchor="middle">ラプス</text>
-  <rect x="315" y="122" width="90" height="28" rx="6" fill="color-mix(in srgb, var(--tb-warn) 30%, transparent)" stroke="var(--tb-warn)"/><text class="mark-t" x="360" y="141" text-anchor="middle">ミステイク</text>
-  <rect x="420" y="122" width="80" height="28" rx="6" fill="color-mix(in srgb, var(--tb-bad) 25%, transparent)" stroke="var(--tb-bad)"/><text class="mark-t" x="460" y="141" text-anchor="middle">違反</text>
+<svg class="tb-chart" role="img" viewBox="0 0 520 190" aria-label="エラーの分類の木">
+  <rect style="fill:var(--tb-surface-2);stroke:var(--tb-text-2)" x="190" y="10" width="140" height="28" rx="6"/><text class="mark-t" x="260" y="29" text-anchor="middle">不安全行為</text>
+  <path style="stroke:var(--tb-text-3)" d="M260,38 L260,52 M110,52 L410,52 M110,52 L110,66 M410,52 L410,66" fill="none"/>
+  <rect style="fill:var(--tb-surface-2);stroke:var(--tb-text-2)" x="40" y="66" width="140" height="28" rx="6"/><text class="mark-t" x="110" y="85" text-anchor="middle">意図しない行為</text>
+  <rect style="fill:var(--tb-surface-2);stroke:var(--tb-text-2)" x="340" y="66" width="140" height="28" rx="6"/><text class="mark-t" x="410" y="85" text-anchor="middle">意図した行為</text>
+  <path style="stroke:var(--tb-text-3)" d="M110,94 L110,108 M60,108 L160,108 M60,108 L60,122 M160,108 L160,122 M410,94 L410,108 M360,108 L460,108 M360,108 L360,122 M460,108 L460,122" fill="none"/>
+  <rect style="fill:color-mix(in srgb, var(--tb-accent) 25%, transparent);stroke:var(--tb-accent)" x="20" y="122" width="80" height="28" rx="6"/><text class="mark-t" x="60" y="141" text-anchor="middle">スリップ</text>
+  <rect style="fill:color-mix(in srgb, var(--tb-accent) 25%, transparent);stroke:var(--tb-accent)" x="120" y="122" width="80" height="28" rx="6"/><text class="mark-t" x="160" y="141" text-anchor="middle">ラプス</text>
+  <rect style="fill:color-mix(in srgb, var(--tb-warn) 30%, transparent);stroke:var(--tb-warn)" x="315" y="122" width="90" height="28" rx="6"/><text class="mark-t" x="360" y="141" text-anchor="middle">ミステイク</text>
+  <rect style="fill:color-mix(in srgb, var(--tb-bad) 25%, transparent);stroke:var(--tb-bad)" x="420" y="122" width="80" height="28" rx="6"/><text class="mark-t" x="460" y="141" text-anchor="middle">違反</text>
   <text class="tick" x="110" y="172" text-anchor="middle">実行・記憶の失敗</text><text class="tick" x="360" y="172" text-anchor="middle">計画の誤り</text><text class="tick" x="460" y="172" text-anchor="middle">意図的</text>
 </svg>
 <p class="tb-caption">図: リーズンによる不安全行為の分類 (簡略化)。</p>
@@ -216,14 +233,21 @@ export const UX2: TextChapter[] = [
   <li><b>モードを減らす</b>: 同じ操作の意味が状態で変わる (モード) と、モードの取り違えが起きる。モードを使うなら現在のモードを常に大きく表示する</li>
   <li><b>デフォルトを安全側に</b>: 初期値は安全な設定、電源投入時は停止状態から</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="フールプルーフのコネクタ">
-  <rect x="40" y="40" width="80" height="50" rx="4" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <rect x="150" y="45" width="70" height="40" rx="4" fill="none" stroke="var(--tb-bad)" stroke-width="2"><animateTransform attributeName="transform" type="rotate" values="0 185 65;180 185 65;180 185 65;0 185 65" dur="5s" repeatCount="indefinite"/></rect>
-  <text class="tick" x="130" y="120" text-anchor="middle">× 長方形: 逆向きでも入る</text>
-  <path d="M300,40 L380,40 L380,90 L315,90 L300,75 z" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <path d="M405,45 L470,45 L470,85 L418,85 L405,72 z" fill="none" stroke="var(--tb-good)" stroke-width="2"/>
-  <text class="tick" x="390" y="120" text-anchor="middle">○ 角を落とす: 正しい向きにしか入らない</text>
-  <text class="tick" x="260" y="155" text-anchor="middle">物理的な制約はエラーを「起こせなく」する最も強い対策</text>
+<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="フールプルーフのコネクタ">
+
+<g class="k-shadow"><rect class="k-part" x="40" y="38" width="80" height="54" rx="4"/></g>
+<rect x="47" y="45" width="66" height="40" rx="2" style="fill:var(--k-steel-3);stroke:var(--k-line)"/>
+<rect x="58" y="58" width="5" height="14" rx="1" fill="#d4a017" stroke="#7a5c00" stroke-width="0.8"/><rect x="74" y="58" width="5" height="14" rx="1" fill="#d4a017" stroke="#7a5c00" stroke-width="0.8"/><rect x="90" y="58" width="5" height="14" rx="1" fill="#d4a017" stroke="#7a5c00" stroke-width="0.8"/>
+<g><animateTransform attributeName="transform" type="rotate" values="0 185 65;180 185 65;180 185 65;0 185 65" dur="5s" repeatCount="indefinite"/>
+<g class="k-shadow"><rect class="k-plastic" x="152" y="47" width="66" height="36" rx="3"/></g><circle cx="168" cy="65" r="3.2" style="fill:var(--k-line)"/><circle cx="185" cy="65" r="3.2" style="fill:var(--k-line)"/><circle cx="202" cy="65" r="3.2" style="fill:var(--k-line)"/><path d="M156,51 L164,51 L156,59 Z" style="fill:var(--tb-bad)"/></g>
+<text class="k-bad-t" x="130" y="120" text-anchor="middle">× 長方形: 逆向きでも入る</text>
+<g class="k-shadow"><path class="k-part" d="M300,38 L382,38 L382,92 L316,92 L300,76 Z"/></g>
+<path d="M307,45 L375,45 L375,85 L319,85 L307,73 Z" style="fill:var(--k-steel-3);stroke:var(--k-line)"/>
+<rect x="322" y="58" width="5" height="14" rx="1" fill="#d4a017" stroke="#7a5c00" stroke-width="0.8"/><rect x="338" y="58" width="5" height="14" rx="1" fill="#d4a017" stroke="#7a5c00" stroke-width="0.8"/><rect x="354" y="58" width="5" height="14" rx="1" fill="#d4a017" stroke="#7a5c00" stroke-width="0.8"/>
+<g class="k-shadow"><path class="k-plastic" d="M410,47 L476,47 L476,83 L422,83 L410,71 Z"/></g><circle cx="432" cy="65" r="3.2" style="fill:var(--k-line)"/><circle cx="449" cy="65" r="3.2" style="fill:var(--k-line)"/><circle cx="466" cy="65" r="3.2" style="fill:var(--k-line)"/>
+<path d="M392,65 L404,65" class="k-move" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green)"/>
+<text class="k-good-t" x="390" y="120" text-anchor="middle">○ 角を落とす: 正しい向きにしか入らない</text>
+<text class="mark-t" x="260" y="155" text-anchor="middle">物理的な制約はエラーを「起こせなく」する最も強い対策</text>
 </svg>
 <p class="tb-caption">図: 形状によるフールプルーフ。左は回転しても入ってしまう、右は向きが一意に決まる。</p>
 <h2>確認と取消し</h2>
@@ -234,16 +258,18 @@ export const UX2: TextChapter[] = [
   <li><b>具体的な確認文</b> — 「よろしいですか?」ではなく「プログラム P12 (3 件) を削除します」と対象と結果を示し、ボタンも「削除」「やめる」と動詞にする</li>
   <li><b>猶予</b> — 実行前の数秒の取消し、ゴミ箱、一時停止で止められる</li>
 </ol>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="確認ダイアログの悪い例と良い例">
-  <rect x="20" y="15" width="220" height="120" rx="8" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <text class="mark-t" x="130" y="60" text-anchor="middle">よろしいですか?</text>
-  <rect x="45" y="90" width="70" height="28" rx="4" fill="var(--tb-accent)"/><text x="80" y="108" text-anchor="middle" fill="#fff" font-size="12">はい</text>
-  <rect x="145" y="90" width="70" height="28" rx="4" fill="none" stroke="var(--tb-text-2)"/><text class="tick" x="180" y="108" text-anchor="middle">いいえ</text>
-  <rect x="280" y="15" width="220" height="120" rx="8" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <text class="mark-t" x="390" y="48" text-anchor="middle">P12 を削除します</text><text class="tick" x="390" y="66" text-anchor="middle">工具データ 3 件も消えます</text>
-  <rect x="300" y="90" width="80" height="28" rx="4" fill="none" stroke="var(--tb-text-2)"/><text class="tick" x="340" y="108" text-anchor="middle">やめる</text>
-  <rect x="400" y="90" width="80" height="28" rx="4" fill="var(--tb-bad)"/><text x="440" y="108" text-anchor="middle" fill="#fff" font-size="12">削除</text>
-  <text class="tick" x="130" y="155" text-anchor="middle">× 対象も結果も分からない</text><text class="tick" x="390" y="155" text-anchor="middle">○ 対象・結果・動詞のボタン</text>
+<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="確認ダイアログの悪い例と良い例">
+
+<g class="k-shadow"><rect x="20" y="12" width="220" height="124" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-border)"/></g><path d="M20,30 L20,20 Q20,12 28,12 L232,12 Q240,12 240,20 L240,30 Z" style="fill:var(--tb-surface-2)"/><line x1="20" y1="30" x2="240" y2="30" style="stroke:var(--tb-border)"/><circle cx="224" cy="21" r="4" style="fill:var(--tb-text-3)"/><g class="k-shadow"><rect x="280" y="12" width="220" height="124" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-border)"/></g><path d="M280,30 L280,20 Q280,12 288,12 L492,12 Q500,12 500,20 L500,30 Z" style="fill:var(--tb-surface-2)"/><line x1="280" y1="30" x2="500" y2="30" style="stroke:var(--tb-border)"/><circle cx="484" cy="21" r="4" style="fill:var(--tb-text-3)"/>
+<text class="mark-t" x="130" y="66" text-anchor="middle">よろしいですか?</text>
+<rect x="45" y="94" width="70" height="28" rx="5" style="fill:var(--tb-accent)"/><text x="80" y="112" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">はい</text>
+<rect x="145" y="94" width="70" height="28" rx="5" style="fill:var(--tb-surface-2);stroke:var(--tb-text-2)" stroke-width="1.5"/><text class="mark-t" x="180" y="112" text-anchor="middle">いいえ</text>
+<path d="M302,74 L314,52 L326,74 Z" style="fill:var(--tb-warn);stroke:var(--k-line)" stroke-width="1"/><text x="314" y="71" text-anchor="middle" fill="#222" font-size="12" font-weight="700">!</text>
+<text class="mark-t" x="336" y="58">P12 を削除します</text><text class="tick" x="336" y="76">工具データ 3 件も消えます</text>
+<rect x="300" y="94" width="80" height="28" rx="5" style="fill:var(--tb-surface-2);stroke:var(--tb-text-2)" stroke-width="1.5"/><text class="mark-t" x="340" y="112" text-anchor="middle">やめる</text>
+<rect x="400" y="94" width="80" height="28" rx="5" style="fill:var(--tb-bad)"/><text x="440" y="112" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">削除</text>
+<circle class="k-badge" cx="30" cy="156" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="30" y="160" text-anchor="middle">✕</text><text class="k-bad-t" x="44" y="161">対象も結果も分からない</text>
+<circle class="k-badge" cx="290" cy="156" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="290" y="160" text-anchor="middle">✓</text><text class="k-good-t" x="304" y="161">対象・結果・動詞のボタン</text>
 </svg>
 <p class="tb-caption">図: 確認ダイアログ。何がどうなるかを書き、ボタンを動作の名前にする。</p>
 <h2>警告の出し方</h2>
@@ -283,17 +309,26 @@ export const UX2: TextChapter[] = [
     body: `
 <h2>フィードバックの役割</h2>
 <p>フィードバックは、<b>①操作を受け付けたか ②処理が進んでいるか ③結果はどうなったか</b> を知らせます。どれかが欠けると、利用者は何度も押したり、待ちきれずに電源を切ったりします。</p>
-<svg class="tb-chart" viewBox="0 0 520 180" aria-label="フィードバックの種類">
-  <circle cx="70" cy="70" r="26" fill="var(--tb-good)"><animate attributeName="opacity" values="1;0.25;1" dur="1.5s" repeatCount="indefinite"/></circle>
-  <text class="mark-t" x="70" y="130" text-anchor="middle">光</text><text class="tick" x="70" y="148" text-anchor="middle">状態・持続</text>
-  <rect x="170" y="55" width="22" height="30" fill="var(--tb-text-2)"/><path d="M192,55 L215,38 L215,102 L192,85 z" fill="var(--tb-text-2)"/>
-  <path d="M225,58 q10,12 0,24 M235,50 q18,20 0,40" stroke="var(--tb-accent)" fill="none" stroke-width="2"><animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite"/></path>
-  <text class="mark-t" x="200" y="130" text-anchor="middle">音</text><text class="tick" x="200" y="148" text-anchor="middle">注意喚起・確認</text>
-  <rect x="310" y="40" width="40" height="66" rx="8" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"><animateTransform attributeName="transform" type="translate" values="0,0;-2,0;2,0;-2,0;0,0;0,0" dur="1s" repeatCount="indefinite"/></rect>
-  <path d="M300,60 l-6,6 l6,6 M360,60 l6,6 l-6,6" stroke="var(--tb-accent)" fill="none" stroke-width="2"/>
-  <text class="mark-t" x="330" y="130" text-anchor="middle">振動</text><text class="tick" x="330" y="148" text-anchor="middle">身に着けた機器</text>
-  <rect x="425" y="80" width="60" height="10" fill="var(--tb-text-3)"/><rect x="440" y="58" width="30" height="22" rx="3" fill="var(--tb-accent)"><animate attributeName="height" values="22;14;22;22" keyTimes="0;0.15;0.3;1" dur="2s" repeatCount="indefinite"/><animate attributeName="y" values="58;66;58;58" keyTimes="0;0.15;0.3;1" dur="2s" repeatCount="indefinite"/></rect>
-  <text class="mark-t" x="455" y="130" text-anchor="middle">クリック感</text><text class="tick" x="455" y="148" text-anchor="middle">操作の瞬間</text>
+<svg class="tb-chart" viewBox="0 0 520 180" role="img" aria-label="フィードバックの種類">
+
+<rect class="k-panel" x="8" y="8" width="118" height="160"/><rect class="k-panel" x="136" y="8" width="118" height="160"/><rect class="k-panel" x="264" y="8" width="118" height="160"/><rect class="k-panel" x="392" y="8" width="120" height="160"/>
+<g class="k-shadow"><circle class="k-part" cx="67" cy="66" r="30"/></g>
+<circle cx="67" cy="66" r="22" style="fill:var(--tb-good)" class="k-glow"><animate attributeName="opacity" values="1;0.25;1" dur="1.5s" repeatCount="indefinite"/></circle>
+<ellipse cx="60" cy="58" rx="7" ry="4" fill="#fff" opacity="0.4"/>
+<text class="mark-t" x="67" y="130" text-anchor="middle">光</text><text class="tick" x="67" y="148" text-anchor="middle">状態・持続</text>
+<g class="k-shadow"><path class="k-part" d="M164,54 L178,54 L198,36 L198,96 L178,78 L164,78 Z"/></g>
+<path d="M208,56 q9,10 0,20 M218,48 q17,18 0,36" style="stroke:var(--tb-accent)" fill="none" stroke-width="2.2"><animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite"/></path>
+<text class="mark-t" x="195" y="130" text-anchor="middle">音</text><text class="tick" x="195" y="148" text-anchor="middle">注意喚起・確認</text>
+<path d="M278.0,80.0 L370.0,72.0" fill="none" style="stroke:var(--k-line)" stroke-width="20.4"/><path d="M278.0,80.0 L370.0,72.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="18.0"/>
+<g><animateTransform attributeName="transform" type="translate" values="0,0;-2,0;2,0;-2,0;0,0;0,0" dur="1s" repeatCount="indefinite"/>
+<rect x="318" y="48" width="24" height="56" rx="6" style="fill:var(--k-line-2);stroke:var(--k-line)"/>
+<g class="k-shadow"><rect class="k-part" x="312" y="58" width="36" height="34" rx="8"/></g><rect x="317" y="63" width="26" height="24" rx="5" style="fill:var(--tb-accent)" opacity="0.8"/></g>
+<path d="M302,64 l-6,6 l6,6 M358,64 l6,6 l-6,6" style="stroke:var(--tb-accent)" fill="none" stroke-width="2"/>
+<text class="mark-t" x="323" y="130" text-anchor="middle">振動</text><text class="tick" x="323" y="148" text-anchor="middle">身に着けた機器</text>
+<g class="k-shadow"><rect class="k-part" x="422" y="90" width="64" height="12" rx="2"/><rect class="k-alu" x="444" y="78" width="20" height="12"/>
+<g><animateTransform attributeName="transform" type="translate" values="0,0;0,6;0,0;0,0" keyTimes="0;0.15;0.3;1" dur="2s" repeatCount="indefinite"/><rect class="k-accent" x="432" y="60" width="44" height="20" rx="4"/></g></g>
+<g transform="translate(462,60)"><g><animateTransform attributeName="transform" type="translate" values="0,0;0,6;0,0;0,0" keyTimes="0;0.15;0.3;1" dur="2s" repeatCount="indefinite"/><g transform="scale(0.55)"><rect x="-8" y="-86" width="30" height="24" rx="4" style="fill:var(--k-accent-1);stroke:var(--k-line)" stroke-width="1.2"/><rect class="k-skin" x="-8" y="-64" width="30" height="30" rx="10"/><path d="M14,-52 q7,0 7,5 M14,-44 q7,0 7,5" class="k-thin"/><rect class="k-skin" x="-11" y="-50" width="9" height="18" rx="4.5" transform="rotate(-12 -6 -41)"/><rect class="k-skin" x="-5" y="-40" width="10" height="40" rx="5"/><path d="M-3,-3 q3,-5 6,0" class="k-thin"/></g></g></g>
+<text class="mark-t" x="452" y="130" text-anchor="middle">クリック感</text><text class="tick" x="452" y="148" text-anchor="middle">操作の瞬間</text>
 </svg>
 <p class="tb-caption">図: 4 つのフィードバック手段。重要な情報は 2 つ以上の感覚で重ねて伝える。</p>
 <table class="tb-table">
@@ -311,26 +346,26 @@ export const UX2: TextChapter[] = [
   <tr><td>約 1 秒以内</td><td>待たされた感はあるが思考は途切れない</td><td>特別な表示は不要なことが多い</td></tr>
   <tr><td>約 10 秒</td><td>注意を保てる限界</td><td>1 秒を超えたら処理中表示、長いものは進捗バーと残り時間・中止ボタン</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 150" aria-label="応答時間の目安の対数軸">
+<svg class="tb-chart" role="img" viewBox="0 0 520 150" aria-label="応答時間の目安の対数軸">
   <line class="axis" x1="40" y1="80" x2="490" y2="80"/>
   <line class="guide" x1="120" y1="40" x2="120" y2="100"/><line class="guide" x1="265" y1="40" x2="265" y2="100"/><line class="guide" x1="410" y1="40" x2="410" y2="100"/>
   <text class="tick" x="120" y="116" text-anchor="middle">0.1 s</text><text class="tick" x="265" y="116" text-anchor="middle">1 s</text><text class="tick" x="410" y="116" text-anchor="middle">10 s</text>
-  <rect x="40" y="56" width="80" height="16" fill="var(--tb-good)" opacity="0.6"/><rect x="120" y="56" width="145" height="16" fill="var(--tb-warn)" opacity="0.45"/><rect x="265" y="56" width="145" height="16" fill="var(--tb-warn)" opacity="0.75"/><rect x="410" y="56" width="80" height="16" fill="var(--tb-bad)" opacity="0.6"/>
+  <rect style="fill:var(--tb-good)" x="40" y="56" width="80" height="16" opacity="0.6"/><rect style="fill:var(--tb-warn)" x="120" y="56" width="145" height="16" opacity="0.45"/><rect style="fill:var(--tb-warn)" x="265" y="56" width="145" height="16" opacity="0.75"/><rect style="fill:var(--tb-bad)" x="410" y="56" width="80" height="16" opacity="0.6"/>
   <text class="tick" x="80" y="48" text-anchor="middle">即座</text><text class="tick" x="192" y="48" text-anchor="middle">流れは保てる</text><text class="tick" x="337" y="48" text-anchor="middle">処理中表示</text><text class="tick" x="450" y="48" text-anchor="middle">進捗+中止</text>
-  <circle cx="40" cy="64" r="6" fill="var(--tb-accent)"><animate attributeName="cx" values="40;490" dur="6s" repeatCount="indefinite"/></circle>
+  <circle style="fill:var(--tb-accent)" cx="40" cy="64" r="6"><animate attributeName="cx" values="40;490" dur="6s" repeatCount="indefinite"/></circle>
   <text class="lbl" x="490" y="140" text-anchor="end">応答時間 (対数目盛)</text>
 </svg>
 <p class="tb-caption">図: 応答時間と必要なフィードバック (対数目盛)。境界は目安。</p>
 <p>処理が速くても、<b>押した瞬間の表示変化</b> (0.1 秒以内) は必要です。組込み機器でセンサ処理や通信に時間がかかる場合も、まずボタンの見た目と音で受付を知らせ、結果は後から示します。</p>
 <h2>ブザー音の使い分け</h2>
 <p>音は種類を増やしすぎると区別できません。<b>意味ごとにパターンを決め、製品群で統一</b>します。日本では JIS S 0013 (消費生活製品の報知音) に、受付・終了・注意などの報知音のパターン例が示されています (詳細は規格本文で確認)。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="報知音のパターン例">
-  <text class="mark-t" x="20" y="38">受付</text><rect x="110" y="25" width="16" height="18" fill="var(--tb-accent)"/>
-  <text class="mark-t" x="20" y="78">終了</text><rect x="110" y="65" width="60" height="18" fill="var(--tb-accent)"/><rect x="190" y="65" width="60" height="18" fill="var(--tb-accent)"/><rect x="270" y="65" width="60" height="18" fill="var(--tb-accent)"/>
-  <text class="mark-t" x="20" y="118">注意</text><rect x="110" y="105" width="22" height="18" fill="var(--tb-bad)"/><rect x="142" y="105" width="22" height="18" fill="var(--tb-bad)"/><rect x="174" y="105" width="22" height="18" fill="var(--tb-bad)"/><rect x="206" y="105" width="22" height="18" fill="var(--tb-bad)"/><rect x="238" y="105" width="22" height="18" fill="var(--tb-bad)"/><rect x="270" y="105" width="22" height="18" fill="var(--tb-bad)"/>
+<svg class="tb-chart" role="img" viewBox="0 0 520 170" aria-label="報知音のパターン例">
+  <text class="mark-t" x="20" y="38">受付</text><rect style="fill:var(--tb-accent)" x="110" y="25" width="16" height="18"/>
+  <text class="mark-t" x="20" y="78">終了</text><rect style="fill:var(--tb-accent)" x="110" y="65" width="60" height="18"/><rect style="fill:var(--tb-accent)" x="190" y="65" width="60" height="18"/><rect style="fill:var(--tb-accent)" x="270" y="65" width="60" height="18"/>
+  <text class="mark-t" x="20" y="118">注意</text><rect style="fill:var(--tb-bad)" x="110" y="105" width="22" height="18"/><rect style="fill:var(--tb-bad)" x="142" y="105" width="22" height="18"/><rect style="fill:var(--tb-bad)" x="174" y="105" width="22" height="18"/><rect style="fill:var(--tb-bad)" x="206" y="105" width="22" height="18"/><rect style="fill:var(--tb-bad)" x="238" y="105" width="22" height="18"/><rect style="fill:var(--tb-bad)" x="270" y="105" width="22" height="18"/>
   <text class="tick" x="350" y="38">短い単音「ピッ」</text><text class="tick" x="350" y="78">長めの音を数回</text><text class="tick" x="350" y="118">速い断続音を繰り返す</text>
   <line class="axis" x1="110" y1="145" x2="330" y2="145"/><text class="tick" x="330" y="162" text-anchor="end">時間 →</text>
-  <line x1="110" y1="20" x2="110" y2="128" stroke="var(--tb-text)" stroke-width="1.5"><animate attributeName="x1" values="110;330" dur="3s" repeatCount="indefinite"/><animate attributeName="x2" values="110;330" dur="3s" repeatCount="indefinite"/></line>
+  <line style="stroke:var(--tb-text)" x1="110" y1="20" x2="110" y2="128" stroke-width="1.5"><animate attributeName="x1" values="110;330" dur="3s" repeatCount="indefinite"/><animate attributeName="x2" values="110;330" dur="3s" repeatCount="indefinite"/></line>
 </svg>
 <p class="tb-caption">図: 報知音パターンの考え方 (概念図。実際の時間・周波数は規格や製品で定める)。緊急度が高いほど速く断続させる。</p>
 <ul>
@@ -382,18 +417,29 @@ export const UX2: TextChapter[] = [
   <tr><td>微調整 (ジョグダイヤル、オーバーライドつまみ)</td><td>状態の詳細、履歴、グラフ</td></tr>
   <tr><td>見ずに・手袋で行う操作</td><td>ヘルプ、手順の案内、アラームの原因と対処</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 230" aria-label="操作パネルのレイアウト例">
-  <rect x="20" y="15" width="480" height="200" rx="10" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <rect x="40" y="35" width="270" height="160" rx="4" fill="none" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <rect x="40" y="35" width="270" height="22" fill="var(--tb-good)" opacity="0.8"/><text x="50" y="51" fill="#fff" font-size="12" font-weight="700">● 自動運転中　P12</text>
-  <text class="tick" x="50" y="80">主軸 1 200 rpm　送り 100 %</text><text class="tick" x="50" y="100">加工数 37 / 50</text>
-  <rect x="50" y="110" width="250" height="8" rx="4" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/><rect x="50" y="110" width="185" height="8" rx="4" fill="var(--tb-accent)"/>
-  <rect x="40" y="165" width="62" height="30" fill="none" stroke="var(--tb-text-3)"/><rect x="108" y="165" width="62" height="30" fill="none" stroke="var(--tb-text-3)"/><rect x="176" y="165" width="62" height="30" fill="none" stroke="var(--tb-text-3)"/><rect x="244" y="165" width="66" height="30" fill="none" stroke="var(--tb-text-3)"/>
-  <text class="tick" x="71" y="184" text-anchor="middle">ホーム</text><text class="tick" x="139" y="184" text-anchor="middle">設定</text><text class="tick" x="207" y="184" text-anchor="middle">履歴</text><text class="tick" x="277" y="184" text-anchor="middle">アラーム</text>
-  <circle cx="420" cy="60" r="28" fill="#c62828" stroke="#fbc02d" stroke-width="8"/><text class="tick" x="420" y="105" text-anchor="middle">非常停止</text>
-  <rect x="340" y="130" width="44" height="30" rx="4" fill="var(--tb-good)"/><rect x="396" y="130" width="44" height="30" rx="4" fill="var(--tb-text-2)"/><circle cx="470" cy="145" r="16" fill="none" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <line x1="470" y1="145" x2="470" y2="132" stroke="var(--tb-accent)" stroke-width="3"><animateTransform attributeName="transform" type="rotate" values="-40 470 145;40 470 145;-40 470 145" dur="4s" repeatCount="indefinite"/></line>
-  <text class="tick" x="362" y="180" text-anchor="middle">起動</text><text class="tick" x="418" y="180" text-anchor="middle">停止</text><text class="tick" x="470" y="180" text-anchor="middle">送り</text>
+<svg class="tb-chart" viewBox="0 0 520 236" role="img" aria-label="操作パネルのレイアウト例">
+
+<defs><radialGradient id="ih-estop" cx="0.38" cy="0.32" r="0.75"><stop offset="0" stop-color="#ff6b5e"/><stop offset="0.6" stop-color="#c62828"/><stop offset="1" stop-color="#7f1414"/></radialGradient></defs>
+<g class="k-shadow"><rect class="k-alu" x="14" y="10" width="492" height="212" rx="10"/></g>
+<circle cx="26" cy="22" r="3" class="k-sphere"/><circle cx="26" cy="210" r="3" class="k-sphere"/><circle cx="494" cy="22" r="3" class="k-sphere"/><circle cx="494" cy="210" r="3" class="k-sphere"/>
+<rect x="34" y="28" width="282" height="176" rx="6" style="fill:var(--k-line-2);stroke:var(--k-line)" stroke-width="1.4"/>
+<rect x="40" y="34" width="270" height="164" style="fill:var(--tb-surface);stroke:var(--k-line)"/>
+<rect x="40" y="34" width="270" height="22" style="fill:var(--tb-good)"/><text x="50" y="50" fill="#fff" font-size="12" font-weight="700">● 自動運転中　P12</text>
+<text class="tick" x="50" y="78">主軸 1 200 rpm　送り 100 %</text><text class="tick" x="50" y="98">加工数 37 / 50</text>
+<rect x="50" y="108" width="250" height="8" rx="4" style="fill:var(--tb-surface-2);stroke:var(--tb-text-3)"/><rect x="50" y="108" width="185" height="8" rx="4" style="fill:var(--tb-accent)"/>
+<g style="fill:var(--tb-surface-2);stroke:var(--tb-text-3)"><rect x="42" y="164" width="62" height="32" rx="3"/><rect x="108" y="164" width="62" height="32" rx="3"/><rect x="174" y="164" width="62" height="32" rx="3"/><rect x="240" y="164" width="68" height="32" rx="3"/></g>
+<text class="tick" x="73" y="184" text-anchor="middle">ホーム</text><text class="tick" x="139" y="184" text-anchor="middle">設定</text><text class="tick" x="205" y="184" text-anchor="middle">履歴</text><text class="tick" x="274" y="184" text-anchor="middle">アラーム</text>
+<rect x="378" y="18" width="84" height="84" rx="6" fill="#fbc02d" stroke="#8a6d00" stroke-width="1.2"/>
+<circle class="k-part" cx="420" cy="60" r="27"/>
+<g class="k-shadow"><circle cx="420" cy="60" r="23" fill="url(#ih-estop)" stroke="#5c0f0f" stroke-width="1.2"/></g>
+<text x="420" y="64" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" opacity="0.85">STOP</text>
+<text class="mark-t" x="420" y="118" text-anchor="middle">非常停止</text>
+<circle class="k-part" cx="358" cy="146" r="19"/><circle cx="358" cy="146" r="14" style="fill:var(--tb-good)" stroke="#000" stroke-opacity="0.3"/><ellipse cx="353" cy="140" rx="5" ry="3" fill="#fff" opacity="0.4"/>
+<circle class="k-part" cx="410" cy="146" r="19"/><circle cx="410" cy="146" r="14" style="fill:var(--k-line-2)" stroke="#000" stroke-opacity="0.3"/><ellipse cx="405" cy="140" rx="5" ry="3" fill="#fff" opacity="0.4"/>
+<line class="k-thin" x1="456.5" y1="128.9" x2="453.9" y2="125.8" stroke-width="1.3"/><line class="k-thin" x1="462.8" y1="125.3" x2="461.4" y2="121.5" stroke-width="1.3"/><line class="k-thin" x1="470.0" y1="124.0" x2="470.0" y2="120.0" stroke-width="1.3"/><line class="k-thin" x1="477.2" y1="125.3" x2="478.6" y2="121.5" stroke-width="1.3"/><line class="k-thin" x1="483.5" y1="128.9" x2="486.1" y2="125.8" stroke-width="1.3"/>
+<g class="k-shadow"><circle cx="470" cy="145" r="17" style="fill:var(--k-steel-3);stroke:var(--k-line)"/><circle class="k-part" cx="470" cy="145" r="13"/></g>
+<line x1="470" y1="145" x2="470" y2="132" style="stroke:var(--tb-accent)" stroke-width="3.5"><animateTransform attributeName="transform" type="rotate" values="-40 470 145;40 470 145;-40 470 145" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="4s" repeatCount="indefinite"/></line>
+<text class="mark-t" x="358" y="186" text-anchor="middle">起動</text><text class="mark-t" x="410" y="186" text-anchor="middle">停止</text><text class="mark-t" x="470" y="186" text-anchor="middle">送り</text>
 </svg>
 <p class="tb-caption">図: 操作パネルの例。画面は状態と設定、物理操作具は非常停止・起動停止・オーバーライドを担当する。</p>
 <h2>画面遷移の設計</h2>
@@ -404,15 +450,15 @@ export const UX2: TextChapter[] = [
   <li>設定の変更は「入力 → 確認 → 反映」と段階を明確にし、反映前の値と後の値を並べて示す</li>
   <li>画面遷移図を作り、行き止まりや迷路になっている所がないかチェックする</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 190" aria-label="画面遷移図">
-  <defs><marker id="ih-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--tb-text-2)"/></marker></defs>
-  <rect x="210" y="15" width="100" height="32" rx="6" fill="color-mix(in srgb, var(--tb-accent) 25%, transparent)" stroke="var(--tb-accent)" stroke-width="2"/><text class="mark-t" x="260" y="36" text-anchor="middle">ホーム</text>
-  <rect x="30" y="90" width="100" height="32" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="mark-t" x="80" y="111" text-anchor="middle">運転</text>
-  <rect x="160" y="90" width="100" height="32" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="mark-t" x="210" y="111" text-anchor="middle">設定</text>
-  <rect x="290" y="90" width="100" height="32" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="mark-t" x="340" y="111" text-anchor="middle">履歴</text>
-  <rect x="410" y="90" width="90" height="32" rx="6" fill="color-mix(in srgb, var(--tb-bad) 20%, transparent)" stroke="var(--tb-bad)"/><text class="mark-t" x="455" y="111" text-anchor="middle">アラーム</text>
-  <rect x="160" y="150" width="100" height="32" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="mark-t" x="210" y="171" text-anchor="middle">設定の確認</text>
-  <path d="M240,47 L90,88 M255,47 L215,88 M265,47 L335,88 M280,47 L445,88 M210,122 L210,148" stroke="var(--tb-text-2)" fill="none" marker-end="url(#ih-ar)"/>
+<svg class="tb-chart" role="img" viewBox="0 0 520 190" aria-label="画面遷移図">
+  <defs><marker id="ih-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path style="fill:var(--tb-text-2)" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+  <rect style="fill:color-mix(in srgb, var(--tb-accent) 25%, transparent);stroke:var(--tb-accent)" x="210" y="15" width="100" height="32" rx="6" stroke-width="2"/><text class="mark-t" x="260" y="36" text-anchor="middle">ホーム</text>
+  <rect style="fill:var(--tb-surface-2);stroke:var(--tb-text-2)" x="30" y="90" width="100" height="32" rx="6"/><text class="mark-t" x="80" y="111" text-anchor="middle">運転</text>
+  <rect style="fill:var(--tb-surface-2);stroke:var(--tb-text-2)" x="160" y="90" width="100" height="32" rx="6"/><text class="mark-t" x="210" y="111" text-anchor="middle">設定</text>
+  <rect style="fill:var(--tb-surface-2);stroke:var(--tb-text-2)" x="290" y="90" width="100" height="32" rx="6"/><text class="mark-t" x="340" y="111" text-anchor="middle">履歴</text>
+  <rect style="fill:color-mix(in srgb, var(--tb-bad) 20%, transparent);stroke:var(--tb-bad)" x="410" y="90" width="90" height="32" rx="6"/><text class="mark-t" x="455" y="111" text-anchor="middle">アラーム</text>
+  <rect style="fill:var(--tb-surface-2);stroke:var(--tb-text-2)" x="160" y="150" width="100" height="32" rx="6"/><text class="mark-t" x="210" y="171" text-anchor="middle">設定の確認</text>
+  <path style="stroke:var(--tb-text-2)" d="M240,47 L90,88 M255,47 L215,88 M265,47 L335,88 M280,47 L445,88 M210,122 L210,148" fill="none" marker-end="url(#ih-ar)"/>
   <text class="tick" x="440" y="160" text-anchor="middle">どの画面からも</text><text class="tick" x="440" y="176" text-anchor="middle">アラームへ 1 タップ</text>
 </svg>
 <p class="tb-caption">図: 画面遷移図の例。階層は浅く、アラーム画面へはどこからでも直接行ける。</p>
@@ -482,14 +528,16 @@ export const UX2: TextChapter[] = [
 <h2>インクルーシブデザインとは</h2>
 <p>ユニバーサルデザインが「多くの人が使える結果」を目指すのに対し、インクルーシブデザインは<b>排除されがちな人 (極端な利用者) を設計の過程に巻き込む</b>ことを重視します。ある人のための工夫が、一時的・状況的な制約を持つ多くの人の役にも立つ (例: 片腕の人のための片手操作 → 赤ちゃんを抱いた人、ケガをした人にも便利) という考え方です。</p>
 <h2>高齢者と握力: つまみと持ち手</h2>
-<svg class="tb-chart" viewBox="0 0 520 180" aria-label="小さなつまみと大きな持ち手">
-  <circle cx="90" cy="80" r="14" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"/><text class="tick" x="90" y="84" text-anchor="middle" font-size="6">温度</text>
-  <text class="lbl" x="90" y="130" text-anchor="middle" fill="var(--tb-bad)">× 小さく滑らか</text><text class="tick" x="90" y="148" text-anchor="middle">小さい文字・低コントラスト</text>
-  <circle cx="300" cy="80" r="34" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <g><rect x="294" y="48" width="12" height="64" rx="5" fill="var(--tb-accent)"/><animateTransform attributeName="transform" type="rotate" values="0 300 80;60 300 80;0 300 80" dur="4s" repeatCount="indefinite"/></g>
-  <text class="mark-t" x="350" y="60">高</text><text class="mark-t" x="240" y="60">低</text>
-  <text class="lbl" x="300" y="138" text-anchor="middle" fill="var(--tb-good)">○ 大径 + つまみ板</text><text class="tick" x="300" y="156" text-anchor="middle">小さなトルクで回せ、向きで設定が分かる</text>
-  <text class="tick" x="440" y="84">文字は大きく</text><text class="tick" x="440" y="100">高コントラストで</text>
+<svg class="tb-chart" viewBox="0 0 520 180" role="img" aria-label="小さなつまみと大きな持ち手">
+
+<g class="k-shadow"><circle class="k-sphere" cx="90" cy="80" r="14"/></g><text class="tick" x="90" y="83" text-anchor="middle" font-size="6">温度</text>
+<circle class="k-badge" cx="30" cy="126" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="30" y="130" text-anchor="middle">✕</text><text class="k-bad-t" x="44" y="131">小さく滑らか</text><text class="tick" x="90" y="150" text-anchor="middle">小さい文字・低コントラスト</text>
+<line x1="265.4" y1="60.0" x2="260.2" y2="57.0" style="stroke:var(--tb-text)" stroke-width="2"/><line x1="280.0" y1="45.4" x2="277.0" y2="40.2" style="stroke:var(--tb-text)" stroke-width="2"/><line x1="300.0" y1="40.0" x2="300.0" y2="34.0" style="stroke:var(--tb-text)" stroke-width="2"/><line x1="320.0" y1="45.4" x2="323.0" y2="40.2" style="stroke:var(--tb-text)" stroke-width="2"/><line x1="334.6" y1="60.0" x2="339.8" y2="57.0" style="stroke:var(--tb-text)" stroke-width="2"/>
+<g class="k-shadow"><circle cx="300" cy="80" r="34" style="fill:var(--k-steel-3);stroke:var(--k-line)" stroke-width="1.4"/><circle class="k-part" cx="300" cy="80" r="30"/>
+<g><animateTransform attributeName="transform" type="rotate" values="-60 300 80;60 300 80;-60 300 80" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="4s" repeatCount="indefinite"/><rect class="k-accent" x="293" y="46" width="14" height="68" rx="6"/><path d="M300,50 L300,62" stroke="#fff" stroke-width="3"/></g></g>
+<text class="mark-t" x="354" y="46" font-size="14">高</text><text class="mark-t" x="232" y="46" font-size="14">低</text>
+<circle class="k-badge" cx="220" cy="134" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="220" y="138" text-anchor="middle">✓</text><text class="k-good-t" x="234" y="139">大径 + つまみ板</text><text class="tick" x="300" y="158" text-anchor="middle">小さなトルクで回せ、向きで設定が分かる</text>
+<text class="mark-t" x="420" y="84">文字は大きく</text><text class="mark-t" x="420" y="102">高コントラストで</text>
 </svg>
 <p class="tb-caption">図: 握力や指先の感覚が弱い人には、径が大きく指をかけられる形のつまみが回しやすい。板の向きが設定値の表示を兼ねる。</p>
 <h2>子ども: 安全と手の届く範囲</h2>
@@ -499,55 +547,73 @@ export const UX2: TextChapter[] = [
   <li>逆に、子どもが使うもの (手洗い台、案内表示) は背の低い人の視線とリーチで設計</li>
 </ul>
 <h2>左利き: 左右どちらでも</h2>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="右手専用と左右対称の設計">
-  <path d="M40,60 L150,60 L150,100 L60,100 Q40,100 40,80 z" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <path d="M60,100 q10,25 30,0 q10,25 30,0 q10,25 30,0" fill="none" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <text class="lbl" x="95" y="148" text-anchor="middle" fill="var(--tb-bad)">× 右手専用の指溝グリップ</text>
-  <rect x="200" y="50" width="120" height="60" rx="25" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <text class="lbl" x="260" y="148" text-anchor="middle" fill="var(--tb-good)">○ 左右対称の握り</text>
-  <rect x="370" y="40" width="120" height="80" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <rect x="378" y="70" width="16" height="22" rx="3" fill="var(--tb-accent)"/><rect x="466" y="70" width="16" height="22" rx="3" fill="var(--tb-accent)"/>
-  <text class="lbl" x="430" y="148" text-anchor="middle" fill="var(--tb-good)">○ 両側に操作ボタン</text>
+<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="右手専用と左右対称の設計">
+
+<rect class="k-panel" x="8" y="8" width="164" height="154"/><rect class="k-panel" x="178" y="8" width="164" height="154"/><rect class="k-panel" x="348" y="8" width="164" height="154"/>
+<g class="k-shadow"><rect class="k-part" x="148" y="66" width="20" height="28" rx="3"/><path class="k-plastic" d="M30,60 L150,60 L150,100 L130,100 q-10,22 -20,0 q-10,22 -20,0 q-10,22 -20,0 q-10,16 -20,4 Q30,104 30,84 Z"/></g>
+<path d="M40,64 Q36,80 42,96" class="k-thin"/>
+<text class="k-note" x="90" y="40" text-anchor="middle">指の溝が片側だけ</text>
+<circle class="k-badge" cx="22" cy="140" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="22" y="144" text-anchor="middle">✕</text><text class="k-bad-t" x="36" y="145">右手専用の指溝グリップ</text>
+<g class="k-shadow"><rect class="k-part" x="318" y="66" width="18" height="28" rx="3"/><rect class="k-plastic" x="196" y="52" width="124" height="56" rx="26"/></g>
+<line class="k-center" x1="190" y1="80" x2="326" y2="80"/>
+<circle class="k-badge" cx="192" cy="140" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="192" y="144" text-anchor="middle">✓</text><text class="k-good-t" x="206" y="145">左右対称の握り</text>
+<g class="k-shadow"><rect class="k-plastic" x="370" y="36" width="120" height="84" rx="10"/></g>
+<rect x="392" y="48" width="76" height="44" rx="3" style="fill:var(--tb-surface);stroke:var(--k-line)"/>
+<rect class="k-accent" x="376" y="94" width="18" height="20" rx="4"/><rect class="k-accent" x="466" y="94" width="18" height="20" rx="4"/>
+<line class="k-center" x1="430" y1="28" x2="430" y2="126"/>
+<circle class="k-badge" cx="362" cy="140" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="362" y="144" text-anchor="middle">✓</text><text class="k-good-t" x="376" y="145">両側に操作ボタン</text>
 </svg>
 <p class="tb-caption">図: 右手の指に合わせた溝は左手では握りにくい。左右対称の形や両側の操作ボタンなら利き手を選ばない。</p>
 <h2>車いす: 高さと足元</h2>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="車いすでの操作盤">
-  <line class="axis" x1="20" y1="200" x2="500" y2="200"/>
-  <circle cx="80" cy="150" r="40" fill="none" stroke="var(--tb-text-2)" stroke-width="3"/>
-  <path d="M60,150 L110,150 L120,195 M70,150 L70,90 M70,105 L115,120" stroke="var(--tb-text-2)" stroke-width="3" fill="none"/>
-  <circle cx="72" cy="72" r="12" fill="none" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <rect x="150" y="40" width="24" height="160" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/>
-  <rect x="154" y="20" width="16" height="16" fill="var(--tb-bad)"/><text class="tick" x="180" y="32">× 高すぎるボタン</text>
-  <rect x="154" y="105" width="16" height="16" fill="var(--tb-good)"/><text class="tick" x="180" y="117">○ 座った肩の高さ付近</text>
-  <path d="M115,120 L150,113" stroke="var(--tb-accent)" stroke-width="2" stroke-dasharray="4 3"/>
-  <rect x="300" y="110" width="180" height="10" fill="var(--tb-accent)"/><line x1="310" y1="120" x2="310" y2="200" stroke="var(--tb-text-3)"/><line x1="470" y1="120" x2="470" y2="200" stroke="var(--tb-text-3)"/>
-  <rect x="300" y="120" width="70" height="80" fill="var(--tb-text-3)" opacity="0.4"/><text class="tick" x="335" y="215" text-anchor="middle">× 収納で足が入らない</text>
-  <path d="M380,190 L460,190" class="guide"/><text class="tick" x="420" y="215" text-anchor="middle">○ ひざ下の空間</text>
+<svg class="tb-chart" viewBox="0 0 520 232" role="img" aria-label="車いすでの操作盤">
+
+<rect class="k-ground" x="20" y="200" width="480" height="8"/><line class="k-edge" x1="20" y1="200" x2="500" y2="200"/>
+<g class="k-shadow">
+<path d="M70,98 L70,146 L130,146" fill="none" style="stroke:var(--k-line)" stroke-width="4"/>
+<path d="M70,98 L58,92" fill="none" style="stroke:var(--k-line)" stroke-width="4"/>
+<path d="M130,146 L148,190 L162,190" fill="none" style="stroke:var(--k-line)" stroke-width="3"/>
+<path d="M112,146 L150,190" fill="none" style="stroke:var(--k-line-2)" stroke-width="3"/>
+<circle cx="150" cy="192" r="8" class="k-sphere"/>
+</g>
+<g class="k-shadow"><path d="M92.0,144.0 L132.0,140.0 L136.0,184.0" fill="none" style="stroke:var(--k-line)" stroke-width="12.9"/><path d="M92.0,144.0 L132.0,140.0 L136.0,184.0" fill="none" style="stroke:var(--k-line-2)" stroke-width="10.5"/><path d="M132.0,181.0 L145.0,183.0 Q150.0,184.0 150.0,187.5 L131.0,187.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><path d="M94.0,90.0 L106.0,114.0" fill="none" style="stroke:var(--k-line)" stroke-width="9.9"/><path d="M106.0,114.0 L128.0,120.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M94.0,90.0 L106.0,114.0" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7.5"/><path d="M106.0,114.0 L128.0,120.0" fill="none" style="stroke:var(--k-skin-2)" stroke-width="6.0"/><circle class="k-skin" cx="128" cy="120" r="4.0"/><path d="M96.0,79.0 L94.0,90.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M96.0,79.0 L94.0,90.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.0"/><path d="M94.0,90.0 L92.0,144.0" fill="none" style="stroke:var(--k-line)" stroke-width="21.4"/><path d="M94.0,90.0 L92.0,144.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="19.0"/><path d="M92.0,144.0 L138.0,142.0 L142.0,184.0" fill="none" style="stroke:var(--k-line)" stroke-width="13.4"/><path d="M92.0,144.0 L138.0,142.0 L142.0,184.0" fill="none" style="stroke:var(--k-steel-3)" stroke-width="11.0"/><path d="M138.0,181.0 L151.0,183.0 Q156.0,184.0 156.0,187.5 L137.0,187.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><circle class="k-skin" cx="98" cy="70" r="11.0"/><path d="M108.2,70.5 l2.6,3.2 l-2.8,0.6" class="k-skin" stroke-width="1"/><path d="M107.0,64.0 A11.0,11.0 0 1 0 90.1,77.5 Q96.3,71.1 107.0,64.0 Z" fill="#4a3728" style="stroke:var(--k-line)" stroke-width="1"/><circle cx="104.0" cy="69.8" r="1.4" style="fill:var(--k-line)"/><path d="M94.0,90.0 L114.0,112.0" fill="none" style="stroke:var(--k-line)" stroke-width="10.4"/><path d="M114.0,112.0 L142.0,112.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.9"/><path d="M94.0,90.0 L114.0,112.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="8.0"/><path d="M114.0,112.0 L142.0,112.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.5"/><circle class="k-skin" cx="142" cy="112" r="4.3"/></g>
+<g class="k-shadow"><circle cx="80" cy="160" r="40" fill="none" style="stroke:var(--k-line)" stroke-width="6"/><circle cx="80" cy="160" r="34" fill="none" style="stroke:var(--k-line-2)" stroke-width="2"/><line x1="80" y1="160" x2="114.0" y2="160.0" class="k-thin"/><line x1="80" y1="160" x2="109.4" y2="177.0" class="k-thin"/><line x1="80" y1="160" x2="97.0" y2="189.4" class="k-thin"/><line x1="80" y1="160" x2="80.0" y2="194.0" class="k-thin"/><line x1="80" y1="160" x2="63.0" y2="189.4" class="k-thin"/><line x1="80" y1="160" x2="50.6" y2="177.0" class="k-thin"/><line x1="80" y1="160" x2="46.0" y2="160.0" class="k-thin"/><line x1="80" y1="160" x2="50.6" y2="143.0" class="k-thin"/><line x1="80" y1="160" x2="63.0" y2="130.6" class="k-thin"/><line x1="80" y1="160" x2="80.0" y2="126.0" class="k-thin"/><line x1="80" y1="160" x2="97.0" y2="130.6" class="k-thin"/><line x1="80" y1="160" x2="109.4" y2="143.0" class="k-thin"/><circle cx="80" cy="160" r="5" class="k-sphere"/></g>
+<g class="k-shadow"><rect class="k-alu" x="186" y="14" width="22" height="186"/></g>
+<rect x="190" y="22" width="14" height="14" rx="2" style="fill:var(--tb-bad);stroke:var(--k-line)"/><text class="k-bad-t" x="214" y="34">× 高すぎるボタン</text>
+<rect x="190" y="106" width="14" height="14" rx="2" style="fill:var(--tb-good);stroke:var(--k-line)"/><text class="k-good-t" x="214" y="118">○ 座った肩の高さ付近</text>
+<path d="M148,112 L188,113" style="stroke:var(--tb-accent)" stroke-width="2" stroke-dasharray="4 3"/>
+<g class="k-shadow"><rect class="k-part" x="300" y="130" width="180" height="10" rx="2"/><rect class="k-alu" x="466" y="140" width="8" height="60"/>
+<rect class="k-plastic" x="300" y="140" width="70" height="60"/><line class="k-thin" x1="300" y1="160" x2="370" y2="160"/><line class="k-thin" x1="300" y1="180" x2="370" y2="180"/><line class="k-edge" x1="328" y1="150" x2="342" y2="150"/><line class="k-edge" x1="328" y1="170" x2="342" y2="170"/></g>
+<line class="k-ext" x1="380" y1="140" x2="380" y2="198"/><line class="k-dimline" x1="420" y1="142" x2="420" y2="198"/>
+<text class="k-bad-t" x="300" y="222">× 収納で足が入らない</text>
+<text class="k-good-t" x="426" y="122" text-anchor="middle">○ ひざ下の空間</text>
 </svg>
 <p class="tb-caption">図: 車いす利用者は座った姿勢で届く高さと、正面から近づくためのひざ下の空間が必要 (具体的な数値は規格・ガイドラインで確認)。</p>
 <h2>手袋作業: 大きさとすき間</h2>
-<svg class="tb-chart" viewBox="0 0 520 150" aria-label="手袋で押すボタン">
-  <rect x="30" y="40" width="20" height="20" rx="3" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><rect x="56" y="40" width="20" height="20" rx="3" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><rect x="82" y="40" width="20" height="20" rx="3" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><rect x="108" y="40" width="20" height="20" rx="3" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/>
-  <ellipse cx="66" cy="50" rx="24" ry="18" fill="var(--tb-warn)" opacity="0.45"/>
-  <text class="lbl" x="80" y="100" text-anchor="middle" fill="var(--tb-bad)">× 小さく密集 → 2 つ同時に押す</text>
-  <rect x="270" y="30" width="44" height="44" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"/><rect x="340" y="30" width="44" height="44" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"/><rect x="410" y="30" width="44" height="44" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <ellipse cx="362" cy="52" rx="24" ry="18" fill="var(--tb-warn)" opacity="0.45"><animate attributeName="cx" values="292;362;432;362;292" dur="5s" repeatCount="indefinite"/></ellipse>
-  <text class="lbl" x="362" y="100" text-anchor="middle" fill="var(--tb-good)">○ 大きく間隔を空け、クリック感</text>
-  <text class="tick" x="260" y="135" text-anchor="middle">楕円 = 手袋の指先の接触範囲</text>
+<svg class="tb-chart" viewBox="0 0 520 150" role="img" aria-label="手袋で押すボタン">
+
+<g class="k-shadow"><rect class="k-part" x="22" y="34" width="114" height="32" rx="4"/></g>
+<rect x="30" y="40" width="20" height="20" rx="3" style="fill:var(--k-steel-1);stroke:var(--k-line)"/><rect x="56" y="40" width="20" height="20" rx="3" style="fill:var(--k-steel-1);stroke:var(--k-line)"/><rect x="82" y="40" width="20" height="20" rx="3" style="fill:var(--k-steel-1);stroke:var(--k-line)"/><rect x="108" y="40" width="20" height="20" rx="3" style="fill:var(--k-steel-1);stroke:var(--k-line)"/>
+<ellipse cx="66" cy="50" rx="24" ry="18" style="fill:var(--tb-warn)" opacity="0.5"/>
+<text class="k-bad-t" x="80" y="100" text-anchor="middle">× 小さく密集 → 2 つ同時に押す</text>
+<g class="k-shadow"><rect class="k-part" x="258" y="22" width="208" height="60" rx="6"/></g>
+<rect x="270" y="30" width="44" height="44" rx="6" class="k-sphere"/><rect x="340" y="30" width="44" height="44" rx="6" class="k-sphere"/><rect x="410" y="30" width="44" height="44" rx="6" class="k-sphere"/>
+<ellipse cx="362" cy="52" rx="24" ry="18" style="fill:var(--tb-warn)" opacity="0.5"><animate attributeName="cx" values="292;362;432;362;292" dur="5s" repeatCount="indefinite"/></ellipse>
+<text class="k-good-t" x="362" y="100" text-anchor="middle">○ 大きく間隔を空け、クリック感</text>
+<text class="tick" x="260" y="135" text-anchor="middle">楕円 = 手袋の指先の接触範囲</text>
 </svg>
 <p class="tb-caption">図: 手袋の指先は素手より太い。ボタンを大きく、間隔を空け、クリック感で押したことが分かるようにする。</p>
 <h2>色覚の多様性: グラフと表示灯</h2>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="色だけのグラフと形を併用したグラフ">
+<svg class="tb-chart" role="img" viewBox="0 0 520 170" aria-label="色だけのグラフと形を併用したグラフ">
   <line class="axis" x1="30" y1="130" x2="230" y2="130"/>
   <polyline points="40,110 90,80 140,90 190,50 220,60" fill="none" stroke="#d32f2f" stroke-width="2.5"/>
   <polyline points="40,100 90,95 140,70 190,75 220,45" fill="none" stroke="#388e3c" stroke-width="2.5"/>
-  <text class="lbl" x="130" y="155" text-anchor="middle" fill="var(--tb-bad)">× 赤と緑の線だけ・凡例が離れている</text>
+  <text style="fill:var(--tb-bad)" class="lbl" x="130" y="155" text-anchor="middle">× 赤と緑の線だけ・凡例が離れている</text>
   <line class="axis" x1="290" y1="130" x2="490" y2="130"/>
   <polyline points="300,110 350,80 400,90 450,50 480,60" fill="none" stroke="#d55e00" stroke-width="2.5"/>
   <polyline points="300,100 350,95 400,70 450,75 480,45" fill="none" stroke="#0072b2" stroke-width="2.5" stroke-dasharray="6 4"/>
   <circle cx="350" cy="80" r="4" fill="#d55e00"/><circle cx="450" cy="50" r="4" fill="#d55e00"/><rect x="346" y="91" width="8" height="8" fill="#0072b2"/><rect x="446" y="71" width="8" height="8" fill="#0072b2"/>
   <text class="tick" x="484" y="64">A</text><text class="tick" x="484" y="44">B</text>
-  <text class="lbl" x="390" y="155" text-anchor="middle" fill="var(--tb-good)">○ 区別しやすい色 + 線種 + 直接ラベル</text>
+  <text style="fill:var(--tb-good)" class="lbl" x="390" y="155" text-anchor="middle">○ 区別しやすい色 + 線種 + 直接ラベル</text>
 </svg>
 <p class="tb-caption">図: 赤と緑だけで区別するグラフ (左) は、色覚によって判別しにくい。オレンジと青など区別しやすい組合せに線種・マーカー・直接ラベルを加える (右)。</p>
 <h2>進め方</h2>
@@ -596,13 +662,13 @@ export const UX2: TextChapter[] = [
 </table>
 <h2>所要時間の代表値</h2>
 <p>5 人の所要時間が 30, 45, 60, 40, 120 秒だったとします。算術平均は (30 + 45 + 60 + 40 + 120) / 5 = <b>59 秒</b>ですが、120 秒の 1 人に引っ張られています。中央値は <b>45 秒</b>、幾何平均 (対数の平均) は約 <b>52 秒</b>です。</p>
-<svg class="tb-chart" viewBox="0 0 520 150" aria-label="所要時間のばらつきと代表値">
+<svg class="tb-chart" role="img" viewBox="0 0 520 150" aria-label="所要時間のばらつきと代表値">
   <line class="axis" x1="40" y1="90" x2="500" y2="90"/>
   <text class="tick" x="40" y="108" text-anchor="middle">0</text><text class="tick" x="190" y="108" text-anchor="middle">40</text><text class="tick" x="340" y="108" text-anchor="middle">80</text><text class="tick" x="490" y="108" text-anchor="middle">120 s</text>
   <circle class="mark" cx="152" cy="80" r="6"/><circle class="mark" cx="190" cy="80" r="6"/><circle class="mark" cx="209" cy="80" r="6"/><circle class="mark" cx="265" cy="80" r="6"/><circle class="mark" cx="490" cy="80" r="6"/>
-  <line x1="209" y1="40" x2="209" y2="96" stroke="var(--tb-good)" stroke-width="2.5"/><text class="tick" x="205" y="34" text-anchor="end">中央値 45</text>
-  <line x1="236" y1="50" x2="236" y2="96" stroke="var(--tb-accent)" stroke-width="2.5"/><text class="tick" x="240" y="48">幾何平均 52</text>
-  <line x1="261" y1="60" x2="261" y2="96" stroke="var(--tb-warn)" stroke-width="2.5"/><text class="tick" x="268" y="66">平均 59</text>
+  <line style="stroke:var(--tb-good)" x1="209" y1="40" x2="209" y2="96" stroke-width="2.5"/><text class="tick" x="205" y="34" text-anchor="end">中央値 45</text>
+  <line style="stroke:var(--tb-accent)" x1="236" y1="50" x2="236" y2="96" stroke-width="2.5"/><text class="tick" x="240" y="48">幾何平均 52</text>
+  <line style="stroke:var(--tb-warn)" x1="261" y1="60" x2="261" y2="96" stroke-width="2.5"/><text class="tick" x="268" y="66">平均 59</text>
   <text class="tick" x="490" y="132" text-anchor="end">1 人の遅い人が平均を押し上げる</text>
 </svg>
 <p class="tb-caption">図: 所要時間のばらつき。外れた値に強い中央値・幾何平均もあわせて報告する。</p>
@@ -610,8 +676,8 @@ export const UX2: TextChapter[] = [
 <p>SUS は「UX リサーチと評価手法」の章のとおり、奇数項目 (回答 − 1)、偶数項目 (5 − 回答) の合計 × 2.5 で参加者ごとに計算し、平均します。</p>
 <p><b>NPS (ネット・プロモーター・スコア)</b> は「この製品を友人や同僚に薦める可能性は? (0〜10)」の 1 問で測ります。</p>
 <div class="tb-formula">NPS = 推奨者 (9〜10) の割合 % − 批判者 (0〜6) の割合 %　　(7〜8 は中立者で計算に入れない)　範囲 −100〜+100</div>
-<svg class="tb-chart" viewBox="0 0 520 140" aria-label="NPS の区分">
-  <rect x="30" y="40" width="270" height="30" fill="var(--tb-bad)" opacity="0.5"/><rect x="300" y="40" width="90" height="30" fill="var(--tb-text-3)" opacity="0.4"/><rect x="390" y="40" width="100" height="30" fill="var(--tb-good)" opacity="0.6"/>
+<svg class="tb-chart" role="img" viewBox="0 0 520 140" aria-label="NPS の区分">
+  <rect style="fill:var(--tb-bad)" x="30" y="40" width="270" height="30" opacity="0.5"/><rect style="fill:var(--tb-text-3)" x="300" y="40" width="90" height="30" opacity="0.4"/><rect style="fill:var(--tb-good)" x="390" y="40" width="100" height="30" opacity="0.6"/>
   <text class="mark-t" x="165" y="60" text-anchor="middle">批判者 0〜6</text><text class="mark-t" x="345" y="60" text-anchor="middle">中立 7〜8</text><text class="mark-t" x="440" y="60" text-anchor="middle">推奨者 9〜10</text>
   <text class="tick" x="260" y="100" text-anchor="middle">例: 100 人中 推奨者 45 人・中立 35 人・批判者 20 人 → NPS = 45 − 20 = +25</text>
 </svg>
@@ -623,12 +689,12 @@ export const UX2: TextChapter[] = [
                   幅 = 1.96 × √(0.670 × 0.330 / 8.84) ≈ 0.31
                   95 % 区間 ≈ 36 % 〜 98 %
 10 人中 7 人成功:  p̂ = 8.92 / 13.84 = 0.645 → 区間 ≈ 39 % 〜 90 %</pre>
-<svg class="tb-chart" viewBox="0 0 520 150" aria-label="人数と信頼区間の幅">
+<svg class="tb-chart" role="img" viewBox="0 0 520 150" aria-label="人数と信頼区間の幅">
   <line class="axis" x1="60" y1="120" x2="500" y2="120"/>
   <text class="tick" x="60" y="138" text-anchor="middle">0 %</text><text class="tick" x="280" y="138" text-anchor="middle">50 %</text><text class="tick" x="500" y="138" text-anchor="middle">100 %</text>
-  <text class="tick" x="55" y="44" text-anchor="end">n=5</text><line x1="218" y1="40" x2="491" y2="40" stroke="var(--tb-accent)" stroke-width="6" stroke-linecap="round"/><circle class="mark" cx="412" cy="40" r="5"/>
-  <text class="tick" x="55" y="74" text-anchor="end">n=10</text><line x1="232" y1="70" x2="455" y2="70" stroke="var(--tb-accent)" stroke-width="6" stroke-linecap="round"/><circle class="mark" cx="368" cy="70" r="5"/>
-  <text class="tick" x="55" y="104" text-anchor="end">n=100</text><line x1="327" y1="100" x2="404" y2="100" stroke="var(--tb-accent)" stroke-width="6" stroke-linecap="round"/><circle class="mark" cx="368" cy="100" r="5"/>
+  <text class="tick" x="55" y="44" text-anchor="end">n=5</text><line style="stroke:var(--tb-accent)" x1="218" y1="40" x2="491" y2="40" stroke-width="6" stroke-linecap="round"/><circle class="mark" cx="412" cy="40" r="5"/>
+  <text class="tick" x="55" y="74" text-anchor="end">n=10</text><line style="stroke:var(--tb-accent)" x1="232" y1="70" x2="455" y2="70" stroke-width="6" stroke-linecap="round"/><circle class="mark" cx="368" cy="70" r="5"/>
+  <text class="tick" x="55" y="104" text-anchor="end">n=100</text><line style="stroke:var(--tb-accent)" x1="327" y1="100" x2="404" y2="100" stroke-width="6" stroke-linecap="round"/><circle class="mark" cx="368" cy="100" r="5"/>
   <text class="tick" x="500" y="20" text-anchor="end">● 観測した成功率、帯 = 95 % 区間 (概算)</text>
 </svg>
 <p class="tb-caption">図: 人数と 95 % 区間の幅 (n = 5: 4/5、n = 10: 7/10、n = 100: 70/100 のときの概算)。人数が少ないほど区間が広い。</p>

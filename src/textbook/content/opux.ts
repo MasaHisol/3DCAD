@@ -44,20 +44,30 @@ export const OPUX: TextChapter[] = [
 
 <h2>作業域のゾーニング</h2>
 <p>水平面の作業域は、肘を体に付けたまま前腕を回して届く<b>通常作業域</b> (肘から先、半径およそ 35〜45 cm) と、腕を伸ばして届く<b>最大作業域</b> (肩から、半径およそ 55〜65 cm) に分けて考えます (数値は小柄な作業者を基準にした概略)。</p>
-<svg class="tb-chart" viewBox="0 0 520 250" aria-label="水平面の作業域">
-  <line class="axis" x1="20" y1="230" x2="500" y2="230"/>
-  <path d="M60,230 A200,200 0 0 1 460,230" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <path d="M130,230 A130,130 0 0 1 390,230" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <path d="M200,230 A60,60 0 0 1 320,230" fill="var(--tb-good)" opacity="0.35"/>
-  <circle cx="260" cy="238" r="10" class="sec"/>
-  <text class="tick" x="260" y="250" text-anchor="middle">作業者</text>
-  <text class="mark-t" x="260" y="205" text-anchor="middle">ゾーン 1</text>
-  <text class="tick" x="260" y="140" text-anchor="middle">ゾーン 2 (通常作業域)</text>
-  <text class="tick" x="260" y="60" text-anchor="middle">ゾーン 3 (最大作業域)</text>
-  <rect x="236" y="180" width="48" height="14" fill="var(--tb-accent)"/>
-  <rect x="150" y="150" width="30" height="20" fill="var(--tb-warn)"/><rect x="340" y="150" width="30" height="20" fill="var(--tb-warn)"/>
-  <text class="tick" x="135" y="145" text-anchor="end">部品箱</text><text class="tick" x="385" y="145">工具</text>
-  <text class="tick" x="480" y="40" text-anchor="end">ゾーン外: 歩く・体をねじる</text>
+<svg class="tb-chart" viewBox="0 0 520 272" role="img" aria-label="水平面の作業域">
+<g class="k-shadow"><rect class="k-alu" x="14" y="14" width="492" height="216" rx="4"/></g>
+<path d="M60,230 A200,200 0 0 1 460,230 Z" style="fill:var(--tb-accent);stroke:var(--k-line-2)" fill-opacity="0.07" stroke-dasharray="6 4"/>
+<path d="M130,230 A130,130 0 0 1 390,230 Z" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.12" stroke-width="2"/>
+<path d="M200,230 A60,60 0 0 1 320,230 Z" style="fill:var(--tb-good);stroke:var(--tb-good)" fill-opacity="0.3" stroke-width="1.6"/>
+<g class="k-shadow">
+<rect class="k-part" x="236" y="172" width="48" height="16" rx="2"/>
+<rect class="k-plastic" x="140" y="148" width="32" height="24" rx="2"/>
+<path class="k-part" d="M342,158 L368,152 L370,158 L344,164 Z"/><rect class="k-plastic" x="336" y="154" width="12" height="16" rx="3"/>
+</g>
+<rect x="145" y="153" width="22" height="14" rx="1" style="fill:var(--k-plastic-2)" opacity="0.7"/>
+<g class="k-shadow">
+<path d="M238,246 L240,222 M282,246 L280,222" fill="none" style="stroke:var(--k-line)" stroke-width="10"/>
+<path d="M238,246 L240,222 M282,246 L280,222" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7.4"/>
+<circle class="k-skin" cx="240" cy="218" r="5"/><circle class="k-skin" cx="280" cy="218" r="5"/>
+<ellipse class="k-accent" cx="260" cy="252" rx="30" ry="11"/>
+<circle class="k-skin" cx="260" cy="250" r="10"/>
+</g>
+<text class="tick" x="298" y="266">作業者</text>
+<text class="mark-t" x="260" y="206" text-anchor="middle">ゾーン 1</text>
+<text class="tick" x="260" y="128" text-anchor="middle">ゾーン 2 (通常作業域)</text>
+<text class="tick" x="260" y="60" text-anchor="middle">ゾーン 3 (最大作業域)</text>
+<text class="tick" x="136" y="166" text-anchor="end">部品箱</text><text class="tick" x="378" y="166">工具</text>
+<text class="tick" x="500" y="32" text-anchor="end">ゾーン外: 歩く・体をねじる</text>
 </svg>
 <p class="tb-caption">図: 作業域のゾーン。ゾーン 1 (正面・手元) に主作業、ゾーン 2 に毎サイクル使う部品と工具、ゾーン 3 にはたまに使うものだけを置く。</p>
 <table class="tb-table">
@@ -87,19 +97,19 @@ export const OPUX: TextChapter[] = [
   <tr><td>結果</td><td>総合スコア 1〜7</td><td>改善の必要度 AC1〜AC4</td></tr>
   <tr><td>判定</td><td>1〜2 許容 / 3〜4 さらに調査 / 5〜6 早めに調査・改善 / 7 直ちに改善</td><td>AC1 対策不要 / AC2 近いうちに / AC3 できるだけ早く / AC4 直ちに</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="改善前後の姿勢スコア">
-  <line class="axis" x1="60" y1="170" x2="500" y2="170"/>
-  <line class="axis" x1="60" y1="20" x2="60" y2="170"/>
-  <text class="tick" x="52" y="174" text-anchor="end">0</text><text class="tick" x="52" y="24" text-anchor="end">7</text>
-  <rect x="60" y="20" width="440" height="21" fill="var(--tb-bad)" opacity="0.15"/>
-  <rect x="60" y="41" width="440" height="43" fill="var(--tb-warn)" opacity="0.15"/>
-  <rect x="100" y="41" width="60" height="129" fill="var(--tb-bad)"/><text class="tick" x="130" y="36" text-anchor="middle">6</text>
-  <rect x="180" y="127" width="60" height="43" fill="var(--tb-good)"/><text class="tick" x="210" y="122" text-anchor="middle">2</text>
-  <rect x="290" y="62" width="60" height="108" fill="var(--tb-warn)"/><text class="tick" x="320" y="57" text-anchor="middle">5</text>
-  <rect x="370" y="106" width="60" height="64" fill="var(--tb-good)"/><text class="tick" x="400" y="101" text-anchor="middle">3</text>
-  <text class="tick" x="170" y="188" text-anchor="middle">ワーク投入 (前 → 後)</text>
-  <text class="tick" x="360" y="188" text-anchor="middle">ねじ締め (前 → 後)</text>
-  <text class="lbl" x="30" y="100" text-anchor="middle" transform="rotate(-90 30 100)">RULA</text>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="改善前後の姿勢スコア">
+<rect x="60" y="20" width="440" height="21" style="fill:var(--tb-bad)" opacity="0.12"/>
+<rect x="60" y="41" width="440" height="43" style="fill:var(--tb-warn)" opacity="0.12"/>
+<line class="grid" x1="60" y1="127" x2="500" y2="127"/><line class="grid" x1="60" y1="84" x2="500" y2="84"/>
+<g class="k-shadow"><rect x="100" y="41" width="60" height="129" rx="3" style="fill:var(--tb-bad)" fill-opacity="1"/><rect x="180" y="127" width="60" height="43" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/><rect x="290" y="62" width="60" height="108" rx="3" style="fill:var(--tb-warn)" fill-opacity="1"/><rect x="370" y="106" width="60" height="64" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/></g>
+<path d="M162,90 Q172,110 178,122" class="k-move"/><path d="M352,90 Q362,100 368,108" class="k-move"/>
+<line class="axis" x1="60" y1="170" x2="500" y2="170"/><line class="axis" x1="60" y1="20" x2="60" y2="170"/>
+<text class="tick" x="52" y="174" text-anchor="end">0</text><text class="tick" x="52" y="24" text-anchor="end">7</text>
+<text class="mark-t" x="130" y="35" text-anchor="middle">6</text><text class="mark-t" x="210" y="121" text-anchor="middle">2</text>
+<text class="mark-t" x="320" y="56" text-anchor="middle">5</text><text class="mark-t" x="400" y="100" text-anchor="middle">3</text>
+<text class="tick" x="170" y="188" text-anchor="middle">ワーク投入 (前 → 後)</text>
+<text class="tick" x="360" y="188" text-anchor="middle">ねじ締め (前 → 後)</text>
+<text class="lbl" x="30" y="100" text-anchor="middle" transform="rotate(-90 30 100)">RULA</text>
 </svg>
 <p class="tb-caption">図: RULA スコアの改善例 (架空)。ワーク受けを 250 mm 上げて前傾をなくし、ドライバを吊り下げて手首の曲げを減らした。</p>
 <div class="tb-note">RULA や OWAS は簡易なスクリーニング法です。点数は観察者で多少ばらつくため、同じ人が同じ方法で前後を比べ、写真・動画を残しておきます。持ち上げ作業は次々章の NIOSH 式、繰り返し作業は OCRA などの専用手法も検討します。</div>
@@ -164,14 +174,19 @@ export const OPUX: TextChapter[] = [
 <h2>段取り替えはなぜ装置設計の問題か</h2>
 <p>段取り替えとは、品種を切り替えるために治具・金型・刃具・プログラム・条件を交換・調整する作業です。段取り時間が長いと、装置はロットをまとめて流すしかなくなり、在庫が増え、納期の自由度が下がります。
 そして段取り時間の大半は、ボルトを回す・位置を合わせる・試し加工して調整するといった、<b>装置の構造で決まる作業</b>です。</p>
-<svg class="tb-chart" viewBox="0 0 520 190" aria-label="段取り時間の内訳">
-  <line class="axis" x1="120" y1="160" x2="500" y2="160"/>
-  <text class="tick" x="112" y="44" text-anchor="end">改善前</text><text class="tick" x="112" y="94" text-anchor="end">外段取り化</text><text class="tick" x="112" y="144" text-anchor="end">内段取り短縮</text>
-  <rect x="120" y="30" width="60" height="22" fill="var(--tb-text-3)"/><rect x="180" y="30" width="80" height="22" fill="var(--tb-warn)"/><rect x="260" y="30" width="100" height="22" fill="var(--tb-accent)"/><rect x="360" y="30" width="120" height="22" fill="var(--tb-bad)"/>
-  <rect x="120" y="80" width="80" height="22" fill="var(--tb-warn)"/><rect x="200" y="80" width="100" height="22" fill="var(--tb-accent)"/><rect x="300" y="80" width="120" height="22" fill="var(--tb-bad)"/>
-  <rect x="120" y="130" width="20" height="22" fill="var(--tb-warn)"/><rect x="140" y="130" width="30" height="22" fill="var(--tb-accent)"/><rect x="170" y="130" width="20" height="22" fill="var(--tb-bad)"/>
-  <text class="tick" x="150" y="25" text-anchor="middle">準備・運搬</text><text class="tick" x="220" y="25" text-anchor="middle">取外し・取付</text><text class="tick" x="310" y="25" text-anchor="middle">位置決め</text><text class="tick" x="420" y="25" text-anchor="middle">試し加工・調整</text>
-  <text class="tick" x="500" y="180" text-anchor="end">装置停止時間 →</text>
+<svg class="tb-chart" viewBox="0 0 520 190" role="img" aria-label="段取り時間の内訳">
+<line class="grid" x1="200" y1="58" x2="200" y2="160"/><line class="grid" x1="300" y1="58" x2="300" y2="160"/><line class="grid" x1="420" y1="58" x2="420" y2="160"/>
+<g class="k-shadow">
+<rect x="120" y="30" width="60" height="22" style="fill:var(--tb-text-3);stroke:var(--tb-surface)" stroke-width="1.5"/><rect x="180" y="30" width="80" height="22" style="fill:var(--tb-warn);stroke:var(--tb-surface)" stroke-width="1.5"/><rect x="260" y="30" width="100" height="22" style="fill:var(--tb-accent);stroke:var(--tb-surface)" stroke-width="1.5"/><rect x="360" y="30" width="120" height="22" style="fill:var(--tb-bad);stroke:var(--tb-surface)" stroke-width="1.5"/>
+<rect x="120" y="80" width="80" height="22" style="fill:var(--tb-warn);stroke:var(--tb-surface)" stroke-width="1.5"/><rect x="200" y="80" width="100" height="22" style="fill:var(--tb-accent);stroke:var(--tb-surface)" stroke-width="1.5"/><rect x="300" y="80" width="120" height="22" style="fill:var(--tb-bad);stroke:var(--tb-surface)" stroke-width="1.5"/>
+<rect x="120" y="130" width="20" height="22" style="fill:var(--tb-warn);stroke:var(--tb-surface)" stroke-width="1.5"/><rect x="140" y="130" width="30" height="22" style="fill:var(--tb-accent);stroke:var(--tb-surface)" stroke-width="1.5"/><rect x="170" y="130" width="20" height="22" style="fill:var(--tb-bad);stroke:var(--tb-surface)" stroke-width="1.5"/>
+</g>
+<line class="axis" x1="120" y1="20" x2="120" y2="160"/>
+<line class="axis" x1="120" y1="160" x2="500" y2="160" marker-end="url(#k-arrow)"/>
+<path d="M484,56 Q470,70 426,80" class="k-move"/><path d="M424,104 Q330,128 196,136" class="k-move"/>
+<text class="tick" x="112" y="45" text-anchor="end">改善前</text><text class="tick" x="112" y="95" text-anchor="end">外段取り化</text><text class="tick" x="112" y="145" text-anchor="end">内段取り短縮</text>
+<text class="tick" x="150" y="24" text-anchor="middle">準備・運搬</text><text class="tick" x="220" y="24" text-anchor="middle">取外し・取付</text><text class="tick" x="310" y="24" text-anchor="middle">位置決め</text><text class="tick" x="420" y="24" text-anchor="middle">試し加工・調整</text>
+<text class="tick" x="500" y="180" text-anchor="end">装置停止時間 →</text>
 </svg>
 <p class="tb-caption">図: 段取り時間の内訳 (概念図)。準備を外段取りに出し、取付・位置決め・調整を構造で短くする。最も長いのは「調整」であることが多い。</p>
 
@@ -198,16 +213,22 @@ export const OPUX: TextChapter[] = [
 
 <h2>位置決めを構造で保証する</h2>
 <p>段取りで最も時間がかかり、品質を左右するのが<b>位置合わせと調整</b>です。調整をなくすには、取り付けた瞬間に位置が決まる構造にします。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="丸ピンと菱形ピンによる位置決め">
-  <rect x="60" y="120" width="400" height="40" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <text class="tick" x="260" y="178" text-anchor="middle">ベースプレート</text>
-  <rect x="100" y="60" width="320" height="40" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="tick" x="260" y="55" text-anchor="middle">治具プレート (上から落とすだけで位置決め)</text>
-  <rect x="140" y="88" width="16" height="40" fill="var(--tb-good)"/><text class="tick" x="148" y="146" text-anchor="middle">丸ピン</text>
-  <path d="M372,88 L380,88 L388,128 L364,128 Z" fill="var(--tb-warn)"/><text class="tick" x="376" y="146" text-anchor="middle">菱形ピン</text>
-  <line class="guide" x1="148" y1="40" x2="148" y2="190"/><line class="guide" x1="376" y1="40" x2="376" y2="190"/>
-  <text class="mark-t" x="262" y="80" text-anchor="middle">丸ピン: X・Y を拘束 / 菱形ピン: 回転だけを拘束</text>
-  <rect x="455" y="70" width="12" height="12" fill="var(--tb-bad)"/><text class="tick" x="470" y="80">誤装着防止</text>
+<svg class="tb-chart" viewBox="0 0 520 202" role="img" aria-label="丸ピンと菱形ピンによる位置決め">
+<line class="k-center" x1="148" y1="64" x2="148" y2="176"/><line class="k-center" x1="376" y1="64" x2="376" y2="176"/>
+<g class="k-shadow">
+<rect class="k-cut" x="60" y="122" width="400" height="42"/>
+<path class="k-cut2" d="M100,66 L138,66 L138,100 L100,100 Z M158,66 L366,66 L366,100 L158,100 Z M386,66 L420,66 L420,100 L386,100 Z"/>
+<path class="k-part-h" d="M140,122 L140,94 Q140,88 146,88 L150,88 Q156,88 156,94 L156,122 Z"/>
+<path class="k-part-h" d="M372,122 L372,94 Q372,88 376,88 Q380,88 380,94 L380,122 Z"/>
+</g>
+<path class="k-move" d="M84,52 L84,96"/>
+<text class="tick" x="260" y="58" text-anchor="middle">治具プレート (上から落とすだけで位置決め)</text>
+<text class="mark-t" x="262" y="28" text-anchor="middle">丸ピン: X・Y を拘束 / 菱形ピン: 回転だけを拘束</text>
+<text class="tick" x="260" y="190" text-anchor="middle">ベースプレート</text>
+<text class="lbl" x="120" y="190" text-anchor="end">丸ピン</text>
+<text class="lbl" x="404" y="190">菱形ピン</text>
+<circle class="k-part" cx="134" cy="185" r="7"/><path class="k-part" d="M354,185 L362,177 L370,185 L362,193 Z"/>
+<rect x="434" y="14" width="12" height="12" rx="2" style="fill:var(--tb-bad)"/><text class="tick" x="450" y="24">誤装着防止</text>
 </svg>
 <p class="tb-caption">図: 丸ピンと菱形ピン (削りピン) による位置決め。2 本とも丸ピンだと穴ピッチの誤差で入らなくなるため、片方を菱形にする。</p>
 <ul>
@@ -277,18 +298,22 @@ export const OPUX: TextChapter[] = [
     body: `
 <h2>投入・取り出しで起きる問題</h2>
 <p>ワークの投入口が低い・奥にある・扉の枠をまたぐ必要がある、といった装置では、作業者は前かがみ・腕の伸ばし・ねじりを毎サイクル繰り返します。腰痛の原因になるだけでなく、ワークをぶつけて傷つけたり、落としたりする品質問題にもつながります。</p>
-<svg class="tb-chart" viewBox="0 0 520 210" aria-label="投入口の悪い例とよい例">
-  <line class="axis" x1="20" y1="190" x2="500" y2="190"/>
-  <rect x="40" y="70" width="180" height="120" fill="none" stroke="var(--tb-text-3)" stroke-width="2"/>
-  <rect x="60" y="150" width="140" height="10" fill="var(--tb-bad)"/>
-  <line x1="40" y1="110" x2="40" y2="190" stroke="var(--tb-text-3)" stroke-width="6"/>
-  <text class="tick" x="130" y="140" text-anchor="middle">奥・低い</text>
-  <text class="mark-t" x="130" y="60" text-anchor="middle">× 枠越しに前かがみ</text>
-  <rect x="290" y="70" width="180" height="120" fill="none" stroke="var(--tb-text-3)" stroke-width="2"/>
-  <rect x="270" y="110" width="140" height="10" fill="var(--tb-good)"/>
-  <path d="M410,115 L440,115" stroke="var(--tb-good)" stroke-width="3"/>
-  <text class="tick" x="340" y="140" text-anchor="middle">手前・肘高付近・スライドで送る</text>
-  <text class="mark-t" x="380" y="60" text-anchor="middle">○ 手前に引き出す受け台</text>
+<svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="投入口の悪い例とよい例">
+<rect class="k-panel" x="8" y="8" width="244" height="226" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="226" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">枠越しに前かがみ</text><circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">手前に引き出す受け台</text>
+<rect class="k-ground" x="16" y="206" width="228" height="8"/><rect class="k-ground" x="276" y="206" width="228" height="8"/>
+<line class="k-edge" x1="16" y1="206" x2="244" y2="206"/><line class="k-edge" x1="276" y1="206" x2="504" y2="206"/>
+<g class="k-shadow"><rect class="k-alu" x="120" y="70" width="120" height="136" rx="3"/></g><rect x="130" y="80" width="100" height="116" rx="2" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)"/>
+<rect class="k-part" x="120" y="112" width="12" height="94"/>
+<rect x="150" y="174" width="74" height="10" rx="2" style="fill:var(--tb-bad)"/>
+<g class="k-shadow" transform="translate(66 206) scale(1.0 1.0)"><path d="M-11,-72 L-12,-5 L-2,-5 L0,-48 L2,-5 L12,-5 L11,-72 Z" fill="#46505f" style="stroke:var(--k-line)" stroke-width="1.2"/><path d="M-14,-6 L-1,-6 L-1,0 L-14,0 Z M1,-6 L13,-6 Q19,-4 18,0 L1,0 Z" fill="#2a2f38"/><g transform="rotate(50 0 -70)"><path d="M2,-122 L26,-110 L62,-112" fill="none" style="stroke:var(--k-line)" stroke-width="10"/><path d="M26,-110 L62,-112" fill="none" style="stroke:var(--k-skin-2)" stroke-width="7.4"/><path d="M2,-122 L26,-110" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7.6"/><circle class="k-skin" cx="62" cy="-112" r="4.8"/><rect class="k-accent" x="-13" y="-131" width="27" height="64" rx="9"/><rect x="-12" y="-76" width="25" height="5" fill="#2a2f38"/><rect class="k-skin" x="-1" y="-136" width="8" height="8"/><circle class="k-skin" cx="3" cy="-145" r="11"/><circle cx="10" cy="-146" r="1.3" style="fill:var(--k-line)"/><path d="M-9,-147 A12.5,12.5 0 0 1 15.5,-147 Z" fill="#f2c230" style="stroke:var(--k-line)" stroke-width="1.2"/><line x1="13" y1="-147" x2="20" y2="-147" style="stroke:var(--k-line)" stroke-width="2"/><path d="M2,-122 L30,-104 L68,-104" fill="none" style="stroke:var(--k-line)" stroke-width="10"/><path d="M30,-104 L68,-104" fill="none" style="stroke:var(--k-skin-2)" stroke-width="7.4"/><path d="M2,-122 L30,-104" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7.6"/><circle class="k-skin" cx="68" cy="-104" r="4.8"/></g></g>
+<text class="k-bad-t" x="200" y="226" text-anchor="middle">奥・低い</text>
+<g class="k-shadow"><rect class="k-alu" x="380" y="70" width="120" height="136" rx="3"/></g><rect x="390" y="80" width="100" height="116" rx="2" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)"/>
+<g class="k-shadow"><rect class="k-part" x="330" y="118" width="96" height="8" rx="2"/>
+<rect x="336" y="108" width="70" height="10" rx="2" style="fill:var(--tb-good)"/></g>
+<line class="k-move" x1="414" y1="100" x2="450" y2="100"/>
+<g class="k-shadow" transform="translate(296 206) scale(1.0 1.0)"><path d="M-11,-72 L-12,-5 L-2,-5 L0,-48 L2,-5 L12,-5 L11,-72 Z" fill="#46505f" style="stroke:var(--k-line)" stroke-width="1.2"/><path d="M-14,-6 L-1,-6 L-1,0 L-14,0 Z M1,-6 L13,-6 Q19,-4 18,0 L1,0 Z" fill="#2a2f38"/><g transform="rotate(0 0 -70)"><path d="M2,-122 L14,-98 L38,-100" fill="none" style="stroke:var(--k-line)" stroke-width="10"/><path d="M14,-98 L38,-100" fill="none" style="stroke:var(--k-skin-2)" stroke-width="7.4"/><path d="M2,-122 L14,-98" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7.6"/><circle class="k-skin" cx="38" cy="-100" r="4.8"/><rect class="k-accent" x="-13" y="-131" width="27" height="64" rx="9"/><rect x="-12" y="-76" width="25" height="5" fill="#2a2f38"/><rect class="k-skin" x="-1" y="-136" width="8" height="8"/><circle class="k-skin" cx="3" cy="-145" r="11"/><circle cx="10" cy="-146" r="1.3" style="fill:var(--k-line)"/><path d="M-9,-147 A12.5,12.5 0 0 1 15.5,-147 Z" fill="#f2c230" style="stroke:var(--k-line)" stroke-width="1.2"/><line x1="13" y1="-147" x2="20" y2="-147" style="stroke:var(--k-line)" stroke-width="2"/><path d="M2,-122 L18,-96 L42,-96" fill="none" style="stroke:var(--k-line)" stroke-width="10"/><path d="M18,-96 L42,-96" fill="none" style="stroke:var(--k-skin-2)" stroke-width="7.4"/><path d="M2,-122 L18,-96" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7.6"/><circle class="k-skin" cx="42" cy="-96" r="4.8"/></g></g>
+<text class="tick" x="390" y="228" text-anchor="middle">手前・肘高付近・スライドで送る</text>
 </svg>
 <p class="tb-caption">図: 投入口。受け台を手前に引き出せる構造にすると、枠を越えずに肘高付近でワークを置ける。</p>
 
@@ -432,12 +457,15 @@ export const OPUX: TextChapter[] = [
   <tr><td>設定値・遅延</td><td>0.45 MPa 以下が 1 秒継続、復帰は 0.50 MPa</td></tr>
 </table>
 <p><b>優先度</b>は「放置したときの結果の重大さ」と「対応に使える時間」で決めます。優先度が多すぎると意味がなくなるため、3 段階程度にし、件数の比率の目安を <b>高 約 5 % / 中 約 15 % / 低 約 80 %</b> とします。ほとんどのアラームが「高」になっていたら、合理化が足りていません。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="優先度の比率">
-  <rect x="40" y="50" width="22" height="40" fill="var(--tb-bad)"/>
-  <rect x="62" y="50" width="66" height="40" fill="var(--tb-warn)"/>
-  <rect x="128" y="50" width="352" height="40" fill="var(--tb-accent)" opacity="0.6"/>
-  <text class="tick" x="51" y="42" text-anchor="middle">高 5 %</text><text class="tick" x="95" y="110" text-anchor="middle">中 15 %</text><text class="tick" x="304" y="75" text-anchor="middle">低 80 %</text>
-  <text class="mark-t" x="40" y="140">設定されたアラームの件数比の目安 (EEMUA 191 などの考え方)</text>
+<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="優先度の比率">
+<g class="k-shadow">
+<rect x="40" y="50" width="22" height="40" style="fill:var(--tb-bad)"/>
+<rect x="62" y="50" width="66" height="40" style="fill:var(--tb-warn)"/>
+<rect x="128" y="50" width="352" height="40" style="fill:var(--tb-accent)" fill-opacity="0.55"/>
+</g>
+<line class="k-thin" x1="51" y1="46" x2="51" y2="36"/><line class="k-thin" x1="95" y1="94" x2="95" y2="102"/>
+<text class="k-bad-t" x="51" y="32" text-anchor="middle">高 5 %</text><text class="mark-t" x="95" y="116" text-anchor="middle">中 15 %</text><text class="mark-t" x="304" y="75" text-anchor="middle">低 80 %</text>
+<text class="mark-t" x="40" y="146">設定されたアラームの件数比の目安 (EEMUA 191 などの考え方)</text>
 </svg>
 <p class="tb-caption">図: アラーム優先度の比率の目安。高優先度は本当に即時対応が必要なものだけに絞る。</p>
 
@@ -459,16 +487,15 @@ export const OPUX: TextChapter[] = [
   <tr><td>3 詳細</td><td>個々の機器</td><td>シリンダの前進端・後退端センサ、軸の位置</td></tr>
   <tr><td>4 診断</td><td>保全・調整</td><td>I/O モニタ、パラメータ、トレンド</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="状態表示の比較">
-  <rect x="20" y="20" width="230" height="160" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <rect x="35" y="40" width="60" height="30" fill="var(--tb-good)"/><rect x="105" y="40" width="60" height="30" fill="var(--tb-accent)"/><rect x="175" y="40" width="60" height="30" fill="var(--tb-warn)"/>
-  <rect x="35" y="85" width="60" height="30" fill="var(--tb-bad)"/><rect x="105" y="85" width="60" height="30" fill="var(--tb-good)"/><rect x="175" y="85" width="60" height="30" fill="var(--tb-accent)"/>
-  <text class="mark-t" x="135" y="150" text-anchor="middle">× 色だらけで異常が埋もれる</text>
-  <rect x="270" y="20" width="230" height="160" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <rect x="285" y="40" width="60" height="30" fill="none" stroke="var(--tb-text-3)"/><rect x="355" y="40" width="60" height="30" fill="none" stroke="var(--tb-text-3)"/><rect x="425" y="40" width="60" height="30" fill="none" stroke="var(--tb-text-3)"/>
-  <rect x="285" y="85" width="60" height="30" fill="var(--tb-bad)"/><rect x="355" y="85" width="60" height="30" fill="none" stroke="var(--tb-text-3)"/><rect x="425" y="85" width="60" height="30" fill="none" stroke="var(--tb-text-3)"/>
-  <text class="tick" x="315" y="104" text-anchor="middle" fill="#fff">! 停止</text>
-  <text class="mark-t" x="385" y="150" text-anchor="middle">○ 平常は無彩色、異常だけ色</text>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="状態表示の比較">
+<g class="k-shadow"><rect class="k-part" x="20" y="14" width="230" height="122" rx="6"/><rect class="k-part" x="115" y="136" width="40" height="10"/></g><rect x="30" y="22" width="210" height="106" rx="2" style="fill:var(--tb-surface);stroke:var(--k-line)"/><g class="k-shadow"><rect class="k-part" x="270" y="14" width="230" height="122" rx="6"/><rect class="k-part" x="365" y="136" width="40" height="10"/></g><rect x="280" y="22" width="210" height="106" rx="2" style="fill:var(--tb-surface);stroke:var(--k-line)"/>
+<rect x="37" y="34" width="60" height="30" rx="3" style="fill:var(--tb-good)"/><rect x="105" y="34" width="60" height="30" rx="3" style="fill:var(--tb-accent)"/><rect x="173" y="34" width="60" height="30" rx="3" style="fill:var(--tb-warn)"/>
+<rect x="37" y="80" width="60" height="30" rx="3" style="fill:var(--tb-bad)"/><rect x="105" y="80" width="60" height="30" rx="3" style="fill:var(--tb-good)"/><rect x="173" y="80" width="60" height="30" rx="3" style="fill:var(--tb-accent)"/>
+<rect x="287" y="34" width="60" height="30" rx="3" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)"/><rect x="355" y="34" width="60" height="30" rx="3" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)"/><rect x="423" y="34" width="60" height="30" rx="3" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)"/>
+<g class="k-glow"><rect x="287" y="80" width="60" height="30" rx="3" style="fill:var(--tb-bad)"/></g><rect x="355" y="80" width="60" height="30" rx="3" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)"/><rect x="423" y="80" width="60" height="30" rx="3" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)"/>
+<text class="lbl" x="317" y="99" text-anchor="middle" fill="#fff" style="fill:#fff">! 停止</text>
+<text class="mark-t" x="135" y="176" text-anchor="middle">× 色だらけで異常が埋もれる</text>
+<text class="mark-t" x="385" y="176" text-anchor="middle">○ 平常は無彩色、異常だけ色</text>
 </svg>
 <p class="tb-caption">図: 平常状態を灰色系で描き、異常だけを色 (と記号・文字) で示すと、注意がすぐ異常に向かう。</p>
 <p>色は<b>意味を固定</b>して使います。表示灯の色の意味は IEC 60073 や IEC 60204-1 (JIS B 9960-1) で定められています (次章)。画面でも同じ意味に合わせ、赤 = 危険・異常、黄 = 注意、緑 = 正常・安全、青 = 指示・要対応とし、装飾目的の色は使いません。色覚の多様性に配慮し、<b>色だけで区別しない</b> (記号・文字・形・位置を併用) ことも必須です。</p>
@@ -535,19 +562,22 @@ export const OPUX: TextChapter[] = [
 <p>押しボタンの色にも規格の指定があり、たとえば非常停止は<b>赤 (背景黄)</b>、停止・切は黒・灰・白 (赤も可)、起動・入は白・灰・黒・緑が推奨されます。<b>赤を起動に使わない</b>こと、緑を危険な操作に使わないことが重要です。詳細は規格本文で確認してください。</p>
 
 <h2>シグナルタワーの構成と運用ルール</h2>
-<svg class="tb-chart" viewBox="0 0 520 240" aria-label="シグナルタワー">
-  <rect x="80" y="20" width="40" height="36" rx="4" fill="var(--tb-bad)"/>
-  <rect x="80" y="58" width="40" height="36" rx="4" fill="var(--tb-warn)"/>
-  <rect x="80" y="96" width="40" height="36" rx="4" fill="var(--tb-good)"/>
-  <rect x="80" y="134" width="40" height="36" rx="4" fill="var(--tb-accent)"/>
-  <rect x="80" y="172" width="40" height="20" rx="3" fill="var(--tb-text-3)"/>
-  <line x1="100" y1="192" x2="100" y2="230" stroke="var(--tb-text-3)" stroke-width="6"/>
-  <text class="tick" x="135" y="42">赤: 異常停止 (点滅 = 未確認)</text>
-  <text class="tick" x="135" y="80">黄: 警告・材料切れ予告・段取り中</text>
-  <text class="tick" x="135" y="118">緑: 自動運転中</text>
-  <text class="tick" x="135" y="156">青: 作業者の操作待ち (ワーク投入など)</text>
-  <text class="tick" x="135" y="186">ブザー</text>
-  <text class="mark-t" x="330" y="215">上から 赤・黄・緑 の順が一般的</text>
+<svg class="tb-chart" viewBox="0 0 520 244" role="img" aria-label="シグナルタワー">
+<g class="k-shadow">
+<path class="k-part" d="M84,14 Q100,6 116,14 L120,20 L80,20 Z"/>
+<g class="k-glow"><rect x="80" y="20" width="40" height="36" style="fill:var(--tb-bad)"/><rect x="80" y="20" width="40" height="36" fill="url(#k-steel-h)" opacity="0.35"/><rect x="86" y="24" width="6" height="28" rx="3" fill="#ffffff" opacity="0.45"/></g><rect x="78" y="54" width="44" height="4" style="fill:var(--k-steel-3);stroke:var(--k-line)" stroke-width="0.8"/><g><rect x="80" y="58" width="40" height="36" style="fill:var(--tb-warn)"/><rect x="80" y="58" width="40" height="36" fill="url(#k-steel-h)" opacity="0.35"/><rect x="86" y="62" width="6" height="28" rx="3" fill="#ffffff" opacity="0.45"/></g><rect x="78" y="92" width="44" height="4" style="fill:var(--k-steel-3);stroke:var(--k-line)" stroke-width="0.8"/><g><rect x="80" y="96" width="40" height="36" style="fill:var(--tb-good)"/><rect x="80" y="96" width="40" height="36" fill="url(#k-steel-h)" opacity="0.35"/><rect x="86" y="100" width="6" height="28" rx="3" fill="#ffffff" opacity="0.45"/></g><rect x="78" y="130" width="44" height="4" style="fill:var(--k-steel-3);stroke:var(--k-line)" stroke-width="0.8"/><g><rect x="80" y="134" width="40" height="36" style="fill:var(--tb-accent)"/><rect x="80" y="134" width="40" height="36" fill="url(#k-steel-h)" opacity="0.35"/><rect x="86" y="138" width="6" height="28" rx="3" fill="#ffffff" opacity="0.45"/></g><rect x="78" y="168" width="44" height="4" style="fill:var(--k-steel-3);stroke:var(--k-line)" stroke-width="0.8"/>
+<rect class="k-part" x="80" y="172" width="40" height="22" rx="2"/>
+<rect class="k-part-h" x="94" y="194" width="12" height="36"/>
+<rect class="k-part" x="70" y="228" width="60" height="8" rx="2"/>
+</g>
+<path class="k-thin" d="M84,178 L116,178 M84,183 L116,183 M84,188 L116,188"/>
+<line class="k-thin" x1="122" y1="38" x2="132" y2="38"/><line class="k-thin" x1="122" y1="76" x2="132" y2="76"/><line class="k-thin" x1="122" y1="114" x2="132" y2="114"/><line class="k-thin" x1="122" y1="152" x2="132" y2="152"/><line class="k-thin" x1="122" y1="183" x2="132" y2="183"/>
+<text class="lbl" x="138" y="42">赤: 異常停止 (点滅 = 未確認)</text>
+<text class="lbl" x="138" y="80">黄: 警告・材料切れ予告・段取り中</text>
+<text class="lbl" x="138" y="118">緑: 自動運転中</text>
+<text class="lbl" x="138" y="156">青: 作業者の操作待ち (ワーク投入など)</text>
+<text class="lbl" x="138" y="187">ブザー</text>
+<text class="mark-t" x="330" y="222">上から 赤・黄・緑 の順が一般的</text>
 </svg>
 <p class="tb-caption">図: 4 段シグナルタワーの割り当て例。色の上下順は工場内で統一し、遠くからは位置でも判別できるようにする。</p>
 <ul>
@@ -635,24 +665,29 @@ export const OPUX: TextChapter[] = [
 
 <h2>判断をなくす: 目で見る管理</h2>
 <p>点検を「値を読んで基準と比べる」作業にすると、時間がかかり、判断を誤ります。<b>見ただけで正常・異常が分かる</b>表示にします。</p>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="圧力計のゾーン表示と合いマーク">
-  <path d="M60,150 A80,80 0 0 1 100,81" stroke="var(--tb-bad)" stroke-width="12" fill="none"/>
-  <path d="M100,81 A80,80 0 0 1 180,81" stroke="var(--tb-good)" stroke-width="12" fill="none"/>
-  <path d="M180,81 A80,80 0 0 1 220,150" stroke="var(--tb-bad)" stroke-width="12" fill="none"/>
-  <line x1="140" y1="150" x2="160" y2="88" stroke="var(--tb-text)" stroke-width="3"/>
-  <circle cx="140" cy="150" r="6" fill="var(--tb-text)"/>
-  <text class="tick" x="140" y="180" text-anchor="middle">0.4〜0.6 MPa を緑帯で表示</text>
-  <text class="mark-t" x="140" y="205" text-anchor="middle">針が緑にあれば正常</text>
-  <circle cx="330" cy="110" r="26" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)" stroke-width="2"/>
-  <path d="M318,104 L342,104 L342,116 L318,116 Z" fill="none" stroke="var(--tb-text-3)"/>
-  <line x1="330" y1="70" x2="330" y2="150" stroke="var(--tb-warn)" stroke-width="3"/>
-  <text class="tick" x="330" y="180" text-anchor="middle">合いマーク</text>
-  <text class="mark-t" x="330" y="205" text-anchor="middle">線がずれたら緩み</text>
-  <rect x="420" y="50" width="50" height="110" fill="none" stroke="var(--tb-text-3)" stroke-width="2"/>
-  <rect x="422" y="100" width="46" height="58" fill="var(--tb-accent)" opacity="0.5"/>
-  <line x1="410" y1="80" x2="480" y2="80" stroke="var(--tb-good)" stroke-width="2"/><line x1="410" y1="130" x2="480" y2="130" stroke="var(--tb-bad)" stroke-width="2"/>
-  <text class="tick" x="485" y="84">上限</text><text class="tick" x="485" y="134">下限</text>
-  <text class="mark-t" x="445" y="205" text-anchor="middle">油面の上下限</text>
+<svg class="tb-chart" viewBox="0 0 520 222" role="img" aria-label="圧力計のゾーン表示と合いマーク">
+<g class="k-shadow"><circle class="k-part" cx="140" cy="120" r="78"/></g>
+<circle cx="140" cy="120" r="68" style="fill:var(--tb-surface);stroke:var(--k-line)"/>
+<path d="M88,150 A60,60 0 0 1 110,68" style="stroke:var(--tb-bad)" stroke-width="9" fill="none"/>
+<path d="M110,68 A60,60 0 0 1 170,68" style="stroke:var(--tb-good)" stroke-width="9" fill="none"/>
+<path d="M170,68 A60,60 0 0 1 192,150" style="stroke:var(--tb-bad)" stroke-width="9" fill="none"/>
+<path class="k-thin" d="M84,152 L92,148 M80,120 L89,120 M88,90 L96,94 M110,66 L114,74 M140,58 L140,67 M170,66 L166,74 M192,90 L184,94 M200,120 L191,120 M196,152 L188,148" style="stroke:var(--k-line)" stroke-width="1.4"/>
+<line x1="140" y1="120" x2="156" y2="70" style="stroke:var(--tb-bad)" stroke-width="3"/>
+<circle cx="140" cy="120" r="6" style="fill:var(--k-line)"/>
+<text class="k-note" x="140" y="160" text-anchor="middle">MPa</text>
+<text class="tick" x="140" y="210" text-anchor="middle">0.4〜0.6 MPa を緑帯で表示</text>
+<text class="mark-t" x="140" y="20" text-anchor="middle">針が緑にあれば正常</text>
+<g class="k-shadow"><polygon class="k-part" points="356,110 343,132.5 317,132.5 304,110 317,87.5 343,87.5"/></g>
+<circle cx="330" cy="110" r="9" style="fill:var(--k-steel-3);stroke:var(--k-line)"/>
+<line x1="330" y1="64" x2="330" y2="156" style="stroke:var(--tb-warn)" stroke-width="3.4"/>
+<text class="tick" x="330" y="180" text-anchor="middle">合いマーク</text>
+<text class="mark-t" x="330" y="205" text-anchor="middle">線がずれたら緩み</text>
+<g class="k-shadow"><rect class="k-part" x="420" y="46" width="50" height="118" rx="6"/></g>
+<rect x="428" y="54" width="34" height="102" rx="3" style="fill:var(--tb-surface)"/>
+<rect x="428" y="100" width="34" height="56" rx="3" style="fill:var(--tb-warn)" opacity="0.55"/>
+<line x1="412" y1="80" x2="478" y2="80" style="stroke:var(--tb-good)" stroke-width="2"/><line x1="412" y1="130" x2="478" y2="130" style="stroke:var(--tb-bad)" stroke-width="2"/>
+<text class="tick" x="482" y="84">上限</text><text class="tick" x="482" y="134">下限</text>
+<text class="mark-t" x="445" y="205" text-anchor="middle">油面の上下限</text>
 </svg>
 <p class="tb-caption">図: 目で見る管理の例。ゾーン表示・合いマーク・上下限線で、数値を読まずに判断できる。</p>
 <table class="tb-table">
@@ -675,17 +710,17 @@ export const OPUX: TextChapter[] = [
   <li>点検に必要な道具 (ウエス・グリースガン・ゲージ) の置き場を装置に作る (形跡管理: 道具の形の切り欠きに戻す)。</li>
   <li>点検時間の目標を決める (たとえば始業点検 5 分)。それを超える箇所は、見える化やセンサ化を検討する。</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 190" aria-label="点検ルート">
-  <rect x="140" y="40" width="240" height="110" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <text class="tick" x="260" y="100" text-anchor="middle">装置</text>
-  <path d="M120,160 L120,30 L400,30 L400,160 Z" fill="none" class="guide"/>
-  <circle cx="160" cy="160" r="10" fill="var(--tb-accent)"/><text class="tick" x="160" y="164" text-anchor="middle" fill="#fff">1</text>
-  <circle cx="230" cy="160" r="10" fill="var(--tb-accent)"/><text class="tick" x="230" y="164" text-anchor="middle" fill="#fff">2</text>
-  <circle cx="300" cy="160" r="10" fill="var(--tb-accent)"/><text class="tick" x="300" y="164" text-anchor="middle" fill="#fff">3</text>
-  <circle cx="370" cy="160" r="10" fill="var(--tb-accent)"/><text class="tick" x="370" y="164" text-anchor="middle" fill="#fff">4</text>
-  <circle cx="400" cy="95" r="10" fill="var(--tb-accent)"/><text class="tick" x="400" y="99" text-anchor="middle" fill="#fff">5</text>
-  <text class="tick" x="260" y="185" text-anchor="middle">通路側 (作業者側) に 1〜4 を集約 → 側面の 5 で終わり</text>
-  <text class="tick" x="260" y="22" text-anchor="middle">裏側には点検箇所を置かない</text>
+<svg class="tb-chart" viewBox="0 0 520 196" role="img" aria-label="点検ルート">
+<rect x="20" y="152" width="480" height="22" style="fill:var(--tb-warn)" opacity="0.12"/>
+<text class="k-note" x="30" y="168">通路</text>
+<g class="k-shadow"><rect class="k-alu" x="140" y="40" width="240" height="104" rx="4"/></g>
+<rect x="150" y="50" width="220" height="84" rx="2" style="fill:var(--tb-surface-2)" opacity="0.6"/>
+<text class="mark-t" x="260" y="96" text-anchor="middle">装置</text>
+<path d="M120,162 L390,162 Q400,162 400,150 L400,108" class="k-move" stroke-dasharray="6 4"/>
+<rect x="140" y="30" width="240" height="10" style="fill:var(--tb-bad)" opacity="0.12"/>
+<circle class="k-badge" cx="160" cy="162" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="160" y="166" text-anchor="middle">1</text><circle class="k-badge" cx="230" cy="162" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="230" y="166" text-anchor="middle">2</text><circle class="k-badge" cx="300" cy="162" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="300" y="166" text-anchor="middle">3</text><circle class="k-badge" cx="370" cy="162" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="370" y="166" text-anchor="middle">4</text><circle class="k-badge" cx="400" cy="95" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="400" y="99" text-anchor="middle">5</text>
+<text class="tick" x="260" y="190" text-anchor="middle">通路側 (作業者側) に 1〜4 を集約 → 側面の 5 で終わり</text>
+<text class="tick" x="260" y="22" text-anchor="middle">裏側には点検箇所を置かない</text>
 </svg>
 <p class="tb-caption">図: 点検ルートの例。番号順に歩けば戻りなしで点検が終わる。</p>
 
@@ -762,14 +797,17 @@ export const OPUX: TextChapter[] = [
 <h2>学習曲線</h2>
 <p>繰り返しで作業時間が短くなる様子は<b>学習曲線</b>で表せます。代表的な式では、累積回数が 2 倍になるごとに作業時間が一定の比率 (習熟率) になります。</p>
 <div class="tb-formula">Tₙ = T₁ × n<sup>b</sup>　　b = log₂(習熟率)　(習熟率 80 % なら b = log₂ 0.8 ≈ −0.322)</div>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="学習曲線">
-  <line class="axis" x1="50" y1="190" x2="500" y2="190"/><line class="axis" x1="50" y1="20" x2="50" y2="190"/>
-  <path d="M60,40 C90,110 130,140 200,155 C280,168 380,174 490,178" fill="none" stroke="var(--tb-bad)" stroke-width="2.5"/>
-  <path d="M60,90 C90,130 130,150 200,162 C280,172 380,176 490,179" fill="none" stroke="var(--tb-good)" stroke-width="2.5"/>
-  <line class="guide" x1="50" y1="170" x2="500" y2="170"/><text class="tick" x="495" y="165" text-anchor="end">標準時間</text>
-  <text class="mark-t" x="100" y="45">ガイダンスなし</text><text class="mark-t" x="120" y="110">ガイダンス・ポカヨケあり</text>
-  <text class="lbl" x="495" y="208" text-anchor="end">累積の作業回数</text>
-  <text class="lbl" x="40" y="105" text-anchor="middle" transform="rotate(-90 40 105)">作業時間</text>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="学習曲線">
+<line class="grid" x1="50" y1="100" x2="500" y2="100"/><line class="grid" x1="50" y1="60" x2="500" y2="60"/>
+<path d="M60,40 C90,110 130,140 200,155 C280,168 380,174 490,178 L490,179 C380,176 280,172 200,162 C130,150 90,130 60,90 Z" style="fill:var(--tb-good)" opacity="0.12"/>
+<line class="axis" x1="50" y1="190" x2="504" y2="190" marker-end="url(#k-arrow)"/><line class="axis" x1="50" y1="190" x2="50" y2="14" marker-end="url(#k-arrow)"/>
+<line x1="50" y1="170" x2="500" y2="170" style="stroke:var(--tb-text-3)" stroke-dasharray="6 3"/><text class="tick" x="495" y="165" text-anchor="end">標準時間</text>
+<path d="M60,40 C90,110 130,140 200,155 C280,168 380,174 490,178" fill="none" style="stroke:var(--tb-bad)" stroke-width="2.8"/>
+<path d="M60,90 C90,130 130,150 200,162 C280,172 380,176 490,179" fill="none" style="stroke:var(--tb-good)" stroke-width="2.8"/>
+<circle cx="60" cy="40" r="4" style="fill:var(--tb-bad)"/><circle cx="60" cy="90" r="4" style="fill:var(--tb-good)"/>
+<text class="k-bad-t" x="100" y="45">ガイダンスなし</text><text class="k-good-t" x="120" y="110">ガイダンス・ポカヨケあり</text>
+<text class="lbl" x="495" y="208" text-anchor="end">累積の作業回数</text>
+<text class="lbl" x="36" y="105" text-anchor="middle" transform="rotate(-90 36 105)">作業時間</text>
 </svg>
 <p class="tb-caption">図: 装置にガイダンスと制約があると、初回の時間が短くなり、標準時間に早く届く (概念図)。</p>
 <p>設計の目標は、曲線の<b>始点を下げる</b> (初回から迷わない) ことと、<b>早く平らにする</b> (覚えることを減らす) ことです。</p>
@@ -784,12 +822,17 @@ export const OPUX: TextChapter[] = [
   <tr><td>手順の表示</td><td>HMI やタブレットに写真・動画の作業指示、現在のステップを強調</td></tr>
   <tr><td>アフォーダンス</td><td>つかむ場所の形と色、押す場所のくぼみ、引く方向の矢印</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="ピッキングランプ">
-  <rect x="40" y="40" width="440" height="80" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <rect x="60" y="60" width="70" height="50" fill="none" stroke="var(--tb-text-3)"/><rect x="150" y="60" width="70" height="50" fill="none" stroke="var(--tb-text-3)"/><rect x="240" y="60" width="70" height="50" fill="none" stroke="var(--tb-text-3)"/><rect x="330" y="60" width="70" height="50" fill="none" stroke="var(--tb-text-3)"/>
-  <circle cx="95" cy="50" r="7" fill="var(--tb-text-3)"/><circle cx="185" cy="50" r="7" fill="var(--tb-good)"/><circle cx="275" cy="50" r="7" fill="var(--tb-text-3)"/><circle cx="365" cy="50" r="7" fill="var(--tb-text-3)"/>
-  <text class="tick" x="95" y="140" text-anchor="middle">済</text><text class="mark-t" x="185" y="140" text-anchor="middle">次はここ (2 個)</text><text class="tick" x="275" y="140" text-anchor="middle">B</text><text class="tick" x="365" y="140" text-anchor="middle">C</text>
-  <text class="tick" x="440" y="90" text-anchor="middle">光電センサで</text><text class="tick" x="440" y="106" text-anchor="middle">取出しを検知</text>
+<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="ピッキングランプ">
+<g class="k-shadow"><rect class="k-part" x="40" y="40" width="440" height="80" rx="3"/></g>
+<rect x="50" y="48" width="420" height="6" rx="2" style="fill:var(--k-steel-3)"/>
+<g class="k-shadow"><path class="k-plastic" d="M60,70 L130,70 L130,110 L60,110 Z"/><path d="M60,70 L130,70 L122,82 L68,82 Z" style="fill:var(--k-plastic-2)" opacity="0.6"/><path class="k-plastic" d="M150,70 L220,70 L220,110 L150,110 Z"/><path d="M150,70 L220,70 L212,82 L158,82 Z" style="fill:var(--k-plastic-2)" opacity="0.6"/><path class="k-plastic" d="M240,70 L310,70 L310,110 L240,110 Z"/><path d="M240,70 L310,70 L302,82 L248,82 Z" style="fill:var(--k-plastic-2)" opacity="0.6"/><path class="k-plastic" d="M330,70 L400,70 L400,110 L330,110 Z"/><path d="M330,70 L400,70 L392,82 L338,82 Z" style="fill:var(--k-plastic-2)" opacity="0.6"/></g>
+<rect x="85" y="44" width="20" height="14" rx="3" fill="#2f333a"/><rect x="265" y="44" width="20" height="14" rx="3" fill="#2f333a"/><rect x="355" y="44" width="20" height="14" rx="3" fill="#2f333a"/>
+<g class="k-glow"><rect x="175" y="44" width="20" height="14" rx="3" style="fill:var(--tb-good)"/></g>
+<text x="185" y="55" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">2</text>
+<rect x="420" y="62" width="14" height="14" rx="2" fill="#2f333a"/><circle cx="427" cy="69" r="3" fill="#e53935"/>
+<line x1="420" y1="69" x2="64" y2="69" style="stroke:#e53935" stroke-width="1.2" stroke-dasharray="3 3" opacity="0.8"/>
+<text class="tick" x="95" y="140" text-anchor="middle">済</text><text class="mark-t" x="185" y="140" text-anchor="middle">次はここ (2 個)</text><text class="tick" x="275" y="140" text-anchor="middle">B</text><text class="tick" x="365" y="140" text-anchor="middle">C</text>
+<text class="tick" x="452" y="140" text-anchor="middle">光電センサで</text><text class="tick" x="452" y="156" text-anchor="middle">取出しを検知</text>
 </svg>
 <p class="tb-caption">図: ピッキングランプ。取る棚だけを点灯させ、違う棚に手を入れたら警告する。品種が多いほど効果が大きい。</p>
 
@@ -868,19 +911,18 @@ export const OPUX: TextChapter[] = [
 
 <h2>階層的タスク分析 (HTA)</h2>
 <p>作業を<b>目標 → サブ目標 → 操作</b>に分解し、各操作の順序や条件 (プラン) を書いたものが階層的タスク分析です。分解すると、手順の多い所、判断が必要な所、誤りが起きやすい所が見えてきます。</p>
-<svg class="tb-chart" viewBox="0 0 520 210" aria-label="階層的タスク分析">
-  <rect x="180" y="10" width="160" height="30" fill="var(--tb-accent)" opacity="0.8"/><text class="tick" x="260" y="30" text-anchor="middle" fill="#fff">0 品種を切り替える</text>
-  <line x1="260" y1="40" x2="260" y2="60" stroke="var(--tb-text-3)"/><line x1="80" y1="60" x2="440" y2="60" stroke="var(--tb-text-3)"/>
-  <line x1="80" y1="60" x2="80" y2="75" stroke="var(--tb-text-3)"/><line x1="200" y1="60" x2="200" y2="75" stroke="var(--tb-text-3)"/><line x1="320" y1="60" x2="320" y2="75" stroke="var(--tb-text-3)"/><line x1="440" y1="60" x2="440" y2="75" stroke="var(--tb-text-3)"/>
-  <rect x="25" y="75" width="110" height="30" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/><text class="tick" x="80" y="94" text-anchor="middle">1 品種を選ぶ</text>
-  <rect x="145" y="75" width="110" height="30" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/><text class="tick" x="200" y="94" text-anchor="middle">2 治具を交換</text>
-  <rect x="265" y="75" width="110" height="30" fill="var(--tb-surface-2)" stroke="var(--tb-bad)" stroke-width="2"/><text class="tick" x="320" y="94" text-anchor="middle">3 原点を合わせる</text>
-  <rect x="385" y="75" width="110" height="30" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/><text class="tick" x="440" y="94" text-anchor="middle">4 初品を確認</text>
-  <line x1="320" y1="105" x2="320" y2="125" stroke="var(--tb-text-3)"/>
-  <text class="tick" x="320" y="140" text-anchor="middle">3.1 手動モードにする</text>
-  <text class="tick" x="320" y="158" text-anchor="middle">3.2 軸を目盛りに合わせる ← 誤りが多い</text>
-  <text class="tick" x="320" y="176" text-anchor="middle">3.3 原点を登録する</text>
-  <text class="mark-t" x="20" y="200">プラン 0: 1 → 2 → 3 → 4。4 で NG なら 3 に戻る</text>
+<svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="階層的タスク分析">
+<g class="k-shadow">
+<rect x="180" y="10" width="160" height="30" rx="5" style="fill:var(--tb-accent)"/>
+<rect x="25" y="75" width="110" height="30" rx="5" style="fill:var(--tb-surface);stroke:var(--k-line-2)" stroke-width="1"/><text class="tick" x="80" y="94" text-anchor="middle">1 品種を選ぶ</text><rect x="145" y="75" width="110" height="30" rx="5" style="fill:var(--tb-surface);stroke:var(--k-line-2)" stroke-width="1"/><text class="tick" x="200" y="94" text-anchor="middle">2 治具を交換</text><rect x="265" y="75" width="110" height="30" rx="5" style="fill:var(--tb-surface);stroke:var(--tb-bad)" stroke-width="2"/><text class="tick" x="320" y="94" text-anchor="middle">3 原点を合わせる</text><rect x="385" y="75" width="110" height="30" rx="5" style="fill:var(--tb-surface);stroke:var(--k-line-2)" stroke-width="1"/><text class="tick" x="440" y="94" text-anchor="middle">4 初品を確認</text>
+</g>
+<text class="lbl" x="260" y="30" text-anchor="middle" style="fill:#fff">0 品種を切り替える</text>
+<path class="k-thin" d="M260,40 L260,60 M80,60 L440,60 M80,60 L80,75 M200,60 L200,75 M320,60 L320,75 M440,60 L440,75 M320,105 L320,125 M310,125 L330,125"/>
+<rect x="196" y="126" width="248" height="58" rx="5" style="fill:var(--tb-surface-2)"/>
+<text class="tick" x="320" y="142" text-anchor="middle">3.1 手動モードにする</text>
+<text class="k-bad-t" x="320" y="160" text-anchor="middle" style="font-size:11px">3.2 軸を目盛りに合わせる ← 誤りが多い</text>
+<text class="tick" x="320" y="177" text-anchor="middle">3.3 原点を登録する</text>
+<text class="mark-t" x="20" y="204">プラン 0: 1 → 2 → 3 → 4。4 で NG なら 3 に戻る</text>
 </svg>
 <p class="tb-caption">図: 段取り替えの HTA (抜粋)。誤りの多い操作 3.2 は、ストッパやレシピ連動で操作そのものをなくす候補になる。</p>
 <p>各操作に「起こりうる誤り」「誤りの結果」「回復方法」を表で付けると、ヒューマンエラーの事前評価 (SHERPA などの手法) になります。</p>
@@ -921,16 +963,12 @@ export const OPUX: TextChapter[] = [
   <tr><td>フラストレーション</td><td>不安・いらいら・ストレスをどれだけ感じたか</td></tr>
 </table>
 <div class="tb-formula">重み付き TLX = Σ(評定 × 重み) ÷ 15　　(重みは 15 通りの一対比較で選ばれた回数、合計 15)<br>Raw TLX = 6 尺度の評定の平均</div>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="NASA-TLX の改善前後">
-  <line class="axis" x1="60" y1="170" x2="500" y2="170"/>
-  <text class="tick" x="105" y="186" text-anchor="middle">知的</text><text class="tick" x="175" y="186" text-anchor="middle">身体</text><text class="tick" x="245" y="186" text-anchor="middle">時間</text><text class="tick" x="315" y="186" text-anchor="middle">成績</text><text class="tick" x="385" y="186" text-anchor="middle">努力</text><text class="tick" x="455" y="186" text-anchor="middle">不満</text>
-  <rect x="88" y="65" width="16" height="105" fill="var(--tb-bad)"/><rect x="106" y="110" width="16" height="60" fill="var(--tb-good)"/>
-  <rect x="158" y="125" width="16" height="45" fill="var(--tb-bad)"/><rect x="176" y="133" width="16" height="37" fill="var(--tb-good)"/>
-  <rect x="228" y="50" width="16" height="120" fill="var(--tb-bad)"/><rect x="246" y="95" width="16" height="75" fill="var(--tb-good)"/>
-  <rect x="298" y="110" width="16" height="60" fill="var(--tb-bad)"/><rect x="316" y="133" width="16" height="37" fill="var(--tb-good)"/>
-  <rect x="368" y="80" width="16" height="90" fill="var(--tb-bad)"/><rect x="386" y="118" width="16" height="52" fill="var(--tb-good)"/>
-  <rect x="438" y="95" width="16" height="75" fill="var(--tb-bad)"/><rect x="456" y="140" width="16" height="30" fill="var(--tb-good)"/>
-  <rect x="70" y="14" width="12" height="12" fill="var(--tb-bad)"/><text class="tick" x="86" y="24">改善前</text><rect x="150" y="14" width="12" height="12" fill="var(--tb-good)"/><text class="tick" x="166" y="24">改善後 (段取りガイダンス導入)</text>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="NASA-TLX の改善前後">
+<line class="grid" x1="60" y1="130" x2="500" y2="130"/><line class="grid" x1="60" y1="90" x2="500" y2="90"/><line class="grid" x1="60" y1="50" x2="500" y2="50"/>
+<g class="k-shadow"><rect x="88" y="65" width="16" height="105" rx="3" style="fill:var(--tb-bad)" fill-opacity="1"/><rect x="106" y="110" width="16" height="60" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/><rect x="158" y="125" width="16" height="45" rx="3" style="fill:var(--tb-bad)" fill-opacity="1"/><rect x="176" y="133" width="16" height="37" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/><rect x="228" y="50" width="16" height="120" rx="3" style="fill:var(--tb-bad)" fill-opacity="1"/><rect x="246" y="95" width="16" height="75" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/><rect x="298" y="110" width="16" height="60" rx="3" style="fill:var(--tb-bad)" fill-opacity="1"/><rect x="316" y="133" width="16" height="37" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/><rect x="368" y="80" width="16" height="90" rx="3" style="fill:var(--tb-bad)" fill-opacity="1"/><rect x="386" y="118" width="16" height="52" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/><rect x="438" y="95" width="16" height="75" rx="3" style="fill:var(--tb-bad)" fill-opacity="1"/><rect x="456" y="140" width="16" height="30" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/></g>
+<line class="axis" x1="60" y1="170" x2="500" y2="170"/>
+<text class="tick" x="105" y="186" text-anchor="middle">知的</text><text class="tick" x="175" y="186" text-anchor="middle">身体</text><text class="tick" x="245" y="186" text-anchor="middle">時間</text><text class="tick" x="315" y="186" text-anchor="middle">成績</text><text class="tick" x="385" y="186" text-anchor="middle">努力</text><text class="tick" x="455" y="186" text-anchor="middle">不満</text>
+<rect x="70" y="14" width="12" height="12" rx="2" style="fill:var(--tb-bad)"/><text class="tick" x="86" y="24">改善前</text><rect x="150" y="14" width="12" height="12" rx="2" style="fill:var(--tb-good)"/><text class="tick" x="166" y="24">改善後 (段取りガイダンス導入)</text>
 </svg>
 <p class="tb-caption">図: 段取り作業の NASA-TLX 評定の比較 (架空のデータ)。知的要求とタイムプレッシャーが大きく下がった。</p>
 <div class="tb-note">NASA-TLX は主観評価です。同じ作業者・同じタスクで改善前後を比べる使い方が向いています。人どうしの絶対値の比較には注意します。SUS などの満足度尺度や、成功率・時間の指標は「UX を数字で測る」の章も参照してください。</div>

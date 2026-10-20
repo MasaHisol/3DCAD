@@ -27,14 +27,30 @@ export const PROCESS: TextChapter[] = [
 </ul>
 <div class="tb-formula">回転数 n = 1000 · V<sub>c</sub> / (π · D)　[min⁻¹]　　送り速度 V<sub>f</sub> = f · n (旋削)、 V<sub>f</sub> = f<sub>z</sub> · z · n (フライス)</div>
 <div class="tb-formula">加工時間 T = L / V<sub>f</sub>　　除去率 Q = a<sub>p</sub> · f · V<sub>c</sub>　[cm³/min]</div>
-<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="旋削の切削条件">
-<rect x="40" y="50" width="40" height="100" fill="var(--tb-surface-2)" stroke="currentColor"/>
-<rect x="80" y="70" width="240" height="60" class="sec"/><rect x="320" y="80" width="140" height="40" fill="var(--tb-surface-2)" stroke="currentColor"/>
-<path d="M320,130 l14,36 l-30,0 Z" fill="var(--tb-accent)"/>
-<path d="M200,40 a14,8 0 1 1 -1,0" fill="none" stroke="var(--tb-text-2)" stroke-width="1.5"/><text class="tick" x="222" y="40">n (工作物が回る)</text>
-<path d="M300,184 l-60,0 m8,-5 l-8,5 l8,5" fill="none" stroke="var(--tb-text-2)"/><text class="tick" x="306" y="188">送り f (mm/rev)</text>
-<line class="guide" x1="340" y1="70" x2="340" y2="80"/><text class="tick" x="346" y="66">切込み a<tspan font-size="9">p</tspan> = (D − d) / 2</text>
-<text class="lbl" x="200" y="104" text-anchor="middle">素材径 D</text><text class="lbl" x="390" y="104" text-anchor="middle">仕上げ径 d</text>
+<svg class="tb-chart" viewBox="0 0 520 222" role="img" aria-label="旋削の切削条件">
+  <g class="k-shadow">
+    <rect class="k-part" x="16" y="34" width="44" height="132" rx="4"/>
+    <rect class="k-part" x="56" y="52" width="24" height="18" rx="2"/><rect class="k-part" x="56" y="130" width="24" height="18" rx="2"/>
+    <path class="k-part" d="M80,66 L300,66 L300,80 L470,80 L470,120 L300,120 L300,134 L80,134 Z"/>
+  </g>
+  <path d="M300,80 L470,80 M300,120 L470,120" style="stroke:var(--k-line)" stroke-width="1.6"/>
+  <text class="k-note" x="38" y="182" text-anchor="middle">チャック</text>
+  <line class="k-center" x1="10" y1="100" x2="500" y2="100"/>
+  <path d="M230,58 A12,42 0 0 1 230,142" fill="none" class="k-move" style="stroke-width:2.2"/>
+  <text class="mark-t" x="246" y="50">回転 n (工作物が回る)</text>
+  <line class="k-dimline" x1="150" y1="66" x2="150" y2="134"/><text class="k-dimtext" x="156" y="94">素材径 D</text>
+  <line class="k-dimline" x1="396" y1="80" x2="396" y2="120"/><text class="k-dimtext" x="402" y="94">仕上げ径 d</text>
+  <path class="k-ext" d="M304,66 H500"/>
+  <line class="k-dimline" x1="492" y1="48" x2="492" y2="66" style="marker-start:none"/><line class="k-dimline" x1="492" y1="98" x2="492" y2="80" style="marker-start:none"/>
+  <text class="k-dimtext" x="486" y="36" text-anchor="end">切込み a<tspan style="font-size:9px" dy="3">p</tspan><tspan dy="-3"> = (D − d) / 2</tspan></text>
+  <g class="k-shadow">
+    <path class="k-part" d="M290,150 L322,148 L340,206 L276,206 Z"/>
+    <path class="k-accent" d="M300,121 L326,146 L292,150 Z"/>
+  </g>
+  <path d="M306,124 q18,4 18,18 q-1,9 -10,7 q-7,-3 -1,-10 q6,-5 13,1" fill="none" style="stroke:var(--tb-warn)" stroke-width="2"/>
+  <text class="k-note" x="348" y="186">バイト</text>
+  <line class="k-move" x1="266" y1="196" x2="206" y2="196"/>
+  <text class="mark-t" x="198" y="200" text-anchor="end">送り f (mm/rev)</text>
 </svg>
 <p class="tb-caption">図: 外径旋削。工作物が回転し (n)、バイトが軸方向に送られる (f)。半径方向の切込み a<sub>p</sub> で素材径 D から径 d に削る。切削速度は外周の速さ V<sub>c</sub> = π D n / 1000</p>
 <h2>材料別の切削速度の目安 (超硬工具)</h2>
@@ -64,13 +80,17 @@ export const PROCESS: TextChapter[] = [
   <tr><td>ボーリング (中ぐり)</td><td>IT6〜IT8</td><td>0.4〜1.6</td><td>0.013〜0.033 mm</td></tr>
   <tr><td>円筒研削</td><td>IT5〜IT6</td><td>0.1〜0.8</td><td>0.009〜0.013 mm</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="公差と加工コストの関係">
-<line class="axis" x1="60" y1="170" x2="490" y2="170"/><line class="axis" x1="60" y1="20" x2="60" y2="170"/>
-<polyline points="80,40 120,70 170,105 230,130 300,147 380,157 470,162" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-<circle class="mark" cx="120" cy="70" r="4"/><text class="mark-t" x="128" y="66">研削が必要 (IT6 以下)</text>
-<circle class="mark" cx="230" cy="130" r="4"/><text class="mark-t" x="238" y="124">仕上げ削りで出る (IT7〜9)</text>
-<circle class="mark" cx="380" cy="157" r="4"/><text class="mark-t" x="388" y="150">普通公差 (荒〜中仕上げ)</text>
-<text class="lbl" x="490" y="190" text-anchor="end">公差幅 (広い →)</text><text class="lbl" x="66" y="16">相対コスト</text>
+<svg class="tb-chart" viewBox="0 0 520 204" role="img" aria-label="公差と加工コストの関係">
+  <rect x="62" y="20" width="96" height="150" style="fill:color-mix(in srgb, var(--tb-bad) 9%, transparent)"/>
+  <rect x="158" y="20" width="142" height="150" style="fill:color-mix(in srgb, var(--tb-warn) 9%, transparent)"/>
+  <rect x="300" y="20" width="190" height="150" style="fill:color-mix(in srgb, var(--tb-good) 9%, transparent)"/>
+  <line class="axis" x1="60" y1="170" x2="494" y2="170" marker-end="url(#k-arrow)"/><line class="axis" x1="60" y1="170" x2="60" y2="16" marker-end="url(#k-arrow)"/>
+  <path d="M80,40 L120,70 L170,105 L230,130 L300,147 L380,157 L470,162 L470,170 L80,170 Z" style="fill:color-mix(in srgb, var(--tb-accent) 14%, transparent)"/>
+  <polyline points="80,40 120,70 170,105 230,130 300,147 380,157 470,162" fill="none" style="stroke:var(--tb-accent)" stroke-width="2.8"/>
+  <circle cx="120" cy="70" r="5" style="fill:var(--tb-bad);stroke:var(--tb-surface)" stroke-width="1.5"/><text class="mark-t" x="130" y="66">研削が必要 (IT6 以下)</text>
+  <circle cx="230" cy="130" r="5" style="fill:var(--tb-warn);stroke:var(--tb-surface)" stroke-width="1.5"/><text class="mark-t" x="240" y="124">仕上げ削りで出る (IT7〜9)</text>
+  <circle cx="380" cy="157" r="5" style="fill:var(--tb-good);stroke:var(--tb-surface)" stroke-width="1.5"/><text class="mark-t" x="372" y="146">普通公差 (荒〜中仕上げ)</text>
+  <text class="lbl" x="490" y="192" text-anchor="end">公差幅 (広い →)</text><text class="lbl" x="68" y="14">相対コスト</text>
 </svg>
 <p class="tb-caption">図: 公差とコストの関係 (模式図)。公差を狭くするほどコストは指数関数的に上がる。特に「削りで出る範囲」から「研削・測定の追加が必要な範囲」に踏み込むと工程そのものが増え、段差状に高くなる</p>
 <h2>加工コストを決めるもの</h2>
@@ -148,15 +168,25 @@ export const PROCESS: TextChapter[] = [
   <li><b>研削逃げ (ぬすみ)</b>: 砥石の角は丸くなるので、段付き軸の隅は直角に仕上がらない。隅にはヌスミ溝 (JIS B 0711 など) か、砥石の R に合わせた隅 R を指示する</li>
   <li>研削するのは<b>機能面だけ</b>。軸全長を研削指示にしない</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="研削逃げ">
-<path d="M40,60 L200,60 L200,40 L240,40 L240,160 L200,160 L200,140 L40,140 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-<rect x="110" y="20" width="86" height="40" rx="6" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-<path d="M196,56 q4,0 4,4" fill="none" stroke="var(--tb-bad)" stroke-width="3"/>
-<text class="lbl" x="120" y="185" text-anchor="middle" style="fill:var(--tb-bad)">逃げなし: 隅に研削残り</text>
-<path d="M290,60 L440,60 L440,66 L450,66 L450,40 L490,40 L490,160 L450,160 L450,134 L440,134 L440,140 L290,140 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-<rect x="350" y="20" width="96" height="40" rx="6" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-<text class="lbl" x="390" y="185" text-anchor="middle" style="fill:var(--tb-good)">ヌスミ溝: 砥石が段まで抜ける</text>
-<text class="tick" x="445" y="84" text-anchor="middle">溝</text>
+<svg class="tb-chart" viewBox="0 0 520 222" role="img" aria-label="研削逃げ">
+  <rect class="k-panel" x="8" y="8" width="244" height="206" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="206" rx="8"/>
+  <circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">逃げなし</text>
+  <circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">ヌスミ溝</text>
+  <g class="k-shadow"><path class="k-cut" d="M24,112 L170,112 L170,84 L236,84 L236,180 L24,180 Z"/></g>
+  <line class="k-center" x1="16" y1="180" x2="244" y2="180"/>
+  <rect x="98" y="46" width="72" height="66" rx="12" style="fill:url(#k-dots);stroke:var(--k-line)" stroke-width="1.6"/>
+  <path class="k-move" d="M114,58 A16,10 0 0 1 150,58"/>
+  <text class="mark-t" x="92" y="70" text-anchor="end">砥石</text>
+  <path d="M158,112 L170,112 L170,100 A12,12 0 0 1 158,112 Z" style="fill:var(--tb-bad)"/>
+  <circle cx="166" cy="106" r="13" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <text class="k-bad-t" x="130" y="200" text-anchor="middle">逃げなし: 隅に研削残り</text>
+  <g class="k-shadow"><path class="k-cut" d="M284,112 L410,112 L410,120 L426,120 L426,84 L496,84 L496,180 L284,180 Z"/></g>
+  <line class="k-center" x1="276" y1="180" x2="504" y2="180"/>
+  <rect x="354" y="46" width="72" height="66" rx="12" style="fill:url(#k-dots);stroke:var(--k-line)" stroke-width="1.6"/>
+  <path class="k-move" d="M370,58 A16,10 0 0 1 406,58"/>
+  <line class="k-thin" x1="418" y1="118" x2="446" y2="70" style="stroke:var(--k-line)"/><text class="mark-t" x="440" y="64">溝</text>
+  <circle cx="418" cy="114" r="12" fill="none" style="stroke:var(--tb-good)" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <text class="k-good-t" x="390" y="200" text-anchor="middle">ヌスミ溝: 砥石が段まで抜ける</text>
 </svg>
 <p class="tb-caption">図: 段付き軸の研削 (上半分の断面)。砥石の角は丸く減るため、段の隅は直角に研げない (左)。ヌスミ溝を入れると、軸受を段に密着させられる (右)。ただし溝は応力集中になるので、高応力の軸では隅 R 仕上げを選ぶ</p>
 <h2>さらに細かい仕上げ</h2>
@@ -176,14 +206,17 @@ export const PROCESS: TextChapter[] = [
 </ul>
 <h2>粗さの指示と工程の対応</h2>
 <p>粗さ記号は JIS B 0031 (ISO 1302) に従い、√ 記号に R<sub>a</sub> 値などを添えます。「R<sub>a</sub> 0.4」と書いた瞬間に研削工程が追加されると考えてください。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="粗さと加工法">
-<line class="axis" x1="40" y1="130" x2="490" y2="130"/>
-<text class="tick" x="60" y="148" text-anchor="middle">0.025</text><text class="tick" x="130" y="148" text-anchor="middle">0.1</text><text class="tick" x="200" y="148" text-anchor="middle">0.4</text><text class="tick" x="270" y="148" text-anchor="middle">1.6</text><text class="tick" x="340" y="148" text-anchor="middle">6.3</text><text class="tick" x="410" y="148" text-anchor="middle">25</text>
-<rect x="235" y="20" width="175" height="16" fill="var(--tb-accent)" opacity="0.8"/><text class="tick" x="240" y="32" style="fill:#fff">旋削・フライス</text>
-<rect x="95" y="44" width="175" height="16" fill="var(--tb-good)" opacity="0.8"/><text class="tick" x="100" y="56" style="fill:#fff">研削</text>
-<rect x="95" y="68" width="105" height="16" fill="var(--tb-warn)" opacity="0.8"/><text class="tick" x="100" y="80" style="fill:#fff">ホーニング</text>
-<rect x="40" y="92" width="125" height="16" fill="var(--tb-bad)" opacity="0.8"/><text class="tick" x="45" y="104" style="fill:#fff">ラップ・超仕上げ</text>
-<text class="lbl" x="490" y="165" text-anchor="end">Ra (µm, 対数目盛)</text>
+<svg class="tb-chart" viewBox="0 0 520 172" role="img" aria-label="粗さと加工法">
+  <path class="grid" d="M60,14 V130 M130,14 V130 M200,14 V130 M270,14 V130 M340,14 V130 M410,14 V130"/>
+  <line class="axis" x1="40" y1="130" x2="490" y2="130"/>
+  <path class="axis" d="M60,130 V135 M130,130 V135 M200,130 V135 M270,130 V135 M340,130 V135 M410,130 V135"/>
+  <text class="tick" x="60" y="148" text-anchor="middle">0.025</text><text class="tick" x="130" y="148" text-anchor="middle">0.1</text><text class="tick" x="200" y="148" text-anchor="middle">0.4</text><text class="tick" x="270" y="148" text-anchor="middle">1.6</text><text class="tick" x="340" y="148" text-anchor="middle">6.3</text><text class="tick" x="410" y="148" text-anchor="middle">25</text>
+  <rect x="235" y="20" width="175" height="18" rx="9" style="fill:var(--tb-accent)"/><text class="lbl" x="245" y="33" style="fill:var(--tb-surface)">旋削・フライス</text>
+  <rect x="95" y="44" width="175" height="18" rx="9" style="fill:var(--tb-good)"/><text class="lbl" x="105" y="57" style="fill:var(--tb-surface)">研削</text>
+  <rect x="95" y="68" width="105" height="18" rx="9" style="fill:var(--tb-warn)"/><text class="lbl" x="105" y="81" style="fill:var(--tb-surface)">ホーニング</text>
+  <rect x="40" y="92" width="125" height="18" rx="9" style="fill:var(--tb-bad)"/><text class="lbl" x="50" y="105" style="fill:var(--tb-surface)">ラップ・超仕上げ</text>
+  <text class="lbl" x="40" y="166">← 細かい (なめらか)</text>
+  <text class="lbl" x="490" y="166" text-anchor="end">Ra (µm, 対数目盛) 粗い →</text>
 </svg>
 <p class="tb-caption">図: 加工法ごとの到達粗さ R<sub>a</sub> の目安 (横軸は対数)。右ほど粗い。1 段階細かくするごとに工程が増え、時間も増える</p>`,
     points: [
@@ -236,15 +269,26 @@ export const PROCESS: TextChapter[] = [
   <li><b>削り代</b>を見込む: 加工面は砂型で片側 3〜6 mm 程度、ダイカストで 0.5〜1 mm 程度。基準にする面 (鋳肌の基準) を図面で決めておく</li>
   <li><b>縮み代</b>: 金属は固まって冷えると縮む。型は縮み分大きく作る (鋳鉄 約 0.8〜1.0 %、アルミ 約 1.2〜1.3 %、鋳鋼 約 2.0 %)</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="鋳物の肉厚と引け巣">
-<path d="M40,60 L120,60 L120,150 L220,150 L220,170 L40,170 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-<circle cx="110" cy="158" r="7" fill="var(--tb-bad)"/>
-<text class="lbl" x="130" y="195" text-anchor="middle" style="fill:var(--tb-bad)">厚い交差部 → 引け巣</text>
-<path d="M300,60 L330,60 L330,140 Q330,150 340,150 L480,150 L480,170 L320,170 Q300,170 300,150 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5"/>
-<path d="M300,60 L300,150" fill="none" stroke="currentColor"/>
-<text class="lbl" x="390" y="195" text-anchor="middle" style="fill:var(--tb-good)">均一肉厚 + R → 健全</text>
-<path d="M58,70 L58,150" class="guide"/><text class="tick" x="64" y="110">肉厚 80</text>
-<text class="tick" x="340" y="110">肉厚 30 で一定</text>
+<svg class="tb-chart" viewBox="0 0 520 218" role="img" aria-label="鋳物の肉厚と引け巣">
+  <rect class="k-panel" x="8" y="8" width="244" height="202" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="202" rx="8"/>
+  <circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">厚い交差部</text>
+  <circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">均一肉厚 + R</text>
+  <g class="k-shadow"><path class="k-cut" d="M30,64 L110,64 L110,150 L234,150 L234,174 L30,174 Z"/></g>
+  <path d="M74,146 q8,-8 16,-2 q8,4 6,12 q-4,10 -14,8 q-10,-2 -12,-8 q-2,-6 4,-10 Z" style="fill:var(--tb-surface);stroke:var(--tb-bad)" stroke-width="1.8"/>
+  <path d="M80,150 l6,4 M86,148 l2,8" style="stroke:var(--tb-bad)" stroke-width="1"/>
+  <line class="k-thin" x1="98" y1="152" x2="134" y2="118" style="stroke:var(--tb-bad)"/>
+  <text class="k-bad-t" x="138" y="116">引け巣 (空洞)</text>
+  <text class="k-note" x="138" y="132">最後に固まる所</text>
+  <path class="k-ext" d="M30,62 V44 M110,62 V44"/>
+  <line class="k-dimline" x1="30" y1="50" x2="110" y2="50"/><text class="k-dimtext" x="116" y="54">肉厚 80</text>
+  <text class="k-bad-t" x="130" y="198" text-anchor="middle">厚い交差部 → 引け巣</text>
+  <g class="k-shadow"><path class="k-cut" d="M290,64 L320,64 L320,130 A14,14 0 0 0 334,144 L490,144 L490,174 L334,174 A44,44 0 0 1 290,130 Z"/></g>
+  <path class="k-ext" d="M290,62 V44 M320,62 V44"/>
+  <line class="k-dimline" x1="290" y1="50" x2="320" y2="50"/><text class="k-dimtext" x="326" y="54">30</text>
+  <path class="k-ext" d="M492,144 H504 M492,174 H504"/><line class="k-dimline" x1="500" y1="144" x2="500" y2="174"/><text class="k-dimtext" x="494" y="138" text-anchor="end">30</text>
+  <text class="mark-t" x="340" y="100">肉厚 30 で一定</text>
+  <text class="k-note" x="340" y="116">隅に R → 凝固が均一</text>
+  <text class="k-good-t" x="390" y="198" text-anchor="middle">均一肉厚 + R → 健全</text>
 </svg>
 <p class="tb-caption">図: 鋳物の断面。肉厚の大きい交差部は最後まで溶けたまま残り、周りが固まったあとに縮んで内部に空洞 (引け巣) ができる (左)。肉厚をそろえ、隅に R を付けると、凝固が均一になり欠陥が減る (右)</p>
 <h2>鍛造の種類と特徴</h2>
@@ -256,14 +300,21 @@ export const PROCESS: TextChapter[] = [
   <tr><td>温間鍛造</td><td>600〜900 °C</td><td>熱間と冷間の中間。精度と成形性のバランス</td><td>等速ジョイント部品</td></tr>
   <tr><td>冷間鍛造 (圧造)</td><td>室温</td><td>精度が良く、加工硬化で強くなる。大きな力が要る</td><td>ボルト、小ねじ、ピン、ギヤブランク</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 190" role="img" aria-label="メタルフローの比較">
-<rect x="40" y="40" width="180" height="40" fill="var(--tb-surface-2)" stroke="currentColor"/><rect x="40" y="80" width="60" height="70" fill="var(--tb-surface-2)" stroke="currentColor"/>
-<line class="guide" x1="40" y1="50" x2="220" y2="50"/><line class="guide" x1="40" y1="60" x2="220" y2="60"/><line class="guide" x1="40" y1="70" x2="220" y2="70"/>
-<line class="guide" x1="40" y1="90" x2="100" y2="90"/><line class="guide" x1="40" y1="110" x2="100" y2="110"/><line class="guide" x1="40" y1="130" x2="100" y2="130"/>
-<text class="lbl" x="130" y="175" text-anchor="middle">削り出し: 流線が隅で切れる</text>
-<path d="M300,40 L480,40 L480,80 L360,80 Q340,80 340,100 L340,150 L300,150 Z" fill="var(--tb-surface-2)" stroke="currentColor"/>
-<path d="M310,150 L310,60 Q310,50 320,50 L480,50" fill="none" stroke="var(--tb-good)"/><path d="M320,150 L320,66 Q320,60 330,60 L480,60" fill="none" stroke="var(--tb-good)"/><path d="M330,150 L330,74 Q332,70 340,70 L480,70" fill="none" stroke="var(--tb-good)"/>
-<text class="lbl" x="390" y="175" text-anchor="middle" style="fill:var(--tb-good)">鍛造: 流線が形に沿って連続</text>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="メタルフローの比較">
+  <rect class="k-panel" x="8" y="8" width="244" height="194" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="194" rx="8"/>
+  <circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">削り出し</text>
+  <circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">鍛造</text>
+  <g class="k-shadow"><path class="k-part" d="M30,58 L230,58 L230,98 L90,98 L90,168 L30,168 Z"/></g>
+  <path d="M30,64 H230 M30,71 H230 M30,78 H230 M30,85 H230 M30,92 H230 M30,106 H90 M30,114 H90 M30,122 H90 M30,130 H90 M30,138 H90 M30,146 H90 M30,154 H90 M30,162 H90" style="stroke:var(--k-line-2)" stroke-width="1"/>
+  <path class="k-part" d="M30,58 L230,58 L230,98 L90,98 L90,168 L30,168 Z" style="fill:none"/>
+  <circle cx="90" cy="98" r="11" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.8" stroke-dasharray="4 3"/>
+  <line class="k-thin" x1="100" y1="106" x2="124" y2="128" style="stroke:var(--tb-bad)"/><text class="k-bad-t" x="126" y="140">流線が切れる</text>
+  <text class="k-note" x="126" y="156">疲労の起点に</text>
+  <text class="lbl" x="130" y="190" text-anchor="middle">削り出し: 流線が隅で切れる</text>
+  <g class="k-shadow"><path class="k-part" d="M290,58 L490,58 L490,98 L370,98 Q350,98 350,118 L350,168 L290,168 Z"/></g>
+  <path d="M297,168 L297,77 Q297,65 309,65 L490,65 M307,168 L307,83 Q307,72 318,72 L490,72 M317,168 L317,90 Q317,79 328,79 L490,79 M327,168 L327,96 Q327,86 338,86 L490,86 M337,168 L337,104 Q337,92 350,92 L490,92" fill="none" style="stroke:var(--tb-good)" stroke-width="1.4"/>
+  <path class="k-part" d="M290,58 L490,58 L490,98 L370,98 Q350,98 350,118 L350,168 L290,168 Z" style="fill:none"/>
+  <text class="k-good-t" x="390" y="190" text-anchor="middle">鍛造: 流線が形に沿って連続</text>
 </svg>
 <p class="tb-caption">図: L 字部品のメタルフロー (模式図)。圧延材から削り出すと繊維状の組織が隅で切断され、そこが疲労の起点になりやすい。鍛造では流線が形に沿って曲がり、隅が強い</p>
 <h2>鍛造品の設計ルール</h2>
@@ -329,26 +380,53 @@ export const PROCESS: TextChapter[] = [
 <p>溶接部は、溶けて固まった<b>溶接金属</b>、溶けなかったが熱で組織が変わった<b>熱影響部 (HAZ)</b>、母材からなります。熱影響部は硬くもろくなったり (炭素量の多い鋼)、逆に軟らかくなったり (熱処理アルミ A6061-T6 は強度が母材の 6 割程度まで落ちる) します。</p>
 <div class="tb-formula">入熱 Q = η · V · I / v　[J/mm]　(V: アーク電圧、I: 電流、v: 溶接速度 mm/s、η: 熱効率)</div>
 <p>入熱が大きいほど溶込みは深くなりますが、熱影響部が広がり、ひずみも大きくなります。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="溶接部の断面">
-<rect x="40" y="90" width="440" height="60" fill="var(--tb-surface-2)" stroke="currentColor"/>
-<ellipse cx="260" cy="90" rx="90" ry="55" fill="var(--tb-warn)" opacity="0.25"/>
-<path d="M210,90 Q260,150 310,90 Q260,70 210,90 Z" fill="var(--tb-accent)" opacity="0.8"/>
-<text class="lbl" x="260" y="60" text-anchor="middle">溶接金属 (ビード)</text>
-<text class="tick" x="355" y="128">熱影響部 (HAZ)</text>
-<text class="tick" x="440" y="170" text-anchor="end">母材</text>
-<line class="guide" x1="260" y1="62" x2="260" y2="88"/>
+<svg class="tb-chart" viewBox="0 30 520 172" role="img" aria-label="溶接部の断面">
+  <g class="k-shadow">
+    <path class="k-cut" d="M30,96 L226,96 L254,150 L30,150 Z"/>
+    <path class="k-cut2" d="M294,96 L490,96 L490,150 L266,150 Z"/>
+  </g>
+  <path d="M206,96 L314,96 L284,150 L236,150 Z" style="fill:color-mix(in srgb, var(--tb-warn) 38%, transparent)"/>
+  <path class="k-accent" d="M220,96 Q260,78 300,96 L268,150 Q260,160 252,150 Z" style="stroke-width:1.6"/>
+  <path d="M232,108 Q260,98 288,108 M241,124 Q260,116 279,124 M249,139 Q260,133 271,139" fill="none" style="stroke:var(--tb-surface)" stroke-width="1" opacity="0.7"/>
+  <line class="k-thin" x1="260" y1="60" x2="260" y2="86" style="stroke:var(--k-line)"/>
+  <text class="mark-t" x="260" y="54" text-anchor="middle">溶接金属 (ビード)</text>
+  <circle cx="220" cy="96" r="5" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.8"/>
+  <line class="k-thin" x1="216" y1="92" x2="180" y2="70" style="stroke:var(--tb-bad)"/>
+  <text class="k-bad-t" x="176" y="68" text-anchor="end">止端 (き裂の起点)</text>
+  <line class="k-thin" x1="296" y1="118" x2="330" y2="178" style="stroke:var(--k-line)"/>
+  <text class="mark-t" x="334" y="182">熱影響部 (HAZ)</text>
+  <line class="k-thin" x1="440" y1="130" x2="440" y2="170" style="stroke:var(--k-line)"/>
+  <text class="mark-t" x="440" y="186" text-anchor="middle">母材</text>
+  <text class="mark-t" x="60" y="186" text-anchor="middle">母材</text><line class="k-thin" x1="60" y1="130" x2="60" y2="170" style="stroke:var(--k-line)"/>
 </svg>
 <p class="tb-caption">図: 突合せ溶接部の断面 (模式図)。溶接金属のまわりの熱影響部 (HAZ) は、溶けていなくても組織と強度が変わる。疲労き裂は止端 (ビードと母材の境目) から発生しやすい</p>
 <h2>溶接ひずみ — なぜ起き、どう抑えるか</h2>
 <p>溶接部は加熱されて膨張しようとしますが、まわりの冷たい母材に拘束されて縮み、冷えるとさらに縮みます。結果として溶接線の近くに<b>引張残留応力</b>が残り、部材は<b>縮み・角変形・反り</b>を起こします。</p>
-<svg class="tb-chart" viewBox="0 0 520 190" role="img" aria-label="溶接ひずみの種類">
-<rect x="30" y="80" width="130" height="14" fill="var(--tb-surface-2)" stroke="currentColor"/><rect x="40" y="80" width="110" height="14" fill="none" stroke="var(--tb-bad)" stroke-dasharray="4 3"/>
-<text class="lbl" x="95" y="130" text-anchor="middle">縦・横収縮</text>
-<path d="M200,92 L260,80 L320,92" fill="none" stroke="var(--tb-accent)" stroke-width="12" stroke-linejoin="round"/><path d="M200,80 L320,80" class="guide"/>
-<text class="lbl" x="260" y="130" text-anchor="middle">角変形</text>
-<path d="M360,94 Q425,70 490,94" fill="none" stroke="var(--tb-accent)" stroke-width="10"/><path d="M360,84 L490,84" class="guide"/>
-<text class="lbl" x="425" y="130" text-anchor="middle">縦曲がり (反り)</text>
-<text class="tick" x="260" y="160" text-anchor="middle">片側から溶接すると、ビード側が縮んでそちらに曲がる</text>
+<svg class="tb-chart" viewBox="0 0 520 202" role="img" aria-label="溶接ひずみの種類">
+  <rect class="k-panel" x="8" y="8" width="160" height="162" rx="8"/><rect class="k-panel" x="180" y="8" width="160" height="162" rx="8"/><rect class="k-panel" x="352" y="8" width="160" height="162" rx="8"/>
+  <text class="k-title" x="88" y="30" text-anchor="middle">縦・横収縮</text>
+  <text class="k-title" x="260" y="30" text-anchor="middle">角変形</text>
+  <text class="k-title" x="432" y="30" text-anchor="middle">縦曲がり (反り)</text>
+  <rect x="30" y="58" width="116" height="84" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.4" stroke-dasharray="5 3"/>
+  <g class="k-shadow"><rect class="k-part" x="40" y="66" width="96" height="68"/></g>
+  <rect x="84" y="66" width="8" height="68" style="fill:url(#k-accent);stroke:var(--k-dim)" stroke-width="1"/>
+  <line class="k-move" x1="16" y1="100" x2="36" y2="100"/><line class="k-move" x1="160" y1="100" x2="140" y2="100"/>
+  <line class="k-move" x1="62" y1="40" x2="62" y2="62"/>
+  <text class="k-note" x="88" y="162" text-anchor="middle">上から見た図</text>
+  <rect x="196" y="104" width="128" height="10" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.4" stroke-dasharray="5 3"/>
+  <g class="k-shadow">
+    <g transform="rotate(12 260 104)"><rect class="k-part" x="198" y="104" width="60" height="10"/></g>
+    <g transform="rotate(-12 260 104)"><rect class="k-part" x="262" y="104" width="60" height="10"/></g>
+  </g>
+  <path d="M250,104 Q260,94 270,104 Z" style="fill:url(#k-accent);stroke:var(--k-dim)" stroke-width="1"/>
+  <line class="k-move" x1="206" y1="96" x2="206" y2="78"/><line class="k-move" x1="314" y1="96" x2="314" y2="78"/>
+  <text class="k-note" x="260" y="150" text-anchor="middle">断面 (ビードは上)</text>
+  <rect x="370" y="98" width="124" height="10" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.4" stroke-dasharray="5 3"/>
+  <g class="k-shadow"><path class="k-part" d="M370,84 Q432,118 494,84 L494,94 Q432,128 370,94 Z"/></g>
+  <path d="M372,83 Q432,115 492,83" fill="none" style="stroke:var(--tb-accent)" stroke-width="3"/>
+  <line class="k-move" x1="378" y1="104" x2="378" y2="80" style="stroke-width:1.6"/><line class="k-move" x1="486" y1="104" x2="486" y2="80" style="stroke-width:1.6"/>
+  <text class="k-note" x="432" y="150" text-anchor="middle">側面 (ビードは上面)</text>
+  <text class="lbl" x="260" y="192" text-anchor="middle">片側から溶接すると、ビード側が縮んでそちらに曲がる</text>
 </svg>
 <p class="tb-caption">図: 溶接ひずみの代表的な 3 つの形。破線は溶接前の形。どれも溶接金属が冷えて縮むことが原因</p>
 <table class="tb-table">
@@ -373,13 +451,29 @@ export const PROCESS: TextChapter[] = [
   <li><b>ろう付</b>: 隙間は 0.05〜0.15 mm 程度 (毛細管現象で流れる)。重ね長さは板厚の 3 倍程度以上。突合せより<b>重ね継手</b></li>
   <li><b>接着</b>: せん断で受け、<b>はく離 (ピール) と割裂</b>を避ける形に。重ね長さを伸ばしても強度は比例して増えない (端部に応力が集中する)。表面の脱脂・粗化が強度を左右する</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 160" role="img" aria-label="接着継手の荷重方向">
-<rect x="40" y="60" width="120" height="10" fill="var(--tb-surface-2)" stroke="currentColor"/><rect x="100" y="70" width="120" height="10" fill="var(--tb-surface-2)" stroke="currentColor"/><rect x="100" y="68" width="60" height="4" fill="var(--tb-good)"/>
-<path d="M30,65 l-20,0 M230,75 l20,0" stroke="var(--tb-text-2)" stroke-width="2"/>
-<text class="lbl" x="130" y="110" text-anchor="middle" style="fill:var(--tb-good)">せん断: 強い</text>
-<rect x="300" y="60" width="160" height="10" fill="var(--tb-surface-2)" stroke="currentColor"/><path d="M300,74 L400,74 Q440,74 470,110" fill="none" stroke="currentColor" stroke-width="8"/><rect x="300" y="70" width="100" height="4" fill="var(--tb-bad)"/>
-<path d="M470,112 l10,20" stroke="var(--tb-text-2)" stroke-width="2"/>
-<text class="lbl" x="390" y="140" text-anchor="middle" style="fill:var(--tb-bad)">はく離: 端の 1 線で受けて弱い</text>
+<svg class="tb-chart" viewBox="0 0 520 172" role="img" aria-label="接着継手の荷重方向">
+  <rect class="k-panel" x="8" y="8" width="244" height="156" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="156" rx="8"/>
+  <circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✓</text><text class="k-title" x="46" y="32">せん断</text>
+  <circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✕</text><text class="k-title" x="306" y="32">はく離</text>
+  <g class="k-shadow">
+    <rect class="k-alu" x="44" y="76" width="106" height="12"/>
+    <rect class="k-alu" x="110" y="92" width="106" height="12"/>
+  </g>
+  <rect x="110" y="88" width="40" height="4" style="fill:var(--tb-good)"/>
+  <path d="M116,90 h28" style="stroke:#fff" stroke-width="0.8" stroke-dasharray="2 3"/>
+  <line class="k-force" x1="42" y1="82" x2="16" y2="82"/><line class="k-force" x1="218" y1="98" x2="244" y2="98"/>
+  <text class="k-note" x="130" y="124" text-anchor="middle">接着面全体で力を受ける</text>
+  <text class="k-good-t" x="130" y="150" text-anchor="middle">せん断: 強い</text>
+  <g class="k-shadow">
+    <rect class="k-alu" x="290" y="98" width="200" height="12"/>
+  </g>
+  <path d="M290,88 L398,88 Q438,88 462,52" fill="none" style="stroke:var(--k-line)" stroke-width="13"/>
+  <path d="M290,88 L398,88 Q438,88 462,52" fill="none" style="stroke:var(--k-alu-1)" stroke-width="10"/>
+  <rect x="290" y="94" width="104" height="4" style="fill:var(--k-line-2)"/>
+  <rect x="388" y="93" width="8" height="6" style="fill:var(--tb-bad)" class="k-glow"/>
+  <line class="k-force" x1="466" y1="48" x2="480" y2="22"/>
+  <line class="k-thin" x1="394" y1="100" x2="404" y2="122" style="stroke:var(--tb-bad)"/><text class="k-note" x="406" y="130" style="fill:var(--tb-bad)">端の 1 線に集中</text>
+  <text class="k-bad-t" x="390" y="152" text-anchor="middle">はく離: 端の 1 線で受けて弱い</text>
 </svg>
 <p class="tb-caption">図: 接着継手の荷重方向。重ね継手を引っ張るせん断では接着面全体で力を受ける (左)。端からめくるはく離では、力が端の狭い範囲に集中し、数分の 1 の力で破壊する (右)</p>`,
     points: [
@@ -430,16 +524,35 @@ export const PROCESS: TextChapter[] = [
 <p>パンチとダイの間で板をせん断して穴をあけたり外形を抜いたりします。必要な力は</p>
 <div class="tb-formula">打抜き力 F = L · t · τ<sub>s</sub>　(L: 切り口の長さ、t: 板厚、τ<sub>s</sub>: せん断抵抗 ≈ 0.8 × 引張強さ)</div>
 <p>パンチとダイの片側すき間 (<b>クリアランス</b>) は板厚の 5〜10 % (軟鋼)、アルミで 4〜8 %、ステンレスはやや大きめが目安です。切り口は、上から<b>だれ・せん断面・破断面・かえり (バリ)</b> の 4 つの層になります。</p>
-<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="打抜きの切り口">
-<rect x="160" y="30" width="80" height="60" fill="var(--tb-surface-2)" stroke="currentColor"/><text class="tick" x="200" y="62" text-anchor="middle">パンチ</text>
-<rect x="60" y="120" width="96" height="50" fill="var(--tb-surface-2)" stroke="currentColor"/><rect x="244" y="120" width="96" height="50" fill="var(--tb-surface-2)" stroke="currentColor"/><text class="tick" x="108" y="150" text-anchor="middle">ダイ</text>
-<rect x="60" y="96" width="280" height="24" class="sec"/>
-<line class="guide" x1="240" y1="30" x2="240" y2="190"/><line class="guide" x1="244" y1="30" x2="244" y2="190"/><text class="tick" x="250" y="196">クリアランス c (片側)</text>
-<path d="M380,60 L380,180" stroke="currentColor"/>
-<path d="M380,60 Q392,60 396,72" fill="none" stroke="var(--tb-text-2)" stroke-width="2"/><text class="tick" x="404" y="70">だれ</text>
-<rect x="390" y="72" width="8" height="45" fill="var(--tb-good)"/><text class="tick" x="404" y="98">せん断面 (光沢)</text>
-<path d="M398,117 L394,170" stroke="var(--tb-warn)" stroke-width="6"/><text class="tick" x="404" y="148">破断面 (ざらざら)</text>
-<path d="M394,170 l-4,10" stroke="var(--tb-bad)" stroke-width="2"/><text class="tick" x="404" y="184">かえり (バリ)</text>
+<svg class="tb-chart" viewBox="0 0 520 218" role="img" aria-label="打抜きの切り口">
+  <line class="k-force" x1="156" y1="8" x2="156" y2="28"/>
+  <g class="k-shadow">
+    <rect class="k-part" x="116" y="30" width="80" height="62" rx="2"/>
+    <rect class="k-part" x="20" y="112" width="92" height="58"/>
+    <rect class="k-part" x="200" y="112" width="90" height="58"/>
+    <path class="k-cut" d="M20,92 L116,92 L112,112 L20,112 Z"/>
+    <path class="k-cut" d="M196,92 L290,92 L290,112 L200,112 Z"/>
+    <path class="k-cut" d="M116,98 L196,98 L200,118 L112,118 Z"/>
+  </g>
+  <path d="M116,92 L112,112 M196,92 L200,112" style="stroke:var(--tb-bad)" stroke-width="1.6" stroke-dasharray="3 2"/>
+  <text class="mark-t" x="156" y="66" text-anchor="middle">パンチ</text>
+  <text class="mark-t" x="66" y="146" text-anchor="middle">ダイ</text><text class="mark-t" x="245" y="146" text-anchor="middle">ダイ</text>
+  <text class="k-note" x="24" y="86">板</text>
+  <path class="k-ext" d="M196,96 V194 M200,174 V194"/>
+  <line class="k-dimline" x1="182" y1="190" x2="196" y2="190" style="marker-start:none"/><line class="k-dimline" x1="214" y1="190" x2="200" y2="190" style="marker-start:none"/>
+  <text class="k-dimtext" x="198" y="208" text-anchor="middle">クリアランス c (片側)</text>
+  <line x1="306" y1="10" x2="306" y2="210" style="stroke:var(--tb-border)"/>
+  <text class="k-title" x="320" y="30">切り口 (拡大)</text>
+  <g class="k-shadow"><path class="k-cut" d="M326,60 L380,60 Q392,60 394,74 L396,116 L404,168 L408,182 L402,182 L398,172 L326,172 Z"/></g>
+  <path d="M380,60 Q392,60 394,74" fill="none" style="stroke:var(--tb-text-2)" stroke-width="3"/>
+  <path d="M394,74 L396,116" fill="none" style="stroke:var(--tb-good)" stroke-width="5"/>
+  <path d="M396,116 L398,124 L397,132 L400,140 L399,148 L402,156 L401,164 L404,168" fill="none" style="stroke:var(--tb-warn)" stroke-width="3"/>
+  <path d="M404,168 L408,182 L402,182" fill="none" style="stroke:var(--tb-bad)" stroke-width="2.4"/>
+  <path class="k-thin" d="M394,64 H420 M398,96 H420 M402,142 H420 M406,180 H420" style="stroke:var(--k-line)"/>
+  <text class="mark-t" x="424" y="68">だれ</text>
+  <text class="mark-t" x="424" y="96">せん断面</text><text class="k-note" x="424" y="110">(光沢)</text>
+  <text class="mark-t" x="424" y="142">破断面</text><text class="k-note" x="424" y="156">(ざらざら)</text>
+  <text class="mark-t" x="424" y="184">かえり</text><text class="k-note" x="424" y="198">(バリ)</text>
 </svg>
 <p class="tb-caption">図: 打抜きの断面 (左) と切り口の 4 層 (右)。クリアランスが小さいとせん断面が増えて切り口はきれいだが力と型摩耗が増え、大きいとだれ・バリが増える。図面ではバリの方向 (かえり方向) を指示することがある</p>
 <ul>
@@ -464,16 +577,27 @@ export const PROCESS: TextChapter[] = [
 <h2>深絞り — 板から容器を作る</h2>
 <p>平らな円板 (ブランク) をパンチでダイに押し込み、継ぎ目のないカップを作ります。フランジ部が円周方向に縮みながら流れ込むため、しわ押え力でしわを防ぎます。</p>
 <div class="tb-formula">円筒カップのブランク径 D ≈ √(d² + 4 d h)　　絞り率 m = d / D (1 回目は 0.5〜0.6 が限界の目安)</div>
-<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="深絞りの断面">
-<rect x="40" y="110" width="110" height="60" fill="var(--tb-surface-2)" stroke="currentColor"/><rect x="250" y="110" width="110" height="60" fill="var(--tb-surface-2)" stroke="currentColor"/>
-<rect x="40" y="70" width="110" height="30" fill="var(--tb-surface-2)" stroke="currentColor"/><rect x="250" y="70" width="110" height="30" fill="var(--tb-surface-2)" stroke="currentColor"/>
-<rect x="156" y="30" width="88" height="130" fill="var(--tb-surface-2)" stroke="currentColor"/><text class="tick" x="200" y="80" text-anchor="middle">パンチ</text>
-<path d="M60,104 L150,104 Q153,104 153,110 L153,162 L247,162 L247,110 Q247,104 250,104 L340,104" fill="none" stroke="var(--tb-accent)" stroke-width="4"/>
-<text class="tick" x="95" y="90" text-anchor="middle">しわ押え</text><text class="tick" x="95" y="145" text-anchor="middle">ダイ</text>
-<path d="M60,104 l20,0" stroke="var(--tb-good)" stroke-width="2"/><path d="M330,104 l-14,0" stroke="var(--tb-good)" stroke-width="2"/>
-<text class="lbl" x="440" y="70">流入するフランジ:</text><text class="tick" x="440" y="88">周方向に縮む → しわ</text>
-<text class="lbl" x="440" y="130">パンチ肩 R 付近:</text><text class="tick" x="440" y="148">板が薄くなる → 割れ</text>
-<circle cx="154" cy="160" r="8" fill="none" stroke="var(--tb-bad)" stroke-width="2"/>
+<svg class="tb-chart" viewBox="0 0 520 196" role="img" aria-label="深絞りの断面">
+  <line class="k-force" x1="154" y1="6" x2="154" y2="26"/>
+  <g class="k-shadow">
+    <path class="k-part" d="M24,110 L98,110 Q104,110 104,116 L104,172 L24,172 Z"/>
+    <path class="k-part" d="M284,110 L210,110 Q204,110 204,116 L204,172 L284,172 Z"/>
+    <rect class="k-alu" x="24" y="70" width="80" height="30"/>
+    <rect class="k-alu" x="204" y="70" width="80" height="30"/>
+    <path class="k-part-h" d="M110,30 L198,30 L198,152 Q198,160 190,160 L118,160 Q110,160 110,152 Z"/>
+  </g>
+  <path d="M14,104 L100,104 Q107,104 107,111 L107,154 Q107,163 116,163 L192,163 Q201,163 201,154 L201,111 Q201,104 208,104 L294,104" fill="none" style="stroke:var(--tb-accent)" stroke-width="4"/>
+  <text class="mark-t" x="154" y="100" text-anchor="middle">パンチ</text>
+  <text class="mark-t" x="64" y="90" text-anchor="middle">しわ押え</text><text class="mark-t" x="244" y="90" text-anchor="middle">しわ押え</text>
+  <text class="mark-t" x="64" y="146" text-anchor="middle">ダイ</text><text class="mark-t" x="244" y="146" text-anchor="middle">ダイ</text>
+  <line class="k-move" x1="34" y1="60" x2="80" y2="60"/><line class="k-move" x1="274" y1="60" x2="228" y2="60"/>
+  <path d="M286,98 q2,-4 4,0 q2,4 4,0" fill="none" style="stroke:var(--tb-warn)" stroke-width="1.6"/>
+  <circle cx="198" cy="160" r="9" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.8" stroke-dasharray="3 2"/>
+  <circle cx="110" cy="160" r="9" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.8" stroke-dasharray="3 2"/>
+  <rect class="k-panel" x="312" y="40" width="200" height="56" rx="8"/>
+  <text class="lbl" x="324" y="62" style="fill:var(--tb-warn)">流入するフランジ:</text><text class="k-note" x="324" y="82">周方向に縮む → しわ</text>
+  <rect class="k-panel" x="312" y="110" width="200" height="56" rx="8"/>
+  <text class="lbl" x="324" y="132" style="fill:var(--tb-bad)">パンチ肩 R 付近 (赤丸):</text><text class="k-note" x="324" y="152">板が薄くなる → 割れ</text>
 </svg>
 <p class="tb-caption">図: 円筒深絞りの断面。フランジは縮みながら流れ込み (しわの原因)、パンチ肩の近くは引き伸ばされて薄くなる (割れの原因)。しわ押え力・ダイ肩 R・潤滑のバランスで成形する</p>
 <ul>
@@ -550,15 +674,17 @@ export const PROCESS: TextChapter[] = [
 </table>
 <p class="tb-note">数値は JIS 規格の代表値 (S45C・SCM440 は JIS G 4051/4053 参考の熱処理後、試験片寸法による)。実際の丸棒は太いほど中心まで焼きが入らず (質量効果)、強さが下がります。ヤング率はどの鋼でもほぼ同じ 約 206 GPa (ステンレスは 約 193 GPa) です。</p>
 <svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="鋼種別の降伏点と引張強さ">
-<line class="axis" x1="110" y1="190" x2="500" y2="190"/><line class="axis" x1="110" y1="20" x2="110" y2="190"/>
-<text class="tick" x="110" y="206" text-anchor="middle">0</text><text class="tick" x="290" y="206" text-anchor="middle">500</text><text class="tick" x="470" y="206" text-anchor="middle">1000 MPa</text>
-<rect x="110" y="30" width="88" height="10" fill="var(--tb-accent)"/><rect x="110" y="42" width="144" height="10" fill="var(--tb-text-3)"/><text class="tick" x="104" y="46" text-anchor="end">SS400</text>
-<rect x="110" y="62" width="124" height="10" fill="var(--tb-accent)"/><rect x="110" y="74" width="205" height="10" fill="var(--tb-text-3)"/><text class="tick" x="104" y="78" text-anchor="end">S45C (N)</text>
-<rect x="110" y="94" width="176" height="10" fill="var(--tb-accent)"/><rect x="110" y="106" width="248" height="10" fill="var(--tb-text-3)"/><text class="tick" x="104" y="110" text-anchor="end">S45C (QT)</text>
-<rect x="110" y="126" width="301" height="10" fill="var(--tb-accent)"/><rect x="110" y="138" width="353" height="10" fill="var(--tb-text-3)"/><text class="tick" x="104" y="142" text-anchor="end">SCM440 (QT)</text>
-<rect x="110" y="158" width="74" height="10" fill="var(--tb-accent)"/><rect x="110" y="170" width="187" height="10" fill="var(--tb-text-3)"/><text class="tick" x="104" y="174" text-anchor="end">SUS304</text>
-<rect x="380" y="30" width="10" height="10" fill="var(--tb-accent)"/><text class="tick" x="394" y="39">降伏点・耐力 (下限)</text>
-<rect x="380" y="46" width="10" height="10" fill="var(--tb-text-3)"/><text class="tick" x="394" y="55">引張強さ (下限)</text>
+  <path class="grid" d="M200,22 V190 M290,22 V190 M380,22 V190 M470,22 V190"/>
+  <line class="axis" x1="110" y1="190" x2="500" y2="190"/><line class="axis" x1="110" y1="20" x2="110" y2="190"/>
+  <text class="tick" x="110" y="206" text-anchor="middle">0</text><text class="tick" x="290" y="206" text-anchor="middle">500</text><text class="tick" x="470" y="206" text-anchor="middle">1000 MPa</text>
+  <rect x="110" y="30" width="88" height="10" rx="2" style="fill:var(--tb-accent)"/><rect x="110" y="42" width="144" height="10" rx="2" style="fill:var(--tb-text-3)"/><text class="mark-t" x="102" y="46" text-anchor="end">SS400</text>
+  <rect x="110" y="62" width="124" height="10" rx="2" style="fill:var(--tb-accent)"/><rect x="110" y="74" width="205" height="10" rx="2" style="fill:var(--tb-text-3)"/><text class="mark-t" x="102" y="78" text-anchor="end">S45C (N)</text>
+  <rect x="110" y="94" width="176" height="10" rx="2" style="fill:var(--tb-accent)"/><rect x="110" y="106" width="248" height="10" rx="2" style="fill:var(--tb-text-3)"/><text class="mark-t" x="102" y="110" text-anchor="end">S45C (QT)</text>
+  <rect x="110" y="126" width="301" height="10" rx="2" style="fill:var(--tb-accent)"/><rect x="110" y="138" width="353" height="10" rx="2" style="fill:var(--tb-text-3)"/><text class="mark-t" x="102" y="142" text-anchor="end">SCM440 (QT)</text>
+  <rect x="110" y="158" width="74" height="10" rx="2" style="fill:var(--tb-accent)"/><rect x="110" y="170" width="187" height="10" rx="2" style="fill:var(--tb-text-3)"/><text class="mark-t" x="102" y="174" text-anchor="end">SUS304</text>
+  <rect x="366" y="24" width="140" height="40" rx="6" style="fill:var(--tb-surface);stroke:var(--tb-border)"/>
+  <rect x="376" y="31" width="10" height="10" rx="2" style="fill:var(--tb-accent)"/><text class="tick" x="392" y="40">降伏点・耐力 (下限)</text>
+  <rect x="376" y="47" width="10" height="10" rx="2" style="fill:var(--tb-text-3)"/><text class="tick" x="392" y="56">引張強さ (下限)</text>
 </svg>
 <p class="tb-caption">図: 代表鋼種の降伏点 (耐力) と引張強さの規格下限値。同じ S45C でも焼入れ焼戻し (QT) で降伏点は約 1.4 倍、SCM440 の調質では SS400 の 3 倍以上になる。SUS304 は引張強さは高いが耐力は低く、降伏比が小さい (よく伸びる)</p>
 <h2>使い分けの考え方</h2>
@@ -720,15 +846,20 @@ export const PROCESS: TextChapter[] = [
   <tr><td>1.33</td><td>約 32 ppm</td><td>一般的な合格基準</td></tr>
   <tr><td>1.67</td><td>約 0.3 ppm</td><td>重要特性・自動車の新規工程で要求されることが多い</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="工程能力と分布">
-<line class="axis" x1="30" y1="170" x2="490" y2="170"/>
-<line x1="110" y1="30" x2="110" y2="170" stroke="var(--tb-bad)" stroke-width="2"/><line x1="410" y1="30" x2="410" y2="170" stroke="var(--tb-bad)" stroke-width="2"/>
-<text class="lbl" x="110" y="24" text-anchor="middle">LSL</text><text class="lbl" x="410" y="24" text-anchor="middle">USL</text>
-<path d="M150,170 C210,170 220,50 260,50 C300,50 310,170 370,170" fill="none" stroke="var(--tb-good)" stroke-width="2.5"/>
-<path d="M230,170 C290,170 300,50 340,50 C380,50 390,170 450,170" fill="none" stroke="var(--tb-warn)" stroke-width="2.5" stroke-dasharray="6 4"/>
-<path d="M410,170 L410,140 C425,160 440,170 450,170 Z" fill="var(--tb-bad)" opacity="0.5"/>
-<text class="tick" x="260" y="44" text-anchor="middle" style="fill:var(--tb-good)">中心が合う: Cp = Cpk</text>
-<text class="tick" x="340" y="190" text-anchor="middle" style="fill:var(--tb-warn)">中心がずれる: Cp 同じでも Cpk 低下 → 不良</text>
+<svg class="tb-chart" viewBox="0 0 520 204" role="img" aria-label="工程能力と分布">
+  <rect x="110" y="30" width="300" height="140" style="fill:color-mix(in srgb, var(--tb-good) 8%, transparent)"/>
+  <line class="axis" x1="30" y1="170" x2="490" y2="170"/>
+  <path d="M150,170 C210,170 220,50 260,50 C300,50 310,170 370,170 Z" style="fill:color-mix(in srgb, var(--tb-good) 22%, transparent)"/>
+  <path d="M230,170 C290,170 300,50 340,50 C380,50 390,170 450,170 Z" style="fill:color-mix(in srgb, var(--tb-warn) 14%, transparent)"/>
+  <path d="M410,170 L410,140 C425,160 440,170 450,170 Z" style="fill:var(--tb-bad)" opacity="0.6"/>
+  <path d="M150,170 C210,170 220,50 260,50 C300,50 310,170 370,170" fill="none" style="stroke:var(--tb-good)" stroke-width="2.6"/>
+  <path d="M230,170 C290,170 300,50 340,50 C380,50 390,170 450,170" fill="none" style="stroke:var(--tb-warn)" stroke-width="2.6" stroke-dasharray="6 4"/>
+  <line x1="110" y1="30" x2="110" y2="170" style="stroke:var(--tb-bad)" stroke-width="2"/><line x1="410" y1="30" x2="410" y2="170" style="stroke:var(--tb-bad)" stroke-width="2"/>
+  <line class="k-center" x1="260" y1="30" x2="260" y2="176"/>
+  <text class="mark-t" x="110" y="24" text-anchor="middle">LSL</text><text class="mark-t" x="410" y="24" text-anchor="middle">USL</text>
+  <text class="lbl" x="260" y="44" text-anchor="end" style="fill:var(--tb-good)">中心が合う: Cp = Cpk</text>
+  <line class="k-thin" x1="436" y1="164" x2="462" y2="140" style="stroke:var(--tb-bad)"/><text class="k-bad-t" x="464" y="136">不良</text>
+  <text class="lbl" x="340" y="192" text-anchor="middle" style="fill:var(--tb-warn)">中心がずれる: Cp 同じでも Cpk 低下 → 不良</text>
 </svg>
 <p class="tb-caption">図: 公差 (LSL〜USL) と寸法の分布。ばらつき (幅) が同じでも、平均が公差の中心からずれると片側の裾が公差外にはみ出す。Cp はばらつきだけ、Cpk はずれも含めた能力を表す</p>
 <p>設計者としては、<b>その工程の σ を知ったうえで公差を決める</b>のが理想です。例えば旋削で σ = 5 µm の工程なら、C<sub>p</sub> 1.33 に必要な公差幅は 8σ = 40 µm (±0.02) — これより狭い公差は工程の変更 (研削の追加など) を意味します。</p>
@@ -740,15 +871,23 @@ export const PROCESS: TextChapter[] = [
   <li>第 3 基準面を <b>1 点</b>で受ける (残りの並進を拘束)</li>
 </ul>
 <svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="3-2-1 位置決め">
-<path d="M150,80 L330,80 L400,40 L220,40 Z" fill="var(--tb-surface-2)" stroke="currentColor"/>
-<path d="M150,80 L150,150 L330,150 L330,80" fill="var(--tb-surface-2)" stroke="currentColor"/><path d="M330,150 L400,110 L400,40" fill="var(--tb-surface-2)" stroke="currentColor"/>
-<circle cx="190" cy="160" r="6" fill="var(--tb-accent)"/><circle cx="300" cy="160" r="6" fill="var(--tb-accent)"/><circle cx="360" cy="135" r="6" fill="var(--tb-accent)"/>
-<text class="tick" x="250" y="185" text-anchor="middle" style="fill:var(--tb-accent)">第 1 基準: 下面を 3 点</text>
-<circle cx="140" cy="105" r="6" fill="var(--tb-good)"/><circle cx="140" cy="135" r="6" fill="var(--tb-good)"/>
-<text class="tick" x="130" y="125" text-anchor="end" style="fill:var(--tb-good)">第 2 基準: 2 点</text>
-<circle cx="410" cy="85" r="6" fill="var(--tb-warn)"/>
-<text class="tick" x="420" y="89" style="fill:var(--tb-warn)">第 3 基準: 1 点</text>
-<path d="M260,20 l0,22" stroke="var(--tb-text-2)" stroke-width="2"/><path d="M254,34 l6,8 l6,-8" fill="none" stroke="var(--tb-text-2)" stroke-width="2"/><text class="tick" x="268" y="22">クランプ (基準へ押し付ける)</text>
+  <g class="k-shadow">
+    <path d="M150,80 L330,80 L400,40 L220,40 Z" style="fill:var(--k-steel-1);stroke:var(--k-line)" stroke-width="1.6"/>
+    <path d="M150,80 L330,80 L330,150 L150,150 Z" style="fill:var(--k-steel-2);stroke:var(--k-line)" stroke-width="1.6"/>
+    <path d="M330,80 L400,40 L400,110 L330,150 Z" style="fill:var(--k-steel-3);stroke:var(--k-line)" stroke-width="1.6"/>
+  </g>
+  <path d="M190,160 V176 M300,160 V176 M360,135 V176" style="stroke:var(--tb-accent)" stroke-width="3"/>
+  <circle cx="190" cy="158" r="6" class="k-glow" style="fill:var(--tb-accent)"/><circle cx="300" cy="158" r="6" class="k-glow" style="fill:var(--tb-accent)"/><circle cx="360" cy="133" r="6" class="k-glow" style="fill:var(--tb-accent)"/>
+  <rect class="k-ground" x="170" y="176" width="210" height="8"/><line x1="170" y1="176" x2="380" y2="176" style="stroke:var(--k-line-2)"/>
+  <text class="lbl" x="275" y="200" text-anchor="middle" style="fill:var(--tb-accent)">第 1 基準: 下面を 3 点</text>
+  <path d="M126,105 H140 M126,135 H140" style="stroke:var(--tb-good)" stroke-width="3"/>
+  <circle cx="142" cy="105" r="6" class="k-glow" style="fill:var(--tb-good)"/><circle cx="142" cy="135" r="6" class="k-glow" style="fill:var(--tb-good)"/>
+  <text class="lbl" x="118" y="124" text-anchor="end" style="fill:var(--tb-good)">第 2 基準: 2 点</text>
+  <path d="M410,80 H426" style="stroke:var(--tb-warn)" stroke-width="3"/>
+  <circle cx="408" cy="80" r="6" class="k-glow" style="fill:var(--tb-warn)"/>
+  <text class="lbl" x="432" y="84" style="fill:var(--tb-warn)">第 3 基準: 1 点</text>
+  <line class="k-force" x1="262" y1="8" x2="262" y2="54"/>
+  <text class="lbl" x="272" y="20">クランプ (基準へ押し付ける)</text>
 </svg>
 <p class="tb-caption">図: 3-2-1 の位置決め。6 点で 6 自由度を過不足なく拘束し、クランプ力は基準点に向けて押し付ける。図面のデータム A・B・C の順序と一致させると、設計と加工・測定の基準がそろう</p>
 <p><b>図面のデータム = 加工の基準 = 測定の基準</b> にそろえるのが理想です。基準が食い違うと、加工者は図面の寸法を自分の基準からの寸法に換算 (公差の再配分) することになり、公差が実質的に狭くなります。</p>
@@ -769,13 +908,25 @@ export const PROCESS: TextChapter[] = [
   <tr><td>表面処理は寸法に効く</td><td>めっき・アルマイトの膜厚を見込み、処理前寸法を工程図に書く</td></tr>
 </table>
 <svg class="tb-chart" viewBox="0 0 520 150" role="img" aria-label="工程順序の例">
-<rect x="10" y="50" width="80" height="40" rx="6" fill="var(--tb-surface-2)" stroke="currentColor"/><text class="tick" x="50" y="74" text-anchor="middle">素材切断</text>
-<rect x="110" y="50" width="80" height="40" rx="6" fill="var(--tb-surface-2)" stroke="currentColor"/><text class="tick" x="150" y="68" text-anchor="middle">荒旋削</text><text class="tick" x="150" y="82" text-anchor="middle">(研削代残し)</text>
-<rect x="210" y="50" width="80" height="40" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-warn)"/><text class="tick" x="250" y="68" text-anchor="middle">焼入れ</text><text class="tick" x="250" y="82" text-anchor="middle">焼戻し</text>
-<rect x="310" y="50" width="80" height="40" rx="6" fill="var(--tb-surface-2)" stroke="currentColor"/><text class="tick" x="350" y="68" text-anchor="middle">センタ穴</text><text class="tick" x="350" y="82" text-anchor="middle">修正</text>
-<rect x="410" y="50" width="100" height="40" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-good)"/><text class="tick" x="460" y="68" text-anchor="middle">円筒研削</text><text class="tick" x="460" y="82" text-anchor="middle">(同一センタで)</text>
-<path d="M90,70 l20,0 M190,70 l20,0 M290,70 l20,0 M390,70 l20,0" stroke="var(--tb-text-2)" stroke-width="2"/>
-<text class="tick" x="260" y="125" text-anchor="middle">両センタ基準で研削すると、複数の軸受座の同軸度が自然にそろう</text>
+  <g class="k-shadow">
+    <rect class="k-panel" x="10" y="44" width="80" height="54" rx="8"/>
+    <rect class="k-panel" x="110" y="44" width="80" height="54" rx="8"/>
+    <rect class="k-panel" x="210" y="44" width="80" height="54" rx="8" style="stroke:var(--tb-warn);stroke-width:1.6"/>
+    <rect class="k-panel" x="310" y="44" width="80" height="54" rx="8"/>
+    <rect class="k-panel" x="410" y="44" width="100" height="54" rx="8" style="stroke:var(--tb-good);stroke-width:1.6"/>
+  </g>
+  <circle class="k-badge" cx="22" cy="44" r="9"/><text class="k-badge-t" x="22" y="48" text-anchor="middle">1</text>
+  <circle class="k-badge" cx="122" cy="44" r="9"/><text class="k-badge-t" x="122" y="48" text-anchor="middle">2</text>
+  <circle class="k-badge" cx="222" cy="44" r="9" style="fill:var(--tb-warn)"/><text class="k-badge-t" x="222" y="48" text-anchor="middle">3</text>
+  <circle class="k-badge" cx="322" cy="44" r="9"/><text class="k-badge-t" x="322" y="48" text-anchor="middle">4</text>
+  <circle class="k-badge" cx="422" cy="44" r="9" style="fill:var(--tb-good)"/><text class="k-badge-t" x="422" y="48" text-anchor="middle">5</text>
+  <text class="mark-t" x="50" y="76" text-anchor="middle">素材切断</text>
+  <text class="mark-t" x="150" y="70" text-anchor="middle">荒旋削</text><text class="k-note" x="150" y="88" text-anchor="middle">(研削代残し)</text>
+  <text class="mark-t" x="250" y="70" text-anchor="middle">焼入れ</text><text class="mark-t" x="250" y="88" text-anchor="middle">焼戻し</text>
+  <text class="mark-t" x="350" y="70" text-anchor="middle">センタ穴</text><text class="mark-t" x="350" y="88" text-anchor="middle">修正</text>
+  <text class="mark-t" x="460" y="70" text-anchor="middle">円筒研削</text><text class="k-note" x="460" y="88" text-anchor="middle">(同一センタで)</text>
+  <line x1="92" y1="71" x2="108" y2="71" style="stroke:var(--k-line-2)" stroke-width="2" marker-end="url(#k-arrow)"/><line x1="192" y1="71" x2="208" y2="71" style="stroke:var(--k-line-2)" stroke-width="2" marker-end="url(#k-arrow)"/><line x1="292" y1="71" x2="308" y2="71" style="stroke:var(--k-line-2)" stroke-width="2" marker-end="url(#k-arrow)"/><line x1="392" y1="71" x2="408" y2="71" style="stroke:var(--k-line-2)" stroke-width="2" marker-end="url(#k-arrow)"/>
+  <text class="lbl" x="260" y="128" text-anchor="middle">両センタ基準で研削すると、複数の軸受座の同軸度が自然にそろう</text>
 </svg>
 <p class="tb-caption">図: 焼入れ軸の工程例。センタ穴を基準として通しで使い、熱処理後にセンタ穴を修正してから研削する。基準を工程を通じて変えないことが精度の鍵</p>
 <h2>設計者のチェックリスト</h2>

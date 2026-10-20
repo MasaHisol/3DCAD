@@ -12,18 +12,12 @@ export const IDESIGN: TextChapter[] = [
 <h2>大量生産への問いから始まった</h2>
 <p>19 世紀の産業革命で、家具や食器などの日用品が機械で安く大量につくられるようになりました。一方で、手仕事の様式を表面だけまねた粗悪な装飾品も増えました。これに異を唱えたのが英国の<b>ウィリアム・モリス</b>らによる<b>アーツ・アンド・クラフツ運動</b> (19 世紀後半) です。モリスは手仕事の誠実さを重んじ、生活の中の美を取り戻そうとしました。</p>
 <p>ただしモリスの工房の製品は手間がかかり高価で、一般の人には届きにくいという矛盾がありました。「良いものを、機械で、多くの人に」という課題は次の世代に引き継がれます。1907 年にドイツで結成された<b>ドイツ工作連盟 (ドイツ・ヴェルクブント)</b> は、芸術家と産業を結びつけ、工業製品の質を高めることを目指しました。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="工業デザイン史の年表">
-  <line x1="20" y1="80" x2="500" y2="80" stroke="currentColor" stroke-width="2"/>
-  <g font-size="11">
-    <circle cx="40" cy="80" r="5" fill="var(--tb-accent)"/><text class="lbl" x="40" y="62" text-anchor="middle">19世紀後半</text><text class="tick" x="40" y="102" text-anchor="middle">アーツ&amp;</text><text class="tick" x="40" y="116" text-anchor="middle">クラフツ</text>
-    <circle cx="115" cy="80" r="5" fill="var(--tb-accent)"/><text class="lbl" x="115" y="62" text-anchor="middle">1907</text><text class="tick" x="115" y="102" text-anchor="middle">ドイツ</text><text class="tick" x="115" y="116" text-anchor="middle">工作連盟</text>
-    <circle cx="185" cy="80" r="5" fill="var(--tb-accent)"/><text class="lbl" x="185" y="62" text-anchor="middle">1919</text><text class="tick" x="185" y="102" text-anchor="middle">バウハウス</text><text class="tick" x="185" y="116" text-anchor="middle">(〜1933)</text>
-    <circle cx="255" cy="80" r="5" fill="var(--tb-accent)"/><text class="lbl" x="255" y="62" text-anchor="middle">1930年代</text><text class="tick" x="255" y="102" text-anchor="middle">米国</text><text class="tick" x="255" y="116" text-anchor="middle">流線形</text>
-    <circle cx="325" cy="80" r="5" fill="var(--tb-accent)"/><text class="lbl" x="325" y="62" text-anchor="middle">1953</text><text class="tick" x="325" y="102" text-anchor="middle">ウルム造形</text><text class="tick" x="325" y="116" text-anchor="middle">大学 (〜1968)</text>
-    <circle cx="395" cy="80" r="5" fill="var(--tb-accent)"/><text class="lbl" x="395" y="62" text-anchor="middle">1957</text><text class="tick" x="395" y="102" text-anchor="middle">G マーク</text><text class="tick" x="395" y="116" text-anchor="middle">制度創設</text>
-    <circle cx="470" cy="80" r="5" fill="var(--tb-accent)"/><text class="lbl" x="470" y="62" text-anchor="middle">現在</text><text class="tick" x="470" y="102" text-anchor="middle">UX・</text><text class="tick" x="470" y="116" text-anchor="middle">循環型</text>
-  </g>
-  <text class="tick" x="260" y="150" text-anchor="middle">手仕事の誠実さ → 機械生産と機能 → 体系的方法 → 体験と環境へ</text>
+<svg class="tb-chart" viewBox="0 0 520 180" role="img" aria-label="工業デザイン史の年表">
+<rect class="k-accent" x="16" y="76" width="478" height="8" rx="4"/>
+<path d="M494,72 L508,80 L494,88 Z" style="fill:var(--k-accent-2)"/>
+<circle class="" cx="40" cy="80" r="8" style="fill:var(--tb-surface);stroke:var(--tb-accent);stroke-width:2.4"/><circle class="" cx="40" cy="80" r="3.5" style="fill:var(--tb-accent)"/><text class="lbl" x="40" y="60" text-anchor="middle">19世紀後半</text><text class="tick" x="40" y="106" text-anchor="middle">アーツ&amp;</text><text class="tick" x="40" y="120" text-anchor="middle">クラフツ</text><circle class="" cx="115" cy="80" r="8" style="fill:var(--tb-surface);stroke:var(--tb-accent);stroke-width:2.4"/><circle class="" cx="115" cy="80" r="3.5" style="fill:var(--tb-accent)"/><text class="lbl" x="115" y="60" text-anchor="middle">1907</text><text class="tick" x="115" y="106" text-anchor="middle">ドイツ</text><text class="tick" x="115" y="120" text-anchor="middle">工作連盟</text><circle class="" cx="185" cy="80" r="8" style="fill:var(--tb-surface);stroke:var(--tb-accent);stroke-width:2.4"/><circle class="" cx="185" cy="80" r="3.5" style="fill:var(--tb-accent)"/><text class="lbl" x="185" y="60" text-anchor="middle">1919</text><text class="tick" x="185" y="106" text-anchor="middle">バウハウス</text><text class="tick" x="185" y="120" text-anchor="middle">(〜1933)</text><circle class="" cx="255" cy="80" r="8" style="fill:var(--tb-surface);stroke:var(--tb-accent);stroke-width:2.4"/><circle class="" cx="255" cy="80" r="3.5" style="fill:var(--tb-accent)"/><text class="lbl" x="255" y="60" text-anchor="middle">1930年代</text><text class="tick" x="255" y="106" text-anchor="middle">米国</text><text class="tick" x="255" y="120" text-anchor="middle">流線形</text><circle class="" cx="325" cy="80" r="8" style="fill:var(--tb-surface);stroke:var(--tb-accent);stroke-width:2.4"/><circle class="" cx="325" cy="80" r="3.5" style="fill:var(--tb-accent)"/><text class="lbl" x="325" y="60" text-anchor="middle">1953</text><text class="tick" x="325" y="106" text-anchor="middle">ウルム造形</text><text class="tick" x="325" y="120" text-anchor="middle">大学 (〜1968)</text><circle class="" cx="395" cy="80" r="8" style="fill:var(--tb-surface);stroke:var(--tb-accent);stroke-width:2.4"/><circle class="" cx="395" cy="80" r="3.5" style="fill:var(--tb-accent)"/><text class="lbl" x="395" y="60" text-anchor="middle">1957</text><text class="tick" x="395" y="106" text-anchor="middle">G マーク</text><text class="tick" x="395" y="120" text-anchor="middle">制度創設</text><circle class="" cx="470" cy="80" r="8" style="fill:var(--tb-surface);stroke:var(--tb-accent);stroke-width:2.4"/><circle class="" cx="470" cy="80" r="3.5" style="fill:var(--tb-accent)"/><text class="lbl" x="470" y="60" text-anchor="middle">現在</text><text class="tick" x="470" y="106" text-anchor="middle">UX・</text><text class="tick" x="470" y="120" text-anchor="middle">循環型</text>
+<rect class="" x="30" y="140" width="460" height="26" rx="13" style="fill:var(--tb-surface-2);stroke:var(--tb-border)"/>
+<text class="tick" x="260" y="157" text-anchor="middle" style="fill:var(--tb-text-2)">手仕事の誠実さ → 機械生産と機能 → 体系的方法 → 体験と環境へ</text>
 </svg>
 <p class="tb-caption">図: 工業デザイン思想の大まかな流れ</p>
 <h2>バウハウス — 芸術と技術の統合</h2>
@@ -119,15 +113,23 @@ export const IDESIGN: TextChapter[] = [
   <tr><td>放射対称</td><td>集中・回転</td><td>つまみ、スピーカ、扇風機</td></tr>
 </table>
 <p>非対称で釣り合わせるときは、<b>大きく軽い要素</b>と<b>小さく重い (濃い・密な) 要素</b>を「てこ」のように配置します。操作部を片側に寄せたら、反対側に表示窓や大きな面を置くと全体が落ち着きます。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="非対称の釣り合い">
-  <rect x="40" y="40" width="190" height="100" rx="14" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2"/>
-  <circle cx="190" cy="90" r="22" fill="currentColor" opacity="0.8"/>
-  <text class="tick" x="135" y="160" text-anchor="middle">× 片側に重い要素だけ → 傾いて見える</text>
-  <rect x="290" y="40" width="190" height="100" rx="14" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2"/>
-  <circle cx="440" cy="90" r="22" fill="currentColor" opacity="0.8"/>
-  <rect x="310" y="60" width="90" height="56" rx="6" fill="var(--tb-accent)" opacity="0.35" stroke="var(--tb-accent)"/>
-  <polygon points="385,140 395,152 375,152" fill="var(--tb-warn)"/>
-  <text class="tick" x="385" y="160" text-anchor="middle">◯ 大きく淡い窓で釣り合う</text>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="非対称の釣り合い">
+<rect class="k-panel" x="8" y="8" width="244" height="204" rx="8"/>
+<rect class="k-panel" x="268" y="8" width="244" height="204" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">重い要素が片側だけ</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">大小・濃淡で釣り合う</text>
+<g class="k-shadow"><rect class="k-alu" x="40" y="50" width="180" height="84" rx="14"/></g>
+<circle class="k-part" cx="186" cy="92" r="20" style="fill:var(--k-line)"/>
+<path class="k-part" d="M130,170 L121,184 L139,184 Z"/><rect class="k-ground" x="100" y="184" width="60" height="6"/><line class="k-edge" x1="100" y1="184" x2="160" y2="184"/><line class="" x1="55" y1="160" x2="205" y2="180" style="stroke:var(--k-line)" stroke-width="3"/>
+<circle class="" cx="186" cy="166" r="9" style="fill:var(--k-line)"/>
+<text class="k-note" x="130" y="204" text-anchor="middle">片側に重い要素だけ → 傾いて見える</text>
+<g class="k-shadow"><rect class="k-alu" x="300" y="50" width="180" height="84" rx="14"/></g>
+<rect class="" x="316" y="66" width="92" height="52" rx="6" style="fill:var(--tb-accent);fill-opacity:0.3;stroke:var(--tb-accent);stroke-width:1.4"/>
+<circle class="k-part" cx="446" cy="92" r="20" style="fill:var(--k-line)"/>
+<path class="k-part" d="M390,170 L381,184 L399,184 Z"/><rect class="k-ground" x="360" y="184" width="60" height="6"/><line class="k-edge" x1="360" y1="184" x2="420" y2="184"/><line class="" x1="315" y1="170" x2="465" y2="170" style="stroke:var(--k-line)" stroke-width="3"/>
+<rect class="" x="326" y="150" width="52" height="20" rx="3" style="fill:var(--tb-accent);fill-opacity:0.3;stroke:var(--tb-accent)"/>
+<circle class="" cx="446" cy="161" r="9" style="fill:var(--k-line)"/>
+<text class="k-note" x="390" y="204" text-anchor="middle">大きく淡い窓で釣り合う</text>
 </svg>
 <p class="tb-caption">図: 小さく濃いつまみと、大きく淡い表示窓が「てこ」のように釣り合う</p>
 <h2>リズムと反復</h2>
@@ -203,22 +205,36 @@ export const IDESIGN: TextChapter[] = [
   <tr><td>文化・所属の意味</td><td>ブランド・世代・社会的地位</td><td>ブランドの造形言語、素材の格 (木・金属・布)</td></tr>
 </table>
 <h2>操作の意味をつくる造形</h2>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="操作を示す形の例">
-  <rect x="25" y="50" width="90" height="60" rx="8" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2"/>
-  <ellipse cx="70" cy="80" rx="24" ry="14" fill="none" stroke="var(--tb-accent)" stroke-width="2"/><ellipse cx="70" cy="82" rx="16" ry="8" fill="var(--tb-accent)" opacity="0.25"/>
-  <text class="lbl" x="70" y="140" text-anchor="middle">くぼみ → 押す</text>
-  <circle cx="200" cy="80" r="32" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2"/>
-  <g stroke="currentColor" stroke-width="1.5">
-    <line x1="200" y1="48" x2="200" y2="56"/><line x1="223" y1="57" x2="217" y2="63"/><line x1="232" y1="80" x2="224" y2="80"/><line x1="223" y1="103" x2="217" y2="97"/><line x1="200" y1="112" x2="200" y2="104"/><line x1="177" y1="103" x2="183" y2="97"/><line x1="168" y1="80" x2="176" y2="80"/><line x1="177" y1="57" x2="183" y2="63"/>
-  </g>
-  <text class="lbl" x="200" y="140" text-anchor="middle">ローレット → 回す</text>
-  <rect x="280" y="65" width="110" height="30" rx="15" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2"/>
-  <rect x="290" y="70" width="40" height="20" rx="10" fill="var(--tb-accent)" opacity="0.6"/>
-  <g stroke="currentColor"><line x1="303" y1="74" x2="303" y2="86"/><line x1="310" y1="74" x2="310" y2="86"/><line x1="317" y1="74" x2="317" y2="86"/></g>
-  <text class="lbl" x="335" y="140" text-anchor="middle">溝と横縞 → 滑らせる</text>
-  <path d="M430,110 L430,60 Q460,40 490,60 L490,110 Z" fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="2"/>
-  <path d="M440,70 Q460,58 480,70" fill="none" stroke="var(--tb-accent)" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
-  <text class="lbl" x="460" y="140" text-anchor="middle">指掛かり → 引く・開ける</text>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="操作を示す形の例">
+<rect class="k-panel" x="8" y="8" width="120" height="184" rx="8"/>
+<text class="k-title" x="68" y="160" text-anchor="middle">くぼみ</text>
+<text class="lbl" x="68" y="178" text-anchor="middle">→ 押す</text>
+<rect class="k-panel" x="136" y="8" width="120" height="184" rx="8"/>
+<text class="k-title" x="196" y="160" text-anchor="middle">ローレット</text>
+<text class="lbl" x="196" y="178" text-anchor="middle">→ 回す</text>
+<rect class="k-panel" x="264" y="8" width="120" height="184" rx="8"/>
+<text class="k-title" x="324" y="160" text-anchor="middle">溝と横縞</text>
+<text class="lbl" x="324" y="178" text-anchor="middle">→ 滑らせる</text>
+<rect class="k-panel" x="392" y="8" width="120" height="184" rx="8"/>
+<text class="k-title" x="452" y="160" text-anchor="middle">指掛かり</text>
+<text class="lbl" x="452" y="178" text-anchor="middle">→ 引く・開ける</text>
+<g class="k-shadow"><rect class="k-alu" x="24" y="70" width="88" height="52" rx="8"/></g>
+<ellipse class="k-part" cx="68" cy="92" rx="28" ry="14"/>
+<ellipse cx="68" cy="94" rx="19" ry="8" style="fill:var(--k-steel-3);stroke:var(--k-line);stroke-width:1"/>
+<line class="k-move" x1="68" y1="30" x2="68" y2="74"/>
+<g class="k-shadow"><rect class="k-part-h" x="166" y="72" width="60" height="50" rx="4"/></g>
+<line class="k-thin" x1="170" y1="76" x2="170" y2="120"/><line class="k-thin" x1="175.2" y1="76" x2="175.2" y2="120"/><line class="k-thin" x1="180.4" y1="76" x2="180.4" y2="120"/><line class="k-thin" x1="185.6" y1="76" x2="185.6" y2="120"/><line class="k-thin" x1="190.8" y1="76" x2="190.8" y2="120"/><line class="k-thin" x1="196" y1="76" x2="196" y2="120"/><line class="k-thin" x1="201.2" y1="76" x2="201.2" y2="120"/><line class="k-thin" x1="206.4" y1="76" x2="206.4" y2="120"/><line class="k-thin" x1="211.6" y1="76" x2="211.6" y2="120"/><line class="k-thin" x1="216.8" y1="76" x2="216.8" y2="120"/><line class="k-thin" x1="222" y1="76" x2="222" y2="120"/>
+<ellipse class="k-part" cx="196" cy="72" rx="30" ry="9"/>
+<path class="k-move" d="M156,60 A42,14 0 0 0 234,58"/>
+<rect class="k-ground" x="152" y="122" width="88" height="6"/><line class="k-edge" x1="152" y1="122" x2="240" y2="122"/>
+<g class="k-shadow"><rect class="k-alu" x="274" y="82" width="100" height="18" rx="9"/></g>
+<line class="" x1="284" y1="91" x2="364" y2="91" style="stroke:var(--k-line)" stroke-width="3"/>
+<g class="k-shadow"><rect class="k-accent" x="294" y="70" width="28" height="42" rx="6"/></g>
+<line class="" x1="299" y1="78" x2="317" y2="78" style="stroke:#fff;stroke-opacity:0.7" stroke-width="1.4"/><line class="" x1="299" y1="84" x2="317" y2="84" style="stroke:#fff;stroke-opacity:0.7" stroke-width="1.4"/><line class="" x1="299" y1="90" x2="317" y2="90" style="stroke:#fff;stroke-opacity:0.7" stroke-width="1.4"/><line class="" x1="299" y1="96" x2="317" y2="96" style="stroke:#fff;stroke-opacity:0.7" stroke-width="1.4"/><line class="" x1="299" y1="102" x2="317" y2="102" style="stroke:#fff;stroke-opacity:0.7" stroke-width="1.4"/>
+<line class="k-move" x1="320" y1="50" x2="364" y2="50" style="marker-start:url(#k-arrow-blue)"/>
+<g class="k-shadow"><rect class="k-alu" x="406" y="50" width="92" height="74" rx="6"/></g>
+<path d="M426,64 Q452,52 478,64 L478,76 Q452,66 426,76 Z" style="fill:var(--k-steel-3);stroke:var(--k-line);stroke-width:1.4"/>
+<line class="k-move" x1="452" y1="127" x2="452" y2="146"/>
 </svg>
 <p class="tb-caption">図: 操作の意味を語る代表的な形。触覚の手がかりは暗い場所や視覚障害のある人にも働く</p>
 <p>形による手がかりは<b>文字より速く、言語に依存しない</b>のが利点です。一方で、意味は文化や経験で学習されたものも多く (例: 電源記号)、対象ユーザの「慣れ」を確認する必要があります。</p>
@@ -288,12 +304,33 @@ export const IDESIGN: TextChapter[] = [
   <tr><td>精緻化</td><td>レンダリング (CG)、クレイモデル</td><td>面の質、ハイライト、CMF の組合せ</td><td>数日</td></tr>
   <tr><td>決定</td><td>外観モックアップ (塗装済み)、CMF サンプル</td><td>量産品に近い見え方での最終判断</td><td>数週間・高額</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 160" aria-label="具体化の度合いと案数">
-  <path d="M30,30 L490,110" stroke="var(--tb-accent)" stroke-width="2" fill="none"/>
-  <path d="M30,130 L490,40" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="6 4"/>
-  <text class="lbl" x="35" y="25">案の数</text>
-  <text class="lbl" x="420" y="35">完成度・費用</text>
-  <text class="tick" x="30" y="150">スケッチ</text><text class="tick" x="150" y="150">ラフモデル</text><text class="tick" x="280" y="150">レンダリング</text><text class="tick" x="410" y="150">モックアップ</text>
+<svg class="tb-chart" viewBox="0 0 520 205" role="img" aria-label="具体化の度合いと案数">
+<path d="M30,30 L490,110" style="fill:none;stroke:var(--tb-accent)" stroke-width="2.6"/>
+<path d="M30,130 L490,40" style="fill:none;stroke:var(--tb-warn);stroke-dasharray:7 4" stroke-width="2.6"/>
+<circle class="" cx="60" cy="35.2" r="4" style="fill:var(--tb-accent)"/>
+<circle class="" cx="60" cy="124.1" r="4" style="fill:var(--tb-warn)"/>
+<circle class="" cx="180" cy="56.1" r="4" style="fill:var(--tb-accent)"/>
+<circle class="" cx="180" cy="100.7" r="4" style="fill:var(--tb-warn)"/>
+<circle class="" cx="310" cy="78.7" r="4" style="fill:var(--tb-accent)"/>
+<circle class="" cx="310" cy="75.2" r="4" style="fill:var(--tb-warn)"/>
+<circle class="" cx="440" cy="101.3" r="4" style="fill:var(--tb-accent)"/>
+<circle class="" cx="440" cy="49.8" r="4" style="fill:var(--tb-warn)"/>
+<text class="lbl" x="35" y="22" style="fill:var(--tb-accent)">案の数</text>
+<text class="lbl" x="488" y="30" text-anchor="end" style="fill:var(--tb-warn)">完成度・費用</text>
+<rect class="" x="44" y="146" width="32" height="26" rx="2" style="fill:var(--tb-surface);stroke:var(--k-line);stroke-width:1.2"/>
+<path class="k-edge" d="M49,164 C54,152 60,170 66,154 S72,160 72,156" stroke-width="1.2"/>
+<path class="k-plastic" d="M164,170 L164,154 L180,146 L196,154 L196,170 L180,178 Z"/>
+<path class="k-thin" d="M164,154 L180,162 L196,154 M180,162 L180,178"/>
+<rect class="k-panel" x="290" y="144" width="40" height="26" rx="3"/>
+<path class="k-accent" d="M300,164 Q310,148 320,164 Z"/>
+<line class="k-edge" x1="310" y1="170" x2="310" y2="176"/>
+<line class="k-edge" x1="300" y1="177" x2="320" y2="177"/>
+<g class="k-shadow"><rect class="k-part" x="424" y="148" width="32" height="26" rx="9"/></g>
+<circle class="k-sphere" cx="440" cy="161" r="6"/>
+<text class="tick" x="60" y="196" text-anchor="middle">スケッチ</text>
+<text class="tick" x="180" y="196" text-anchor="middle">ラフモデル</text>
+<text class="tick" x="310" y="196" text-anchor="middle">レンダリング</text>
+<text class="tick" x="440" y="196" text-anchor="middle">モックアップ</text>
 </svg>
 <p class="tb-caption">図: 段階が進むほど案は絞られ、1 案あたりの費用が上がる。安い段階で多く捨てるのが鉄則</p>
 <h2>モデルの種類と使い分け</h2>
@@ -322,14 +359,41 @@ export const IDESIGN: TextChapter[] = [
 </ul>
 <h2>プレゼンテーションボード</h2>
 <p>案を関係者に伝えるボードには、次の要素を 1 枚にまとめます。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="プレゼンテーションボードの構成例">
-  <rect x="20" y="15" width="480" height="170" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="30" y="25" width="460" height="20" fill="var(--tb-accent)" opacity="0.25"/><text class="lbl" x="40" y="40">① タイトル + コンセプト 1 行</text>
-  <rect x="30" y="55" width="250" height="120" fill="var(--tb-surface-2)" stroke="currentColor"/><text class="lbl" x="155" y="120" text-anchor="middle">② メインビュー (使用状態)</text>
-  <rect x="290" y="55" width="95" height="55" fill="var(--tb-surface-2)" stroke="currentColor"/><text class="tick" x="337" y="87" text-anchor="middle">③ 3 面・寸法</text>
-  <rect x="395" y="55" width="95" height="55" fill="var(--tb-surface-2)" stroke="currentColor"/><text class="tick" x="442" y="87" text-anchor="middle">④ 使用シーン</text>
-  <rect x="290" y="120" width="95" height="55" fill="var(--tb-surface-2)" stroke="currentColor"/><text class="tick" x="337" y="152" text-anchor="middle">⑤ CMF</text>
-  <rect x="395" y="120" width="95" height="55" fill="var(--tb-surface-2)" stroke="currentColor"/><text class="tick" x="442" y="152" text-anchor="middle">⑥ 特徴の詳細</text>
+<svg class="tb-chart" viewBox="0 0 520 215" role="img" aria-label="プレゼンテーションボードの構成例">
+<g class="k-shadow"><rect class="k-panel" x="20" y="10" width="480" height="192" rx="4"/></g>
+<rect class="" x="30" y="20" width="460" height="24" rx="3" style="fill:var(--tb-accent);fill-opacity:0.25"/>
+<text class="lbl" x="40" y="37">① タイトル + コンセプト 1 行</text>
+<rect class="" x="30" y="52" width="250" height="140" rx="3" style="fill:var(--tb-surface-2);stroke:var(--tb-border)"/>
+<path d="M76,150 L234,150 L250,166 L60,166 Z" style="fill:var(--tb-text-3);fill-opacity:0.18"/>
+<g class="k-shadow"><rect class="k-plastic" x="110" y="74" width="90" height="80" rx="22"/></g>
+<circle class="k-alu" cx="155" cy="104" r="20"/>
+<circle class="k-part" cx="155" cy="104" r="8" style="fill:var(--k-line)"/>
+<rect class="" x="132" y="136" width="46" height="6" rx="3" style="fill:var(--tb-accent)"/>
+<text class="lbl" x="155" y="184" text-anchor="middle">② メインビュー (使用状態)</text>
+<rect class="" x="290" y="52" width="95" height="66" rx="3" style="fill:var(--tb-surface-2);stroke:var(--tb-border)"/>
+<rect class="k-edge" x="304" y="62" width="26" height="22" rx="3"/>
+<rect class="k-edge" x="338" y="62" width="18" height="22" rx="3"/>
+<rect class="k-edge" x="304" y="88" width="26" height="10" rx="2"/>
+<line class="k-dimline" x1="304" y1="102" x2="330" y2="102"/>
+<text class="tick" x="337" y="112" text-anchor="middle">③ 3 面・寸法</text>
+<rect class="" x="395" y="52" width="95" height="66" rx="3" style="fill:var(--tb-surface-2);stroke:var(--tb-border)"/>
+<circle class="k-skin" cx="426" cy="66" r="6"/>
+<path class="k-accent" d="M418,98 L420,76 Q426,72 432,76 L434,98 Z"/>
+<rect class="k-plastic" x="446" y="80" width="22" height="18" rx="5"/>
+<rect class="k-ground" x="408" y="98" width="74" height="4"/><line class="k-edge" x1="408" y1="98" x2="482" y2="98"/>
+<text class="tick" x="442" y="112" text-anchor="middle">④ 使用シーン</text>
+<rect class="" x="290" y="126" width="95" height="66" rx="3" style="fill:var(--tb-surface-2);stroke:var(--tb-border)"/>
+<circle class="k-plastic" cx="312" cy="152" r="9"/>
+<circle class="k-alu" cx="336" cy="152" r="9"/>
+<circle class="k-accent" cx="360" cy="152" r="9"/>
+<text class="tick" x="337" y="184" text-anchor="middle">⑤ CMF</text>
+<rect class="" x="395" y="126" width="95" height="66" rx="3" style="fill:var(--tb-surface-2);stroke:var(--tb-border)"/>
+<circle class="k-alu" cx="430" cy="152" r="15"/>
+<circle class="k-part" cx="430" cy="152" r="6" style="fill:var(--k-line)"/>
+<circle class="k-edge" cx="430" cy="152" r="19" style="stroke:var(--tb-accent);stroke-dasharray:3 2"/>
+<line class="k-thin" x1="445" y1="140" x2="466" y2="132"/>
+<rect class="k-edge" x="462" y="132" width="18" height="14" rx="2"/>
+<text class="tick" x="442" y="184" text-anchor="middle">⑥ 特徴の詳細</text>
 </svg>
 <p class="tb-caption">図: ボードの構成例。見る人が 10 秒で「何が新しいか」を理解できるかを基準にする</p>
 <ol>
@@ -400,15 +464,16 @@ export const IDESIGN: TextChapter[] = [
   <tr><td>C</td><td>通常見えない面 (底面・内部)</td><td>機能上の問題がなければ可。ゲートや突き出しピンはここへ</td></tr>
 </table>
 <p>自動車業界などでは、意匠面を構成する高品質な曲面を<b>クラス A サーフェス</b>と呼び、曲率の連続性 (G2 以上) やハイライトの流れを専門のモデラーが作り込みます。設計者はこの A 面を基準に、内側へ肉厚を付けてリブやボスを配置します (A 面を勝手に変えない)。</p>
-<svg class="tb-chart" viewBox="0 0 520 180" aria-label="A面と内側の構造">
-  <path d="M40,60 Q260,30 480,60 L480,75 Q260,45 40,75 Z" fill="var(--tb-accent)" opacity="0.35" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="lbl" x="260" y="25" text-anchor="middle">A 面 (デザイナーが管理: 変えない)</text>
-  <line x1="150" y1="68" x2="150" y2="120" stroke="currentColor" stroke-width="3"/>
-  <line x1="260" y1="60" x2="260" y2="120" stroke="currentColor" stroke-width="3"/>
-  <rect x="352" y="64" width="16" height="56" fill="none" stroke="currentColor" stroke-width="2"/>
-  <text class="tick" x="150" y="140" text-anchor="middle">リブ (肉厚の 50〜60% 程度)</text>
-  <text class="tick" x="360" y="140" text-anchor="middle">ボス</text>
-  <text class="tick" x="260" y="165" text-anchor="middle">内側の構造は設計者が管理。リブ根元のヒケが A 面に出ないよう寸法を調整</text>
+<svg class="tb-chart" viewBox="0 0 520 186" role="img" aria-label="A面と内側の構造">
+<text class="lbl" x="260" y="20" text-anchor="middle" style="fill:var(--tb-accent)">A 面 (デザイナーが管理: 変えない)</text>
+<g class="k-shadow"><path d="M40,60 Q260,30 480,60 L480,72 Q260,42 40,72 Z" style="fill:url(#k-hatch);stroke:var(--tb-accent)" stroke-width="2"/><rect class="k-cut" x="146" y="59" width="8" height="66"/><rect class="k-cut" x="256" y="54" width="8" height="71"/><rect class="k-cut" x="348" y="58" width="7" height="67"/><rect class="k-cut" x="365" y="58" width="7" height="67"/></g>
+<line class="k-center" x1="360" y1="50" x2="360" y2="132"/>
+<path d="M250,44 Q260,50 270,44" style="fill:none;stroke:var(--tb-bad)" stroke-width="2.2"/>
+<text class="k-bad-t" x="282" y="40">ヒケ注意</text>
+<text class="tick" x="150" y="142" text-anchor="middle">リブ (肉厚の 50〜60% 程度)</text>
+<text class="tick" x="360" y="142" text-anchor="middle">ボス</text>
+<text class="k-note" x="476" y="104" text-anchor="end">内側 = 設計の領域</text>
+<text class="tick" x="260" y="172" text-anchor="middle">内側の構造は設計者が管理。リブ根元のヒケが A 面に出ないよう寸法を調整</text>
 </svg>
 <p class="tb-caption">図: A 面と内部構造の責任分担。面の外側はデザイン、内側は設計の領域</p>
 <h2>型の開き方向・パーティング・勾配を早く決める</h2>
@@ -421,19 +486,16 @@ export const IDESIGN: TextChapter[] = [
 </ol>
 <h2>デザインフリーズ — 決める時点を明確に</h2>
 <p><b>デザインフリーズ</b>とは、外観形状を確定して以後の変更を原則として止める時点です。金型の製作には長い期間と大きな費用がかかるため、その手前で確定させます。</p>
-<svg class="tb-chart" viewBox="0 0 520 140" aria-label="デザインフリーズまでの流れ">
-  <g fill="var(--tb-surface-2)" stroke="currentColor" stroke-width="1.5">
-    <rect x="15" y="40" width="85" height="40" rx="6"/><rect x="115" y="40" width="85" height="40" rx="6"/><rect x="215" y="40" width="85" height="40" rx="6"/><rect x="315" y="40" width="85" height="40" rx="6"/><rect x="415" y="40" width="90" height="40" rx="6"/>
-  </g>
-  <text class="tick" x="57" y="64" text-anchor="middle">コンセプト</text>
-  <text class="tick" x="157" y="64" text-anchor="middle">形状展開</text>
-  <text class="tick" x="257" y="64" text-anchor="middle">製造性検討</text>
-  <text class="tick" x="357" y="64" text-anchor="middle">モックアップ</text>
-  <text class="tick" x="460" y="64" text-anchor="middle">金型製作</text>
-  <line x1="408" y1="20" x2="408" y2="100" stroke="var(--tb-warn)" stroke-width="3"/>
-  <text class="lbl" x="408" y="118" text-anchor="middle">デザインフリーズ</text>
-  <text class="tick" x="200" y="118" text-anchor="middle">ここまでは変更が安い</text>
-  <text class="tick" x="470" y="130" text-anchor="middle">以後の変更は高い</text>
+<svg class="tb-chart" viewBox="0 0 520 150" role="img" aria-label="デザインフリーズまでの流れ">
+<g class="k-shadow"><path d="M12,40 L98,40 L108,60 L98,80 L12,80 Z" style="fill:var(--tb-accent);fill-opacity:0.14;stroke:var(--tb-accent)" stroke-width="1.4"/><text class="tick" x="62" y="64" text-anchor="middle" style="fill:var(--tb-text)">コンセプト</text><path d="M112,40 L198,40 L208,60 L198,80 L112,80 L122,60 Z" style="fill:var(--tb-accent);fill-opacity:0.14;stroke:var(--tb-accent)" stroke-width="1.4"/><text class="tick" x="162" y="64" text-anchor="middle" style="fill:var(--tb-text)">形状展開</text><path d="M212,40 L298,40 L308,60 L298,80 L212,80 L222,60 Z" style="fill:var(--tb-accent);fill-opacity:0.14;stroke:var(--tb-accent)" stroke-width="1.4"/><text class="tick" x="262" y="64" text-anchor="middle" style="fill:var(--tb-text)">製造性検討</text><path d="M312,40 L398,40 L408,60 L398,80 L312,80 L322,60 Z" style="fill:var(--tb-accent);fill-opacity:0.14;stroke:var(--tb-accent)" stroke-width="1.4"/><text class="tick" x="362" y="64" text-anchor="middle" style="fill:var(--tb-text)">モックアップ</text><path d="M412,40 L498,40 L508,60 L498,80 L412,80 L422,60 Z" style="fill:var(--tb-warn);fill-opacity:0.22;stroke:var(--tb-warn)" stroke-width="1.4"/><text class="tick" x="462" y="64" text-anchor="middle" style="fill:var(--tb-text)">金型製作</text></g>
+<line class="" x1="408" y1="22" x2="408" y2="98" style="stroke:var(--tb-warn)" stroke-width="3"/>
+<rect class="" x="400" y="8" width="16" height="12" rx="2" style="fill:var(--tb-warn)"/>
+<path d="M403,9 L403,5 A5,5 0 0 1 413,5 L413,9" style="fill:none;stroke:var(--tb-warn)" stroke-width="2"/>
+<text class="lbl" x="408" y="116" text-anchor="middle" style="fill:var(--tb-warn)">デザインフリーズ</text>
+<line class="k-move" x1="330" y1="124" x2="40" y2="124" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green)"/>
+<text class="k-good-t" x="200" y="116" text-anchor="middle">ここまでは変更が安い</text>
+<line class="k-move" x1="420" y1="140" x2="500" y2="140" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)"/>
+<text class="k-bad-t" x="414" y="144" text-anchor="end">以後の変更は高い</text>
 </svg>
 <p class="tb-caption">図: デザインフリーズの位置。金型着手後の形状変更は費用と日程に大きく響く</p>
 <p>フリーズ時には、<b>外観データ (A 面)・CMF 指示書・外観公差・承認モックアップ</b>をセットで確定し、承認者と日付を記録します。やむを得ない変更は設計変更の手続き (「設計変更の進め方」の章) に乗せ、意匠責任者の承認を必須にします。</p>
@@ -482,14 +544,19 @@ export const IDESIGN: TextChapter[] = [
     body: `
 <h2>工業デザイナーにできること</h2>
 <p>環境配慮の基本 (LCA、3R、材料表示) は「サステナブルデザイン」の章で扱いました。ここでは<b>見た目と使い方を決める立場</b>から何ができるかに絞ります。循環型経済では、製品をなるべく<b>価値の高い状態のまま</b>循環させることを優先します。</p>
-<svg class="tb-chart" viewBox="0 0 520 190" aria-label="循環の優先順位">
-  <circle cx="260" cy="95" r="70" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4"/>
-  <circle cx="260" cy="95" r="40" fill="var(--tb-accent)" opacity="0.2" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="lbl" x="260" y="92" text-anchor="middle">長く使う</text><text class="tick" x="260" y="107" text-anchor="middle">(内側ほど優先)</text>
-  <text class="lbl" x="260" y="17" text-anchor="middle">修理・アップグレード</text>
-  <text class="lbl" x="395" y="100">再製造・部品再使用</text>
-  <text class="lbl" x="260" y="185" text-anchor="middle">素材リサイクル</text>
-  <text class="lbl" x="40" y="100">(最後の手段: 熱回収)</text>
+<svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="循環の優先順位">
+<circle class="" cx="200" cy="120" r="46" style="fill:var(--tb-accent);fill-opacity:0.18;stroke:var(--tb-accent);stroke-width:2"/>
+<path d="M140.1,104.0 A62,62 0 1 1 140.1,136.0" style="fill:none;stroke:var(--tb-good);marker-end:url(#k-arrow-green)" stroke-width="3"/>
+<path d="M120.8,98.8 A82,82 0 1 1 120.8,141.2" style="fill:none;stroke:var(--tb-accent);marker-end:url(#k-arrow-blue)" stroke-width="3"/>
+<path d="M101.5,93.6 A102,102 0 1 1 101.5,146.4" style="fill:none;stroke:var(--tb-warn);marker-end:url(#k-arrow)" stroke-width="3"/>
+<text class="lbl" x="200" y="117" text-anchor="middle">長く使う</text>
+<text class="tick" x="200" y="133" text-anchor="middle">(内側ほど優先)</text>
+<line class="k-thin" x1="318" y1="48" x2="247.5" y2="80.1"/><circle class="" cx="247.5" cy="80.1" r="3" style="fill:var(--tb-good)"/><text class="lbl" x="322" y="52" style="fill:var(--tb-good)">修理・アップグレード</text>
+<line class="k-thin" x1="318" y1="118" x2="281.7" y2="127.1"/><circle class="" cx="281.7" cy="127.1" r="3" style="fill:var(--tb-accent)"/><text class="lbl" x="322" y="122" style="fill:var(--tb-accent)">再製造・部品再使用</text>
+<line class="k-thin" x1="318" y1="192" x2="278.1" y2="185.6"/><circle class="" cx="278.1" cy="185.6" r="3" style="fill:var(--tb-warn)"/><text class="lbl" x="322" y="196" style="fill:var(--tb-warn)">素材リサイクル</text>
+<line class="k-force" x1="96" y1="120" x2="50" y2="120" stroke-width="2"/>
+<text class="tick" x="16" y="146">最後の手段:</text>
+<text class="tick" x="16" y="162">熱回収</text>
 </svg>
 <p class="tb-caption">図: 内側の小さな循環ほど価値が残る。素材リサイクルは外側の大きな循環</p>
 <h2>1. 長く愛される造形 — 情緒的な耐久性</h2>

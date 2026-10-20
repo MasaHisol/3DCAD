@@ -12,14 +12,21 @@ export const UX: TextChapter[] = [
 <h2>分布とパーセンタイル</h2>
 <p>身長や座高などの人体寸法は、同じ性別・年代の集団ではおおむね<b>正規分布</b>に近い形になります。
 <b>p パーセンタイル</b>とは「小さいほうから数えて p % の人がその値以下になる値」です。50 パーセンタイルは中央値 (正規分布なら平均と同じ) です。</p>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="正規分布とパーセンタイル">
-  <line class="axis" x1="40" y1="180" x2="500" y2="180"/>
-  <path d="M40,179 C120,178 170,160 210,110 C240,60 255,30 270,30 C285,30 300,60 330,110 C370,160 420,178 500,179" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line class="guide" x1="170" y1="40" x2="170" y2="180"/><line class="guide" x1="370" y1="40" x2="370" y2="180"/><line class="guide" x1="270" y1="25" x2="270" y2="180"/>
-  <text class="tick" x="170" y="196" text-anchor="middle">μ − 1.645σ</text><text class="tick" x="270" y="196" text-anchor="middle">μ (平均)</text><text class="tick" x="370" y="196" text-anchor="middle">μ + 1.645σ</text>
-  <text class="mark-t" x="150" y="60" text-anchor="end">5 パーセンタイル</text><text class="mark-t" x="390" y="60">95 パーセンタイル</text>
-  <text class="sec" x="270" y="140" text-anchor="middle">90 % の人がこの範囲</text>
-  <text class="lbl" x="495" y="212" text-anchor="end">寸法</text>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="正規分布とパーセンタイル">
+
+<defs><clipPath id="ux-pct-clip"><rect x="170" y="0" width="200" height="181"/></clipPath></defs>
+<path d="M40,179 C120,178 170,160 210,110 C240,60 255,30 270,30 C285,30 300,60 330,110 C370,160 420,178 500,179 L500,180 L40,180 Z" clip-path="url(#ux-pct-clip)" style="fill:var(--tb-accent)" opacity="0.18"/>
+<path d="M40,179 C120,178 170,160 210,110 C240,60 255,30 270,30 C285,30 300,60 330,110 C370,160 420,178 500,179 L500,180 L40,180 Z" style="fill:var(--tb-text-3)" opacity="0.08"/>
+<line class="axis" x1="40" y1="180" x2="500" y2="180"/>
+<path d="M40,179 C120,178 170,160 210,110 C240,60 255,30 270,30 C285,30 300,60 330,110 C370,160 420,178 500,179" fill="none" style="stroke:var(--tb-accent)" stroke-width="2.5"/>
+<line class="k-center" x1="270" y1="22" x2="270" y2="180"/>
+<line class="guide" x1="170" y1="44" x2="170" y2="180"/><line class="guide" x1="370" y1="44" x2="370" y2="180"/>
+<text class="tick" x="170" y="196" text-anchor="middle">μ − 1.645σ</text><text class="tick" x="270" y="196" text-anchor="middle">μ (平均)</text><text class="tick" x="370" y="196" text-anchor="middle">μ + 1.645σ</text>
+<text class="mark-t" x="160" y="60" text-anchor="end">5 パーセンタイル</text><text class="mark-t" x="380" y="60">95 パーセンタイル</text>
+<line class="k-dimline" x1="172" y1="150" x2="368" y2="150"/>
+<text class="k-dimtext" x="270" y="142" text-anchor="middle">90 % の人がこの範囲</text>
+<text class="k-note" x="105" y="170" text-anchor="middle">5 %</text><text class="k-note" x="435" y="170" text-anchor="middle">5 %</text>
+<text class="lbl" x="500" y="212" text-anchor="end">寸法</text>
 </svg>
 <div class="tb-formula">p 値 = μ + z × σ　　(z: 5 % → −1.645、1 % → −2.326、50 % → 0、95 % → +1.645、99 % → +2.326)</div>
 <p>注意: パーセンタイルは<b>寸法ごと</b>の値です。「身長 5 パーセンタイルの人」の腕の長さが 5 パーセンタイルとは限りません。複数の寸法を同時に満たすと、カバーできる人の割合は 90 % より小さくなります。また、パーセンタイル値どうしを足し算しても、その合計のパーセンタイルにはなりません。</p>
@@ -41,29 +48,33 @@ export const UX: TextChapter[] = [
   <tr><td>両方に影響 (適合)</td><td>調整範囲で 5〜95 パーセンタイルをカバー</td><td>椅子・作業台の高さ、ヘッドレスト</td></tr>
   <tr><td>安全 (到達防止)</td><td>大きい人・細い指 (極端側)</td><td>危険部へ指が届かない開口・距離</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 260" aria-label="リーチ範囲の側面図">
-  <line class="axis" x1="20" y1="240" x2="500" y2="240"/>
-  <circle cx="110" cy="70" r="14" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
-  <path d="M110,84 L110,160 M110,160 L95,240 M110,160 L125,240" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
-  <path d="M110,110 L200,110" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <path d="M20,110 A90,90 0 0 1 200,110" class="guide" fill="none"/>
-  <path d="M110,20 A90,90 0 0 1 200,110 A90,90 0 0 1 168,179" stroke="var(--tb-accent)" fill="none" stroke-width="2.5"/>
-  <circle class="mark" cx="110" cy="110" r="4"/><text class="tick" x="100" y="106" text-anchor="end">肩</text>
-  <rect x="300" y="6" width="70" height="8" fill="var(--tb-bad)"/><text class="tick" x="378" y="14">× 最上段 (届かない)</text>
-  <rect x="300" y="60" width="70" height="8" fill="var(--tb-good)"/><text class="tick" x="378" y="68">○ リーチ円の高さ内</text>
-  <line class="guide" x1="110" y1="10" x2="300" y2="10"/><line class="guide" x1="185" y1="64" x2="300" y2="64"/>
-  <text class="mark-t" x="215" y="160">5 パーセンタイルの</text><text class="mark-t" x="215" y="176">腕のリーチ (概念図)</text>
-  <text class="tick" x="110" y="256" text-anchor="middle">小柄な利用者</text>
+<svg class="tb-chart" viewBox="0 0 520 280" role="img" aria-label="リーチ範囲の側面図">
+<g transform="translate(0,14)">
+<rect class="k-ground" x="20" y="238" width="480" height="8"/><line class="k-edge" x1="20" y1="238" x2="500" y2="238"/>
+<path d="M20,112 A90,90 0 0 1 200,112" class="guide" fill="none"/>
+<path d="M110,22 A90,90 0 0 1 200,112 A90,90 0 0 1 168,181" style="stroke:var(--tb-accent)" fill="none" stroke-width="2.5" opacity="0.9"/>
+<g class="k-shadow"><rect class="k-alu" x="282" y="6" width="7" height="228"/><rect class="k-alu" x="356" y="6" width="7" height="228"/><rect x="280" y="12" width="85" height="6" rx="1" style="fill:var(--tb-bad);stroke:var(--k-line)" stroke-width="1.2"/><rect x="280" y="66" width="85" height="6" rx="1" style="fill:var(--tb-good);stroke:var(--k-line)" stroke-width="1.2"/><rect class="k-part" x="280" y="126" width="85" height="6" rx="1"/><rect class="k-part" x="280" y="186" width="85" height="6" rx="1"/><rect class="k-plastic" x="296" y="-2" width="24" height="14" rx="2"/><rect class="k-plastic" x="300" y="46" width="28" height="20" rx="2"/><rect class="k-plastic" x="332" y="52" width="18" height="14" rx="2"/><rect class="k-plastic" x="298" y="104" width="34" height="22" rx="2"/><rect class="k-plastic" x="294" y="166" width="44" height="20" rx="2"/></g>
+<line class="guide" x1="110" y1="15" x2="278" y2="15"/><line class="guide" x1="186" y1="69" x2="278" y2="69"/>
+<g class="k-shadow"><path d="M108.0,160.0 L104.0,198.0 L100.0,234.0" fill="none" style="stroke:var(--k-line)" stroke-width="12.9"/><path d="M108.0,160.0 L104.0,198.0 L100.0,234.0" fill="none" style="stroke:var(--k-line-2)" stroke-width="10.5"/><path d="M96.0,231.0 L109.0,233.0 Q114.0,234.0 114.0,237.5 L95.0,237.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><path d="M110.0,112.0 L106.0,138.0" fill="none" style="stroke:var(--k-line)" stroke-width="9.9"/><path d="M106.0,138.0 L110.0,163.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M110.0,112.0 L106.0,138.0" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7.5"/><path d="M106.0,138.0 L110.0,163.0" fill="none" style="stroke:var(--k-skin-2)" stroke-width="6.0"/><circle class="k-skin" cx="110" cy="163" r="4.0"/><path d="M111.0,102.0 L110.0,112.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M111.0,102.0 L110.0,112.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.0"/><path d="M110.0,112.0 L108.0,160.0" fill="none" style="stroke:var(--k-line)" stroke-width="21.4"/><path d="M110.0,112.0 L108.0,160.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="19.0"/><path d="M108.0,160.0 L111.0,198.0 L110.0,234.0" fill="none" style="stroke:var(--k-line)" stroke-width="13.4"/><path d="M108.0,160.0 L111.0,198.0 L110.0,234.0" fill="none" style="stroke:var(--k-steel-3)" stroke-width="11.0"/><path d="M106.0,231.0 L119.0,233.0 Q124.0,234.0 124.0,237.5 L105.0,237.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><circle class="k-skin" cx="113" cy="93" r="11.0"/><path d="M123.2,93.5 l2.6,3.2 l-2.8,0.6" class="k-skin" stroke-width="1"/><path d="M122.0,87.0 A11.0,11.0 0 1 0 105.1,100.5 Q111.3,94.1 122.0,87.0 Z" fill="#4a3728" style="stroke:var(--k-line)" stroke-width="1"/><circle cx="119.0" cy="92.8" r="1.4" style="fill:var(--k-line)"/><path d="M110.0,112.0 L144.0,82.0" fill="none" style="stroke:var(--k-line)" stroke-width="10.4"/><path d="M144.0,82.0 L176.0,56.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.9"/><path d="M110.0,112.0 L144.0,82.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="8.0"/><path d="M144.0,82.0 L176.0,56.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.5"/><circle class="k-skin" cx="176" cy="56" r="4.3"/></g>
+<circle cx="110" cy="112" r="3.5" style="fill:var(--tb-bad);stroke:var(--k-line)"/>
+<line class="k-thin" x1="80" y1="122" x2="104" y2="114"/><text class="tick" x="78" y="127" text-anchor="end">肩</text>
+<text class="k-bad-t" x="372" y="19">× 最上段 (届かない)</text>
+<text class="k-good-t" x="372" y="73">○ リーチ円の高さ内</text>
+<text class="mark-t" x="268" y="206" text-anchor="end">5 パーセンタイルの</text><text class="mark-t" x="268" y="222" text-anchor="end">腕のリーチ (概念図)</text>
+<text class="tick" x="110" y="258" text-anchor="middle">小柄な利用者</text></g>
 </svg>
 <p class="tb-caption">図: 肩を中心とした腕のリーチ円 (側面)。棚や操作部は、小さい人のリーチ円の内側に置く。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="調整範囲でカバーする">
-  <line class="axis" x1="40" y1="130" x2="500" y2="130"/>
-  <path d="M40,129 C110,128 150,110 180,70 C200,40 215,25 225,25 C235,25 250,40 270,70 C300,110 340,128 410,129" fill="none" stroke="var(--tb-text-3)" stroke-width="2"/>
-  <path d="M140,130 L140,118 C160,100 175,75 200,40 C210,28 220,25 225,25 C235,25 245,30 255,45 C275,75 295,100 310,118 L310,130 z" fill="color-mix(in srgb, var(--tb-accent) 25%, transparent)" stroke="var(--tb-accent)"/>
-  <text class="tick" x="140" y="146" text-anchor="middle">5 %</text><text class="tick" x="310" y="146" text-anchor="middle">95 %</text>
-  <text class="mark-t" x="225" y="100" text-anchor="middle">調整範囲</text>
-  <path d="M140,160 L310,160" stroke="var(--tb-accent)" stroke-width="2"/><circle cx="225" cy="160" r="6" fill="var(--tb-accent)"><animate attributeName="cx" values="140;310;140" dur="5s" repeatCount="indefinite"/></circle>
-  <text class="tick" x="330" y="164">座面高さを動かして 90 % をカバー</text>
+<svg class="tb-chart" viewBox="0 0 520 180" role="img" aria-label="調整範囲でカバーする">
+
+<line class="axis" x1="40" y1="130" x2="500" y2="130"/>
+<path d="M40,129 C110,128 150,110 180,70 C200,40 215,25 225,25 C235,25 250,40 270,70 C300,110 340,128 410,129" fill="none" style="stroke:var(--tb-text-3)" stroke-width="2"/>
+<path d="M140,130 L140,118 C160,100 175,75 200,40 C210,28 220,25 225,25 C235,25 245,30 255,45 C275,75 295,100 310,118 L310,130 z" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.22" stroke-width="1.5"/>
+<text class="tick" x="140" y="146" text-anchor="middle">5 %</text><text class="tick" x="310" y="146" text-anchor="middle">95 %</text>
+<text class="mark-t" x="225" y="100" text-anchor="middle">調整範囲</text>
+<line class="k-dimline" x1="140" y1="164" x2="310" y2="164" style="marker-start:none;marker-end:none" stroke-width="3"/>
+<g><animateTransform attributeName="transform" type="translate" values="-85,0;85,0;-85,0" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="5s" repeatCount="indefinite"/>
+<g class="k-shadow"><rect class="k-alu" x="221" y="156" width="8" height="10"/><rect class="k-accent" x="207" y="150" width="36" height="8" rx="3"/></g></g>
+<text class="tick" x="330" y="168">座面高さを動かして 90 % をカバー</text>
 </svg>
 <p class="tb-caption">図: 椅子や作業台は 5〜95 パーセンタイルを調整範囲でカバーする (動く点は調整位置)。</p>
 <p class="tb-caption">図: 肩を中心とした腕のリーチ円。棚や操作部は小さい人のリーチ円の内側に置く。</p>
@@ -107,17 +118,35 @@ export const UX: TextChapter[] = [
   <tr><td>レバー</td><td>大きな力・方向のある操作 (前進/後退)</td><td>操作方向を動きと一致させる</td></tr>
   <tr><td>ペダル</td><td>手がふさがっている時の操作、大きな力</td><td>踏み間違い・意図しない踏み込み → カバー</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="操作具の種類と動き">
-  <defs><marker id="ux-ar1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--tb-accent)"/></marker></defs>
-  <circle cx="60" cy="80" r="26" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="60" cy="80" r="16" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/>
-  <path d="M60,30 L60,48" stroke="var(--tb-accent)" fill="none" stroke-width="2.5" marker-end="url(#ux-ar1)"/><text class="tick" x="60" y="140" text-anchor="middle">押しボタン</text>
-  <rect x="140" y="70" width="40" height="30" rx="4" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><path d="M160,85 L175,45" stroke="var(--tb-text-2)" stroke-width="5" stroke-linecap="round"/>
-  <path d="M150,45 A30,30 0 0 1 190,50" stroke="var(--tb-accent)" fill="none" stroke-width="2.5" marker-end="url(#ux-ar1)"/><text class="tick" x="160" y="140" text-anchor="middle">トグル</text>
-  <circle cx="260" cy="80" r="26" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><line x1="260" y1="80" x2="260" y2="58" stroke="var(--tb-accent)" stroke-width="3"><animateTransform attributeName="transform" type="rotate" values="0 260 80;90 260 80;0 260 80" dur="4s" repeatCount="indefinite"/></line>
-  <path d="M232,52 A40,40 0 0 1 292,52" stroke="var(--tb-accent)" fill="none" stroke-width="2.5" marker-end="url(#ux-ar1)"/><text class="tick" x="260" y="140" text-anchor="middle">つまみ (右回りで増)</text>
-  <rect x="345" y="95" width="30" height="12" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><path d="M360,100 L380,45" stroke="var(--tb-text-2)" stroke-width="5" stroke-linecap="round"/><circle cx="380" cy="42" r="7" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/>
-  <path d="M340,50 L395,30" stroke="var(--tb-accent)" fill="none" stroke-width="2.5" marker-end="url(#ux-ar1)"/><text class="tick" x="362" y="140" text-anchor="middle">レバー</text>
-  <path d="M430,110 L490,90 L495,100 L435,120 z" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><path d="M470,60 L470,88" stroke="var(--tb-accent)" fill="none" stroke-width="2.5" marker-end="url(#ux-ar1)"/><text class="tick" x="462" y="140" text-anchor="middle">ペダル</text>
+<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="操作具の種類と動き">
+
+<rect class="k-panel" x="8" y="8" width="96" height="154"/><rect class="k-panel" x="110" y="8" width="96" height="154"/><rect class="k-panel" x="212" y="8" width="96" height="154"/><rect class="k-panel" x="314" y="8" width="96" height="154"/><rect class="k-panel" x="416" y="8" width="96" height="154"/>
+<g class="k-shadow"><rect class="k-alu" x="20" y="100" width="72" height="8"/><rect class="k-part" x="38" y="90" width="36" height="10" rx="2"/>
+<g><animateTransform attributeName="transform" type="translate" values="0,0;0,6;0,0" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="2s" repeatCount="indefinite"/><rect class="k-accent" x="43" y="72" width="26" height="20" rx="4"/></g></g>
+<line class="k-move" x1="56" y1="32" x2="56" y2="62"/>
+<text class="tick" x="56" y="146" text-anchor="middle">押しボタン</text>
+<g class="k-shadow"><rect class="k-alu" x="122" y="100" width="72" height="8"/><path class="k-part" d="M146,100 L146,90 L152,85 L164,85 L170,90 L170,100 Z"/>
+<path d="M158,88 L174,52" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M158,88 L174,52" fill="none" style="stroke:var(--k-steel-2)" stroke-width="6"/><circle class="k-sphere" cx="175" cy="50" r="5"/></g>
+<path class="k-move" d="M134,62 A34,34 0 0 1 186,36"/>
+<text class="tick" x="158" y="146" text-anchor="middle">トグル</text>
+<line class="k-thin" x1="236.7" y1="107.3" x2="233.8" y2="110.2" stroke-width="1.4"/><line class="k-thin" x1="227.0" y1="84.0" x2="223.0" y2="84.0" stroke-width="1.4"/><line class="k-thin" x1="236.7" y1="60.7" x2="233.8" y2="57.8" stroke-width="1.4"/><line class="k-thin" x1="260.0" y1="51.0" x2="260.0" y2="47.0" stroke-width="1.4"/><line class="k-thin" x1="283.3" y1="60.7" x2="286.2" y2="57.8" stroke-width="1.4"/><line class="k-thin" x1="293.0" y1="84.0" x2="297.0" y2="84.0" stroke-width="1.4"/><line class="k-thin" x1="283.3" y1="107.3" x2="286.2" y2="110.2" stroke-width="1.4"/>
+<g class="k-shadow"><circle cx="260" cy="84" r="28" style="fill:var(--k-steel-3);stroke:var(--k-line)" stroke-width="1.4"/><circle cx="260" cy="84" r="27" fill="none" style="stroke:var(--k-steel-1)" stroke-width="3" stroke-dasharray="2 2.6"/><circle class="k-part" cx="260" cy="84" r="22"/></g>
+<g><animateTransform attributeName="transform" type="rotate" values="0 260 84;90 260 84;0 260 84" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="4s" repeatCount="indefinite"/><line x1="260" y1="84" x2="260" y2="66" style="stroke:var(--tb-accent)" stroke-width="4"/></g>
+<circle cx="260" cy="84" r="3" style="fill:var(--k-line)"/>
+<path class="k-move" d="M228,52 A44,44 0 0 1 292,52"/>
+<text class="tick" x="260" y="146" text-anchor="middle">つまみ (右回りで増)</text>
+<g class="k-shadow"><g><animateTransform attributeName="transform" type="rotate" values="-6 362 96;14 362 96;-6 362 96" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="3s" repeatCount="indefinite"/>
+<path d="M362,96 L380,48" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M362,96 L380,48" fill="none" style="stroke:var(--k-steel-2)" stroke-width="6"/><circle class="k-sphere" cx="381" cy="44" r="8"/></g>
+<rect class="k-part" x="340" y="92" width="44" height="14" rx="3"/><line class="k-thin" x1="350" y1="96" x2="374" y2="96" stroke-width="2"/></g>
+<path class="k-move" d="M334,34 A72,72 0 0 1 400,32"/>
+<text class="tick" x="362" y="146" text-anchor="middle">レバー</text>
+<g class="k-shadow"><rect class="k-part" x="424" y="108" width="80" height="8" rx="2"/>
+<g><animateTransform attributeName="transform" type="rotate" values="0 432 106;7 432 106;0 432 106" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="2.4s" repeatCount="indefinite"/>
+<path class="k-part" d="M430,104 L500,84 L503,92 L433,110 Z"/>
+<path d="M448,90 Q450,74 470,70 L494,66 Q506,66 503,76 L496,80 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1.2"/></g>
+<circle class="k-sphere" cx="432" cy="106" r="4"/></g>
+<line class="k-move" x1="478" y1="26" x2="478" y2="58"/>
+<text class="tick" x="464" y="146" text-anchor="middle">ペダル</text>
 </svg>
 <p class="tb-caption">図: 主な操作具と操作方向 (矢印)。つまみは右回りで値が増えるのが一般的なステレオタイプ。</p>
 <h2>大きさ・操作力・ストロークの目安</h2>
@@ -141,13 +170,17 @@ export const UX: TextChapter[] = [
   <li><b>形・色・位置で区別</b>: 停止ボタンは大きく赤く、起動ボタンは埋め込み・小さめにすることが多い</li>
   <li>重大な操作は<b>取り消し可能</b>にするか、確認を求める</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="誤操作防止の形状">
-  <line class="axis" x1="20" y1="120" x2="500" y2="120"/>
-  <rect x="50" y="100" width="60" height="20" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="tick" x="80" y="145" text-anchor="middle">突出 (押しやすい)</text>
-  <rect x="190" y="104" width="10" height="16" fill="var(--tb-text-3)"/><rect x="260" y="104" width="10" height="16" fill="var(--tb-text-3)"/><rect x="205" y="110" width="50" height="10" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="tick" x="230" y="145" text-anchor="middle">ガード (シュラウド)</text>
-  <path d="M340,120 L340,120 L360,120 L360,135 L420,135 L420,120 L440,120" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><rect x="365" y="125" width="50" height="10" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><text class="tick" x="390" y="160" text-anchor="middle">埋め込み (リセス)</text>
-  <circle cx="80" cy="60" r="14" fill="var(--tb-accent)"><animate attributeName="cy" values="60;92;60" dur="3s" repeatCount="indefinite"/></circle>
-  <text class="tick" x="110" y="40">指</text>
+<svg class="tb-chart" viewBox="0 0 520 190" role="img" aria-label="誤操作防止の形状">
+
+<rect class="k-panel" x="8" y="8" width="164" height="174"/><rect class="k-panel" x="178" y="8" width="164" height="174"/><rect class="k-panel" x="348" y="8" width="164" height="174"/>
+<g class="k-shadow"><rect class="k-cut" x="18" y="120" width="144" height="16"/><rect class="k-accent" x="68" y="98" width="44" height="22" rx="3"/></g>
+<g transform="translate(90,98)"><g><animateTransform attributeName="transform" type="translate" values="0,-24;0,0;0,0;0,-24" keyTimes="0;0.35;0.55;1" calcMode="spline" keySplines="0.45 0 0.55 1;0 0 1 1;0.45 0 0.55 1" dur="3s" repeatCount="indefinite"/><g transform="scale(0.75)"><rect x="-8" y="-86" width="30" height="24" rx="4" style="fill:var(--k-accent-1);stroke:var(--k-line)" stroke-width="1.2"/><rect class="k-skin" x="-8" y="-64" width="30" height="30" rx="10"/><path d="M14,-52 q7,0 7,5 M14,-44 q7,0 7,5" class="k-thin"/><rect class="k-skin" x="-11" y="-50" width="9" height="18" rx="4.5" transform="rotate(-12 -6 -41)"/><rect class="k-skin" x="-5" y="-40" width="10" height="40" rx="5"/><path d="M-3,-3 q3,-5 6,0" class="k-thin"/></g></g></g>
+<line class="k-thin" x1="122" y1="44" x2="104" y2="52"/><text class="tick" x="126" y="44">指</text>
+<g class="k-shadow"><path class="k-cut" d="M188,120 L222,120 L222,92 L234,92 L234,120 L286,120 L286,92 L298,92 L298,120 L332,120 L332,136 L188,136 Z"/><rect class="k-accent" x="240" y="108" width="40" height="12" rx="3"/></g>
+<line class="guide" x1="210" y1="92" x2="310" y2="92"/>
+<g class="k-shadow"><path class="k-cut" d="M358,120 L410,120 L410,140 L470,140 L470,120 L502,120 L502,152 L358,152 Z"/><rect class="k-accent" x="415" y="130" width="50" height="10" rx="3"/></g>
+<line class="guide" x1="390" y1="120" x2="490" y2="120"/>
+<text class="mark-t" x="90" y="172" text-anchor="middle">突出 (押しやすい)</text><text class="mark-t" x="260" y="172" text-anchor="middle">ガード (シュラウド)</text><text class="mark-t" x="430" y="172" text-anchor="middle">埋め込み (リセス)</text>
 </svg>
 <p class="tb-caption">図: 断面で見た押しボタンの形状。周囲を高くするほど偶発的に押されにくい (起動は埋め込み、停止は突出が多い)。</p>
 <h2>操作方向のステレオタイプ</h2>
@@ -171,18 +204,23 @@ export const UX: TextChapter[] = [
   <li><b>使用順序</b>: 手順どおり左→右、上→下に並べる</li>
   <li><b>対応づけ</b>: 制御対象の配置と操作具の配置をそろえる</li>
 </ol>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="コンロのつまみ配置">
-  <rect x="20" y="20" width="200" height="130" rx="8" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
-  <circle cx="70" cy="60" r="20" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="170" cy="60" r="20" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="70" cy="110" r="20" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="170" cy="110" r="20" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
-  <circle cx="50" cy="170" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="95" cy="170" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="145" cy="170" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="190" cy="170" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
-  <text class="lbl" x="120" y="196" text-anchor="middle" fill="var(--tb-bad)">悪い例: 一列 — どれがどれ?</text>
-  <rect x="300" y="20" width="200" height="130" rx="8" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
-  <circle cx="340" cy="45" r="18" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="460" cy="45" r="18" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="350" cy="105" r="22" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="450" cy="105" r="22" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
-  <circle cx="380" cy="160" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="420" cy="160" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="380" cy="182" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><circle cx="420" cy="182" r="9" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
-  <circle cx="450" cy="105" r="22" fill="var(--tb-bad)" opacity="0.3"><animate attributeName="opacity" values="0.1;0.6;0.1" dur="2s" repeatCount="indefinite"/></circle>
-  <circle cx="420" cy="182" r="9" fill="var(--tb-accent)"/>
-  <text class="lbl" x="250" y="196" text-anchor="middle">良い例 →</text>
-  <text class="tick" x="510" y="196" text-anchor="end">つまみもバーナーと同じ 2×2 配置</text>
+<svg class="tb-chart" viewBox="0 0 520 230" role="img" aria-label="コンロのつまみ配置">
+
+<rect class="k-panel" x="8" y="8" width="244" height="214"/><rect class="k-panel" x="268" y="8" width="244" height="214"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-bad-t" x="44" y="33">悪い例: 一列 — どれがどれ?</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-good-t" x="304" y="33">良い例</text>
+<g class="k-shadow"><rect class="k-part" x="20" y="46" width="220" height="150" rx="8"/></g>
+<rect x="28" y="52" width="204" height="104" rx="4" style="fill:var(--k-steel-3)" opacity="0.55"/>
+<circle cx="75" cy="79" r="20" style="fill:var(--k-line-2)" opacity="0.22"/><circle cx="75" cy="79" r="20" class="k-thin" stroke-width="1.4"/><circle cx="75" cy="79" r="12.0" class="k-thin"/><circle cx="75" cy="79" r="5.0" class="k-thin"/><circle cx="185" cy="79" r="20" style="fill:var(--k-line-2)" opacity="0.22"/><circle cx="185" cy="79" r="20" class="k-thin" stroke-width="1.4"/><circle cx="185" cy="79" r="12.0" class="k-thin"/><circle cx="185" cy="79" r="5.0" class="k-thin"/><circle cx="75" cy="129" r="20" style="fill:var(--k-line-2)" opacity="0.22"/><circle cx="75" cy="129" r="20" class="k-thin" stroke-width="1.4"/><circle cx="75" cy="129" r="12.0" class="k-thin"/><circle cx="75" cy="129" r="5.0" class="k-thin"/><circle cx="185" cy="129" r="20" style="fill:var(--k-line-2)" opacity="0.22"/><circle cx="185" cy="129" r="20" class="k-thin" stroke-width="1.4"/><circle cx="185" cy="129" r="12.0" class="k-thin"/><circle cx="185" cy="129" r="5.0" class="k-thin"/>
+<circle class="k-sphere" cx="50" cy="176" r="9"/><line x1="50" y1="176" x2="46.4" y2="169.8" style="stroke:var(--k-line)" stroke-width="2"/><circle class="k-sphere" cx="100" cy="176" r="9"/><line x1="100" y1="176" x2="96.4" y2="169.8" style="stroke:var(--k-line)" stroke-width="2"/><circle class="k-sphere" cx="160" cy="176" r="9"/><line x1="160" y1="176" x2="156.4" y2="169.8" style="stroke:var(--k-line)" stroke-width="2"/><circle class="k-sphere" cx="210" cy="176" r="9"/><line x1="210" y1="176" x2="206.4" y2="169.8" style="stroke:var(--k-line)" stroke-width="2"/>
+<text class="k-bad-t" x="130" y="214" text-anchor="middle">? ? ? ?</text>
+<g class="k-shadow"><rect class="k-part" x="300" y="46" width="180" height="150" rx="8"/></g>
+<rect x="308" y="52" width="164" height="94" rx="4" style="fill:var(--k-steel-3)" opacity="0.55"/>
+<circle cx="340" cy="74" r="16" style="fill:var(--k-line-2)" opacity="0.22"/><circle cx="340" cy="74" r="16" class="k-thin" stroke-width="1.4"/><circle cx="340" cy="74" r="9.6" class="k-thin"/><circle cx="340" cy="74" r="4.0" class="k-thin"/><circle cx="440" cy="74" r="16" style="fill:var(--k-line-2)" opacity="0.22"/><circle cx="440" cy="74" r="16" class="k-thin" stroke-width="1.4"/><circle cx="440" cy="74" r="9.6" class="k-thin"/><circle cx="440" cy="74" r="4.0" class="k-thin"/><circle cx="345" cy="118" r="21" style="fill:var(--k-line-2)" opacity="0.22"/><circle cx="345" cy="118" r="21" class="k-thin" stroke-width="1.4"/><circle cx="345" cy="118" r="12.6" class="k-thin"/><circle cx="345" cy="118" r="5.2" class="k-thin"/><circle cx="435" cy="118" r="21" style="fill:var(--k-line-2)" opacity="0.22"/><circle cx="435" cy="118" r="21" class="k-thin" stroke-width="1.4"/><circle cx="435" cy="118" r="12.6" class="k-thin"/><circle cx="435" cy="118" r="5.2" class="k-thin"/>
+<circle cx="435" cy="118" r="21" style="fill:var(--tb-bad)" opacity="0.3"><animate attributeName="opacity" values="0.1;0.6;0.1" dur="2s" repeatCount="indefinite"/></circle>
+<line class="guide" x1="340" y1="74" x2="372" y2="162"/><line class="guide" x1="435" y1="118" x2="408" y2="184"/>
+<circle class="k-sphere" cx="375" cy="162" r="9"/><line x1="375" y1="162" x2="371.4" y2="155.8" style="stroke:var(--k-line)" stroke-width="2"/><circle class="k-sphere" cx="405" cy="162" r="9"/><line x1="405" y1="162" x2="401.4" y2="155.8" style="stroke:var(--k-line)" stroke-width="2"/><circle class="k-sphere" cx="375" cy="184" r="9"/><line x1="375" y1="184" x2="371.4" y2="177.8" style="stroke:var(--k-line)" stroke-width="2"/><circle cx="405" cy="184" r="10" style="fill:var(--tb-accent)" opacity="0.35"><animate attributeName="opacity" values="0.1;0.6;0.1" dur="2s" repeatCount="indefinite"/></circle><circle class="k-sphere" cx="405" cy="184" r="9"/><line x1="405" y1="184" x2="401.4" y2="177.8" style="stroke:var(--k-line)" stroke-width="2"/>
+<text class="k-note" x="390" y="212" text-anchor="middle">つまみもバーナーと同じ 2×2 配置</text>
 </svg>
 <p class="tb-caption">図: コンロのつまみ配置。右の例ではつまみがバーナーと同じ配置なので、右手前のつまみ → 右手前のバーナーと迷わない。</p>
 <p>実際に試してみましょう。一列配置と空間的に対応づけた配置で、指示されたバーナーを点火するまでの時間と間違いの数を比べます。</p>
@@ -212,13 +250,22 @@ export const UX: TextChapter[] = [
     body: `
 <h2>視角と文字の大きさ</h2>
 <p>文字の見やすさは、文字の絶対的な大きさではなく、目から見込む角度 = <b>視角</b>で決まります。視角は分 (arcmin、1° = 60′) で表します。</p>
-<svg class="tb-chart" viewBox="0 0 520 160" aria-label="視角と文字高さ">
-  <circle class="mark" cx="60" cy="80" r="6"/><text class="mark-t" x="60" y="110" text-anchor="middle">目</text>
-  <line class="guide" x1="60" y1="80" x2="440" y2="40"/><line class="guide" x1="60" y1="80" x2="440" y2="120"/>
-  <line x1="440" y1="40" x2="440" y2="120" stroke="var(--tb-accent)" stroke-width="3"/>
-  <text class="mark-t" x="450" y="84">文字高さ h</text>
-  <line class="axis" x1="60" y1="140" x2="440" y2="140"/><text class="tick" x="250" y="155" text-anchor="middle">視距離 D</text>
-  <text class="lbl" x="110" y="84">視角 α</text>
+<svg class="tb-chart" viewBox="0 0 520 180" role="img" aria-label="視角と文字高さ">
+
+<path d="M30,180 Q30,118 52,112 L80,112 Q96,118 96,180 Z" style="fill:var(--k-accent-1);stroke:var(--k-line)" stroke-width="1.4"/>
+<path d="M50.0,96.0 L52.0,112.0" fill="none" style="stroke:var(--k-line)" stroke-width="11.4"/><path d="M50.0,96.0 L52.0,112.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="9.0"/>
+<circle class="k-skin" cx="52" cy="80" r="18"/><path d="M68.7,80.9 l2.6,3.2 l-2.8,0.6" class="k-skin" stroke-width="1"/><path d="M66.8,70.1 A18,18 0 1 0 39.0,92.2 Q49.3,81.8 66.8,70.1 Z" fill="#4a3728" style="stroke:var(--k-line)" stroke-width="1"/><circle cx="61.9" cy="79.6" r="1.4" style="fill:var(--k-line)"/>
+<path d="M66,80 L420,40 L420,120 Z" style="fill:var(--tb-accent)" opacity="0.08"/>
+<line class="guide" x1="66" y1="80" x2="420" y2="40"/><line class="guide" x1="66" y1="80" x2="420" y2="120"/>
+<path d="M126,73.3 A60,60 0 0 1 126,86.8" fill="none" style="stroke:var(--k-dim)" stroke-width="1.6"/>
+<text class="k-dimtext" x="134" y="84">視角 α</text>
+<g class="k-shadow"><rect class="k-panel" x="420" y="26" width="64" height="108" rx="4"/></g>
+<text x="452" y="120" text-anchor="middle" style="fill:var(--tb-text)" font-size="111" font-weight="700" font-family="Arial, Helvetica, sans-serif">A</text>
+<line class="k-ext" x1="476" y1="40" x2="504" y2="40"/><line class="k-ext" x1="476" y1="120" x2="504" y2="120"/><line class="k-dimline" x1="500" y1="40" x2="500" y2="120"/>
+<text class="k-dimtext" x="452" y="18" text-anchor="middle">文字高さ h</text>
+<line class="k-ext" x1="66" y1="96" x2="66" y2="160"/><line class="k-ext" x1="420" y1="138" x2="420" y2="160"/><line class="k-dimline" x1="66" y1="154" x2="420" y2="154"/>
+<text class="k-dimtext" x="243" y="170" text-anchor="middle">視距離 D</text>
+<line class="k-thin" x1="90" y1="104" x2="70" y2="84"/><text class="tick" x="94" y="110">目</text>
 </svg>
 <div class="tb-formula">h ≈ D × tan(α)　　例: D = 700 mm、α = 20′ → h = 700 × tan(0.333°) ≈ 4.1 mm</div>
 <p>文字高さの視角の目安は、読める限界でおよそ 10′ 前後、<b>楽に読める推奨値で 16〜24′ 程度</b>とされます (文献により異なる目安)。重要な表示・高齢者・低照度・振動のある環境では大きめにします。</p>
@@ -238,11 +285,15 @@ export const UX: TextChapter[] = [
   <li><b>コントラスト</b>: 文字と背景の明るさの差。輝度比で高いほどよく、画面の文字では Web のアクセシビリティ指針 (WCAG) で 4.5:1 以上が推奨値の一つ。色の違いだけに頼らない</li>
   <li><b>書体</b>: 線の太さが均一で字形の区別しやすい書体 (0/O、1/l/I) を選ぶ。細すぎ・詰めすぎは不可</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 130" aria-label="コントラストの比較">
-  <rect x="20" y="20" width="150" height="70" fill="#9e9e9e"/><text x="95" y="62" text-anchor="middle" fill="#bdbdbd" font-size="22">START</text>
-  <rect x="185" y="20" width="150" height="70" fill="#c62828"/><text x="260" y="62" text-anchor="middle" fill="#2e7d32" font-size="22">STOP</text>
-  <rect x="350" y="20" width="150" height="70" fill="#1a1a1a"/><text x="425" y="62" text-anchor="middle" fill="#ffffff" font-size="22" font-weight="700">STOP</text>
-  <text class="tick" x="95" y="112" text-anchor="middle">× 輝度差が小さい</text><text class="tick" x="260" y="112" text-anchor="middle">× 赤地に緑 (色覚で判別困難)</text><text class="tick" x="425" y="112" text-anchor="middle">○ 高コントラスト・太字</text>
+<svg class="tb-chart" viewBox="0 0 520 140" role="img" aria-label="コントラストの比較">
+
+<g class="k-shadow"><rect x="20" y="14" width="150" height="70" rx="8" fill="#9e9e9e"/><rect x="185" y="14" width="150" height="70" rx="8" fill="#c62828"/><rect x="350" y="14" width="150" height="70" rx="8" fill="#1a1a1a"/></g>
+<text x="95" y="57" text-anchor="middle" fill="#bdbdbd" font-size="22">START</text>
+<text x="260" y="57" text-anchor="middle" fill="#2e7d32" font-size="22">STOP</text>
+<text x="425" y="57" text-anchor="middle" fill="#ffffff" font-size="22" font-weight="700">STOP</text>
+<circle class="k-badge" cx="30" cy="108" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="30" y="112" text-anchor="middle">✕</text><text class="tick" x="44" y="112">輝度差が小さい</text>
+<circle class="k-badge" cx="195" cy="108" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="195" y="112" text-anchor="middle">✕</text><text class="tick" x="209" y="112">赤地に緑 (色覚で判別困難)</text>
+<circle class="k-badge" cx="360" cy="108" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="360" y="112" text-anchor="middle">✓</text><text class="tick" x="374" y="112">高コントラスト・太字</text>
 </svg>
 <p class="tb-caption">図: 文字と背景のコントラスト。色相の違いより明るさ (輝度) の差が読みやすさを決める。</p>
 <h2>表示灯の色 (IEC 60204-1 / JIS B 9960-1)</h2>
@@ -257,12 +308,16 @@ export const UX: TextChapter[] = [
 <p>色だけで区別すると色覚の多様な人や逆光時に判別しにくいので、<b>点灯/点滅・位置・文字・形</b>を組み合わせます (点滅は注意を引く・優先度の高い情報に)。</p>
 <h2>ピクトグラムと安全標識</h2>
 <p>ISO 3864 / ISO 7010、JIS Z 9101 などの安全標識は、<b>形と色で種類</b>を表します。</p>
-<svg class="tb-chart" viewBox="0 0 520 160" aria-label="安全標識の形">
-  <circle cx="70" cy="65" r="40" fill="#fff" stroke="#d32f2f" stroke-width="9"/><line x1="42" y1="37" x2="98" y2="93" stroke="#d32f2f" stroke-width="9"/>
-  <circle cx="195" cy="65" r="42" fill="#1565c0"/><text x="195" y="74" text-anchor="middle" fill="#fff" font-size="28" font-weight="700">!</text>
-  <path d="M320,25 L365,105 L275,105 z" fill="#fbc02d" stroke="#222" stroke-width="5" stroke-linejoin="round"/><text x="320" y="96" text-anchor="middle" fill="#222" font-size="34" font-weight="700">!</text>
-  <rect x="405" y="25" width="85" height="80" fill="#2e7d32"/><path d="M430,80 L447,50 L465,80" stroke="#fff" stroke-width="5" fill="none"/>
-  <text class="tick" x="70" y="140" text-anchor="middle">禁止</text><text class="tick" x="195" y="140" text-anchor="middle">指示 (義務)</text><text class="tick" x="320" y="140" text-anchor="middle">警告</text><text class="tick" x="447" y="140" text-anchor="middle">安全状態</text>
+<svg class="tb-chart" viewBox="0 0 520 160" role="img" aria-label="安全標識の形">
+
+<g class="k-shadow">
+<circle cx="70" cy="65" r="42" fill="#fff" stroke="#d32f2f" stroke-width="9"/><line x1="41" y1="36" x2="99" y2="94" stroke="#d32f2f" stroke-width="9"/>
+<circle cx="195" cy="65" r="44" fill="#fff"/><circle cx="195" cy="65" r="41" fill="#1565c0"/><text x="195" y="78" text-anchor="middle" fill="#fff" font-size="38" font-weight="700">!</text>
+<path d="M320,22 L367,106 L273,106 z" fill="#fbc02d" stroke="#222" stroke-width="6" stroke-linejoin="round"/><text x="320" y="98" text-anchor="middle" fill="#222" font-size="38" font-weight="700">!</text>
+<rect x="404" y="22" width="86" height="86" rx="4" fill="#2e7d32"/><rect x="408" y="26" width="78" height="78" rx="2" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M430,82 L447,50 L464,82" stroke="#fff" stroke-width="6" fill="none"/><line x1="447" y1="54" x2="447" y2="96" stroke="#fff" stroke-width="6"/>
+</g>
+<text class="mark-t" x="70" y="132" text-anchor="middle">禁止</text><text class="mark-t" x="195" y="132" text-anchor="middle">指示 (義務)</text><text class="mark-t" x="320" y="132" text-anchor="middle">警告</text><text class="mark-t" x="447" y="132" text-anchor="middle">安全状態</text>
+<text class="k-note" x="70" y="150" text-anchor="middle">赤い円 + 斜線</text><text class="k-note" x="195" y="150" text-anchor="middle">青い円</text><text class="k-note" x="320" y="150" text-anchor="middle">黄色の三角</text><text class="k-note" x="447" y="150" text-anchor="middle">緑の四角</text>
 </svg>
 <p class="tb-caption">図: 安全標識の基本形 (図記号は略)。形だけでも種類が分かるので、色が見分けにくい場合にも手がかりになる。</p>
 <table class="tb-table">
@@ -318,25 +373,30 @@ export const UX: TextChapter[] = [
   <tr><td>9</td><td>エラーの認識・診断・回復の支援</td><td>「E-23」ではなく「カバーが開いています。閉じてリセットを押してください」</td></tr>
   <tr><td>10</td><td>ヘルプとドキュメント</td><td>必要な場面で探しやすく、手順が具体的な説明</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 190" aria-label="エラー表示の悪い例と良い例">
-  <rect x="20" y="15" width="220" height="140" rx="8" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <rect x="20" y="15" width="220" height="24" rx="8" fill="var(--tb-text-3)"/>
-  <text class="mark-t" x="130" y="90" text-anchor="middle">ERR 0x1F</text>
-  <rect x="100" y="115" width="60" height="26" rx="4" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><text class="tick" x="130" y="132" text-anchor="middle">OK</text>
-  <rect x="280" y="15" width="220" height="140" rx="8" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <rect x="280" y="15" width="220" height="24" rx="8" fill="var(--tb-warn)"/><text class="mark-t" x="290" y="32">異常: 冷却水不足</text>
-  <text class="tick" x="292" y="62">原因: 冷却水の流量が低下</text><text class="tick" x="292" y="80">対処: バルブ V2 を開き</text><text class="tick" x="292" y="96">　　　リセットを押す</text>
-  <rect x="292" y="115" width="80" height="26" rx="4" fill="var(--tb-accent)"/><text x="332" y="132" text-anchor="middle" fill="#fff" font-size="11">リセット</text>
-  <rect x="384" y="115" width="104" height="26" rx="4" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><text class="tick" x="436" y="132" text-anchor="middle">手順を見る (#10)</text>
-  <text class="lbl" x="130" y="178" text-anchor="middle">× コードだけ (#2, #9 に反する)</text><text class="lbl" x="390" y="178" text-anchor="middle">○ 原因と対処を言葉で</text>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="エラー表示の悪い例と良い例">
+
+<g class="k-shadow"><rect class="k-part" x="14" y="10" width="232" height="146" rx="10"/></g><rect x="22" y="18" width="216" height="120" rx="3" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.2"/><circle cx="130" cy="147" r="3.5" style="fill:var(--tb-good)"/><g class="k-shadow"><rect class="k-part" x="274" y="10" width="232" height="146" rx="10"/></g><rect x="282" y="18" width="216" height="120" rx="3" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.2"/><circle cx="390" cy="147" r="3.5" style="fill:var(--tb-good)"/>
+<rect x="22" y="18" width="216" height="22" style="fill:var(--tb-text-3)"/>
+<text class="mark-t" x="130" y="86" text-anchor="middle" font-size="16" font-family="monospace">ERR 0x1F</text>
+<rect x="100" y="106" width="60" height="24" rx="4" style="fill:var(--tb-surface-2);stroke:var(--tb-text-2)" stroke-width="1.5"/><text class="tick" x="130" y="122" text-anchor="middle">OK</text>
+<rect x="282" y="18" width="216" height="22" style="fill:var(--tb-warn)"/><text class="mark-t" x="292" y="34">⚠ 異常: 冷却水不足</text>
+<text class="tick" x="292" y="58">原因: 冷却水の流量が低下</text><text class="tick" x="292" y="75">対処: バルブ V2 を開き</text><text class="tick" x="292" y="90">　　　リセットを押す</text>
+<rect x="290" y="104" width="80" height="26" rx="4" style="fill:var(--tb-accent)"/><text x="330" y="121" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">リセット</text>
+<rect x="378" y="104" width="112" height="26" rx="4" style="fill:var(--tb-surface-2);stroke:var(--tb-text-2)" stroke-width="1.5"/><text class="tick" x="434" y="121" text-anchor="middle">手順を見る (#10)</text>
+<circle class="k-badge" cx="26" cy="182" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="26" y="186" text-anchor="middle">✕</text><text class="k-bad-t" x="40" y="187">コードだけ (#2, #9 に反する)</text>
+<circle class="k-badge" cx="286" cy="182" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="286" y="186" text-anchor="middle">✓</text><text class="k-good-t" x="300" y="187">原因と対処を言葉で</text>
 </svg>
 <p class="tb-caption">図: ヒューリスティクス #9「エラーの認識・診断・回復」の悪い例と良い例 (画面のモックアップ)。</p>
-<svg class="tb-chart" viewBox="0 0 520 120" aria-label="状態の可視化と一貫性">
-  <rect x="20" y="10" width="480" height="28" rx="4" fill="var(--tb-good)" opacity="0.85"/><text x="32" y="29" fill="#fff" font-size="13" font-weight="700">● 運転中　主軸 1 200 rpm　残り 03:20</text>
-  <rect x="20" y="46" width="480" height="8" rx="4" fill="var(--tb-surface-2)"/><rect x="20" y="46" width="300" height="8" rx="4" fill="var(--tb-accent)"><animate attributeName="width" values="40;470;40" dur="6s" repeatCount="indefinite"/></rect>
-  <rect x="20" y="78" width="90" height="30" rx="4" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><text class="tick" x="65" y="98" text-anchor="middle">◀ 戻る</text>
-  <rect x="410" y="78" width="90" height="30" rx="4" fill="var(--tb-accent)"/><text x="455" y="98" text-anchor="middle" fill="#fff" font-size="12">決定</text>
-  <text class="tick" x="260" y="98" text-anchor="middle">「戻る」「決定」は全画面で同じ位置 (#3, #4)</text>
+<svg class="tb-chart" viewBox="0 0 520 130" role="img" aria-label="状態の可視化と一貫性">
+
+<g class="k-shadow"><rect class="k-part" x="8" y="4" width="504" height="122" rx="10"/></g>
+<rect x="16" y="11" width="488" height="108" rx="3" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.2"/>
+<rect x="22" y="16" width="476" height="26" rx="4" style="fill:var(--tb-good)"/><circle cx="36" cy="29" r="5" fill="#fff"><animate attributeName="opacity" values="1;0.35;1" dur="1.6s" repeatCount="indefinite"/></circle>
+<text x="48" y="34" fill="#fff" font-size="13" font-weight="700">運転中　主軸 1 200 rpm　残り 03:20</text>
+<rect x="22" y="50" width="476" height="8" rx="4" style="fill:var(--tb-surface-2);stroke:var(--tb-border)"/><rect x="22" y="50" width="300" height="8" rx="4" style="fill:var(--tb-accent)"><animate attributeName="width" values="40;476;40" dur="6s" repeatCount="indefinite"/></rect>
+<rect x="22" y="76" width="90" height="32" rx="5" style="fill:var(--tb-surface-2);stroke:var(--tb-text-2)" stroke-width="1.5"/><text class="mark-t" x="67" y="97" text-anchor="middle">◀ 戻る</text>
+<rect x="408" y="76" width="90" height="32" rx="5" style="fill:var(--tb-accent)"/><text x="453" y="97" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">決定</text>
+<text class="tick" x="260" y="96" text-anchor="middle">「戻る」「決定」は全画面で同じ位置 (#3, #4)</text>
 </svg>
 <p class="tb-caption">図: 状態バーと進捗表示 (#1)、常に同じ位置の「戻る」「決定」(#3・#4)。</p>
 <h2>ノーマンのデザイン原則</h2>
@@ -348,14 +408,22 @@ export const UX: TextChapter[] = [
   <li><b>制約</b>: できる操作を物理的・論理的・文化的に限定する (逆には差せないコネクタ、無効なボタンをグレーアウト)</li>
   <li><b>概念モデル</b>: 製品の仕組みを利用者が理解できるように見せる</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 150" aria-label="ボタン押下とフィードバック">
-  <rect x="60" y="70" width="110" height="40" rx="6" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)" stroke-width="2"><animate attributeName="fill" values="var(--tb-surface-2);var(--tb-accent);var(--tb-surface-2);var(--tb-surface-2)" keyTimes="0;0.1;0.3;1" dur="3s" repeatCount="indefinite"/></rect>
-  <text class="mark-t" x="115" y="95" text-anchor="middle">運転</text>
-  <circle cx="115" cy="40" r="10" fill="var(--tb-text-3)"><animate attributeName="cy" values="30;62;30;30" keyTimes="0;0.1;0.3;1" dur="3s" repeatCount="indefinite"/></circle>
-  <path d="M190,80 q12,10 0,20 M202,72 q20,18 0,36" stroke="var(--tb-accent)" fill="none" stroke-width="2"><animate attributeName="opacity" values="0;1;0;0" keyTimes="0;0.12;0.35;1" dur="3s" repeatCount="indefinite"/></path>
-  <circle cx="300" cy="90" r="14" fill="var(--tb-good)"/><text class="tick" x="320" y="94">ランプ点灯 (状態)</text>
-  <text class="tick" x="210" y="130">ピッ (音)</text>
-  <text class="tick" x="20" y="140">0.1 s 以内に色・音・ランプで応答 → 評価の隔たりを埋める</text>
+<svg class="tb-chart" viewBox="0 0 520 190" role="img" aria-label="ボタン押下とフィードバック">
+<g transform="translate(0,20)">
+<g class="k-shadow"><rect class="k-cut" x="30" y="108" width="190" height="16"/><rect class="k-part" x="76" y="98" width="78" height="10" rx="2"/>
+<g><animateTransform attributeName="transform" type="translate" values="0,0;0,4;0,0;0,0" keyTimes="0;0.1;0.3;1" dur="3s" repeatCount="indefinite"/>
+<rect class="k-part" x="82" y="76" width="66" height="24" rx="5"/>
+<rect x="82" y="76" width="66" height="24" rx="5" style="fill:var(--tb-accent)" opacity="0"><animate attributeName="opacity" values="0;1;0;0" keyTimes="0;0.1;0.3;1" dur="3s" repeatCount="indefinite"/></rect>
+<text class="mark-t" x="104" y="93" text-anchor="middle">運転</text></g></g>
+<g transform="translate(132,76)"><g><animateTransform attributeName="transform" type="translate" values="0,-26;0,4;0,-26;0,-26" keyTimes="0;0.1;0.3;1" dur="3s" repeatCount="indefinite"/><g transform="scale(0.75)"><rect x="-8" y="-86" width="30" height="24" rx="4" style="fill:var(--k-accent-1);stroke:var(--k-line)" stroke-width="1.2"/><rect class="k-skin" x="-8" y="-64" width="30" height="30" rx="10"/><path d="M14,-52 q7,0 7,5 M14,-44 q7,0 7,5" class="k-thin"/><rect class="k-skin" x="-11" y="-50" width="9" height="18" rx="4.5" transform="rotate(-12 -6 -41)"/><rect class="k-skin" x="-5" y="-40" width="10" height="40" rx="5"/><path d="M-3,-3 q3,-5 6,0" class="k-thin"/></g></g></g>
+<g class="k-shadow"><path class="k-part" d="M236,82 L248,82 L262,70 L262,110 L248,98 L236,98 Z"/></g>
+<path d="M270,80 q8,10 0,20 M280,72 q16,18 0,36" style="stroke:var(--tb-accent)" fill="none" stroke-width="2.2" opacity="0"><animate attributeName="opacity" values="0;1;0;0" keyTimes="0;0.12;0.35;1" dur="3s" repeatCount="indefinite"/></path>
+<text class="tick" x="262" y="132" text-anchor="middle">ピッ (音)</text>
+<circle class="k-part" cx="350" cy="90" r="19"/>
+<circle cx="350" cy="90" r="13" style="fill:var(--k-steel-3);stroke:var(--k-line)"/>
+<circle cx="350" cy="90" r="13" style="fill:var(--tb-good)" class="k-glow" opacity="0"><animate attributeName="opacity" values="0;0;1;1" keyTimes="0;0.1;0.12;1" dur="3s" repeatCount="indefinite"/></circle>
+<text class="tick" x="376" y="94">ランプ点灯 (状態)</text>
+<text class="mark-t" x="20" y="158">0.1 s 以内に色・音・ランプで応答 → 評価の隔たりを埋める</text></g>
 </svg>
 <p class="tb-caption">図: ボタンを押すと、すぐに色が変わり、音が鳴り、状態ランプが点く (印刷時は押した後の状態として読む)。</p>
 <h2>メンタルモデルと 2 つの隔たり</h2>
@@ -409,16 +477,27 @@ export const UX: TextChapter[] = [
   <tr><td>6</td><td>身体的な負担が少ない</td><td>小さな力で開くレバー式ハンドル</td></tr>
   <tr><td>7</td><td>接近や利用に十分な大きさと空間</td><td>車いすで近づける操作盤</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="ドアノブとレバーハンドル">
-  <rect x="30" y="20" width="12" height="120" fill="var(--tb-text-3)"/><circle cx="80" cy="80" r="22" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><path d="M42,80 L58,80" stroke="var(--tb-text-2)" stroke-width="6"/>
-  <text class="tick" x="70" y="160" text-anchor="middle">× 握ってひねる握り玉</text>
-  <rect x="190" y="20" width="12" height="120" fill="var(--tb-text-3)"/><g><path d="M202,80 L290,80" stroke="var(--tb-accent)" stroke-width="12" stroke-linecap="round"/><animateTransform attributeName="transform" type="rotate" values="0 205 80;25 205 80;0 205 80" dur="3s" repeatCount="indefinite"/></g>
-  <text class="tick" x="250" y="160" text-anchor="middle">○ 押し下げるだけのレバー</text>
-  <rect x="350" y="30" width="150" height="100" rx="6" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
-  <rect x="370" y="60" width="50" height="40" rx="4" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/><circle cx="395" cy="70" r="3" fill="var(--tb-text)"/>
-  <rect x="430" y="60" width="50" height="40" rx="4" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/>
-  <text class="tick" x="395" y="118" text-anchor="middle">電源 (凸点)</text><text class="tick" x="455" y="118" text-anchor="middle">他</text>
-  <text class="tick" x="425" y="160" text-anchor="middle">○ 触って分かる凸点</text>
+<svg class="tb-chart" viewBox="0 0 520 190" role="img" aria-label="ドアノブとレバーハンドル">
+
+<rect class="k-panel" x="8" y="8" width="164" height="174"/><rect class="k-panel" x="178" y="8" width="164" height="174"/><rect class="k-panel" x="348" y="8" width="164" height="174"/>
+<g class="k-shadow"><rect class="k-plastic" x="24" y="18" width="110" height="138" rx="2"/></g><line class="k-thin" x1="34" y1="18" x2="34" y2="156"/>
+<g class="k-shadow"><circle class="k-part" cx="96" cy="88" r="14"/><circle class="k-sphere" cx="96" cy="88" r="19"/></g>
+<path class="k-move" d="M70,66 A34,34 0 0 1 122,66" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)"/>
+<path class="k-move" d="M122,110 A34,34 0 0 1 70,110" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)"/>
+<g class="k-shadow"><rect class="k-plastic" x="190" y="18" width="140" height="138" rx="2"/></g><line class="k-thin" x1="200" y1="18" x2="200" y2="156"/>
+<g class="k-shadow"><rect class="k-part" x="200" y="64" width="20" height="40" rx="6"/>
+<g><animateTransform attributeName="transform" type="rotate" values="0 210 80;25 210 80;0 210 80" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="3s" repeatCount="indefinite"/><path d="M210,80 L300,80" fill="none" style="stroke:var(--k-line)" stroke-width="13.4"/><path d="M210,80 L300,80" fill="none" style="stroke:var(--k-steel-2)" stroke-width="11"/>
+<g transform="translate(284,73)"><g><g transform="scale(0.55)"><rect x="-8" y="-86" width="30" height="24" rx="4" style="fill:var(--k-accent-1);stroke:var(--k-line)" stroke-width="1.2"/><rect class="k-skin" x="-8" y="-64" width="30" height="30" rx="10"/><path d="M14,-52 q7,0 7,5 M14,-44 q7,0 7,5" class="k-thin"/><rect class="k-skin" x="-11" y="-50" width="9" height="18" rx="4.5" transform="rotate(-12 -6 -41)"/><rect class="k-skin" x="-5" y="-40" width="10" height="40" rx="5"/><path d="M-3,-3 q3,-5 6,0" class="k-thin"/></g></g></g></g>
+<circle class="k-sphere" cx="210" cy="80" r="7"/></g>
+<line class="k-move" x1="316" y1="96" x2="316" y2="128"/>
+<g class="k-shadow"><rect class="k-plastic" x="364" y="28" width="132" height="104" rx="12"/></g>
+<rect class="k-part" x="378" y="58" width="44" height="40" rx="6"/><rect class="k-part" x="438" y="58" width="44" height="40" rx="6"/>
+<circle class="k-sphere" cx="400" cy="70" r="3.5"/>
+<line class="k-thin" x1="404" y1="66" x2="420" y2="44"/><text class="tick" x="422" y="44">凸点</text>
+<text class="tick" x="400" y="118" text-anchor="middle">電源</text><text class="tick" x="460" y="118" text-anchor="middle">他</text>
+<circle class="k-badge" cx="22" cy="170" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="22" y="174" text-anchor="middle">✕</text><text class="k-bad-t" x="36" y="175">握ってひねる握り玉</text>
+<circle class="k-badge" cx="192" cy="170" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="192" y="174" text-anchor="middle">✓</text><text class="k-good-t" x="206" y="175">押し下げるだけのレバー</text>
+<circle class="k-badge" cx="362" cy="170" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="362" y="174" text-anchor="middle">✓</text><text class="k-good-t" x="376" y="175">触って分かる凸点</text>
 </svg>
 <p class="tb-caption">図: 握力が弱い人や手がふさがった人でも開けられるレバーハンドル (原則 6) と、触覚で区別できる凸点 (原則 4)。</p>
 <h2>多様な利用者への配慮</h2>
@@ -434,15 +513,16 @@ export const UX: TextChapter[] = [
 </table>
 <h2>規格・指針</h2>
 <p>日本では <b>JIS S 0010 系</b> を中心に、高齢者・障害者に配慮した設計指針が規格化されています (例: 消費生活製品の報知音、凸記号 (シャンプー容器のきざみ、電源スイッチの凸点など)、視覚表示物の文字の大きさ、操作性などの規格群)。国際的には ISO/IEC Guide 71 が規格作成時の配慮指針になっています。具体的な数値はそれぞれの規格本文で確認してください。</p>
-<svg class="tb-chart" viewBox="0 0 520 140" aria-label="色だけに頼らない表示">
-  <circle cx="60" cy="50" r="18" fill="#c62828"/><circle cx="110" cy="50" r="18" fill="#2e7d32"/>
-  <text class="tick" x="85" y="95" text-anchor="middle">× 色だけ (赤/緑)</text>
-  <circle cx="60" cy="50" r="18" fill="none" stroke="var(--tb-text-3)" stroke-dasharray="3 2"/>
-  <circle cx="230" cy="50" r="18" fill="#8a7a3a"/><circle cx="280" cy="50" r="18" fill="#8a7a3a"/>
-  <text class="tick" x="255" y="95" text-anchor="middle">P 型色覚での見え方の例</text>
-  <rect x="380" y="32" width="36" height="36" fill="#c62828"/><text x="398" y="57" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">✕</text>
-  <circle cx="460" cy="50" r="18" fill="#2e7d32"/><text x="460" y="56" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">✓</text>
-  <text class="tick" x="420" y="95" text-anchor="middle">○ 形 + 記号 + 色</text><text class="tick" x="398" y="115" text-anchor="middle">異常</text><text class="tick" x="460" y="115" text-anchor="middle">正常</text>
+<svg class="tb-chart" viewBox="0 0 520 140" role="img" aria-label="色だけに頼らない表示">
+
+<g class="k-shadow"><circle class="k-part" cx="60" cy="50" r="23"/><circle cx="60" cy="50" r="18" fill="#c62828" stroke="#000" stroke-opacity="0.35"/><ellipse cx="55" cy="43" rx="6" ry="3.5" fill="#fff" opacity="0.35"/><circle class="k-part" cx="110" cy="50" r="23"/><circle cx="110" cy="50" r="18" fill="#2e7d32" stroke="#000" stroke-opacity="0.35"/><ellipse cx="105" cy="43" rx="6" ry="3.5" fill="#fff" opacity="0.35"/><circle class="k-part" cx="230" cy="50" r="23"/><circle cx="230" cy="50" r="18" fill="#8a7a3a" stroke="#000" stroke-opacity="0.35"/><ellipse cx="225" cy="43" rx="6" ry="3.5" fill="#fff" opacity="0.35"/><circle class="k-part" cx="280" cy="50" r="23"/><circle cx="280" cy="50" r="18" fill="#8a7a3a" stroke="#000" stroke-opacity="0.35"/><ellipse cx="275" cy="43" rx="6" ry="3.5" fill="#fff" opacity="0.35"/>
+<rect class="k-part" x="374" y="27" width="48" height="46" rx="4"/><rect x="380" y="32" width="36" height="36" rx="2" fill="#c62828"/>
+<circle class="k-part" cx="460" cy="50" r="23"/><circle cx="460" cy="50" r="18" fill="#2e7d32"/></g>
+<text x="398" y="57" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">✕</text><text x="460" y="56" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">✓</text>
+<path d="M170,50 L196,50" class="k-move"/>
+<text class="tick" x="85" y="95" text-anchor="middle">× 色だけ (赤/緑)</text>
+<text class="tick" x="255" y="95" text-anchor="middle">P 型色覚での見え方の例</text>
+<text class="tick" x="429" y="95" text-anchor="middle">○ 形 + 記号 + 色</text><text class="tick" x="398" y="115" text-anchor="middle">異常</text><text class="tick" x="460" y="115" text-anchor="middle">正常</text>
 </svg>
 <p class="tb-caption">図: 赤と緑の区別がつきにくい見え方の例 (中央は概念図)。形や記号を併用すると色に頼らず伝わる。</p>
 <h2>設計チェックリスト</h2>
@@ -489,25 +569,35 @@ export const UX: TextChapter[] = [
   <tr><td>重作業 (力を下向きにかける)</td><td>肘高より 15〜40 cm 程度<b>低く</b></td><td>体重を使って力をかけられる</td></tr>
 </table>
 <p>座位では、座面高を膝窩高 (+靴) に合わせ、肘高に近い作業面と、脚が入る十分なすき間 (太もも + 余裕) を確保します。作業者の体格差が大きい場合は<b>高さ調整</b>か<b>足台</b>を用意します。数値は文献により異なる目安です。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="作業面高さと肘高">
-  <line class="axis" x1="40" y1="180" x2="500" y2="180"/>
-  <line class="guide" x1="40" y1="70" x2="500" y2="70"/><text class="mark-t" x="45" y="64">肘の高さ</text>
-  <rect x="80" y="50" width="100" height="10" fill="var(--tb-accent)"/><text class="tick" x="130" y="40" text-anchor="middle">精密作業</text>
-  <rect x="210" y="90" width="100" height="10" fill="var(--tb-accent)"/><text class="tick" x="260" y="120" text-anchor="middle">軽作業</text>
-  <rect x="340" y="120" width="100" height="10" fill="var(--tb-accent)"/><text class="tick" x="390" y="150" text-anchor="middle">重作業</text>
-  <text class="lbl" x="495" y="196" text-anchor="end">作業の種類</text>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="作業面高さと肘高">
+
+<rect class="k-ground" x="30" y="190" width="470" height="8"/><line class="k-edge" x1="30" y1="190" x2="500" y2="190"/>
+<line class="guide" x1="40" y1="86" x2="500" y2="86"/><text class="mark-t" x="500" y="78" text-anchor="end">肘の高さ</text>
+<g class="k-shadow"><rect class="k-alu" x="136" y="74" width="7" height="116"/><rect class="k-alu" x="217" y="74" width="7" height="116"/><rect class="k-part" x="130" y="66" width="100" height="8" rx="2"/><rect class="k-alu" x="256" y="108" width="7" height="82"/><rect class="k-alu" x="337" y="108" width="7" height="82"/><rect class="k-part" x="250" y="100" width="100" height="8" rx="2"/><rect class="k-alu" x="386" y="136" width="7" height="54"/><rect class="k-alu" x="467" y="136" width="7" height="54"/><rect class="k-part" x="380" y="128" width="100" height="8" rx="2"/>
+<rect class="k-accent" x="166" y="60" width="28" height="6" rx="1"/><rect class="k-plastic" x="282" y="80" width="36" height="20" rx="2"/><rect class="k-part" x="406" y="98" width="48" height="30" rx="3"/></g>
+<text class="mark-t" x="180" y="50" text-anchor="middle">精密作業</text>
+<text class="mark-t" x="300" y="128" text-anchor="middle">軽作業</text>
+<text class="mark-t" x="430" y="156" text-anchor="middle">重作業</text>
+<line class="k-ext" x1="232" y1="66" x2="242" y2="66"/><line class="k-dimline" x1="238" y1="86" x2="238" y2="68" style="marker-start:none"/>
+<line class="k-dimline" x1="358" y1="86" x2="358" y2="98" style="marker-start:none"/><line class="k-ext" x1="352" y1="100" x2="364" y2="100"/>
+<line class="k-dimline" x1="488" y1="86" x2="488" y2="126" style="marker-start:none"/><line class="k-ext" x1="482" y1="128" x2="494" y2="128"/>
+<g class="k-shadow"><path d="M64.0,112.0 L61.0,150.0 L58.0,186.0" fill="none" style="stroke:var(--k-line)" stroke-width="12.9"/><path d="M64.0,112.0 L61.0,150.0 L58.0,186.0" fill="none" style="stroke:var(--k-line-2)" stroke-width="10.5"/><path d="M54.0,183.0 L67.0,185.0 Q72.0,186.0 72.0,189.5 L53.0,189.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><path d="M66.0,57.0 L63.0,86.0" fill="none" style="stroke:var(--k-line)" stroke-width="9.9"/><path d="M63.0,86.0 L70.0,108.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M66.0,57.0 L63.0,86.0" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7.5"/><path d="M63.0,86.0 L70.0,108.0" fill="none" style="stroke:var(--k-skin-2)" stroke-width="6.0"/><circle class="k-skin" cx="70" cy="108" r="4.0"/><path d="M66.0,45.0 L66.0,57.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M66.0,45.0 L66.0,57.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.0"/><path d="M66.0,57.0 L64.0,112.0" fill="none" style="stroke:var(--k-line)" stroke-width="21.4"/><path d="M66.0,57.0 L64.0,112.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="19.0"/><path d="M64.0,112.0 L66.0,150.0 L66.0,186.0" fill="none" style="stroke:var(--k-line)" stroke-width="13.4"/><path d="M64.0,112.0 L66.0,150.0 L66.0,186.0" fill="none" style="stroke:var(--k-steel-3)" stroke-width="11.0"/><path d="M62.0,183.0 L75.0,185.0 Q80.0,186.0 80.0,189.5 L61.0,189.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><circle class="k-skin" cx="68" cy="36" r="11.0"/><path d="M78.2,36.5 l2.6,3.2 l-2.8,0.6" class="k-skin" stroke-width="1"/><path d="M77.0,29.9 A11.0,11.0 0 1 0 60.1,43.5 Q66.3,37.1 77.0,29.9 Z" fill="#4a3728" style="stroke:var(--k-line)" stroke-width="1"/><circle cx="74.0" cy="35.8" r="1.4" style="fill:var(--k-line)"/><path d="M66.0,57.0 L68.0,86.0" fill="none" style="stroke:var(--k-line)" stroke-width="10.4"/><path d="M68.0,86.0 L96.0,88.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.9"/><path d="M66.0,57.0 L68.0,86.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="8.0"/><path d="M68.0,86.0 L96.0,88.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.5"/><circle class="k-skin" cx="96" cy="88" r="4.3"/></g>
+<text class="lbl" x="500" y="212" text-anchor="end">作業の種類</text>
 </svg>
-<svg class="tb-chart" viewBox="0 0 520 230" aria-label="立位と座位の作業高さ">
-  <line class="axis" x1="20" y1="210" x2="500" y2="210"/>
-  <circle cx="90" cy="35" r="13" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><path d="M90,48 L90,125 M90,125 L80,210 M90,125 L100,210 M90,62 L92,100 L135,100" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
-  <rect x="130" y="104" width="100" height="8" fill="var(--tb-accent)"/><line x1="140" y1="112" x2="140" y2="210" stroke="var(--tb-text-3)"/><line x1="220" y1="112" x2="220" y2="210" stroke="var(--tb-text-3)"/>
-  <line class="guide" x1="60" y1="100" x2="250" y2="100"/><text class="tick" x="252" y="98">肘高</text>
-  <text class="tick" x="150" y="226" text-anchor="middle">立位: 軽作業は肘高 −10〜15 cm</text>
-  <circle cx="340" cy="80" r="13" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/><path d="M340,93 L340,150 L385,150 L385,210 M340,105 L345,138 L392,138" stroke="var(--tb-text-2)" fill="none" stroke-width="2"/>
-  <rect x="318" y="150" width="40" height="6" fill="var(--tb-text-3)"/><line x1="338" y1="156" x2="338" y2="210" stroke="var(--tb-text-3)"/>
-  <rect x="380" y="142" width="110" height="8" fill="var(--tb-accent)"/><line x1="480" y1="150" x2="480" y2="210" stroke="var(--tb-text-3)"/>
-  <path d="M410,160 L410,200" class="guide"/><text class="tick" x="415" y="185">脚のすき間</text>
-  <text class="tick" x="400" y="226" text-anchor="middle">座位: 座面 ≈ 膝窩高、作業面 ≈ 肘高</text>
+<svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="立位と座位の作業高さ">
+
+<rect class="k-ground" x="20" y="214" width="480" height="8"/><line class="k-edge" x1="20" y1="214" x2="500" y2="214"/>
+<line class="guide" x1="56" y1="100" x2="250" y2="100"/><text class="tick" x="252" y="104">肘高</text>
+<g class="k-shadow"><rect class="k-alu" x="124" y="116" width="7" height="98"/><rect class="k-alu" x="225" y="116" width="7" height="98"/><rect class="k-part" x="118" y="108" width="120" height="8" rx="2"/></g>
+<line class="k-dimline" x1="228" y1="100" x2="228" y2="108" style="marker-start:none"/>
+<g class="k-shadow"><path d="M78.0,122.0 L74.0,170.0 L72.0,210.0" fill="none" style="stroke:var(--k-line)" stroke-width="12.9"/><path d="M78.0,122.0 L74.0,170.0 L72.0,210.0" fill="none" style="stroke:var(--k-line-2)" stroke-width="10.5"/><path d="M68.0,207.0 L81.0,209.0 Q86.0,210.0 86.0,213.5 L67.0,213.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><path d="M80.0,62.0 L78.0,100.0" fill="none" style="stroke:var(--k-line)" stroke-width="9.9"/><path d="M78.0,100.0 L108.0,112.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M80.0,62.0 L78.0,100.0" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7.5"/><path d="M78.0,100.0 L108.0,112.0" fill="none" style="stroke:var(--k-skin-2)" stroke-width="6.0"/><circle class="k-skin" cx="108" cy="112" r="4.0"/><path d="M80.0,51.0 L80.0,62.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M80.0,51.0 L80.0,62.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.0"/><path d="M80.0,62.0 L78.0,122.0" fill="none" style="stroke:var(--k-line)" stroke-width="21.4"/><path d="M80.0,62.0 L78.0,122.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="19.0"/><path d="M78.0,122.0 L80.0,170.0 L80.0,210.0" fill="none" style="stroke:var(--k-line)" stroke-width="13.4"/><path d="M78.0,122.0 L80.0,170.0 L80.0,210.0" fill="none" style="stroke:var(--k-steel-3)" stroke-width="11.0"/><path d="M76.0,207.0 L89.0,209.0 Q94.0,210.0 94.0,213.5 L75.0,213.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><circle class="k-skin" cx="82" cy="42" r="11.0"/><path d="M92.2,42.5 l2.6,3.2 l-2.8,0.6" class="k-skin" stroke-width="1"/><path d="M91.0,36.0 A11.0,11.0 0 1 0 74.1,49.5 Q80.3,43.1 91.0,36.0 Z" fill="#4a3728" style="stroke:var(--k-line)" stroke-width="1"/><circle cx="88.0" cy="41.8" r="1.4" style="fill:var(--k-line)"/><path d="M80.0,62.0 L84.0,100.0" fill="none" style="stroke:var(--k-line)" stroke-width="10.4"/><path d="M84.0,100.0 L120.0,106.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.9"/><path d="M80.0,62.0 L84.0,100.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="8.0"/><path d="M84.0,100.0 L120.0,106.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.5"/><circle class="k-skin" cx="120" cy="106" r="4.3"/></g>
+<text class="tick" x="150" y="234" text-anchor="middle">立位: 軽作業は肘高 −10〜15 cm</text>
+<g class="k-shadow"><rect class="k-alu" x="474" y="140" width="8" height="74"/><rect class="k-part" x="372" y="132" width="118" height="8" rx="2"/>
+<rect class="k-alu" x="333" y="162" width="6" height="40"/><rect class="k-part" x="312" y="202" width="50" height="6" rx="3"/>
+<rect class="k-plastic" x="308" y="104" width="8" height="52" rx="3"/><rect class="k-plastic" x="314" y="152" width="50" height="10" rx="4"/></g>
+<g class="k-shadow"><path d="M336.0,152.0 L380.0,148.0 L380.0,206.0" fill="none" style="stroke:var(--k-line)" stroke-width="12.9"/><path d="M336.0,152.0 L380.0,148.0 L380.0,206.0" fill="none" style="stroke:var(--k-line-2)" stroke-width="10.5"/><path d="M376.0,203.0 L389.0,205.0 Q394.0,206.0 394.0,209.5 L375.0,209.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><path d="M342.0,96.0 L344.0,126.0" fill="none" style="stroke:var(--k-line)" stroke-width="9.9"/><path d="M344.0,126.0 L376.0,130.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M342.0,96.0 L344.0,126.0" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7.5"/><path d="M344.0,126.0 L376.0,130.0" fill="none" style="stroke:var(--k-skin-2)" stroke-width="6.0"/><circle class="k-skin" cx="376" cy="130" r="4.0"/><path d="M342.0,85.0 L342.0,96.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M342.0,85.0 L342.0,96.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.0"/><path d="M342.0,96.0 L336.0,152.0" fill="none" style="stroke:var(--k-line)" stroke-width="21.4"/><path d="M342.0,96.0 L336.0,152.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="19.0"/><path d="M336.0,152.0 L386.0,150.0 L388.0,206.0" fill="none" style="stroke:var(--k-line)" stroke-width="13.4"/><path d="M336.0,152.0 L386.0,150.0 L388.0,206.0" fill="none" style="stroke:var(--k-steel-3)" stroke-width="11.0"/><path d="M384.0,203.0 L397.0,205.0 Q402.0,206.0 402.0,209.5 L383.0,209.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><circle class="k-skin" cx="344" cy="76" r="11.0"/><path d="M354.2,76.5 l2.6,3.2 l-2.8,0.6" class="k-skin" stroke-width="1"/><path d="M353.0,70.0 A11.0,11.0 0 1 0 336.1,83.5 Q342.4,77.1 353.0,70.0 Z" fill="#4a3728" style="stroke:var(--k-line)" stroke-width="1"/><circle cx="350.1" cy="75.8" r="1.4" style="fill:var(--k-line)"/><path d="M342.0,96.0 L348.0,126.0" fill="none" style="stroke:var(--k-line)" stroke-width="10.4"/><path d="M348.0,126.0 L382.0,128.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.9"/><path d="M342.0,96.0 L348.0,126.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="8.0"/><path d="M348.0,126.0 L382.0,128.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.5"/><circle class="k-skin" cx="382" cy="128" r="4.3"/></g>
+<line class="guide" x1="430" y1="144" x2="430" y2="206"/><text class="tick" x="436" y="182">脚のすき間</text>
+<text class="tick" x="400" y="234" text-anchor="middle">座位: 座面 ≈ 膝窩高、作業面 ≈ 肘高</text>
 </svg>
 <p class="tb-caption">図: 立位と座位の作業面高さの考え方 (寸法は目安)。座位では脚の入るすき間も必要。</p>
 <h2>リーチ範囲</h2>
@@ -517,14 +607,25 @@ export const UX: TextChapter[] = [
   <li>それを超える位置は、前かがみ・ひねり・背伸びを生み、腰や肩の負担になる</li>
   <li>リーチは小さい人 (5 パーセンタイル) に合わせ、作業者の正面に作業点を置く</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="通常作業域と最大作業域 (上から見た図)">
-  <line class="axis" x1="40" y1="190" x2="480" y2="190"/>
-  <path d="M90,190 A170,170 0 0 1 430,190" fill="color-mix(in srgb, var(--tb-accent) 12%, transparent)" stroke="var(--tb-accent)" stroke-dasharray="5 3"/>
-  <path d="M150,190 A110,110 0 0 1 370,190" fill="color-mix(in srgb, var(--tb-accent) 30%, transparent)" stroke="var(--tb-accent)" stroke-width="2"/>
-  <ellipse cx="260" cy="205" rx="60" ry="14" fill="var(--tb-surface-2)" stroke="var(--tb-text-2)"/>
-  <text class="mark-t" x="260" y="140" text-anchor="middle">通常作業域</text><text class="tick" x="260" y="156" text-anchor="middle">頻繁に使う部品・工具</text>
-  <text class="mark-t" x="260" y="45" text-anchor="middle">最大作業域</text><text class="tick" x="260" y="61" text-anchor="middle">時々使うもの</text>
-  <text class="tick" x="460" y="60" text-anchor="end">外側 = 前かがみ・ひねり</text>
+<svg class="tb-chart" viewBox="0 0 520 232" role="img" aria-label="通常作業域と最大作業域 (上から見た図)">
+
+<rect x="14" y="10" width="492" height="180" rx="4" style="fill:var(--tb-surface);stroke:var(--tb-border)"/>
+<line class="k-edge" x1="14" y1="190" x2="506" y2="190"/>
+<path d="M90,190 A170,170 0 0 1 430,190" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.1" stroke-dasharray="5 3" stroke-width="1.4"/>
+<path d="M150,190 A110,110 0 0 1 370,190" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.25" stroke-width="2"/>
+<g class="k-shadow"><rect class="k-plastic" x="196" y="104" width="30" height="20" rx="3"/><rect class="k-plastic" x="294" y="104" width="30" height="20" rx="3"/>
+<path d="M330,160 L352,150" fill="none" style="stroke:var(--tb-bad)" stroke-width="5"/><path d="M352,150 L372,141" fill="none" style="stroke:var(--k-line-2)" stroke-width="2"/>
+<rect class="k-part" x="120" y="58" width="44" height="26" rx="3"/><rect class="k-part" x="356" y="58" width="44" height="26" rx="3"/></g>
+<text class="mark-t" x="260" y="140" text-anchor="middle">通常作業域</text><text class="tick" x="260" y="156" text-anchor="middle">頻繁に使う部品・工具</text>
+<text class="mark-t" x="260" y="45" text-anchor="middle">最大作業域</text><text class="tick" x="260" y="61" text-anchor="middle">時々使うもの</text>
+<text class="tick" x="500" y="30" text-anchor="end">外側 = 前かがみ・ひねり</text>
+<g class="k-shadow">
+<path d="M222.0,206.0 L226.0,182.0 L242.0,172.0" fill="none" style="stroke:var(--k-line)" stroke-width="10.4"/><path d="M298.0,206.0 L294.0,182.0 L278.0,172.0" fill="none" style="stroke:var(--k-line)" stroke-width="10.4"/><path d="M222.0,206.0 L226.0,182.0 L242.0,172.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="8.0"/><path d="M298.0,206.0 L294.0,182.0 L278.0,172.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="8.0"/>
+<path d="M232.0,182.0 L242.0,172.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.9"/><path d="M288.0,182.0 L278.0,172.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.9"/><path d="M232.0,182.0 L242.0,172.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.5"/><path d="M288.0,182.0 L278.0,172.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.5"/>
+<circle class="k-skin" cx="244" cy="170" r="4.5"/><circle class="k-skin" cx="276" cy="170" r="4.5"/>
+<rect x="210" y="198" width="100" height="26" rx="13" style="fill:var(--k-accent-1);stroke:var(--k-line)" stroke-width="1.4"/>
+<circle class="k-skin" cx="260" cy="208" r="13"/><path d="M247,210 A13,13 0 0 0 273,210 A14,10 0 0 0 247,210 Z" fill="#4a3728"/>
+<path d="M257,195 L260,190 L263,195" class="k-skin" stroke-width="1"/></g>
 </svg>
 <p class="tb-caption">図: 作業台を上から見た通常作業域と最大作業域 (半径は体格で変わる)。</p>
 <h2>持ち上げ作業</h2>
@@ -534,14 +635,25 @@ export const UX: TextChapter[] = [
   <li>海外では NIOSH の持ち上げ式 (推奨重量限界 RWL を各条件の係数で算出) なども使われる</li>
   <li>設計での対策: 持ち上げ高さを腰〜胸の範囲に、取っ手を付ける、重いものは台車・リフタ・バランサで</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="荷物までの距離と腰のモーメント">
-  <line class="axis" x1="20" y1="150" x2="500" y2="150"/>
-  <circle class="mark" cx="80" cy="90" r="5"/><rect x="95" y="70" width="30" height="30" fill="var(--tb-good)"/><line x1="80" y1="110" x2="110" y2="110" stroke="var(--tb-text-2)"/><text class="tick" x="95" y="125" text-anchor="middle">d 小</text>
-  <text class="tick" x="100" y="168" text-anchor="middle">○ 体に近づける</text>
-  <circle class="mark" cx="270" cy="90" r="5"/><rect x="380" y="70" width="30" height="30" fill="var(--tb-bad)"/><line x1="270" y1="110" x2="395" y2="110" stroke="var(--tb-text-2)"/><text class="tick" x="332" y="125" text-anchor="middle">d 大</text>
-  <text class="tick" x="340" y="168" text-anchor="middle">× 遠くで持つ</text>
-  <text class="lbl" x="480" y="40" text-anchor="end">腰のモーメント ≈ 重さ × d</text>
-  <text class="tick" x="80" y="80" text-anchor="middle">腰</text><text class="tick" x="270" y="80" text-anchor="middle">腰</text>
+<svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="荷物までの距離と腰のモーメント">
+
+<rect class="k-panel" x="8" y="8" width="244" height="198"/><rect class="k-panel" x="268" y="8" width="244" height="198"/>
+<rect class="k-ground" x="18" y="176" width="224" height="8"/><line class="k-edge" x1="18" y1="176" x2="242" y2="176"/><rect class="k-ground" x="278" y="176" width="224" height="8"/><line class="k-edge" x1="278" y1="176" x2="502" y2="176"/>
+<g class="k-shadow"><path d="M80.0,108.0 L77.0,142.0 L74.0,172.0" fill="none" style="stroke:var(--k-line)" stroke-width="12.9"/><path d="M80.0,108.0 L77.0,142.0 L74.0,172.0" fill="none" style="stroke:var(--k-line-2)" stroke-width="10.5"/><path d="M70.0,169.0 L83.0,171.0 Q88.0,172.0 88.0,175.5 L69.0,175.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><path d="M82.0,54.0 L84.0,80.0" fill="none" style="stroke:var(--k-line)" stroke-width="9.9"/><path d="M84.0,80.0 L96.0,90.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M82.0,54.0 L84.0,80.0" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7.5"/><path d="M84.0,80.0 L96.0,90.0" fill="none" style="stroke:var(--k-skin-2)" stroke-width="6.0"/><circle class="k-skin" cx="96" cy="90" r="4.0"/><path d="M82.0,43.0 L82.0,54.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M82.0,43.0 L82.0,54.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.0"/><path d="M82.0,54.0 L80.0,108.0" fill="none" style="stroke:var(--k-line)" stroke-width="21.4"/><path d="M82.0,54.0 L80.0,108.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="19.0"/><path d="M80.0,108.0 L82.0,142.0 L82.0,172.0" fill="none" style="stroke:var(--k-line)" stroke-width="13.4"/><path d="M80.0,108.0 L82.0,142.0 L82.0,172.0" fill="none" style="stroke:var(--k-steel-3)" stroke-width="11.0"/><path d="M78.0,169.0 L91.0,171.0 Q96.0,172.0 96.0,175.5 L77.0,175.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><circle class="k-skin" cx="84" cy="34" r="11.0"/><path d="M94.2,34.5 l2.6,3.2 l-2.8,0.6" class="k-skin" stroke-width="1"/><path d="M93.0,27.9 A11.0,11.0 0 1 0 76.1,41.5 Q82.3,35.1 93.0,27.9 Z" fill="#4a3728" style="stroke:var(--k-line)" stroke-width="1"/><circle cx="90.0" cy="33.8" r="1.4" style="fill:var(--k-line)"/><rect class="k-plastic" x="96" y="70" width="32" height="32" rx="2"/><path d="M82.0,54.0 L88.0,80.0" fill="none" style="stroke:var(--k-line)" stroke-width="10.4"/><path d="M88.0,80.0 L104.0,92.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.9"/><path d="M82.0,54.0 L88.0,80.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="8.0"/><path d="M88.0,80.0 L104.0,92.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.5"/><circle class="k-skin" cx="104" cy="92" r="4.3"/></g>
+<line class="k-force" x1="112" y1="104" x2="112" y2="136"/>
+<line class="k-center" x1="80" y1="100" x2="80" y2="166"/>
+<line class="k-ext" x1="112" y1="140" x2="112" y2="166"/><line class="k-dimline" x1="80" y1="160" x2="112" y2="160"/>
+<text class="k-dimtext" x="118" y="164">d 小</text>
+<circle cx="80" cy="108" r="3.5" style="fill:var(--tb-bad);stroke:var(--k-line)"/><text class="tick" x="62" y="112" text-anchor="end">腰</text>
+<circle class="k-badge" cx="26" cy="192" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="26" y="196" text-anchor="middle">✓</text><text class="k-good-t" x="40" y="197">体に近づける</text>
+<g class="k-shadow"><path d="M300.0,110.0 L300.0,142.0 L294.0,172.0" fill="none" style="stroke:var(--k-line)" stroke-width="12.9"/><path d="M300.0,110.0 L300.0,142.0 L294.0,172.0" fill="none" style="stroke:var(--k-line-2)" stroke-width="10.5"/><path d="M290.0,169.0 L303.0,171.0 Q308.0,172.0 308.0,175.5 L289.0,175.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><path d="M342.0,76.0 L362.0,90.0" fill="none" style="stroke:var(--k-line)" stroke-width="9.9"/><path d="M362.0,90.0 L388.0,96.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M342.0,76.0 L362.0,90.0" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7.5"/><path d="M362.0,90.0 L388.0,96.0" fill="none" style="stroke:var(--k-skin-2)" stroke-width="6.0"/><circle class="k-skin" cx="388" cy="96" r="4.0"/><path d="M356.0,73.0 L342.0,76.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.4"/><path d="M356.0,73.0 L342.0,76.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.0"/><path d="M342.0,76.0 L300.0,110.0" fill="none" style="stroke:var(--k-line)" stroke-width="21.4"/><path d="M342.0,76.0 L300.0,110.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="19.0"/><path d="M300.0,110.0 L308.0,142.0 L302.0,172.0" fill="none" style="stroke:var(--k-line)" stroke-width="13.4"/><path d="M300.0,110.0 L308.0,142.0 L302.0,172.0" fill="none" style="stroke:var(--k-steel-3)" stroke-width="11.0"/><path d="M298.0,169.0 L311.0,171.0 Q316.0,172.0 316.0,175.5 L297.0,175.5 Z" fill="#2b3340" style="stroke:var(--k-line)" stroke-width="1"/><circle class="k-skin" cx="358" cy="64" r="11.0"/><path d="M368.2,64.5 l2.6,3.2 l-2.8,0.6" class="k-skin" stroke-width="1"/><path d="M367.0,58.0 A11.0,11.0 0 1 0 350.1,71.5 Q356.4,65.1 367.0,58.0 Z" fill="#4a3728" style="stroke:var(--k-line)" stroke-width="1"/><circle cx="364.1" cy="63.8" r="1.4" style="fill:var(--k-line)"/><rect class="k-plastic" x="392" y="84" width="32" height="32" rx="2"/><path d="M342.0,76.0 L366.0,92.0" fill="none" style="stroke:var(--k-line)" stroke-width="10.4"/><path d="M366.0,92.0 L396.0,100.0" fill="none" style="stroke:var(--k-line)" stroke-width="8.9"/><path d="M342.0,76.0 L366.0,92.0" fill="none" style="stroke:var(--k-accent-1)" stroke-width="8.0"/><path d="M366.0,92.0 L396.0,100.0" fill="none" style="stroke:var(--k-skin-1)" stroke-width="6.5"/><circle class="k-skin" cx="396" cy="100" r="4.3"/></g>
+<line class="k-force" x1="408" y1="118" x2="408" y2="146"/>
+<line class="k-center" x1="300" y1="104" x2="300" y2="166"/>
+<line class="k-ext" x1="408" y1="150" x2="408" y2="166"/><line class="k-dimline" x1="300" y1="160" x2="408" y2="160"/>
+<text class="k-dimtext" x="354" y="154" text-anchor="middle">d 大</text>
+<circle cx="300" cy="110" r="3.5" style="fill:var(--tb-bad);stroke:var(--k-line)"/><text class="tick" x="284" y="104" text-anchor="end">腰</text>
+<circle class="k-badge" cx="286" cy="192" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="286" y="196" text-anchor="middle">✕</text><text class="k-bad-t" x="300" y="197">遠くで持つ</text>
+<text class="lbl" x="504" y="30" text-anchor="end">腰のモーメント ≈ 重さ × d</text>
 </svg>
 <p class="tb-caption">図: 同じ重さでも腰 (●) から荷物までの水平距離 d が大きいほど腰の負担が増える。</p>
 <h2>繰り返し作業・振動・騒音</h2>
@@ -605,11 +717,11 @@ export const UX: TextChapter[] = [
   <li><b>ペルソナ</b>: 調査に基づく代表的な利用者像 (目標・状況・スキル・不満)。想像だけで作ると単なる思い込みになる</li>
   <li><b>カスタマージャーニーマップ</b>: 認知 → 購入 → 設置 → 使用 → 保守 → 廃棄の各段階で、行動・接点・感情・課題を時系列に並べ、体験の落ち込む所 (ペインポイント) を見つける</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 210" aria-label="カスタマージャーニーマップ">
+<svg class="tb-chart" role="img" viewBox="0 0 520 210" aria-label="カスタマージャーニーマップ">
   <line class="grid" x1="40" y1="110" x2="500" y2="110"/>
   <text class="tick" x="36" y="60" text-anchor="end">満足</text><text class="tick" x="36" y="170" text-anchor="end">不満</text>
   <text class="tick" x="70" y="22" text-anchor="middle">認知</text><text class="tick" x="145" y="22" text-anchor="middle">購入</text><text class="tick" x="220" y="22" text-anchor="middle">設置</text><text class="tick" x="295" y="22" text-anchor="middle">使用</text><text class="tick" x="370" y="22" text-anchor="middle">保守</text><text class="tick" x="450" y="22" text-anchor="middle">廃棄</text>
-  <polyline points="70,70 145,60 220,160 295,80 370,150 450,100" stroke="var(--tb-accent)" fill="none" stroke-width="2.5"/>
+  <polyline style="stroke:var(--tb-accent)" points="70,70 145,60 220,160 295,80 370,150 450,100" fill="none" stroke-width="2.5"/>
   <circle class="mark" cx="220" cy="160" r="6"/><circle class="mark" cx="370" cy="150" r="6"/>
   <text class="tick" x="220" y="185" text-anchor="middle">設置手順が難しい</text><text class="tick" x="370" y="175" text-anchor="middle">消耗品の交換が面倒</text>
 </svg>
@@ -636,10 +748,10 @@ export const UX: TextChapter[] = [
 偶数:   3 + 4 + 3 + 3 + 4 = 17
 合計:   34  →  34 × 2.5 = 85</pre>
 <p>SUS スコアは<b>パーセントではありません</b>。多くの研究の平均はおよそ 68 とされ、それより高ければ平均以上の使いやすさと解釈されます (目安)。参加者ごとにスコアを出してから平均します。</p>
-<svg class="tb-chart" viewBox="0 0 520 110" aria-label="SUS スコアの目安">
-  <rect x="40" y="40" width="440" height="20" fill="var(--tb-surface-2)" stroke="var(--tb-text-3)"/>
-  <rect x="40" y="40" width="226" height="20" fill="var(--tb-bad)" opacity="0.35"/><rect x="266" y="40" width="214" height="20" fill="var(--tb-good)" opacity="0.35"/>
-  <line x1="339" y1="30" x2="339" y2="70" stroke="var(--tb-accent)" stroke-width="3"/><text class="mark-t" x="339" y="24" text-anchor="middle">例題 85</text>
+<svg class="tb-chart" role="img" viewBox="0 0 520 110" aria-label="SUS スコアの目安">
+  <rect style="fill:var(--tb-surface-2);stroke:var(--tb-text-3)" x="40" y="40" width="440" height="20"/>
+  <rect style="fill:var(--tb-bad)" x="40" y="40" width="226" height="20" opacity="0.35"/><rect style="fill:var(--tb-good)" x="266" y="40" width="214" height="20" opacity="0.35"/>
+  <line style="stroke:var(--tb-accent)" x1="339" y1="30" x2="339" y2="70" stroke-width="3"/><text class="mark-t" x="339" y="24" text-anchor="middle">例題 85</text>
   <line class="guide" x1="266" y1="30" x2="266" y2="74"/><text class="tick" x="266" y="88" text-anchor="middle">平均 約 68</text>
   <text class="tick" x="40" y="88" text-anchor="middle">0</text><text class="tick" x="260" y="104" text-anchor="middle">50</text><text class="tick" x="480" y="88" text-anchor="middle">100</text>
 </svg>
