@@ -487,8 +487,11 @@ try {
     B.forEach((b, bi) => b.faces.forEach((f, i) => {
       if (f.type !== "PLANE") return;
       if (f.normal[1] < -0.99 && (!lo || f.center[1] < B[lo[0]].faces[lo[1]].center[1])) lo = [bi, i];
-      if (f.normal[1] > 0.99 && (!hi || f.center[1] > B[hi[0]].faces[hi[1]].center[1])) hi = [bi, i];
     }));
+    // load the top of the same (supported) body: a load on a free part is refused
+    B[lo[0]].faces.forEach((f, i) => {
+      if (f.type === "PLANE" && f.normal[1] > 0.99 && (!hi || f.center[1] > B[hi[0]].faces[hi[1]].center[1])) hi = [lo[0], i];
+    });
     cmd.sets.fixed = [{ kind: "face", body: lo[0], index: lo[1], point: B[lo[0]].faces[lo[1]].center }];
     cmd.sets.load = [{ kind: "face", body: hi[0], index: hi[1], point: B[hi[0]].faces[hi[1]].center }];
   });
