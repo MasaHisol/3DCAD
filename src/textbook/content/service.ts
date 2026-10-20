@@ -26,20 +26,27 @@ export const SERVICE: TextChapter[] = [
   <tr><td>可動配線 (繰り返し曲げる)</td><td>外径の約 7.5〜10 倍以上</td><td>60〜80 mm 以上</td></tr>
 </table>
 <p class="tb-note">数値は一般的な目安です。ケーブルの構造 (シールドの有無・導体の撚り方) で大きく変わるため、必ず採用するケーブルのカタログ値で確認してください。</p>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="ケーブルの曲げ半径とグロメット">
-  <rect x="30" y="30" width="16" height="170" fill="none" stroke="currentColor" stroke-width="2"/>
-  <text class="tick" x="26" y="24">フレーム</text>
-  <path d="M46,60 L130,60 A70,70 0 0 1 200,130 L200,200" fill="none" stroke="var(--tb-accent)" stroke-width="6"/>
-  <circle class="mark" cx="130" cy="130" r="3"/>
-  <line class="guide" x1="130" y1="130" x2="180" y2="81"/>
-  <text class="mark-t" x="150" y="120">R ≥ 外径 × 倍率</text>
-  <text class="lbl" x="120" y="215" text-anchor="middle">良い: 大きな R で曲げる</text>
-  <rect x="300" y="30" width="16" height="170" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="294" y="98" width="28" height="24" rx="6" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <line x1="250" y1="110" x2="430" y2="110" stroke="var(--tb-accent)" stroke-width="6"/>
-  <text class="mark-t" x="330" y="92">グロメット</text>
-  <text class="tick" x="330" y="140">板の切り口に直接当てない</text>
-  <text class="lbl" x="390" y="215" text-anchor="middle">板金の穴を通すときはエッジ保護</text>
+<svg class="tb-chart" viewBox="0 0 520 236" role="img" aria-label="ケーブルの曲げ半径とグロメット">
+<rect class="k-panel" x="8" y="8" width="244" height="220" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="220" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✓</text><text class="k-title" x="46" y="32">良い: 大きな R で曲げる</text>
+<text class="k-title" x="306" y="32">板金の穴を通すときはエッジ保護</text><circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text>
+<g class="k-shadow"><rect class="k-alu" x="24" y="48" width="16" height="168" rx="2"/></g>
+<line class="k-thin" x1="32" y1="52" x2="32" y2="212"/>
+<text class="tick" x="48" y="136">フレーム</text>
+<path d="M40,76 L120,76 A70,70 0 0 1 190,146 L190,214" fill="none" style="stroke:var(--k-line)" stroke-width="10"/><path d="M40,76 L120,76 A70,70 0 0 1 190,146 L190,214" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7"/><path d="M40,76 L120,76 A70,70 0 0 1 190,146 L190,214" fill="none" style="stroke:var(--k-accent-1)" stroke-width="2.3" opacity="0.8"/>
+<g class="k-shadow"><rect class="k-part" x="52" y="66" width="14" height="20" rx="2"/></g>
+<line class="k-center" x1="106" y1="146" x2="134" y2="146"/><line class="k-center" x1="120" y1="132" x2="120" y2="160"/>
+<line class="k-dimline" x1="120" y1="146" x2="168" y2="98" style="marker-start:none"/>
+<text class="k-dimtext" x="112" y="182" text-anchor="middle">R ≥ 外径 × 倍率</text>
+<g class="k-shadow">
+<rect class="k-cut" x="384" y="46" width="9" height="56"/><rect class="k-cut" x="384" y="138" width="9" height="78"/>
+</g>
+<path d="M290,120 L500,120" fill="none" style="stroke:var(--k-line)" stroke-width="10"/><path d="M290,120 L500,120" fill="none" style="stroke:var(--k-accent-2)" stroke-width="7"/><path d="M290,120 L500,120" fill="none" style="stroke:var(--k-accent-1)" stroke-width="2.3" opacity="0.8"/>
+<path d="M374,92 Q374,86 380,86 L397,86 Q403,86 403,92 L403,106 L397,106 L397,102 L380,102 L380,106 L374,106 Z" fill="#3a3f47" style="stroke:var(--k-line)" stroke-width="1.2"/>
+<path d="M374,148 Q374,154 380,154 L397,154 Q403,154 403,148 L403,134 L397,134 L397,138 L380,138 L380,134 L374,134 Z" fill="#3a3f47" style="stroke:var(--k-line)" stroke-width="1.2"/>
+<line class="k-thin" x1="403" y1="92" x2="430" y2="70"/><text class="mark-t" x="434" y="68">グロメット</text>
+<text class="tick" x="300" y="80">板金 (断面)</text>
+<text class="k-note" x="390" y="178" text-anchor="middle">板の切り口に直接当てない</text>
 </svg>
 <h2>エッジ保護と固定</h2>
 <ul>
@@ -100,20 +107,31 @@ export const SERVICE: TextChapter[] = [
 <h2>ケーブルキャリアとは</h2>
 <p>ケーブルキャリア (一般に「ケーブルベア」とも呼ばれる。ケーブルベアは商標) は、リンクをつないだ鎖状のガイドで、内部のケーブルを<b>一定の曲げ半径</b>で往復させます。
 一端を固定部、他端を移動体に取り付け、移動体が動くと曲げ部 (U 字の部分) が転がるように移動します。</p>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="ケーブルキャリアの構成">
-  <line class="axis" x1="20" y1="180" x2="500" y2="180"/>
-  <text class="tick" x="24" y="196">取付面</text>
-  <rect x="236" y="166" width="24" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
-  <text class="mark-t" x="248" y="206" text-anchor="middle">固定端 (ストロークの中央)</text>
-  <path d="M248,166 L380,166 A50,50 0 0 1 380,66 L120,66" fill="none" stroke="var(--tb-accent)" stroke-width="8"/>
-  <rect x="96" y="50" width="40" height="22" fill="none" stroke="currentColor" stroke-width="2"/>
-  <text class="mark-t" x="116" y="44" text-anchor="middle">移動端</text>
-  <line class="guide" x1="380" y1="116" x2="415" y2="81"/>
-  <text class="mark-t" x="420" y="116">曲げ半径 R</text>
-  <line class="guide" x1="40" y1="30" x2="456" y2="30"/>
-  <text class="lbl" x="248" y="22" text-anchor="middle">ストローク S (移動端の動く範囲)</text>
-  <line class="guide" x1="430" y1="66" x2="430" y2="166"/>
-  <text class="tick" x="436" y="140">高さ ≈ 2R + リンク高さ</text>
+<svg class="tb-chart" viewBox="0 0 520 250" role="img" aria-label="ケーブルキャリアの構成">
+<rect class="k-ground" x="20" y="208" width="480" height="12"/><line class="k-edge" x1="20" y1="208" x2="500" y2="208"/>
+<text class="tick" x="24" y="238">取付面</text>
+<line class="k-ext" x1="40" y1="34" x2="40" y2="44"/><line class="k-ext" x1="456" y1="34" x2="456" y2="44"/>
+<line class="k-dimline" x1="40" y1="30" x2="456" y2="30"/>
+<text class="lbl" x="248" y="22" text-anchor="middle">ストローク S (移動端の動く範囲)</text>
+<rect x="386" y="40" width="70" height="18" rx="3" class="k-hidden"/>
+<g class="k-shadow">
+<path d="M262,190 L380,190 A55,55 0 0 0 380,80 L130,80" fill="none" style="stroke:var(--k-line)" stroke-width="20"/>
+<path d="M262,190 L380,190 A55,55 0 0 0 380,80 L130,80" fill="none" style="stroke:var(--k-steel-2)" stroke-width="17"/>
+<path d="M262,190 L380,190 A55,55 0 0 0 380,80 L130,80" fill="none" style="stroke:var(--k-steel-1)" stroke-width="7"/>
+<path d="M262,190 L380,190 A55,55 0 0 0 380,80 L130,80" fill="none" stroke-width="17" stroke-dasharray="1.2 11" style="stroke:var(--k-line-2);stroke-linecap:butt"/>
+<rect class="k-alu" x="40" y="40" width="114" height="18" rx="3"/>
+<rect class="k-part" x="110" y="58" width="24" height="32" rx="2"/>
+<rect class="k-part" x="236" y="182" width="28" height="26" rx="2"/>
+</g>
+<line class="k-move" x1="164" y1="49" x2="210" y2="49"/>
+<text class="mark-t" x="214" y="54">移動端</text>
+<line class="k-center" x1="368" y1="135" x2="392" y2="135"/><line class="k-center" x1="380" y1="123" x2="380" y2="147"/>
+<line class="k-dimline" x1="380" y1="135" x2="418.9" y2="96.1" style="marker-start:none"/>
+<text class="k-dimtext" x="372" y="160" text-anchor="end">曲げ半径 R</text>
+<line class="k-ext" x1="390" y1="70" x2="482" y2="70"/><line class="k-ext" x1="390" y1="200" x2="482" y2="200"/>
+<line class="k-dimline" x1="474" y1="70" x2="474" y2="200"/>
+<text class="k-dimtext" x="498" y="135" text-anchor="middle" transform="rotate(-90 498 135)">高さ ≈ 2R + リンク高さ</text>
+<text class="mark-t" x="250" y="238" text-anchor="middle">固定端 (ストロークの中央)</text>
 </svg>
 <h2>選定の 4 項目</h2>
 <table class="tb-table">
@@ -182,32 +200,49 @@ export const SERVICE: TextChapter[] = [
   <tr><td>端子台は下部・出入口近く</td><td>外部配線の引き込みと作業がしやすい</td></tr>
   <tr><td>操作・確認する機器は手の届く高さ</td><td>ブレーカー・表示器を無理な姿勢なしで扱える</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 260" aria-label="制御盤の配置例">
-  <rect x="120" y="20" width="280" height="220" fill="none" stroke="currentColor" stroke-width="2.5"/>
-  <rect class="sec" x="130" y="30" width="260" height="10"/>
-  <text class="tick" x="260" y="38" text-anchor="middle">ダクト</text>
-  <rect x="140" y="48" width="70" height="40" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="tick" x="175" y="72" text-anchor="middle">インバータ</text>
-  <rect x="220" y="48" width="60" height="40" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="tick" x="250" y="72" text-anchor="middle">電源</text>
-  <rect x="300" y="48" width="80" height="40" fill="none" stroke="currentColor"/>
-  <text class="tick" x="340" y="72" text-anchor="middle">PLC</text>
-  <rect class="sec" x="130" y="96" width="260" height="10"/>
-  <rect x="140" y="114" width="100" height="36" fill="none" stroke="currentColor"/>
-  <text class="tick" x="190" y="136" text-anchor="middle">ブレーカー・MC</text>
-  <rect x="300" y="114" width="80" height="36" fill="none" stroke="currentColor"/>
-  <text class="tick" x="340" y="136" text-anchor="middle">リレー</text>
-  <line class="guide" x1="270" y1="100" x2="270" y2="200"/>
-  <text class="tick" x="150" y="168">強電側</text><text class="tick" x="320" y="168">弱電側</text>
-  <rect class="sec" x="130" y="176" width="260" height="10"/>
-  <rect x="140" y="194" width="140" height="18" fill="none" stroke="currentColor"/>
-  <text class="tick" x="210" y="207" text-anchor="middle">端子台</text>
-  <rect x="290" y="194" width="90" height="36" fill="none" stroke="currentColor" stroke-dasharray="4 3"/>
-  <text class="tick" x="335" y="216" text-anchor="middle">予備 (約 20 %)</text>
-  <text class="lbl" x="410" y="60">↑ 発熱体は上</text>
-  <text class="lbl" x="410" y="226">↓ 重い物・端子は下</text>
-  <text class="mark-t" x="20" y="130">排気 ↑ 上部</text>
-  <text class="mark-t" x="20" y="226">吸気 → 下部</text>
+<svg class="tb-chart" viewBox="0 0 520 270" role="img" aria-label="制御盤の配置例">
+<g class="k-shadow"><rect class="k-part" x="100" y="14" width="280" height="244" rx="4"/></g>
+<rect class="k-alu" x="110" y="24" width="260" height="224" rx="2" stroke-width="1"/>
+<rect x="116" y="30" width="248" height="12" rx="1" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)" stroke-width="1"/><line x1="119" y1="36" x2="361" y2="36" style="stroke:var(--k-line-2);stroke-linecap:butt" stroke-width="10" stroke-dasharray="2 6"/>
+<g class="k-shadow">
+<rect class="k-part" x="120" y="48" width="70" height="42" rx="2"/>
+<rect class="k-alu" x="200" y="48" width="60" height="42" rx="2"/>
+<rect class="k-alu" x="280" y="48" width="80" height="42" rx="2"/>
+</g>
+<path class="k-thin" d="M126,52 L184,52 M126,55 L184,55"/>
+<rect x="166" y="60" width="16" height="8" rx="1" fill="#1d2a24"/><text x="174" y="66.5" font-size="6" text-anchor="middle" fill="#5df29a">50.0</text>
+<path class="k-thin" d="M206,54 L254,54 M206,57 L254,57 M206,60 L254,60"/>
+<rect x="286" y="52" width="68" height="10" rx="1" style="fill:var(--k-steel-3)"/><circle cx="292" cy="57" r="1.8" style="fill:var(--tb-good)"/><circle cx="298" cy="57" r="1.8" style="fill:var(--tb-good)"/><circle cx="304" cy="57" r="1.8" style="fill:var(--tb-good)"/><circle cx="310" cy="57" r="1.8" style="fill:var(--tb-good)"/><circle cx="316" cy="57" r="1.8" style="fill:var(--tb-good)"/><circle cx="322" cy="57" r="1.8" style="fill:var(--tb-good)"/><circle cx="328" cy="57" r="1.8" style="fill:var(--tb-good)"/><circle cx="334" cy="57" r="1.8" style="fill:var(--tb-good)"/><circle cx="340" cy="57" r="1.8" style="fill:var(--tb-good)"/><circle cx="346" cy="57" r="1.8" style="fill:var(--tb-good)"/>
+<text class="tick" x="155" y="84" text-anchor="middle">インバータ</text>
+<text class="tick" x="230" y="84" text-anchor="middle">電源</text>
+<text class="tick" x="320" y="84" text-anchor="middle">PLC</text>
+<rect x="116" y="98" width="248" height="12" rx="1" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)" stroke-width="1"/><line x1="119" y1="104" x2="361" y2="104" style="stroke:var(--k-line-2);stroke-linecap:butt" stroke-width="10" stroke-dasharray="2 6"/>
+<g class="k-shadow">
+<rect class="k-part" x="120" y="116" width="22" height="36" rx="2"/><rect class="k-part" x="144" y="116" width="22" height="36" rx="2"/>
+<rect class="k-part" x="168" y="116" width="22" height="36" rx="2"/><rect class="k-alu" x="192" y="116" width="34" height="36" rx="2"/>
+<rect class="k-plastic" x="280" y="116" width="16" height="30" rx="2"/><rect class="k-plastic" x="298" y="116" width="16" height="30" rx="2"/>
+<rect class="k-plastic" x="316" y="116" width="16" height="30" rx="2"/><rect class="k-plastic" x="334" y="116" width="16" height="30" rx="2"/>
+</g>
+<path d="M127,126 L135,126 M151,126 L159,126 M175,126 L183,126" style="stroke:var(--k-line)" stroke-width="4"/>
+<line x1="250" y1="104" x2="250" y2="206" style="stroke:var(--tb-bad)" stroke-width="1.4" stroke-dasharray="6 4"/>
+<text class="tick" x="160" y="168" text-anchor="middle">ブレーカー・MC</text>
+<text class="tick" x="316" y="160" text-anchor="middle">リレー</text>
+<text class="lbl" x="130" y="184">強電側</text><text class="lbl" x="300" y="184">弱電側</text>
+<rect x="116" y="190" width="248" height="12" rx="1" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)" stroke-width="1"/><line x1="119" y1="196" x2="361" y2="196" style="stroke:var(--k-line-2);stroke-linecap:butt" stroke-width="10" stroke-dasharray="2 6"/>
+<g class="k-shadow"><rect class="k-part" x="120" y="208" width="140" height="18" rx="1"/></g>
+<line x1="124" y1="217" x2="256" y2="217" style="stroke:var(--k-line);stroke-linecap:butt" stroke-width="12" stroke-dasharray="1.2 5.6"/>
+<text class="tick" x="190" y="240" text-anchor="middle">端子台</text>
+<rect x="270" y="208" width="90" height="34" rx="2" class="k-hidden" style="fill:var(--tb-surface)"/>
+<text class="tick" x="315" y="229" text-anchor="middle">予備 (約 20 %)</text>
+<path class="k-edge" d="M100,40 L94,40 M100,46 L94,46 M100,52 L94,52 M100,58 L94,58"/>
+<path class="k-edge" d="M100,214 L94,214 M100,220 L94,220 M100,226 L94,226 M100,232 L94,232"/>
+<path class="k-move" d="M118,52 L86,52 L86,30"/>
+<path class="k-move" d="M56,224 L106,224"/>
+<text class="mark-t" x="14" y="64">排気 ↑ 上部</text>
+<text class="mark-t" x="14" y="246">吸気 → 下部</text>
+<line class="k-thin" x1="386" y1="40" x2="362" y2="36"/><text class="tick" x="390" y="44">ダクト</text>
+<text class="lbl" x="390" y="74">↑ 発熱体は上</text>
+<text class="lbl" x="390" y="228">↓ 重い物・端子は下</text>
 </svg>
 <h2>ダクト・端子台・余裕スペース</h2>
 <ul>
@@ -287,18 +322,28 @@ export const SERVICE: TextChapter[] = [
 </ul>
 <h2>識別 — 線番・マーカー</h2>
 <p>電線の両端に図面と一致する<b>線番</b>をマーカーチューブ等で表示し、コネクタ・端子台にも番号を付けます。保守の現場で「どの線がどこへ行くか」が図面なしでもわかることが、故障診断の時間を大きく縮めます。</p>
-<svg class="tb-chart" viewBox="0 0 520 150" aria-label="線番マーカーとキー付きコネクタ">
-  <line x1="30" y1="70" x2="250" y2="70" stroke="var(--tb-accent)" stroke-width="5"/>
-  <rect x="60" y="60" width="44" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
-  <text class="tick" x="82" y="75" text-anchor="middle">X1-3</text>
-  <rect x="250" y="50" width="60" height="40" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="300" y="56" width="10" height="8" fill="currentColor"/>
-  <text class="mark-t" x="280" y="110" text-anchor="middle">キー (突起)</text>
-  <rect x="330" y="50" width="60" height="40" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="330" y="56" width="10" height="8" fill="none" stroke="currentColor"/>
-  <text class="tick" x="360" y="110" text-anchor="middle">相手側の溝</text>
-  <text class="lbl" x="82" y="40" text-anchor="middle">両端に同じ線番</text>
-  <text class="lbl" x="450" y="75">向き・種類を</text><text class="lbl" x="450" y="92">間違えると挿さらない</text>
+<svg class="tb-chart" viewBox="0 0 520 176" role="img" aria-label="線番マーカーとキー付きコネクタ">
+<path d="M20,84 L240,84" fill="none" style="stroke:var(--k-line)" stroke-width="11"/><path d="M20,84 L240,84" fill="none" style="stroke:var(--k-accent-2)" stroke-width="8"/><path d="M20,84 L240,84" fill="none" style="stroke:var(--k-accent-1)" stroke-width="2.7" opacity="0.8"/>
+<g class="k-shadow">
+<rect class="k-alu" x="34" y="73" width="46" height="22" rx="4"/><rect class="k-alu" x="168" y="73" width="46" height="22" rx="4"/>
+</g>
+<text class="lbl" x="57" y="89" text-anchor="middle">X1-3</text><text class="lbl" x="191" y="89" text-anchor="middle">X1-3</text>
+<text class="lbl" x="124" y="46" text-anchor="middle">両端に同じ線番</text>
+<path class="k-thin" d="M92,50 L60,70 M156,50 L188,70" marker-end="url(#k-arrow)"/>
+<g class="k-shadow">
+<rect class="k-plastic" x="236" y="62" width="64" height="44" rx="4"/>
+<rect class="k-plastic" x="252" y="54" width="48" height="9" rx="2"/>
+<rect class="k-part" x="300" y="71" width="16" height="5" rx="1"/><rect class="k-part" x="300" y="82" width="16" height="5" rx="1"/><rect class="k-part" x="300" y="93" width="16" height="5" rx="1"/>
+<rect class="k-part" x="336" y="52" width="66" height="64" rx="3"/>
+</g>
+<rect x="336" y="64" width="44" height="42" style="fill:var(--k-steel-3);stroke:var(--k-line)" stroke-width="1"/>
+<rect x="336" y="55" width="44" height="10" style="fill:var(--k-steel-3);stroke:var(--k-line)" stroke-width="1"/>
+<circle cx="372" cy="74" r="2.4" style="fill:var(--k-line)"/><circle cx="372" cy="85" r="2.4" style="fill:var(--k-line)"/><circle cx="372" cy="96" r="2.4" style="fill:var(--k-line)"/>
+<line class="k-move" x1="270" y1="130" x2="340" y2="130"/>
+<line class="k-thin" x1="276" y1="44" x2="276" y2="54"/><text class="mark-t" x="276" y="38" text-anchor="middle">キー (突起)</text>
+<line class="k-thin" x1="370" y1="44" x2="360" y2="58"/><text class="tick" x="374" y="38" text-anchor="middle">相手側の溝</text>
+<text class="lbl" x="412" y="80">向き・種類を</text><text class="lbl" x="412" y="97">間違えると</text><text class="lbl" x="412" y="114">挿さらない</text>
+<text class="k-note" x="130" y="130" text-anchor="middle">マーカーチューブ</text>
 </svg>
 <h2>保守での交換性</h2>
 <ul>
@@ -346,22 +391,32 @@ export const SERVICE: TextChapter[] = [
 </table>
 <h2>アクセス性 — 手と工具が入るか</h2>
 <p>モデル上は外せる部品でも、<b>手や工具が入らなければ</b>交換できません。人体寸法に基づく開口部・すき間の寸法は規格にまとめられています (例: ISO 14738 作業場所の人体計測的要求、ISO 15534 シリーズ (機械類の安全性のための人間工学的設計 — 全身・身体の一部が入る開口部とアクセス寸法))。設計ではこれらを参照してください。</p>
-<svg class="tb-chart" viewBox="0 0 520 230" aria-label="点検口と手・工具のすき間">
-  <rect x="40" y="30" width="200" height="170" fill="none" stroke="currentColor" stroke-width="2.5"/>
-  <rect x="80" y="70" width="120" height="90" fill="none" stroke="var(--tb-accent)" stroke-width="2.5" stroke-dasharray="6 3"/>
-  <text class="mark-t" x="140" y="62" text-anchor="middle">点検口</text>
-  <path d="M110,200 L110,150 Q110,130 125,130 L160,130 Q170,130 170,140 L170,200" fill="none" stroke="currentColor" stroke-width="2"/>
-  <text class="tick" x="140" y="190" text-anchor="middle">手</text>
-  <line class="guide" x1="80" y1="215" x2="200" y2="215"/>
-  <text class="tick" x="140" y="228" text-anchor="middle">手 + 工具 + 視線の幅</text>
-  <rect x="300" y="60" width="40" height="120" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="440" y="60" width="40" height="120" fill="none" stroke="currentColor" stroke-width="2"/>
-  <line x1="340" y1="120" x2="420" y2="90" stroke="var(--tb-accent)" stroke-width="4"/>
-  <circle class="mark" cx="340" cy="120" r="4"/>
-  <path d="M400,120 A60,60 0 0 0 396,98" fill="none" stroke="currentColor"/>
-  <text class="mark-t" x="390" y="150" text-anchor="middle">スパナの振り角</text>
-  <line class="guide" x1="340" y1="195" x2="440" y2="195"/>
-  <text class="tick" x="390" y="210" text-anchor="middle">工具の回転・振り空間</text>
+<svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="点検口と手・工具のすき間">
+<g class="k-shadow"><rect class="k-alu" x="30" y="24" width="210" height="176" rx="4"/></g>
+<circle class="k-part" cx="42" cy="36" r="3.5" stroke-width="1"/><circle class="k-part" cx="228" cy="36" r="3.5" stroke-width="1"/>
+<circle class="k-part" cx="42" cy="188" r="3.5" stroke-width="1"/><circle class="k-part" cx="228" cy="188" r="3.5" stroke-width="1"/>
+<rect x="70" y="70" width="130" height="100" rx="4" style="fill:var(--k-steel-3);stroke:var(--tb-accent)" stroke-width="2.4" stroke-dasharray="7 4"/>
+<rect class="k-part" x="84" y="78" width="100" height="22" rx="2"/>
+<circle class="k-sphere" cx="104" cy="89" r="5"/><circle class="k-sphere" cx="164" cy="89" r="5"/>
+<text class="mark-t" x="135" y="62" text-anchor="middle">点検口</text>
+<rect class="k-part" x="132" y="72" width="4" height="30"/>
+<path class="k-accent" d="M110,200 L114,160 L150,160 L154,200 Z"/><path class="k-skin" d="M114,162 L113,138 Q113,126 122,124 L122,104 Q122,99 126,99 Q130,99 130,104 L130,118 L131,100 Q131,95 135,95 Q139,95 139,100 L139,119 L140,104 Q140,99 144,99 Q148,99 148,104 L148,130 L154,124 Q159,120 161,126 L150,148 L150,162 Z"/>
+<text class="mark-t" x="168" y="150">手</text>
+<line class="k-ext" x1="70" y1="172" x2="70" y2="220"/><line class="k-ext" x1="200" y1="172" x2="200" y2="220"/>
+<line class="k-dimline" x1="70" y1="214" x2="200" y2="214"/>
+<text class="k-dimtext" x="135" y="232" text-anchor="middle">手 + 工具 + 視線の幅</text>
+<g class="k-shadow"><rect class="k-cut" x="300" y="50" width="40" height="130"/><rect class="k-cut" x="440" y="50" width="40" height="130"/></g>
+<path class="k-hidden" d="M358,113 L422,148 L418,156 L354,121"/>
+<g class="k-shadow">
+<polygon class="k-part" points="364,120 360,127 352,127 348,120 352,113 360,113"/>
+<path class="k-part" d="M362,111 L424,86 Q430,84 432,90 Q433,95 428,97 L366,124 Z"/>
+<path class="k-part" d="M346,108 Q356,104 366,110 L370,116 L362,118 L356,113 L348,114 Z"/>
+</g>
+<path class="k-move" d="M412,148 A60,60 0 0 0 413,92" style="marker-start:url(#k-arrow-blue)"/>
+<text class="mark-t" x="390" y="40" text-anchor="middle">スパナの振り角</text>
+<line class="k-ext" x1="340" y1="182" x2="340" y2="202"/><line class="k-ext" x1="440" y1="182" x2="440" y2="202"/>
+<line class="k-dimline" x1="340" y1="196" x2="440" y2="196"/>
+<text class="k-dimtext" x="390" y="214" text-anchor="middle">工具の回転・振り空間</text>
 </svg>
 <ul>
   <li>点検口は<b>手 (または腕) + 工具 + 見るための視線</b>が同時に入る大きさにする。片手か両手か、手袋の有無も考える</li>
@@ -437,18 +492,25 @@ export const SERVICE: TextChapter[] = [
 </ul>
 <h2>給油口の集中化とグリースニップル</h2>
 <p>給油箇所が機械の奥に散らばっていると、給油が忘れられます。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="集中給油ブロック">
-  <rect x="30" y="40" width="70" height="110" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <circle class="mark" cx="65" cy="65" r="5"/><circle class="mark" cx="65" cy="95" r="5"/><circle class="mark" cx="65" cy="125" r="5"/>
-  <text class="mark-t" x="65" y="170" text-anchor="middle">集中給油ブロック</text>
-  <text class="tick" x="65" y="186" text-anchor="middle">(手前・外側)</text>
-  <path d="M100,65 L300,65 L300,50" fill="none" stroke="currentColor" stroke-dasharray="5 3"/>
-  <path d="M100,95 L380,95 L380,80" fill="none" stroke="currentColor" stroke-dasharray="5 3"/>
-  <path d="M100,125 L460,125 L460,110" fill="none" stroke="currentColor" stroke-dasharray="5 3"/>
-  <rect x="280" y="30" width="40" height="20" fill="none" stroke="currentColor"/><text class="tick" x="300" y="24" text-anchor="middle">軸受 A</text>
-  <rect x="360" y="60" width="40" height="20" fill="none" stroke="currentColor"/><text class="tick" x="380" y="54" text-anchor="middle">軸受 B</text>
-  <rect x="440" y="90" width="40" height="20" fill="none" stroke="currentColor"/><text class="tick" x="460" y="84" text-anchor="middle">ボールねじ</text>
-  <text class="lbl" x="280" y="160">配管で奥の給油点へ導く</text>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="集中給油ブロック">
+<rect x="140" y="12" width="370" height="140" rx="6" class="k-hidden"/>
+<text class="k-note" x="500" y="146" text-anchor="end">機械カバー (奥)</text>
+<path d="M100,65 L300,65 L300,58" fill="none" style="stroke:var(--k-line)" stroke-width="4.4"/><path d="M100,65 L300,65 L300,58" fill="none" style="stroke:var(--k-plastic-2)" stroke-width="2.4"/><path d="M100,95 L380,95 L380,88" fill="none" style="stroke:var(--k-line)" stroke-width="4.4"/><path d="M100,95 L380,95 L380,88" fill="none" style="stroke:var(--k-plastic-2)" stroke-width="2.4"/><path d="M100,125 L460,125 L460,118" fill="none" style="stroke:var(--k-line)" stroke-width="4.4"/><path d="M100,125 L460,125 L460,118" fill="none" style="stroke:var(--k-plastic-2)" stroke-width="2.4"/>
+<g class="k-shadow">
+<rect class="k-part" x="30" y="40" width="70" height="110" rx="3"/>
+<rect class="k-part" x="16" y="60" width="14" height="10" rx="1"/><rect class="k-part" x="16" y="90" width="14" height="10" rx="1"/><rect class="k-part" x="16" y="120" width="14" height="10" rx="1"/>
+<circle class="k-sphere" cx="14" cy="65" r="4"/><circle class="k-sphere" cx="14" cy="95" r="4"/><circle class="k-sphere" cx="14" cy="125" r="4"/>
+<rect class="k-part" x="278" y="48" width="44" height="8" rx="1"/><path class="k-part" d="M286,48 L286,43 A14,14 0 0 1 314,43 L314,48 Z"/><circle class="k-part-h" cx="300" cy="42" r="5"/><rect class="k-part" x="358" y="78" width="44" height="8" rx="1"/><path class="k-part" d="M366,78 L366,73 A14,14 0 0 1 394,73 L394,78 Z"/><circle class="k-part-h" cx="380" cy="72" r="5"/>
+<rect class="k-part" x="446" y="92" width="30" height="26" rx="2"/>
+</g>
+<rect x="420" y="101" width="86" height="8" style="fill:url(#k-hatch);stroke:var(--k-line)" stroke-width="1"/>
+<rect class="k-part" x="446" y="92" width="30" height="26" rx="2"/>
+<text class="tick" x="300" y="24" text-anchor="middle">軸受 A</text>
+<text class="tick" x="380" y="56" text-anchor="middle">軸受 B</text>
+<text class="tick" x="461" y="86" text-anchor="middle">ボールねじ</text>
+<text class="mark-t" x="65" y="170" text-anchor="middle">集中給油ブロック</text>
+<text class="tick" x="65" y="186" text-anchor="middle">(手前・外側)</text>
+<text class="lbl" x="200" y="176">配管で奥の給油点へ導く</text>
 </svg>
 <ul>
   <li>複数の給油点を配管でつなぎ、<b>集中給油ブロック</b>にまとめて手前に配置する。自動給油装置という選択肢もある</li>
@@ -531,19 +593,25 @@ export const SERVICE: TextChapter[] = [
 <p class="tb-note">第 2 数字は上位が下位を必ず含むわけではありません。たとえば 7 (水没) を満たしても 5・6 (噴流) を満たすとは限らないため、両方必要なら「IP65/IP67」のように併記します。</p>
 <h2>パッキン・ガスケットの設計</h2>
 <p>ふたと本体の合わせ目は、ゴムのパッキンを<b>適度につぶして</b>密封します。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="Oリング・ガスケットの溝とつぶし">
-  <rect x="40" y="100" width="200" height="60" fill="none" stroke="currentColor" stroke-width="2"/>
-  <path d="M110,100 L110,124 L170,124 L170,100" fill="none" stroke="currentColor" stroke-width="2"/>
-  <ellipse cx="140" cy="111" rx="22" ry="13" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <rect x="40" y="76" width="200" height="22" fill="none" stroke="currentColor" stroke-width="2"/>
-  <text class="tick" x="140" y="70" text-anchor="middle">ふた</text>
-  <line class="guide" x1="180" y1="100" x2="180" y2="124"/>
-  <text class="tick" x="186" y="116">溝深さ</text>
-  <text class="lbl" x="140" y="185" text-anchor="middle">溝の中でつぶされた断面</text>
-  <circle cx="380" cy="110" r="30" fill="none" stroke="currentColor" stroke-dasharray="4 3"/>
-  <line class="guide" x1="350" y1="155" x2="410" y2="155"/>
-  <text class="tick" x="380" y="170" text-anchor="middle">元の線径 d</text>
-  <text class="mark-t" x="380" y="60" text-anchor="middle">つぶし率 = (d − 溝深さ) / d</text>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="Oリング・ガスケットの溝とつぶし">
+<g class="k-shadow">
+<path class="k-cut" d="M40,100 L110,100 L110,124 L170,124 L170,100 L240,100 L240,160 L40,160 Z"/>
+<rect class="k-cut2" x="40" y="76" width="200" height="24"/>
+</g>
+<ellipse cx="140" cy="112" rx="25" ry="12" fill="#2f333a" style="stroke:var(--k-line)" stroke-width="1.4"/>
+<ellipse cx="132" cy="107" rx="9" ry="3" fill="#ffffff" opacity="0.25"/>
+<line class="k-force" x1="70" y1="44" x2="70" y2="72"/><line class="k-force" x1="210" y1="44" x2="210" y2="72"/>
+<text class="tick" x="140" y="66" text-anchor="middle">ふた</text>
+<line class="k-ext" x1="172" y1="100" x2="262" y2="100"/><line class="k-ext" x1="172" y1="124" x2="262" y2="124"/>
+<line class="k-dimline" x1="254" y1="100" x2="254" y2="124"/>
+<text class="k-dimtext" x="262" y="116">溝深さ</text>
+<text class="lbl" x="140" y="185" text-anchor="middle">溝の中でつぶされた断面</text>
+<circle cx="400" cy="112" r="30" fill="#2f333a" style="stroke:var(--k-line)" stroke-width="1.4"/>
+<ellipse cx="390" cy="100" rx="11" ry="5" fill="#ffffff" opacity="0.25"/>
+<line class="k-ext" x1="370" y1="114" x2="370" y2="160"/><line class="k-ext" x1="430" y1="114" x2="430" y2="160"/>
+<line class="k-dimline" x1="370" y1="154" x2="430" y2="154"/>
+<text class="k-dimtext" x="400" y="172" text-anchor="middle">元の線径 d</text>
+<text class="mark-t" x="400" y="56" text-anchor="middle">つぶし率 = (d − 溝深さ) / d</text>
 </svg>
 <ul>
   <li>つぶし率 (圧縮率) の<b>目安</b>: 固定用 O リングで約 15〜30 %、スポンジガスケットでは 30〜50 % 程度。材料・形状・メーカーにより異なるため、カタログや JIS B 2406 (O リング溝寸法) を参照する</li>
@@ -606,25 +674,25 @@ export const SERVICE: TextChapter[] = [
 </table>
 <h2>分解図 (展開図)</h2>
 <p>分解図は、部品の<b>位置関係と外す方向</b>を一目で伝えます。組立方向に沿って部品を引き離し、元の位置との対応を<b>軌跡線</b> (一点鎖線など) で示します。</p>
-<svg class="tb-chart" viewBox="0 0 520 180" aria-label="分解図の例">
-  <rect x="40" y="70" width="90" height="50" fill="none" stroke="currentColor" stroke-width="2"/>
-  <text class="tick" x="85" y="140" text-anchor="middle">ハウジング</text>
-  <circle cx="220" cy="95" r="20" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <text class="tick" x="220" y="140" text-anchor="middle">軸受</text>
-  <rect x="300" y="85" width="120" height="20" fill="none" stroke="currentColor" stroke-width="2"/>
-  <text class="tick" x="360" y="140" text-anchor="middle">軸</text>
-  <rect x="460" y="80" width="12" height="30" fill="none" stroke="currentColor" stroke-width="2"/>
-  <text class="tick" x="466" y="140" text-anchor="middle">止め輪</text>
-  <line class="guide" x1="130" y1="95" x2="500" y2="95"/>
-  <circle cx="220" cy="40" r="11" fill="none" stroke="currentColor"/><text class="tick" x="220" y="44" text-anchor="middle">2</text>
-  <line x1="220" y1="51" x2="220" y2="75" stroke="currentColor"/>
-  <circle cx="85" cy="40" r="11" fill="none" stroke="currentColor"/><text class="tick" x="85" y="44" text-anchor="middle">1</text>
-  <line x1="85" y1="51" x2="85" y2="70" stroke="currentColor"/>
-  <circle cx="360" cy="40" r="11" fill="none" stroke="currentColor"/><text class="tick" x="360" y="44" text-anchor="middle">3</text>
-  <line x1="360" y1="51" x2="360" y2="85" stroke="currentColor"/>
-  <circle cx="466" cy="40" r="11" fill="none" stroke="currentColor"/><text class="tick" x="466" y="44" text-anchor="middle">4</text>
-  <line x1="466" y1="51" x2="466" y2="80" stroke="currentColor"/>
-  <text class="mark-t" x="260" y="172" text-anchor="middle">軌跡線 (破線) と風船番号 → 部品表の番号に対応</text>
+<svg class="tb-chart" viewBox="0 0 520 190" role="img" aria-label="分解図の例">
+<line class="k-center" x1="24" y1="100" x2="504" y2="100"/>
+<path class="k-hidden" d="M130,84 L206,84 M130,116 L206,116 M234,92 L290,92 M234,108 L290,108 M430,100 L460,100" style="stroke:var(--tb-accent)"/>
+<g class="k-shadow">
+<rect class="k-cut" x="40" y="62" width="90" height="22"/><rect class="k-cut" x="40" y="116" width="90" height="22"/>
+<rect class="k-part" x="206" y="70" width="28" height="60" rx="3"/>
+<path class="k-part" d="M290,90 L398,90 L398,94 L430,94 L430,106 L398,106 L398,110 L290,110 Z"/>
+<rect class="k-part" x="460" y="80" width="9" height="40" rx="3"/>
+</g>
+<rect x="206" y="92" width="28" height="16" style="fill:var(--tb-surface)" opacity="0.6"/>
+<circle class="k-sphere" cx="220" cy="81" r="7"/><circle class="k-sphere" cx="220" cy="119" r="7"/>
+<line class="k-edge" x1="206" y1="92" x2="234" y2="92" stroke-width="1"/><line class="k-edge" x1="206" y1="108" x2="234" y2="108" stroke-width="1"/>
+<path class="k-thin" d="M418,94 L418,106 M422,94 L422,106"/>
+<line class="k-thin" x1="85" y1="51" x2="85" y2="62" marker-end="url(#k-dot)"/><circle cx="85" cy="40" r="11" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.4"/><text class="mark-t" x="85" y="44" text-anchor="middle">1</text><line class="k-thin" x1="220" y1="51" x2="220" y2="70" marker-end="url(#k-dot)"/><circle cx="220" cy="40" r="11" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.4"/><text class="mark-t" x="220" y="44" text-anchor="middle">2</text><line class="k-thin" x1="360" y1="51" x2="360" y2="90" marker-end="url(#k-dot)"/><circle cx="360" cy="40" r="11" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.4"/><text class="mark-t" x="360" y="44" text-anchor="middle">3</text><line class="k-thin" x1="466" y1="51" x2="465" y2="80" marker-end="url(#k-dot)"/><circle cx="466" cy="40" r="11" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.4"/><text class="mark-t" x="466" y="44" text-anchor="middle">4</text>
+<text class="tick" x="85" y="156" text-anchor="middle">ハウジング</text>
+<text class="tick" x="220" y="156" text-anchor="middle">軸受</text>
+<text class="tick" x="360" y="156" text-anchor="middle">軸</text>
+<text class="tick" x="466" y="156" text-anchor="middle">止め輪</text>
+<text class="mark-t" x="260" y="180" text-anchor="middle">軌跡線 (破線) と風船番号 → 部品表の番号に対応</text>
 </svg>
 <h2>部品表と保守部品</h2>
 <ul>

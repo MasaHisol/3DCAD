@@ -112,6 +112,8 @@ export class Viewport {
 
   private hoverObj = new THREE.Group();
   private selectObj = new THREE.Group();
+  private tagObj = new THREE.Group();
+  private tags: { picks: Pick[]; color: string; opacity: number }[] = [];
   private raycaster = new THREE.Raycaster();
   private needsRender = true;
   private anim: { from: ViewState; to: ViewState; t0: number; dur: number } | null = null;
@@ -163,7 +165,7 @@ export class Viewport {
     this.backMaterial = new THREE.MeshBasicMaterial({ color: "#e0a458", side: THREE.BackSide });
 
     this.scene.add(this.model, this.threadLayer, this.trailLayer, this.refLayer, this.sketchLayer, this.overlay);
-    this.overlay.add(this.hoverObj, this.selectObj);
+    this.overlay.add(this.tagObj, this.hoverObj, this.selectObj);
     this.buildTriad();
     this.setStandardView([1, 1, 1], false);
 
@@ -860,7 +862,45 @@ export class Viewport {
     this.refreshHighlights();
   }
 
+  /**
+   * Persistent coloured face groups (e.g. analysis boundary sets), drawn under
+   * the hover/selection highlights so every set stays visible at once.
+   */
+  setTagged(tags: { picks: Pick[]; color: string; opacity?: number }[]) {
+    this.tags = tags.map((t) => ({ picks: t.picks, color: t.color, opacity: t.opacity ?? 0.6 }));
+    this.refreshTags();
+  }
+
+  private refreshTags() {
+    this.tagObj.children.forEach((c) => ((c as THREE.Mesh).material as THREE.Material)?.dispose?.());
+    this.tagObj.clear();
+    for (const t of this.tags)
+      for (const p of t.picks) {
+        if (p.kind !== "face") continue;
+        const g = this.faceGeometry(p.body, p.index);
+        if (!g) continue;
+        const m = new THREE.Mesh(
+          g,
+          new THREE.MeshBasicMaterial({
+            color: t.color,
+            transparent: true,
+            opacity: t.opacity,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+            polygonOffset: true,
+            polygonOffsetFactor: -1,
+            polygonOffsetUnits: -1,
+            clippingPlanes: this.clipPlane ? [this.clipPlane] : [],
+          }),
+        );
+        this.applyBodyMatrix(m, p.body);
+        this.tagObj.add(m);
+      }
+    this.invalidate();
+  }
+
   refreshHighlights() {
+    this.refreshTags();
     this.refreshHighlight(this.selectObj, this.selection, COLORS.select, false);
     this.refreshHighlight(this.hoverObj, this.hover ? [this.hover] : [], COLORS.hover, true);
   }

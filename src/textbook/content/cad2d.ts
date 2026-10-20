@@ -69,23 +69,32 @@ export const CAD2D: TextChapter[] = [
 </table>
 <div class="tb-formula">極座標 → 増分: dx = L · cos θ　　dy = L · sin θ</div>
 <p>角度は <b>X 軸の正の向き (右) を 0°</b> とし、<b>反時計回りが正</b>です。上が 90°、左が 180°、下が 270° (= −90°) です。</p>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="絶対座標と相対座標">
-  <line class="grid" x1="40" y1="60" x2="300" y2="60"/><line class="grid" x1="40" y1="110" x2="300" y2="110"/><line class="grid" x1="40" y1="160" x2="300" y2="160"/>
-  <line class="axis" x1="40" y1="190" x2="300" y2="190"/><line class="axis" x1="60" y1="200" x2="60" y2="20"/>
-  <text class="lbl" x="295" y="208" text-anchor="end">X</text><text class="lbl" x="66" y="28">Y</text>
-  <text class="tick" x="48" y="205">原点</text>
-  <line class="guide" x1="60" y1="190" x2="110" y2="140"/>
-  <circle class="mark" cx="110" cy="140" r="4"/><text class="mark-t" x="100" y="132" text-anchor="end">P1 (50,50)</text>
-  <line x1="110" y1="140" x2="230" y2="140" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <circle class="mark" cx="230" cy="140" r="4"/><text class="mark-t" x="235" y="155">P2 = @120,0</text>
-  <line x1="230" y1="140" x2="270" y2="71" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <circle class="mark" cx="270" cy="71" r="4"/><text class="mark-t" x="276" y="66">P3 = @80&lt;60</text>
-  <path d="M255,140 A25,25 0 0 0 242,118" fill="none" stroke="currentColor"/><text class="tick" x="258" y="128">60°</text>
-  <text class="lbl" x="330" y="50">反時計回りが正</text>
-  <line class="axis" x1="420" y1="140" x2="500" y2="140"/><line class="axis" x1="420" y1="140" x2="420" y2="70"/>
-  <text class="tick" x="503" y="144">0°</text><text class="tick" x="412" y="65">90°</text>
-  <path d="M470,140 A50,50 0 0 0 420,90" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="tick" x="350" y="144">180°</text>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="絶対座標と相対座標">
+<rect class="k-panel" x="8" y="8" width="318" height="204" rx="8"/><rect class="k-panel" x="338" y="8" width="174" height="204" rx="8"/>
+<line class="grid" x1="85" y1="40" x2="85" y2="190"/><line class="grid" x1="110" y1="40" x2="110" y2="190"/><line class="grid" x1="135" y1="40" x2="135" y2="190"/><line class="grid" x1="160" y1="40" x2="160" y2="190"/><line class="grid" x1="185" y1="40" x2="185" y2="190"/><line class="grid" x1="210" y1="40" x2="210" y2="190"/><line class="grid" x1="235" y1="40" x2="235" y2="190"/><line class="grid" x1="260" y1="40" x2="260" y2="190"/><line class="grid" x1="285" y1="40" x2="285" y2="190"/><line class="grid" x1="310" y1="40" x2="310" y2="190"/>
+<line class="grid" x1="60" y1="165" x2="310" y2="165"/><line class="grid" x1="60" y1="140" x2="310" y2="140"/><line class="grid" x1="60" y1="115" x2="310" y2="115"/><line class="grid" x1="60" y1="90" x2="310" y2="90"/><line class="grid" x1="60" y1="65" x2="310" y2="65"/><line class="grid" x1="60" y1="40" x2="310" y2="40"/>
+<line class="k-edge" x1="40" y1="190" x2="312" y2="190" style="marker-end:url(#k-arrow)"/><line class="k-edge" x1="60" y1="202" x2="60" y2="30" style="marker-end:url(#k-arrow)"/>
+<text class="lbl" x="312" y="205" text-anchor="end">X</text><text class="lbl" x="68" y="34">Y</text>
+<circle cx="60" cy="190" r="4" style="fill:var(--tb-text)"/><text class="tick" x="26" y="206">原点</text>
+<line class="guide" x1="60" y1="190" x2="110" y2="140"/>
+<line class="k-ext" x1="110" y1="134" x2="110" y2="108"/><line class="k-ext" x1="230" y1="134" x2="230" y2="108"/>
+<line class="k-dimline" x1="110" y1="113" x2="230" y2="113"/><text class="k-dimtext" x="170" y="108" text-anchor="middle">120</text>
+<line class="k-thin" x1="230" y1="140" x2="296" y2="140" stroke-dasharray="4 3"/>
+<line x1="110" y1="140" x2="226" y2="140" style="stroke:var(--tb-accent);marker-end:url(#k-arrow-blue)" stroke-width="2.6"/>
+<line x1="230" y1="140" x2="268" y2="74.5" style="stroke:var(--tb-accent);marker-end:url(#k-arrow-blue)" stroke-width="2.6"/>
+<path d="M258,140 A28,28 0 0 0 244,115.8" class="k-edge" style="stroke:var(--k-dim)" stroke-width="1.2"/><text class="k-dimtext" x="262" y="128">60°</text>
+<text class="k-dimtext" x="243" y="98" text-anchor="end">80</text>
+<circle class="mark" cx="110" cy="140" r="4.5"/><text class="mark-t" x="102" y="134" text-anchor="end">P1 (50,50)</text>
+<circle class="mark" cx="230" cy="140" r="4.5"/><text class="mark-t" x="230" y="160" text-anchor="middle">P2 = @120,0</text>
+<circle class="mark" cx="270" cy="71" r="4.5"/><text class="mark-t" x="262" y="66" text-anchor="end">P3 = @80&lt;60</text>
+<text class="k-title" x="352" y="32">反時計回りが正</text>
+<line class="k-thin" x1="356" y1="132" x2="496" y2="132"/><line class="k-thin" x1="426" y1="56" x2="426" y2="196"/>
+<path class="k-move" d="M478,132 A52,52 0 0 0 426,80" stroke-width="2.4"/>
+<path class="k-edge" d="M461,132 A35,35 0 0 0 443.5,101.7" style="stroke:var(--k-dim)" stroke-width="1.2"/>
+<line class="k-edge" x1="426" y1="132" x2="458" y2="76.6" style="stroke:var(--tb-accent)" stroke-width="1.6"/><text class="k-dimtext" x="464" y="80">+60°</text>
+<circle cx="426" cy="132" r="3.5" style="fill:var(--tb-text)"/>
+<text class="tick" x="500" y="128" text-anchor="end">0°</text><text class="tick" x="432" y="66">90°</text>
+<text class="tick" x="358" y="126">180°</text><text class="tick" x="432" y="194">270° (= −90°)</text>
 </svg>
 <p>(図は目安の縮尺。P3 は P2 から距離 80、60° の方向: dx = 40, dy ≈ 69.3)</p>
 <div data-widget="coords"></div>
@@ -141,14 +150,23 @@ export const CAD2D: TextChapter[] = [
 <h2>正多角形の内接と外接</h2>
 <p>正多角形の大きさは補助の円で決めます。<b>内接</b>は頂点が円の上にある (多角形が円の内側)、<b>外接</b>は辺の中点が円に接する (多角形が円の外側) 指定です。
 六角ナットの「二面幅 (対辺の距離)」で決めたいときは、二面幅の半分を半径とする<b>外接</b>指定が便利です。</p>
-<svg class="tb-chart" viewBox="0 0 520 180" aria-label="正六角形の内接と外接">
-  <circle cx="140" cy="90" r="60" fill="none" stroke="currentColor" stroke-dasharray="4 3"/>
-  <polygon points="200,90 170,142 110,142 80,90 110,38 170,38" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <text class="lbl" x="140" y="172" text-anchor="middle">内接 (頂点が円上)</text>
-  <circle cx="380" cy="90" r="52" fill="none" stroke="currentColor" stroke-dasharray="4 3"/>
-  <polygon points="440,90 410,142 350,142 320,90 350,38 410,38" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line class="guide" x1="380" y1="38" x2="380" y2="142"/><text class="tick" x="386" y="95">二面幅</text>
-  <text class="lbl" x="380" y="172" text-anchor="middle">外接 (辺が円に接する)</text>
+<svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="正六角形の内接と外接">
+<rect class="k-panel" x="8" y="8" width="244" height="198" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="198" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">1</text><text class="k-title" x="46" y="32">内接 (頂点が円上)</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">2</text><text class="k-title" x="306" y="32">外接 (辺が円に接する)</text>
+<g class="k-shadow"><polygon class="k-part" points="190,106 160,54 100,54 70,106 100,158 160,158"/></g>
+<circle cx="130" cy="106" r="60" fill="none" style="stroke:var(--tb-accent)" stroke-width="1.4" stroke-dasharray="6 4"/>
+<line class="k-center" x1="62" y1="106" x2="198" y2="106"/><line class="k-center" x1="130" y1="40" x2="130" y2="172"/>
+<circle cx="190" cy="106" r="3.4" style="fill:var(--tb-bad)"/><circle cx="160" cy="54" r="3.4" style="fill:var(--tb-bad)"/><circle cx="100" cy="54" r="3.4" style="fill:var(--tb-bad)"/><circle cx="70" cy="106" r="3.4" style="fill:var(--tb-bad)"/><circle cx="100" cy="158" r="3.4" style="fill:var(--tb-bad)"/><circle cx="160" cy="158" r="3.4" style="fill:var(--tb-bad)"/>
+<line class="k-ext" x1="70" y1="112" x2="70" y2="188"/><line class="k-ext" x1="190" y1="112" x2="190" y2="188"/>
+<line class="k-dimline" x1="70" y1="182" x2="190" y2="182"/><text class="k-dimtext" x="130" y="198" text-anchor="middle">対角距離 = 円の直径</text>
+<g class="k-shadow"><polygon class="k-part" points="440,106 410,54 350,54 320,106 350,158 410,158"/></g>
+<circle cx="380" cy="106" r="52" fill="none" style="stroke:var(--tb-accent)" stroke-width="1.4" stroke-dasharray="6 4"/>
+<line class="k-center" x1="312" y1="106" x2="448" y2="106"/><line class="k-center" x1="380" y1="40" x2="380" y2="172"/>
+<circle cx="380" cy="54" r="3.4" style="fill:var(--tb-good)"/><circle cx="380" cy="158" r="3.4" style="fill:var(--tb-good)"/>
+<line class="k-ext" x1="414" y1="54" x2="470" y2="54"/><line class="k-ext" x1="414" y1="158" x2="470" y2="158"/>
+<line class="k-dimline" x1="464" y1="54" x2="464" y2="158"/><text class="k-dimtext" x="470" y="110">二面幅</text>
+<text class="k-note" x="380" y="190" text-anchor="middle">緑の点で辺が円に接する</text>
 </svg>
 <p>同じ半径 r なら、外接の六角形の頂点までの距離は r / cos 30° ≈ 1.155 r になります。</p>
 <h2>作図の順序 — 基準線から</h2>
@@ -197,15 +215,20 @@ export const CAD2D: TextChapter[] = [
   <tr><td>尺度</td><td>基点を中心に拡大・縮小</td><td>図形を 2 倍に</td></tr>
 </table>
 <h2>トリムのイメージ</h2>
-<svg class="tb-chart" viewBox="0 0 520 160" aria-label="トリム前後">
-  <line x1="30" y1="40" x2="210" y2="40" stroke="currentColor" stroke-width="2"/>
-  <line x1="60" y1="20" x2="60" y2="140" stroke="currentColor" stroke-width="2"/>
-  <line x1="180" y1="20" x2="180" y2="140" stroke="currentColor" stroke-width="2"/>
-  <line x1="30" y1="120" x2="210" y2="120" stroke="currentColor" stroke-width="2"/>
-  <text class="lbl" x="120" y="155" text-anchor="middle">トリム前 (線がはみ出す)</text>
-  <text class="lbl" x="260" y="85" text-anchor="middle">→</text>
-  <rect x="330" y="40" width="120" height="80" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <text class="lbl" x="390" y="155" text-anchor="middle">トリム後 (閉じた輪郭)</text>
+<svg class="tb-chart" viewBox="0 0 520 188" role="img" aria-label="トリム前後">
+<rect class="k-panel" x="8" y="8" width="226" height="172" rx="8"/><rect class="k-panel" x="286" y="8" width="226" height="172" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">トリム前 (線がはみ出す)</text>
+<circle class="k-badge" cx="306" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="306" y="32" text-anchor="middle">✓</text><text class="k-title" x="324" y="32">トリム後 (閉じた輪郭)</text>
+<g style="stroke:var(--tb-bad)" stroke-width="2" stroke-dasharray="5 3">
+<line x1="34" y1="62" x2="60" y2="62"/><line x1="180" y1="62" x2="206" y2="62"/><line x1="34" y1="142" x2="60" y2="142"/><line x1="180" y1="142" x2="206" y2="142"/>
+<line x1="60" y1="44" x2="60" y2="62"/><line x1="180" y1="44" x2="180" y2="62"/><line x1="60" y1="142" x2="60" y2="160"/><line x1="180" y1="142" x2="180" y2="160"/>
+</g>
+<rect class="k-edge" x="60" y="62" width="120" height="80" stroke-width="2.2" style="stroke-linejoin:miter"/>
+<circle cx="60" cy="62" r="3" style="fill:var(--tb-text)"/><circle cx="180" cy="62" r="3" style="fill:var(--tb-text)"/><circle cx="60" cy="142" r="3" style="fill:var(--tb-text)"/><circle cx="180" cy="142" r="3" style="fill:var(--tb-text)"/>
+<text class="k-note" x="120" y="106" text-anchor="middle">赤い部分を消す</text>
+<path class="k-move" d="M242,102 L278,102" stroke-width="2.6"/>
+<g class="k-shadow"><rect class="k-accent" x="338" y="62" width="120" height="80" style="fill-opacity:0.35" stroke-width="2.6"/></g>
+<text class="k-note" x="398" y="106" text-anchor="middle">1 つの領域</text>
 </svg>
 <h2>3DCAD Studio のスケッチでは</h2>
 <p>3DCAD Studio のスケッチにある編集機能は<b>トリム (X)・コンストラクション (補助線への切替)・削除</b>です。オフセット・フィレット・ミラー・配列などはスケッチの編集コマンドとしてはありません。同じ目的は次のように達成します。</p>
@@ -300,12 +323,13 @@ export const CAD2D: TextChapter[] = [
     lead: "図面の線は種類と太さで意味を伝えます。JIS の線の使い分けと、CAD で線を整理する画層 (レイヤ) の使い方を学びます。",
     body: `
 <h2>線の種類と用途 (JIS B 0001 の考え方)</h2>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="線種">
-  <line x1="20" y1="25" x2="200" y2="25" stroke="currentColor" stroke-width="3"/><text class="lbl" x="215" y="30">太い実線 — 外形線</text>
-  <line x1="20" y1="60" x2="200" y2="60" stroke="currentColor" stroke-width="1.5" stroke-dasharray="10 5"/><text class="lbl" x="215" y="65">細い破線 (または太い破線) — かくれ線</text>
-  <line x1="20" y1="95" x2="200" y2="95" stroke="currentColor" stroke-width="1.5" stroke-dasharray="24 4 3 4"/><text class="lbl" x="215" y="100">細い一点鎖線 — 中心線</text>
-  <line x1="20" y1="130" x2="200" y2="130" stroke="currentColor" stroke-width="1.5"/><text class="lbl" x="215" y="135">細い実線 — 寸法線・寸法補助線・引出線</text>
-  <line x1="20" y1="160" x2="200" y2="160" stroke="var(--tb-accent)" stroke-width="1.5" stroke-dasharray="24 4 3 4 3 4"/><text class="lbl" x="215" y="165">細い二点鎖線 — 想像線</text>
+<svg class="tb-chart" viewBox="0 0 520 202" role="img" aria-label="線種">
+<rect class="k-panel" x="8" y="8" width="504" height="186" rx="8"/>
+<line x1="26" y1="30" x2="186" y2="30" style="stroke:var(--k-line);stroke-linecap:butt" stroke-width="3.2"/><text class="mark-t" x="202" y="34">太い実線</text><text class="lbl" x="500" y="34" text-anchor="end">外形線</text>
+<rect x="14" y="50" width="492" height="30" rx="4" style="fill:var(--tb-surface-2)"/><line x1="26" y1="65" x2="186" y2="65" style="stroke:var(--k-line);stroke-linecap:butt" stroke-width="1.3" stroke-dasharray="9 4"/><text class="mark-t" x="202" y="69">細い破線 (または太い破線)</text><text class="lbl" x="500" y="69" text-anchor="end">かくれ線</text>
+<line x1="26" y1="100" x2="186" y2="100" style="stroke:var(--k-line);stroke-linecap:butt" stroke-width="1.3" stroke-dasharray="22 4 3 4"/><text class="mark-t" x="202" y="104">細い一点鎖線</text><text class="lbl" x="500" y="104" text-anchor="end">中心線</text>
+<rect x="14" y="120" width="492" height="30" rx="4" style="fill:var(--tb-surface-2)"/><line x1="26" y1="135" x2="186" y2="135" style="stroke:var(--k-line);stroke-linecap:butt" stroke-width="1.3"/><text class="mark-t" x="202" y="139">細い実線</text><text class="lbl" x="500" y="139" text-anchor="end">寸法線・寸法補助線・引出線</text>
+<line x1="26" y1="170" x2="186" y2="170" style="stroke:var(--tb-accent);stroke-linecap:butt" stroke-width="1.3" stroke-dasharray="22 4 3 4 3 4"/><text class="mark-t" x="202" y="174">細い二点鎖線</text><text class="lbl" x="500" y="174" text-anchor="end">想像線</text>
 </svg>
 <table class="tb-table">
   <tr><th>線</th><th>用途</th></tr>
@@ -366,25 +390,30 @@ export const CAD2D: TextChapter[] = [
 </ol>
 <h2>第三角法の三面図</h2>
 <p>日本の機械製図 (JIS) では主に<b>第三角法</b>を使います。正面図の<b>上に平面図</b>、<b>右に右側面図</b>を置きます。</p>
-<svg class="tb-chart" viewBox="0 0 520 240" aria-label="第三角法の三面図の対応">
-  <!-- top view -->
-  <rect x="60" y="20" width="180" height="60" fill="none" stroke="currentColor" stroke-width="2.5"/>
-  <line x1="120" y1="20" x2="120" y2="80" stroke="currentColor" stroke-width="2.5"/>
-  <text class="tick" x="150" y="14" text-anchor="middle">平面図 (上から)</text>
-  <!-- front view: L shape length 180(60mm), height 120(40), upright 60(20), base 45(15) -->
-  <path d="M60,220 L240,220 L240,175 L120,175 L120,100 L60,100 Z" fill="none" stroke="currentColor" stroke-width="2.5"/>
-  <text class="tick" x="150" y="236" text-anchor="middle">正面図</text>
-  <!-- right side view: depth 60, height 120 -->
-  <rect x="300" y="100" width="60" height="120" fill="none" stroke="currentColor" stroke-width="2.5"/>
-  <line x1="300" y1="175" x2="360" y2="175" stroke="currentColor" stroke-width="2.5"/>
-  <text class="tick" x="330" y="236" text-anchor="middle">右側面図</text>
-  <!-- projection guides -->
-  <line class="guide" x1="60" y1="80" x2="60" y2="100"/><line class="guide" x1="240" y1="80" x2="240" y2="175"/>
-  <line class="guide" x1="240" y1="100" x2="300" y2="100"/><line class="guide" x1="240" y1="220" x2="300" y2="220"/>
-  <line class="guide" x1="240" y1="20" x2="330" y2="20"/><line class="guide" x1="240" y1="80" x2="300" y2="80"/>
-  <text class="mark-t" x="380" y="40">長さ: 正面図 = 平面図</text>
-  <text class="mark-t" x="380" y="62">高さ: 正面図 = 側面図</text>
-  <text class="mark-t" x="380" y="84">幅 (奥行): 平面図 = 側面図</text>
+<svg class="tb-chart" viewBox="0 0 520 254" role="img" aria-label="第三角法の三面図の対応">
+<line class="k-thin" x1="60" y1="86" x2="60" y2="106" stroke-dasharray="4 3"/><line class="k-thin" x1="120" y1="86" x2="120" y2="106" stroke-dasharray="4 3"/><line class="k-thin" x1="240" y1="86" x2="240" y2="181" stroke-dasharray="4 3"/>
+<line class="k-thin" x1="120" y1="106" x2="300" y2="106" stroke-dasharray="4 3"/><line class="k-thin" x1="240" y1="181" x2="300" y2="181" stroke-dasharray="4 3"/><line class="k-thin" x1="240" y1="226" x2="300" y2="226" stroke-dasharray="4 3"/>
+<line class="k-thin" x1="240" y1="26" x2="360" y2="26" stroke-dasharray="4 3"/><line class="k-thin" x1="240" y1="86" x2="300" y2="86" stroke-dasharray="4 3"/>
+<line class="k-thin" x1="300" y1="86" x2="300" y2="106" stroke-dasharray="4 3"/><line class="k-thin" x1="360" y1="26" x2="360" y2="106" stroke-dasharray="4 3"/>
+<line class="k-center" x1="292" y1="94" x2="368" y2="18"/><text class="k-note" x="336" y="72">45°</text>
+<g class="k-shadow">
+<rect class="k-alu" x="60" y="26" width="180" height="60" stroke-width="2.4"/>
+<path class="k-alu" d="M60,226 L240,226 L240,181 L120,181 L120,106 L60,106 Z" stroke-width="2.4"/>
+<rect class="k-alu" x="300" y="106" width="60" height="120" stroke-width="2.4"/>
+</g>
+<line class="k-edge" x1="120" y1="26" x2="120" y2="86" stroke-width="2.4"/><line class="k-edge" x1="300" y1="181" x2="360" y2="181" stroke-width="2.4"/>
+<text class="lbl" x="150" y="19" text-anchor="middle">平面図 (上から)</text>
+<text class="lbl" x="150" y="244" text-anchor="middle">正面図</text>
+<text class="lbl" x="330" y="244" text-anchor="middle">右側面図</text>
+<g class="k-shadow">
+<polygon class="k-part" points="427.4,89.2 474.1,116.2 497.5,102.8 450.8,75.8" style="fill:var(--k-steel-1)"/><polygon class="k-part" points="404,42 427.4,55.5 450.8,42 427.4,28.5" style="fill:var(--k-steel-1)"/>
+<polygon class="k-part" points="427.4,89.2 450.8,75.8 450.8,42 427.4,55.5" style="fill:var(--k-steel-3)"/><polygon class="k-part" points="474.1,136.5 497.5,123 497.5,102.8 474.1,116.2" style="fill:var(--k-steel-3)"/>
+<polygon class="k-part" points="404,96 474.1,136.5 474.1,116.2 427.4,89.2 427.4,55.5 404,42" style="fill:var(--k-steel-2)"/>
+</g>
+<text class="k-note" x="450.8" y="152" text-anchor="middle">立体 (見取図)</text>
+<text class="mark-t" x="376" y="178" style="font-size:11.5px">長さ: 正面図 = 平面図</text>
+<text class="mark-t" x="376" y="200" style="font-size:11.5px">高さ: 正面図 = 側面図</text>
+<text class="mark-t" x="376" y="222" style="font-size:11.5px">幅 (奥行): 平面図 = 側面図</text>
 </svg>
 <table class="tb-table">
   <tr><th>そろう寸法</th><th>ビューの組</th><th>並び方</th></tr>

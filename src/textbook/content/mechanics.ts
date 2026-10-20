@@ -65,15 +65,33 @@ export const MECHANICS: TextChapter[] = [
 <div class="tb-formula">ひずみ ε = ΔL / L (無次元)　　フックの法則 σ = E · ε</div>
 <p>弾性範囲では応力とひずみは比例し、比例定数が<b>ヤング率 E</b> です。力を除くと元に戻ります。</p>
 <h2>応力–ひずみ線図 (軟鋼)</h2>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="応力ひずみ線図">
-  <line class="axis" x1="50" y1="190" x2="500" y2="190"/><line class="axis" x1="50" y1="190" x2="50" y2="15"/>
-  <path d="M50,190 L95,82 L100,90 L108,84 L118,90 L130,86 L160,72 C230,40 320,30 380,36 C420,42 450,60 470,80" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <circle class="mark" cx="95" cy="82" r="4"/><text class="mark-t" x="98" y="74">上降伏点</text>
-  <circle class="mark" cx="380" cy="36" r="4"/><text class="mark-t" x="380" y="26" text-anchor="middle">引張強さ σB</text>
-  <circle class="mark" cx="470" cy="80" r="4"/><text class="mark-t" x="470" y="100" text-anchor="end">破断</text>
-  <text class="tick" x="60" y="140">弾性域 (σ = Eε)</text>
-  <text class="tick" x="200" y="120">塑性域 (加工硬化)</text>
-  <text class="lbl" x="495" y="208" text-anchor="end">ひずみ ε</text><text class="lbl" x="56" y="22">応力 σ</text>
+<svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="応力ひずみ線図">
+<rect class="" x="50" y="15" width="48" height="185" style="fill:var(--tb-accent);opacity:0.08"/>
+<text class="k-note" x="74" y="30" text-anchor="middle">弾性域</text>
+<line class="axis" x1="50" y1="200" x2="500" y2="200"/>
+<line class="axis" x1="50" y1="200" x2="50" y2="15"/>
+<line class="guide" x1="50" y1="92" x2="95" y2="92"/>
+<line class="guide" x1="50" y1="46" x2="380" y2="46"/>
+<text class="tick" x="44" y="96" text-anchor="end">σy</text>
+<text class="tick" x="44" y="50" text-anchor="end">σB</text>
+<path d="M50,200 L95,92 L100,100 L108,94 L118,100 L130,96 L160,82 C230,50 320,40 380,46 C420,52 450,70 470,90" style="fill:none;stroke:var(--tb-accent)" stroke-width="2.8"/>
+<circle class="mark" cx="95" cy="92" r="4"/>
+<text class="mark-t" x="100" y="84">上降伏点</text>
+<circle class="mark" cx="380" cy="46" r="4"/>
+<text class="mark-t" x="380" y="34" text-anchor="middle">引張強さ σB</text>
+<circle class="mark" cx="470" cy="90" r="4"/>
+<text class="mark-t" x="476" y="94">破断</text>
+<text class="tick" x="104" y="168">弾性域 (σ = Eε)</text>
+<line class="k-thin" x1="102" y1="162" x2="78" y2="150" style="marker-end:url(#k-arrow)"/>
+<text class="tick" x="200" y="120">塑性域 (加工硬化)</text>
+<g class="k-shadow"><path class="k-part" d="M318,141 L340,141 Q346,147 352,147 L385,147 Q395,151 405,147 L438,147 Q444,147 450,141 L472,141 L472,167 L450,167 Q444,161 438,161 L405,161 Q395,157 385,161 L352,161 Q346,161 340,167 L318,167 Z"/></g>
+<line class="k-force" x1="316" y1="154" x2="292" y2="154"/>
+<line class="k-force" x1="474" y1="154" x2="498" y2="154"/>
+<text class="k-note" x="395" y="132" text-anchor="middle">くびれ (破断の直前)</text>
+<line class="k-thin" x1="395" y1="135" x2="395" y2="148"/>
+<text class="k-note" x="395" y="184" text-anchor="middle">引張試験片</text>
+<text class="lbl" x="495" y="222" text-anchor="end">ひずみ ε</text>
+<text class="lbl" x="56" y="12">応力 σ</text>
 </svg>
 <ul>
   <li><b>降伏点 σy</b>: これを超えると力を除いても元に戻らない (永久変形)。明確な降伏点がない材料 (アルミなど) では 0.2 % 耐力を使う</li>
@@ -289,15 +307,30 @@ export const MECHANICS: TextChapter[] = [
 <h2>疲労破壊</h2>
 <p>降伏点より低い応力でも、何万回・何百万回と繰り返すと、表面の小さなき裂が少しずつ進んで突然破断します。これが<b>疲労</b>です。
 破面には貝殻状の模様 (ビーチマーク) が残ります。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="S-N 曲線">
-  <line class="axis" x1="50" y1="170" x2="500" y2="170"/><line class="axis" x1="50" y1="170" x2="50" y2="15"/>
-  <path d="M60,30 C140,50 220,95 300,110 L490,110" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line class="guide" x1="300" x2="300" y1="110" y2="170"/>
-  <text class="mark-t" x="400" y="102" text-anchor="middle">疲労限度 (鋼)</text>
-  <text class="tick" x="300" y="186" text-anchor="middle">10⁶〜10⁷ 回</text>
-  <path d="M300,110 C380,125 440,138 490,145" fill="none" stroke="#b45309" stroke-width="2" stroke-dasharray="5 4"/>
-  <text class="tick" x="488" y="160" text-anchor="end">アルミ (明確な疲労限度なし)</text>
-  <text class="lbl" x="495" y="198" text-anchor="end">繰返し数 N (対数)</text><text class="lbl" x="56" y="24">応力振幅 S</text>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="S-N 曲線">
+<defs><clipPath id="mx-sn-clip"><circle cx="110" cy="138" r="26"/></clipPath></defs>
+<line class="axis" x1="50" y1="180" x2="500" y2="180"/>
+<line class="axis" x1="50" y1="180" x2="50" y2="15"/>
+<line class="guide" x1="50" y1="120" x2="300" y2="120"/>
+<text class="tick" x="44" y="124" text-anchor="end">σw</text>
+<path d="M60,40 C140,60 220,105 300,120 L490,120" style="fill:none;stroke:var(--tb-accent)" stroke-width="2.8"/>
+<line class="guide" x1="300" y1="120" x2="300" y2="180"/>
+<circle class="mark" cx="300" cy="120" r="4"/>
+<text class="mark-t" x="400" y="112" text-anchor="middle">疲労限度 (鋼)</text>
+<text class="tick" x="300" y="196" text-anchor="middle">10⁶〜10⁷ 回</text>
+<path d="M300,120 C380,135 440,148 490,155" style="fill:none;stroke:var(--tb-warn);stroke-dasharray:6 4" stroke-width="2.2"/>
+<text class="tick" x="488" y="170" text-anchor="end">アルミ (明確な疲労限度なし)</text>
+<circle class="k-part" cx="110" cy="138" r="26"/>
+<g clip-path="url(#mx-sn-clip)"><circle class="k-thin" cx="110" cy="112" r="8"/><circle class="k-thin" cx="110" cy="112" r="14"/><circle class="k-thin" cx="110" cy="112" r="20"/><circle class="k-thin" cx="110" cy="112" r="26"/><circle class="k-thin" cx="110" cy="112" r="32"/><rect class="" x="84" y="152" width="52" height="14" style="fill:url(#k-dots)"/></g>
+<circle class="k-edge" cx="110" cy="138" r="26"/>
+<circle class="mark" cx="110" cy="112" r="2.5"/>
+<text class="k-note" x="146" y="116">き裂の起点</text>
+<line class="k-thin" x1="144" y1="113" x2="114" y2="112"/>
+<text class="k-note" x="146" y="140">ビーチマーク</text>
+<text class="k-note" x="146" y="164">最終破断部</text>
+<line class="k-thin" x1="144" y1="161" x2="128" y2="159"/>
+<text class="lbl" x="495" y="210" text-anchor="end">繰返し数 N (対数)</text>
+<text class="lbl" x="56" y="14">応力振幅 S</text>
 </svg>
 <ul>
   <li>鋼の疲労限度は、おおむね<b>引張強さの約 1/2</b> (回転曲げ、平滑な試験片)</li>

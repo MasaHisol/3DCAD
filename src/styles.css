@@ -2908,3 +2908,11 @@ kbd {
     grid-template-columns: 1fr 1fr;
   }
 }
+.pick-swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: -2px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.2);
+}

@@ -17,6 +17,61 @@ export const KNOWHOW: TextChapter[] = [
   <li><b>ドリル穴</b>の底は 118° の円すいになる。止まり穴の深さは径の 3〜5 倍以内が楽 (深穴は専用の加工が必要)</li>
   <li><b>ねじ穴</b>は下穴深さをねじ深さより長く (+3 ピッチ程度) とり、止まり穴の奥まで完全ねじにしない</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 236" role="img" aria-label="エンドミルと入隅 R">
+<rect class="k-panel" x="8" y="8" width="244" height="220" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="220" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">図面: 入隅 R なし (直角)</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">入隅 R ≥ 工具半径</text>
+<g class="k-shadow"><rect class="k-alu" x="30" y="52" width="200" height="140" rx="3"/><rect class="k-alu" x="290" y="52" width="200" height="140" rx="3"/></g>
+<path d="M50,70 L210,70 L210,180 L50,180 Z" style="fill:var(--tb-surface-2);stroke:var(--k-line)" stroke-width="1.4"/>
+<path d="M210,70 L194,70 A16,16 0 0 1 210,86 Z" style="fill:var(--tb-bad)"/>
+<polyline class="k-hidden" points="90,86 194,86 194,150"/>
+<g><animateTransform attributeName="transform" type="translate" values="90 86;194 86;194 150;194 86;90 86" keyTimes="0;0.4;0.6;0.8;1" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>
+<circle r="16" class="k-accent" style="fill-opacity:0.88"/>
+<g><animateTransform attributeName="transform" type="rotate" values="0;360" dur="0.8s" repeatCount="indefinite"/><path d="M0,-15 L0,15 M-15,0 L15,0" fill="none" style="stroke:var(--tb-surface)" stroke-width="1.6"/><path d="M0,-15 A15,15 0 0 1 15,0" fill="none" style="stroke:var(--tb-surface)" stroke-width="1"/></g>
+<circle r="2.5" style="fill:var(--k-line)"/></g>
+<text class="k-bad-t" x="92" y="134" text-anchor="middle">削り残し</text>
+<line x1="124" y1="126" x2="203" y2="78" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)" class="k-move"/>
+<text class="k-note" x="130" y="210" text-anchor="middle">工具 (円) は丸いので角に届かない</text>
+<path d="M310,70 L450,70 A20,20 0 0 1 470,90 L470,180 L310,180 Z" style="fill:var(--tb-surface-2);stroke:var(--k-line)" stroke-width="1.4"/>
+<polyline class="k-hidden" points="350,86 450,86 454,90 454,150"/>
+<g><animateTransform attributeName="transform" type="translate" values="350 86;450 86;454 90;454 150;454 90;450 86;350 86" keyTimes="0;0.38;0.42;0.6;0.78;0.82;1" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>
+<circle r="16" class="k-accent" style="fill-opacity:0.88"/>
+<g><animateTransform attributeName="transform" type="rotate" values="0;360" dur="0.8s" repeatCount="indefinite"/><path d="M0,-15 L0,15 M-15,0 L15,0" fill="none" style="stroke:var(--tb-surface)" stroke-width="1.6"/><path d="M0,-15 A15,15 0 0 1 15,0" fill="none" style="stroke:var(--tb-surface)" stroke-width="1"/></g>
+<circle r="2.5" style="fill:var(--k-line)"/></g>
+<text class="k-dimtext" x="330" y="160">R ≥ 工具半径</text>
+<line class="k-ext" x1="404" y1="150" x2="463" y2="80" style="marker-end:url(#k-arrow-blue)"/>
+<text class="k-good-t" x="390" y="210" text-anchor="middle">一筆で削れる</text>
+</svg>
+<p class="tb-caption">図: 上から見たポケット加工。エンドミル (円) は丸いため、直角の入隅には削り残しが出る (左)。工具半径より少し大きい R を指示すれば、工具が止まらず滑らかに回り込める (右)</p>
+<svg class="tb-chart" viewBox="0 0 520 250" role="img" aria-label="ポケットの深さと工具の長さ">
+<rect class="k-panel" x="8" y="8" width="244" height="234" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="234" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✓</text><text class="k-title" x="46" y="32">短く太い工具</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✕</text><text class="k-title" x="306" y="32">細長い工具</text>
+<g class="k-shadow">
+<path class="k-cut" d="M30,100 L100,100 L100,150 L160,150 L160,100 L200,100 L200,196 L30,196 Z"/>
+<rect class="k-part" x="100" y="44" width="60" height="18" rx="3"/>
+<rect class="k-part" x="115" y="62" width="30" height="86" rx="2"/>
+</g>
+<path d="M115,74 L145,90 M115,94 L145,110 M115,114 L145,130 M115,134 L141,147" class="k-thin"/>
+<line class="k-center" x1="130" y1="38" x2="130" y2="158"/>
+<line class="k-ext" x1="162" y1="150" x2="240" y2="150"/><line class="k-ext" x1="202" y1="100" x2="240" y2="100"/>
+<line class="k-dimline" x1="234" y1="100" x2="234" y2="150"/><text class="k-dimtext" x="228" y="129" text-anchor="end">50</text>
+<text class="k-dimtext" x="168" y="58">φ30</text>
+<text class="k-good-t" x="130" y="220" text-anchor="middle">深さ 50 / φ30 ≈ 1.7 倍</text>
+<text class="k-note" x="130" y="236" text-anchor="middle">剛性が高く速く削れる</text>
+<path class="k-cut" d="M290,100 L385,100 L385,175 L395,175 L395,100 L490,100 L490,196 L290,196 Z" style="filter:url(#k-shadow)"/>
+<g><animateTransform attributeName="transform" type="rotate" values="0 390 44;0.9 390 44;-0.9 390 44;0 390 44" dur="0.45s" repeatCount="indefinite"/>
+<g class="k-shadow"><rect class="k-part" x="370" y="44" width="40" height="18" rx="3"/><rect class="k-part" x="386" y="62" width="8" height="111" rx="1.5"/></g></g>
+<polyline points="383,140 380,144 383,148 380,152 383,156 380,160" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.6"/>
+<polyline points="397,140 400,144 397,148 400,152 397,156 400,160" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.6"/>
+<text class="k-bad-t" x="420" y="80">びびり・折損</text>
+<line class="k-move" x1="440" y1="86" x2="404" y2="140" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)"/>
+<text class="k-bad-t" x="390" y="220" text-anchor="middle">深さ 30 / φ4 = 7.5 倍</text>
+<text class="k-note" x="390" y="236" text-anchor="middle">たわんで精度・寿命が落ちる</text>
+</svg>
+<p class="tb-caption">図: 深さは工具径の 3〜4 倍以内が目安。深く細い溝ほど工具が長く細くなり、たわみ (びびり) が出る。止まった図でも、右の工具がたわみやすい形であることが読み取れる</p>
+<p>入隅 R は加工のためだけでなく、強度にも効きます。下のアニメーションで角の R を変えると、力の流れ (力線) が角で詰まる様子と、応力集中がやわらぐ様子が見られます。</p>
+<div data-widget="anim-stressflow"></div>
 <h2>段取りと基準</h2>
 <ul>
   <li><b>段取り (つかみ替え) の回数を減らす</b>: 加工する面が 1〜2 方向にまとまるよう形を工夫する。斜めの穴は段取りが増え高価</li>
@@ -65,6 +120,51 @@ export const KNOWHOW: TextChapter[] = [
   <li>2 方向の曲げが交わる角には<b>逃げ (切り欠き)</b> を設ける</li>
   <li>曲げの方向・半径をそろえると、金型交換が減る</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 236" role="img" aria-label="曲げの逃げ (切り欠き)">
+<rect class="k-panel" x="8" y="8" width="244" height="220" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="220" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">逃げなし</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">逃げあり</text>
+<g class="k-shadow"><path class="k-alu" d="M40,52 L170,52 L170,84 L210,84 L210,186 L40,186 Z"/>
+<path class="k-alu" d="M300,52 L422,52 L422,92 L470,92 L470,186 L300,186 Z"/></g>
+<line class="k-hidden" x1="40" y1="84" x2="170" y2="84"/><line class="k-hidden" x1="170" y1="84" x2="170" y2="186"/>
+<line class="k-hidden" x1="300" y1="84" x2="422" y2="84"/><line class="k-hidden" x1="430" y1="92" x2="430" y2="186"/>
+<text class="k-note" x="105" y="72" text-anchor="middle">フランジ</text><text class="k-note" x="105" y="140" text-anchor="middle">ベース</text>
+<text class="k-note" x="365" y="72" text-anchor="middle">フランジ</text><text class="k-note" x="365" y="140" text-anchor="middle">ベース</text>
+<circle cx="170" cy="84" r="11" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.6" stroke-dasharray="4 3"/>
+<polyline points="166,88 174,80 168,76 176,70" fill="none" style="stroke:var(--tb-bad)" stroke-width="2.2"/>
+<text class="k-bad-t" x="130" y="208" text-anchor="middle">角が裂ける・ふくらむ</text>
+<path d="M422,52 L430,52 L430,84 L470,84 L470,92 L422,92 Z" style="fill:var(--tb-good);fill-opacity:0.25;stroke:var(--tb-good)" stroke-width="1.6" stroke-dasharray="3 2"/>
+<text class="k-good-t" x="470" y="66" text-anchor="middle">逃げ</text>
+<line class="k-move" x1="458" y1="70" x2="434" y2="80" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green)"/>
+<text class="k-good-t" x="390" y="208" text-anchor="middle">曲げ線の交点を切り欠く</text>
+</svg>
+<p class="tb-caption">図: 展開図 (破線が曲げ線)。2 方向の曲げが交わる角に逃げ (切り欠き) を入れると、曲げたときに材料が逃げられる。逃げの幅は板厚以上、深さは曲げ線を越える程度が目安</p>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="穴と曲げ線の距離">
+<rect class="k-panel" x="20" y="16" width="230" height="78" rx="8"/>
+<text class="k-note" x="30" y="32">平面図</text>
+<g class="k-shadow"><rect class="k-alu" x="34" y="40" width="196" height="44"/></g>
+<line class="k-center" x1="212" y1="36" x2="212" y2="88"/>
+<circle cx="80" cy="62" r="8" style="fill:var(--tb-surface);stroke:var(--tb-good)" stroke-width="2"/>
+<ellipse cx="198" cy="62" rx="5.5" ry="10" style="fill:var(--tb-surface);stroke:var(--tb-bad)" stroke-width="2"/>
+<text class="k-note" x="224" y="32" text-anchor="end">曲げ線</text>
+<text class="k-bad-t" x="20" y="114">曲げ線に近い穴は楕円に変形</text>
+<g class="k-shadow">
+<path class="k-cut" d="M40,140 L200,140 L200,148 L40,148 Z"/>
+<path class="k-cut" d="M216,140 L300,140 A20,20 0 0 0 320,120 L320,40 L328,40 L328,120 A28,28 0 0 1 300,148 L216,148 Z"/>
+</g>
+<line class="k-center" x1="208" y1="128" x2="208" y2="160"/>
+<text class="k-note" x="208" y="124" text-anchor="middle">穴</text>
+<line class="k-ext" x1="216" y1="152" x2="216" y2="178"/><line class="k-ext" x1="320" y1="126" x2="320" y2="178"/>
+<line class="k-dimline" x1="216" y1="172" x2="320" y2="172"/>
+<text class="k-dimtext" x="268" y="194" text-anchor="middle">≥ 2t + R (目安)</text>
+<line class="k-ext" x1="332" y1="40" x2="350" y2="40"/><line class="k-ext" x1="332" y1="148" x2="350" y2="148"/>
+<line class="k-dimline" x1="344" y1="40" x2="344" y2="148"/>
+<text class="k-dimtext" x="354" y="64">フランジ高さ</text><text class="k-dimtext" x="354" y="80">≥ 3〜4t (目安)</text>
+<text class="k-dimtext" x="354" y="126">内側 R ≥ t</text>
+<line class="k-ext" x1="352" y1="122" x2="314" y2="132" style="marker-end:url(#k-arrow-blue)"/>
+<text class="k-note" x="354" y="172">t = 板厚</text>
+</svg>
+<p class="tb-caption">図: 曲げの断面 (t: 板厚、R: 内側曲げ半径)。穴が曲げ部に近いと、曲げで引き伸ばされて楕円になる</p>
 <h2>展開長さと K 係数</h2>
 <div class="tb-formula">曲げ代 BA = θ(rad) × (R + K × t)　　(K: 中立面の位置、0.3〜0.5 程度)</div>
 <p>曲げると板の外側は伸び、内側は縮みます。伸び縮みしない<b>中立面</b>の位置を K 係数で表し、展開長さを計算します。</p>
@@ -106,6 +206,53 @@ export const KNOWHOW: TextChapter[] = [
   <li><b>ボス</b> (ねじ止めの円柱) は肉厚を均一にするため中空にし、根元を壁やリブでつなぐ</li>
   <li>角には R を付ける (内側 R ≈ 肉厚の 0.5 倍以上)。樹脂の流れが良くなり、応力集中も減る</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 230" role="img" aria-label="リブの厚さとひけ">
+<rect class="k-panel" x="8" y="8" width="244" height="214" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="214" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text>
+<text class="k-title" x="46" y="32">リブ厚 = 肉厚 t</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text>
+<text class="k-title" x="306" y="32">リブ厚 0.5〜0.6 t</text>
+<g class="k-shadow"><path class="k-cut" d="M36,70 L112,70 Q130,80 148,70 L224,70 L224,92 L141,92 L141,170 L119,170 L119,92 L36,92 Z"/></g>
+<circle cx="130" cy="94" r="15" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.6" stroke-dasharray="4 3"/>
+<path d="M112,70 Q130,80 148,70" fill="none" style="stroke:var(--tb-bad)" stroke-width="2.6"/>
+<path class="k-move" d="M170,52 L140,72" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)"/>
+<text class="k-bad-t" x="174" y="50">ひけ (へこみ)</text>
+<line class="k-ext" x1="119" y1="172" x2="119" y2="190"/><line class="k-ext" x1="141" y1="172" x2="141" y2="190"/>
+<line class="k-dimline" x1="119" y1="186" x2="141" y2="186"/><text class="k-dimtext" x="152" y="190">t</text>
+<line class="k-ext" x1="226" y1="70" x2="240" y2="70"/><line class="k-ext" x1="226" y1="92" x2="240" y2="92"/>
+<line class="k-dimline" x1="236" y1="70" x2="236" y2="92"/><text class="k-dimtext" x="230" y="112" text-anchor="end">t</text>
+<text class="k-note" x="22" y="214">交点の内接円が大きい → 冷えにくく、ひけ・ボイド</text>
+<g class="k-shadow"><path class="k-cut" d="M296,70 L484,70 L484,92 L396,92 L395,170 L385,170 L384,92 L296,92 Z"/></g>
+<circle cx="390" cy="92" r="7" fill="none" style="stroke:var(--tb-good)" stroke-width="1.6" stroke-dasharray="4 3"/>
+<text class="k-good-t" x="390" y="58" text-anchor="middle">表面は平ら</text>
+<line class="k-ext" x1="384" y1="172" x2="384" y2="190"/><line class="k-ext" x1="396" y1="172" x2="396" y2="190"/>
+<line class="k-dimline" x1="370" y1="186" x2="384" y2="186" style="marker-start:none"/><line class="k-dimline" x1="410" y1="186" x2="396" y2="186" style="marker-start:none"/>
+<text class="k-dimtext" x="390" y="205" text-anchor="middle">0.5〜0.6 t</text>
+<line class="k-ext" x1="397" y1="170" x2="440" y2="170"/><line class="k-dimline" x1="436" y1="92" x2="436" y2="170"/><text class="k-dimtext" x="442" y="135">≤ 3 t</text>
+</svg>
+<p class="tb-caption">図: 樹脂成形品の断面。リブを肉厚と同じにすると、交点が厚肉になって表側にひけ (へこみ) が出る。リブは薄く、高さを抑える</p>
+<svg class="tb-chart" viewBox="0 0 520 236" role="img" aria-label="ボスの設計">
+<rect class="k-panel" x="8" y="8" width="244" height="220" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="220" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">中実の太いボス</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">中空 + リブ</text>
+<g class="k-shadow"><path class="k-cut" d="M36,70 L108,70 Q130,80 152,70 L224,70 L224,90 L160,90 L160,180 L100,180 L100,90 L36,90 Z"/></g>
+<path d="M108,70 Q130,80 152,70" fill="none" style="stroke:var(--tb-bad)" stroke-width="2.6"/>
+<ellipse cx="130" cy="112" rx="7" ry="5" style="fill:var(--tb-surface);stroke:var(--tb-bad)" stroke-width="1.6"/>
+<line class="k-center" x1="130" y1="60" x2="130" y2="190"/>
+<text class="k-bad-t" x="176" y="58">ひけ</text><line class="k-move" x1="174" y1="56" x2="150" y2="72" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)"/>
+<text class="k-bad-t" x="176" y="132">ボイド</text><line class="k-move" x1="174" y1="128" x2="140" y2="115" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)"/>
+<text class="k-bad-t" x="130" y="208" text-anchor="middle">中実の太いボス: ひけ・ボイド</text>
+<g class="k-shadow">
+<path class="k-part" d="M366,90 L326,90 L366,150 Z"/><path class="k-part" d="M414,90 L454,90 L414,150 Z"/>
+<path class="k-cut" d="M296,70 L484,70 L484,90 L414,90 L414,180 L400,180 L400,96 L380,96 L380,180 L366,180 L366,90 L296,90 Z"/>
+</g>
+<line class="k-center" x1="390" y1="60" x2="390" y2="190"/>
+<text class="k-note" x="390" y="196" text-anchor="middle">ねじ穴</text>
+<text class="k-note" x="300" y="128">リブ</text><line class="k-thin" x1="318" y1="124" x2="350" y2="110" style="marker-end:url(#k-arrow)"/>
+<text class="k-good-t" x="390" y="56" text-anchor="middle">表面は平ら</text>
+<text class="k-good-t" x="390" y="214" text-anchor="middle">中空 + リブで壁とつなぐ</text>
+</svg>
+<p class="tb-caption">図: ボス (ねじ止め用の円柱) の断面。中空にして肉厚を均一にし、根元を三角リブで補強する</p>
 <h2>アンダーカットを避ける</h2>
 <p>型の開く方向に抜けない形 (横穴・内側のツメなど) を<b>アンダーカット</b>と呼び、スライド機構が必要になって金型が高価になります。
 穴の向きを型開き方向にそろえる、ツメの下を貫通させるなどで回避します。</p>
@@ -153,9 +300,39 @@ export const KNOWHOW: TextChapter[] = [
   <li><b>穴は小さめに出る</b>: はめあい用の穴は 0.2〜0.3 mm 大きく設計するか、後でドリルで仕上げる</li>
   <li>底面 (ベッドに着く面) は平らで広く。角に R を付けるとそり・はがれが減る</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="FDM のオーバーハング 45° の目安">
+<text class="k-note" x="260" y="22" text-anchor="middle">破線 = 垂直 (積層方向)。右端の細い破線はサポート</text>
+<rect class="k-ground" x="20" y="177" width="490" height="10"/><line class="k-edge" x1="20" y1="176" x2="510" y2="176"/>
+<line class="k-hidden" x1="409.4" y1="155" x2="409.4" y2="176" style="stroke:var(--tb-bad)"/><line class="k-hidden" x1="421.5" y1="148" x2="421.5" y2="176" style="stroke:var(--tb-bad)"/><line class="k-hidden" x1="433.6" y1="141" x2="433.6" y2="176" style="stroke:var(--tb-bad)"/><line class="k-hidden" x1="445.7" y1="134" x2="445.7" y2="176" style="stroke:var(--tb-bad)"/><line class="k-hidden" x1="457.8" y1="127" x2="457.8" y2="176" style="stroke:var(--tb-bad)"/><line class="k-hidden" x1="470.0" y1="120" x2="470.0" y2="176" style="stroke:var(--tb-bad)"/><line class="k-hidden" x1="482.1" y1="113" x2="482.1" y2="176" style="stroke:var(--tb-bad)"/>
+<g class="k-shadow"><rect class="k-plastic" x="60.0" y="169" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="64.0" y="162" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="68.1" y="155" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="72.1" y="148" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="76.2" y="141" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="80.2" y="134" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="84.2" y="127" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="88.3" y="120" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="92.3" y="113" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="96.4" y="106" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="210.0" y="169" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="217.0" y="162" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="224.0" y="155" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="231.0" y="148" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="238.0" y="141" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="245.0" y="134" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="252.0" y="127" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="259.0" y="120" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="266.0" y="113" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="273.0" y="106" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="360.0" y="169" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="372.1" y="162" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="384.2" y="155" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="396.4" y="148" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="408.5" y="141" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="420.6" y="134" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="432.7" y="127" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="444.8" y="120" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="457.0" y="113" width="26" height="7" rx="3.5" style="stroke-width:1"/><rect class="k-plastic" x="469.1" y="106" width="26" height="7" rx="3.5" style="stroke-width:1"/></g>
+<line class="k-center" x1="60" y1="176" x2="60" y2="88"/><line class="k-thin" x1="60" y1="176" x2="110.0" y2="89.4"/><path d="M60,132 A44,44 0 0 1 82.0,137.9" fill="none" style="stroke:var(--tb-good)" stroke-width="1.6"/><text x="68.5" y="121.9" style="fill:var(--tb-good);font-size:12px;font-weight:700">30°</text><line class="k-center" x1="210" y1="176" x2="210" y2="88"/><line class="k-thin" x1="210" y1="176" x2="280.7" y2="105.3"/><path d="M210,132 A44,44 0 0 1 241.1,144.9" fill="none" style="stroke:var(--tb-warn)" stroke-width="1.6"/><text x="225.4" y="124.3" style="fill:var(--tb-warn);font-size:12px;font-weight:700">45°</text><line class="k-center" x1="360" y1="176" x2="360" y2="88"/><line class="k-thin" x1="360" y1="176" x2="446.6" y2="126.0"/><path d="M360,132 A44,44 0 0 1 398.1,154.0" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.6"/><text x="382.0" y="127.5" style="fill:var(--tb-bad);font-size:12px;font-weight:700">60°</text>
+<g class="k-shadow"><rect class="k-part" x="470" y="58" width="26" height="22" rx="3"/><path class="k-part" d="M476,80 L490,80 L485,94 L481,94 Z"/></g>
+<text class="k-note" x="466" y="72" text-anchor="end">ノズル</text>
+<text class="k-good-t" x="100" y="204" text-anchor="middle">垂直から 30°: OK</text>
+<text class="k-good-t" x="262" y="204" text-anchor="middle" style="fill:var(--tb-warn)">45°: 限界の目安</text>
+<text class="k-bad-t" x="436" y="204" text-anchor="middle">60°: サポートが必要</text>
+</svg>
+<p class="tb-caption">図: オーバーハング (張り出し) は垂直から 45° 程度までならサポートなしで積める (目安)。それより寝た面は下の層が支えにならず垂れる</p>
 <h2>強さは向きで変わる</h2>
 <p>FDM の部品は層と層の境目 (積層方向) が弱く、強度が数分の 1 になることもあります。
 <b>荷重が層に沿う向き</b>になるよう造形方向を決めましょう (例: フックは立てずに寝かせて造形)。</p>
+<svg class="tb-chart" viewBox="0 0 520 238" role="img" aria-label="積層方向と強度">
+<rect class="k-panel" x="8" y="8" width="244" height="206" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="206" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">立てて造形</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">寝かせて造形</text>
+<g class="k-shadow"><rect class="k-cut" x="22" y="60" width="18" height="110"/><rect class="k-plastic" x="40" y="100" width="170" height="30" rx="2"/>
+<rect class="k-cut" x="282" y="60" width="18" height="110"/><rect class="k-plastic" x="300" y="100" width="170" height="30" rx="2"/></g>
+<line class="k-thin" x1="52" y1="100" x2="52" y2="130"/><line class="k-thin" x1="64" y1="100" x2="64" y2="130"/><line class="k-thin" x1="76" y1="100" x2="76" y2="130"/><line class="k-thin" x1="88" y1="100" x2="88" y2="130"/><line class="k-thin" x1="100" y1="100" x2="100" y2="130"/><line class="k-thin" x1="112" y1="100" x2="112" y2="130"/><line class="k-thin" x1="124" y1="100" x2="124" y2="130"/><line class="k-thin" x1="136" y1="100" x2="136" y2="130"/><line class="k-thin" x1="148" y1="100" x2="148" y2="130"/><line class="k-thin" x1="160" y1="100" x2="160" y2="130"/><line class="k-thin" x1="172" y1="100" x2="172" y2="130"/><line class="k-thin" x1="184" y1="100" x2="184" y2="130"/><line class="k-thin" x1="196" y1="100" x2="196" y2="130"/><line class="k-thin" x1="208" y1="100" x2="208" y2="130"/><line class="k-thin" x1="300" y1="106" x2="470" y2="106"/><line class="k-thin" x1="300" y1="112" x2="470" y2="112"/><line class="k-thin" x1="300" y1="118" x2="470" y2="118"/><line class="k-thin" x1="300" y1="124" x2="470" y2="124"/>
+<polyline points="52,100 49,106 54,112 50,118 53,124 50,130" fill="none" style="stroke:var(--tb-bad)" stroke-width="2.4"/>
+<line class="k-force" x1="196" y1="56" x2="196" y2="96"/><line class="k-force" x1="456" y1="56" x2="456" y2="96"/>
+<text class="k-bad-t" x="64" y="78">はがれ</text>
+<line class="k-move" x1="70" y1="152" x2="180" y2="152"/><text class="k-note" x="125" y="170" text-anchor="middle">積層方向</text>
+<line class="k-move" x1="385" y1="172" x2="385" y2="140"/><text class="k-note" x="395" y="166">積層方向</text>
+<text class="k-bad-t" x="130" y="198" text-anchor="middle">層の境目ではがれる</text>
+<text class="k-good-t" x="390" y="198" text-anchor="middle">層に沿って荷重を受ける</text>
+<text class="k-note" x="260" y="232" text-anchor="middle">細線 = 層の境目。矢印 = 荷重</text>
+</svg>
+<p class="tb-caption">図: 同じ棒でも造形の向きで強さが変わる。曲げで生じる引張が層の境目を引きはがす向き (左) を避け、層に沿う向き (右) にする</p>
 <div class="tb-tip"><b>3DCAD Studio</b>: 「検査 → 3D プリント」でオーバーハング (赤) と薄肉 (橙) を色分けし、造形方向ごとのサポート量を比べられます。STL / 3MF で書き出してスライサへ。</div>`,
     points: ["オーバーハングは 45° まで — 面取りにすればサポート不要", "最小肉厚はノズル径の 2 倍以上", "穴は小さく出る — はめあいは補正する", "積層方向に弱い — 荷重の向きで造形方向を決める"],
     exercises: [
@@ -186,6 +363,36 @@ export const KNOWHOW: TextChapter[] = [
   <li><b>分解・交換</b>のために別部品である必要があるか?</li>
 </ol>
 <p>どれにも当てはまらなければ、隣の部品と<b>一体化</b>できる候補です。ねじ・座金などの締結部品も、スナップフィットや位置決め形状で減らせます。</p>
+<svg class="tb-chart" viewBox="0 0 520 232" role="img" aria-label="部品統合の前後">
+<rect class="k-panel" x="8" y="8" width="244" height="216" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="216" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">前: 7 点</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">後: 2 点</text>
+<text class="k-note" x="22" y="54">ベース・ブラケット 2・カバー・ねじ 4</text>
+<text class="k-note" x="282" y="54">ベース + 成形カバー</text>
+<g class="k-shadow">
+<rect class="k-part" x="30" y="168" width="200" height="14" rx="2"/>
+<path class="k-alu" d="M60,168 L60,96 L72,96 L72,156 L110,156 L110,168 Z"/>
+<path class="k-alu" d="M200,168 L200,96 L188,96 L188,156 L150,156 L150,168 Z"/>
+<rect class="k-part" x="50" y="82" width="160" height="14" rx="2"/>
+</g>
+<line class="k-hidden" x1="66" y1="84" x2="66" y2="112"/><line class="k-hidden" x1="194" y1="84" x2="194" y2="112"/>
+<line class="k-hidden" x1="92" y1="158" x2="92" y2="180"/><line class="k-hidden" x1="168" y1="158" x2="168" y2="180"/>
+<rect class="k-part" x="60" y="75" width="12" height="7" rx="2" style="stroke-width:1.2"/><circle cx="66" cy="79" r="10" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.4" stroke-dasharray="3 2"/><rect class="k-part" x="188" y="75" width="12" height="7" rx="2" style="stroke-width:1.2"/><circle cx="194" cy="79" r="10" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.4" stroke-dasharray="3 2"/><rect class="k-part" x="86" y="149" width="12" height="7" rx="2" style="stroke-width:1.2"/><circle cx="92" cy="153" r="10" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.4" stroke-dasharray="3 2"/><rect class="k-part" x="162" y="149" width="12" height="7" rx="2" style="stroke-width:1.2"/><circle cx="168" cy="153" r="10" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.4" stroke-dasharray="3 2"/>
+<text class="k-bad-t" x="130" y="212" text-anchor="middle">ねじ 4 本 = 4 回の位置合わせと締付</text>
+<g class="k-shadow">
+<rect class="k-part" x="290" y="168" width="200" height="14" rx="2"/>
+<path class="k-plastic" d="M320,190 L320,82 L460,82 L460,190 L448,190 L448,96 L332,96 L332,190 Z"/>
+</g>
+<path d="M320,180 L312,190 L320,190 Z M460,180 L468,190 L460,190 Z" style="fill:var(--tb-good);stroke:var(--tb-good)" stroke-width="1"/>
+<circle cx="318" cy="186" r="10" fill="none" style="stroke:var(--tb-good)" stroke-width="1.4" stroke-dasharray="3 2"/><circle cx="462" cy="186" r="10" fill="none" style="stroke:var(--tb-good)" stroke-width="1.4" stroke-dasharray="3 2"/>
+<line class="k-move" x1="390" y1="62" x2="390" y2="78"/>
+<text class="k-note" x="390" y="140" text-anchor="middle">スナップ</text><text class="k-note" x="390" y="154" text-anchor="middle">フィット</text>
+<line class="k-thin" x1="364" y1="150" x2="326" y2="182"/><line class="k-thin" x1="416" y1="150" x2="456" y2="182"/>
+<text class="k-good-t" x="390" y="212" text-anchor="middle">スナップフィットで押し込むだけ</text>
+</svg>
+<p class="tb-caption">図: ブラケットとカバーは互いに動かず、同じ材料でよいので一体化できる。ねじ 4 本はスナップフィット (緑の爪) に置き換えた</p>
+<p>部品統合の効果を動きで確かめましょう。統合前後の組立を再生すると、ねじやブラケットが消え、部品点数と組立時間がどう変わるかが分かります。</p>
+<div data-widget="anim-dfa"></div>
 <h2>組み立てやすくする</h2>
 <ul>
   <li><b>一方向から組む</b>: 上から順に積み重ねられる構造 (ひっくり返さない)</li>
@@ -194,6 +401,25 @@ export const KNOWHOW: TextChapter[] = [
   <li>工具が入るすき間、ねじを回す空間、手が届くかを確認する</li>
   <li>ねじの種類・長さをそろえる</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 246" role="img" aria-label="面取りによる挿入ガイド">
+<rect class="k-panel" x="8" y="8" width="244" height="230" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="230" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">面取りなし</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">面取りあり</text>
+<g class="k-shadow"><rect class="k-cut" x="40" y="140" width="75" height="70"/><rect class="k-cut" x="145" y="140" width="75" height="70"/>
+<rect class="k-part" x="104" y="72" width="28" height="68" rx="1"/></g>
+<line class="k-center" x1="130" y1="134" x2="130" y2="216"/><line class="k-center" x1="118" y1="64" x2="118" y2="146"/>
+<circle cx="112" cy="140" r="9" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.6" stroke-dasharray="3 2"/>
+<text class="k-bad-t" x="138" y="96">ずれ</text>
+<text class="k-bad-t" x="130" y="232" text-anchor="middle">縁に当たって止まる</text>
+<g class="k-shadow"><path class="k-cut" d="M300,140 L362,140 L370,148 L370,210 L300,210 Z"/><path class="k-cut" d="M408,140 L470,140 L470,210 L400,210 L400,148 Z"/></g>
+<line class="k-center" x1="385" y1="134" x2="385" y2="216"/>
+<g><animateTransform attributeName="transform" type="translate" values="0 0;0 22;11 34;11 82;11 82;0 0" keyTimes="0;0.25;0.4;0.65;0.85;1" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;0 0 1 1;.45 0 .55 1"/>
+<path class="k-part" d="M360,60 L388,60 L388,116 L384,120 L364,120 L360,116 Z" style="filter:url(#k-shadow)"/></g>
+<text class="k-dimtext" x="440" y="128">C 面取り</text>
+<line class="k-ext" x1="438" y1="124" x2="406" y2="143" style="marker-end:url(#k-arrow-blue)"/>
+<text class="k-good-t" x="390" y="232" text-anchor="middle">斜面に沿って自然に入る</text>
+</svg>
+<p class="tb-caption">図: 穴の入口に面取り (ガイド) を付けると、少しずれて差し込んでも斜面で位置が修正される (右はピンが入る動き)</p>
 <h2>ポカヨケ (誤組防止)</h2>
 <p>人は必ず間違えます。<b>間違えた組み方ができない形</b>にするのがポカヨケです。</p>
 <ul>
@@ -202,6 +428,22 @@ export const KNOWHOW: TextChapter[] = [
   <li>似ているが違う部品 (長さ違いのねじなど) を同じ製品に混在させない</li>
   <li>コネクタは形・色で区別する</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 226" role="img" aria-label="ポカヨケ — ピン位置の非対称化">
+<rect class="k-panel" x="8" y="8" width="244" height="210" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="210" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">対称配置</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">片方のピンをずらす</text>
+<g class="k-shadow"><rect class="k-alu" x="40" y="58" width="180" height="84" rx="6"/><rect class="k-alu" x="300" y="58" width="180" height="84" rx="6"/></g>
+<circle class="k-sphere" cx="70" cy="100" r="8"/><circle class="k-sphere" cx="190" cy="100" r="8"/>
+<path class="k-move" d="M118,78 A30,22 0 1 1 118,122"/>
+<text class="lbl" x="130" y="164" text-anchor="middle">180° 回しても入る</text>
+<circle class="k-sphere" cx="330" cy="100" r="8"/><circle class="k-sphere" cx="450" cy="76" r="8"/>
+<circle cx="450" cy="100" r="8" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.4" stroke-dasharray="3 2"/><circle cx="330" cy="124" r="8" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.4" stroke-dasharray="3 2"/>
+<text class="lbl" x="390" y="164" text-anchor="middle">向きは 1 通りだけ</text>
+<text class="k-note" x="390" y="180" text-anchor="middle">破線 = 180° 回したときの位置</text>
+<text class="k-bad-t" x="130" y="204" text-anchor="middle">逆向きに組めてしまう</text>
+<text class="k-good-t" x="390" y="204" text-anchor="middle">間違えると入らない</text>
+</svg>
+<p class="tb-caption">図: 上から見た取付面と位置決めピン。ピンを対称に置くと裏返し・逆向きでも入るが、位置をずらせば正しい向きでしか組めない</p>
 <div class="tb-tip"><b>3DCAD Studio</b>: アセンブリの部品表で部品点数・ねじの種類を確認し、干渉解析で組立時のぶつかりを確かめましょう。分解表示は組立手順書の作成にも使えます。</div>`,
     points: ["部品点数を減らす (動く・材料が違う・分解が必要 以外は統合候補)", "一方向から組める構造、面取りでガイド", "位置決めは形で — 調整作業をなくす", "ポカヨケ: 間違った組み方ができない形にする"],
     exercises: [
@@ -231,6 +473,11 @@ export const KNOWHOW: TextChapter[] = [
   <li><b>寸法は機能から</b>: 図面に書きたい寸法 (機能寸法) でスケッチを拘束しておくと、図面化も楽</li>
   <li><b>関係は式で</b>: 「穴は中央」「高さは幅の 1/4」をパラメータの式で表す</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 280" role="img" aria-label="寸法の付け方と設計意図">
+<rect class="k-panel" x="8" y="8" width="504" height="128" rx="8"/><circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">端からの寸法</text><g class="k-shadow"><rect class="k-alu" x="50" y="48" width="120" height="44" rx="2"/><rect class="k-alu" x="270" y="48" width="150" height="44" rx="2"/></g><circle cx="110" cy="70" r="8" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.6"/><circle cx="330" cy="70" r="8" style="fill:var(--tb-surface);stroke:var(--tb-bad)" stroke-width="2.2"/><line class="k-center" x1="345" y1="42" x2="345" y2="100"/><line class="k-move" x1="188" y1="70" x2="252" y2="70"/><text class="k-note" x="220" y="62" text-anchor="middle">幅を変更</text><line class="k-ext" x1="50" y1="94" x2="50" y2="112"/><line class="k-ext" x1="110" y1="80" x2="110" y2="112"/><line class="k-dimline" x1="50" y1="108" x2="110" y2="108"/><text class="k-dimtext" x="80" y="104" text-anchor="middle">80</text><line class="k-ext" x1="270" y1="94" x2="270" y2="112"/><line class="k-ext" x1="330" y1="80" x2="330" y2="112"/><line class="k-dimline" x1="270" y1="108" x2="330" y2="108"/><text class="k-dimtext" x="300" y="104" text-anchor="middle">80</text><path d="M330,44 L345,44" fill="none" style="stroke:var(--tb-bad)" stroke-width="2"/><text class="k-bad-t" x="436" y="74">ずれ</text><text class="k-note" x="110" y="128" text-anchor="middle">元: 幅 160、穴は左端から 80</text><text class="k-note" x="345" y="128" text-anchor="middle" style="fill:var(--tb-bad);font-weight:700">幅を 200 に変更 → 穴が中央からずれる</text>
+<rect class="k-panel" x="8" y="144" width="504" height="128" rx="8"/><circle class="k-badge" cx="28" cy="164" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="28" y="168" text-anchor="middle">✓</text><text class="k-title" x="46" y="168">「中央」に拘束</text><g class="k-shadow"><rect class="k-alu" x="50" y="184" width="120" height="44" rx="2"/><rect class="k-alu" x="270" y="184" width="150" height="44" rx="2"/></g><circle cx="110" cy="206" r="8" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.6"/><circle cx="345" cy="206" r="8" style="fill:var(--tb-surface);stroke:var(--tb-good)" stroke-width="2.2"/><line class="k-center" x1="345" y1="178" x2="345" y2="236"/><line class="k-move" x1="188" y1="206" x2="252" y2="206"/><text class="k-note" x="220" y="198" text-anchor="middle">幅を変更</text><line class="k-ext" x1="50" y1="230" x2="50" y2="248"/><line class="k-ext" x1="110" y1="216" x2="110" y2="248"/><line class="k-ext" x1="170" y1="230" x2="170" y2="248"/><line class="k-dimline" x1="50" y1="244" x2="110" y2="244"/><line class="k-dimline" x1="110" y1="244" x2="170" y2="244"/><text class="k-dimtext" x="80" y="240" text-anchor="middle">幅/2</text><text class="k-dimtext" x="140" y="240" text-anchor="middle">幅/2</text><line class="k-ext" x1="270" y1="230" x2="270" y2="248"/><line class="k-ext" x1="345" y1="216" x2="345" y2="248"/><line class="k-ext" x1="420" y1="230" x2="420" y2="248"/><line class="k-dimline" x1="270" y1="244" x2="345" y2="244"/><line class="k-dimline" x1="345" y1="244" x2="420" y2="244"/><text class="k-dimtext" x="307" y="240" text-anchor="middle">幅/2</text><text class="k-dimtext" x="382" y="240" text-anchor="middle">幅/2</text><text class="k-note" x="110" y="264" text-anchor="middle">元: 穴を「中央」に拘束 (幅/2)</text><text class="k-note" x="345" y="264" text-anchor="middle" style="fill:var(--tb-good);font-weight:700">幅を 200 に変更 → 穴は中央に追従</text>
+</svg>
+<p class="tb-caption">図: 同じ形でも、寸法の付け方 (拘束) で変更時のふるまいが変わる。「穴は中央」という意図は、対称拘束か式 (幅/2) でモデルに込める</p>
 <h2>フィーチャの順序</h2>
 <ol>
   <li>主要な形 (ベース) — 押し出し・回転</li>
@@ -239,6 +486,14 @@ export const KNOWHOW: TextChapter[] = [
   <li>仕上げ — フィレット・面取り・シェル (最後のほうに)</li>
 </ol>
 <p>フィレットや面取りのエッジを参照して後のフィーチャを作ると、フィレットを変えただけで参照が壊れやすくなります。</p>
+<svg class="tb-chart" viewBox="0 0 520 176" role="img" aria-label="フィーチャの順序と参照">
+<text class="lbl" x="260" y="22" text-anchor="middle">仕上げ (フィレット・面取り) は最後に</text>
+<rect x="20" y="40" width="105" height="62" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.5"/><rect class="k-part" x="59" y="52" width="26" height="14" rx="1.5" style="stroke-width:1.2"/><text class="lbl" x="72" y="90" text-anchor="middle">ベース押し出し</text><circle class="k-badge" cx="20" cy="40" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="20" y="44" text-anchor="middle">1</text><line class="k-move" x1="127" y1="71" x2="143" y2="71" style="stroke-width:1.6"/><rect x="145" y="40" width="105" height="62" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.5"/><rect class="k-part" x="184" y="52" width="26" height="14" rx="1.5" style="stroke-width:1.2"/><ellipse cx="197" cy="59" rx="4" ry="3" style="fill:var(--tb-surface);stroke:var(--k-line)"/><text class="lbl" x="197" y="90" text-anchor="middle">穴</text><circle class="k-badge" cx="145" cy="40" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="145" y="44" text-anchor="middle">2</text><line class="k-move" x1="252" y1="71" x2="268" y2="71" style="stroke-width:1.6"/><rect x="270" y="40" width="105" height="62" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.5"/><rect class="k-part" x="309" y="52" width="26" height="14" rx="1.5" style="stroke-width:1.2"/><circle cx="314" cy="59" r="2.4" style="fill:var(--tb-surface);stroke:var(--k-line)"/><circle cx="322" cy="59" r="2.4" style="fill:var(--tb-surface);stroke:var(--k-line)"/><circle cx="330" cy="59" r="2.4" style="fill:var(--tb-surface);stroke:var(--k-line)"/><text class="lbl" x="322" y="90" text-anchor="middle">パターン</text><circle class="k-badge" cx="270" cy="40" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="270" y="44" text-anchor="middle">3</text><line class="k-move" x1="377" y1="71" x2="393" y2="71" style="stroke-width:1.6"/><rect x="395" y="40" width="105" height="62" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.5"/><path class="k-part" d="M434,66 L434,58 Q434,52 440,52 L460,52 L460,66 Z" style="stroke-width:1.2"/><text class="lbl" x="447" y="90" text-anchor="middle">フィレット</text><circle class="k-badge" cx="395" cy="40" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="395" y="44" text-anchor="middle">4</text>
+<path d="M197,104 C210,146 430,146 447,106" fill="none" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)" stroke-width="2" stroke-dasharray="5 3"/>
+<text class="k-bad-t" x="322" y="128" text-anchor="middle">✕ 参照</text>
+<text class="lbl" x="260" y="166" text-anchor="middle" style="fill:var(--tb-bad)">途中のフィーチャがフィレットの稜線を参照すると、R を変えただけで壊れやすい</text>
+</svg>
+<p class="tb-caption">図: フィーチャは「ベース → 大きな加工 → パターン → 仕上げ」の順に。フィレットの稜線や面を前のフィーチャから参照しない</p>
 <h2>扱いやすいモデルのために</h2>
 <ul>
   <li>1 つのスケッチに詰め込みすぎない (1 スケッチ 1 機能が目安)</li>
@@ -272,6 +527,14 @@ export const KNOWHOW: TextChapter[] = [
 <h2>修正コストは 10 倍ずつ増える</h2>
 <p>設計中に見つかれば図面を直すだけですが、試作後なら部品の作り直し、量産後なら回収や金型修正が必要になります。
 「早く見つけて早く直す」ために、節目ごとに<b>設計レビュー</b>を行います。</p>
+<svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="修正コストの増え方">
+<line class="grid" x1="60" y1="155" x2="490" y2="155"/><text class="tick" x="54" y="159" text-anchor="end">1</text><line class="grid" x1="60" y1="113" x2="490" y2="113"/><text class="tick" x="54" y="117" text-anchor="end">10</text><line class="grid" x1="60" y1="71" x2="490" y2="71"/><text class="tick" x="54" y="75" text-anchor="end">100</text><line class="grid" x1="60" y1="29" x2="490" y2="29"/><text class="tick" x="54" y="33" text-anchor="end">1000</text>
+<line class="axis" x1="60" y1="180" x2="490" y2="180"/><line class="axis" x1="60" y1="20" x2="60" y2="180"/>
+<path d="M123,150 C200,140 300,90 423,24" fill="none" style="stroke:var(--tb-text-3)" stroke-width="1.2" stroke-dasharray="4 3"/>
+<rect x="95" y="155" width="56" height="25" rx="4" style="fill:var(--tb-accent);fill-opacity:0.45"/><text class="mark-t" x="123" y="147" text-anchor="middle">×1</text><text class="tick" x="123" y="198" text-anchor="middle">設計中</text><rect x="195" y="113" width="56" height="67" rx="4" style="fill:var(--tb-accent);fill-opacity:0.63"/><text class="mark-t" x="223" y="105" text-anchor="middle">×10</text><text class="tick" x="223" y="198" text-anchor="middle">試作後</text><rect x="295" y="71" width="56" height="109" rx="4" style="fill:var(--tb-accent);fill-opacity:0.81"/><text class="mark-t" x="323" y="63" text-anchor="middle">×100</text><text class="tick" x="323" y="198" text-anchor="middle">量産準備</text><rect x="395" y="29" width="56" height="151" rx="4" style="fill:var(--tb-bad);fill-opacity:1"/><text class="mark-t" x="423" y="21" text-anchor="middle">×1000</text><text class="tick" x="423" y="198" text-anchor="middle">出荷後</text>
+<text class="lbl" x="66" y="14" text-anchor="start">修正コスト (相対値・対数目盛)</text>
+</svg>
+<p class="tb-caption">図: 見つかる時期が 1 段階遅れるごとに修正コストはおよそ 10 倍になると言われる (経験則・目安)。早い時期のレビューほど効果が大きい</p>
 <h2>設計チェックリスト (例)</h2>
 <table class="tb-table">
   <tr><th>分類</th><th>確認すること</th></tr>
@@ -294,7 +557,17 @@ export const KNOWHOW: TextChapter[] = [
 </ul>
 <h2>FMEA (故障モード影響解析) 入門</h2>
 <p>部品ごとに「どう壊れうるか (故障モード)」「そのとき何が起こるか (影響)」「原因」を表にし、
-<b>重大度 × 発生度 × 検出度</b>で優先順位を付けて対策します。起こる前に失敗を想像する道具です。</p>`,
+<b>重大度 × 発生度 × 検出度</b>で優先順位を付けて対策します。起こる前に失敗を想像する道具です。</p>
+<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="FMEA の優先度 RPN">
+<rect x="30" y="34" width="90" height="82" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="75" y="54" text-anchor="middle">重大度 S</text><text x="75" y="86" text-anchor="middle" style="fill:var(--tb-text);font-size:22px;font-weight:700">8</text><rect x="40.0" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="47.2" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="54.4" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="61.6" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="68.8" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="76.0" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="83.2" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="90.4" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="97.6" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><rect x="104.8" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><text class="mark-t" x="135" y="82" text-anchor="middle">×</text>
+<rect x="150" y="34" width="90" height="82" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="195" y="54" text-anchor="middle">発生度 O</text><text x="195" y="86" text-anchor="middle" style="fill:var(--tb-text);font-size:22px;font-weight:700">3</text><rect x="160.0" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="167.2" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="174.4" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="181.6" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><rect x="188.8" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><rect x="196.0" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><rect x="203.2" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><rect x="210.4" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><rect x="217.6" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><rect x="224.8" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><text class="mark-t" x="255" y="82" text-anchor="middle">×</text>
+<rect x="270" y="34" width="90" height="82" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.5"/><text class="lbl" x="315" y="54" text-anchor="middle">検出度 D</text><text x="315" y="86" text-anchor="middle" style="fill:var(--tb-text);font-size:22px;font-weight:700">5</text><rect x="280.0" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="287.2" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="294.4" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="301.6" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="308.8" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-accent)"/><rect x="316.0" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><rect x="323.2" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><rect x="330.4" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><rect x="337.6" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><rect x="344.8" y="98" width="5.6" height="8" rx="1" style="fill:var(--tb-border)"/><text class="mark-t" x="387" y="82" text-anchor="middle">=</text>
+<rect x="405" y="34" width="90" height="82" rx="8" style="fill:var(--tb-surface);stroke:var(--tb-bad)" stroke-width="2"/><text class="lbl" x="450" y="54" text-anchor="middle">RPN</text><text x="450" y="86" text-anchor="middle" style="fill:var(--tb-bad);font-size:22px;font-weight:700">120</text>
+<text class="k-note" x="450" y="106" text-anchor="middle">最大 1000</text>
+<text class="tick" x="260" y="146" text-anchor="middle">各 1〜10 点で評価。RPN の大きい項目、または S が大きい項目から対策する</text>
+</svg>
+<p class="tb-caption">図: FMEA では重大度・発生度・検出度を掛けた RPN で優先順位を付ける (点数の付け方は会社・規格で異なる)</p>
+`,
     points: ["誤りは後で見つかるほど修正コストが大きい — 早めにレビュー", "機能・強度・製造・組立・安全・環境・図面をチェック", "熱膨張・工具の入る空間・公差積み上げ・電食は定番の失敗", "FMEA で故障を事前に想像して対策する"],
     exercises: [
       {

@@ -57,7 +57,7 @@ export const idle = (s: LearnState) => s.command === null && s.mode === "model";
 
 /** The drawing currently open (part or assembly). */
 export function drawing(s: LearnState): DrawingDoc | undefined {
-  return s.env === "drawing" ? (s.part.drawing ?? s.asm.drawing) : (s.part.drawing ?? s.asm.drawing);
+  return s.drawingSource === "assembly" ? (s.asm.drawing ?? s.part.drawing) : (s.part.drawing ?? s.asm.drawing);
 }
 
 export const views = (s: LearnState, kind?: string) => (drawing(s)?.sheets ?? []).flatMap((sh) => sh.views).filter((v) => !kind || v.kind === kind);
@@ -71,3 +71,8 @@ export function usesUserParam(s: LearnState): boolean {
   if (!names.length) return false;
   return s.part.params.some((p) => p.kind === "model" && names.some((n) => new RegExp(`(^|[^\\p{L}\\p{N}_])${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}($|[^\\p{L}\\p{N}_])`, "u").test(p.expr)));
 }
+
+/** Drawing annotations of one type (all sheets). */
+export const annos = (s: LearnState, type: string) => (drawing(s)?.sheets ?? []).flatMap((sh) => sh.annos).filter((a) => a.type === type);
+/** Dimensions carrying a tolerance of the given kind (or any). */
+export const tolDims = (s: LearnState, kind?: string) => dims(s).filter((a) => a.type === "dim" && a.tol && a.tol.kind !== "none" && (!kind || a.tol.kind === kind));

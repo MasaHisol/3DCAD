@@ -111,6 +111,49 @@ export const KNOWHOW_MORE: TextChapter[] = [
 <h2>特異点に注意</h2>
 <p>鋭い入隅・固定面の縁・点荷重の位置では、理論上の応力が無限大になります。メッシュを細かくするほど値が大きくなり続けるのが特徴です。
 こうした値で合否を判断してはいけません。実物では R を付ける、荷重を面で受ける、などで対処し、R を付けたモデルで再解析します。</p>
+<svg class="tb-chart" viewBox="0 0 520 222" role="img" aria-label="特異点と R 付きモデル">
+<defs><radialGradient id="mx-hot-a" gradientUnits="userSpaceOnUse" cx="100" cy="134" r="46"><stop offset="0" stop-color="#dc2626"/><stop offset="0.35" stop-color="#eab308" stop-opacity="0.9"/><stop offset="0.7" stop-color="#22c55e" stop-opacity="0.5"/><stop offset="1" stop-color="#2563eb" stop-opacity="0"/></radialGradient><radialGradient id="mx-hot-b" gradientUnits="userSpaceOnUse" cx="366" cy="128" r="42"><stop offset="0" stop-color="#eab308" stop-opacity="0.85"/><stop offset="0.5" stop-color="#22c55e" stop-opacity="0.5"/><stop offset="1" stop-color="#2563eb" stop-opacity="0"/></radialGradient><clipPath id="mx-cl-a"><path d="M40,54 L100,54 L100,134 L220,134 L220,184 L40,184 Z"/></clipPath><clipPath id="mx-cl-b"><path d="M300,54 L360,54 L360,114 A20,20 0 0 0 380,134 L480,134 L480,184 L300,184 Z"/></clipPath></defs>
+<rect class="k-panel" x="8" y="8" width="244" height="208" rx="8"/>
+<rect class="k-panel" x="268" y="8" width="244" height="208" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">鋭い入隅</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">R を付けたモデル</text>
+<rect class="k-ground" x="34" y="184" width="192" height="8"/>
+<rect class="k-ground" x="294" y="184" width="192" height="8"/>
+<g class="k-shadow"><path class="k-alu" d="M40,54 L100,54 L100,134 L220,134 L220,184 L40,184 Z"/></g>
+<rect x="40" y="54" width="180" height="130" fill="url(#mx-hot-a)" clip-path="url(#mx-cl-a)"/>
+<path class="k-edge" d="M40,54 L100,54 L100,134 L220,134 L220,184 L40,184 Z"/>
+<line class="k-force" x1="200" y1="102" x2="200" y2="131"/>
+<text class="lbl" x="112" y="124" style="fill:var(--tb-bad)">σ → ∞</text>
+<text class="k-note" x="130" y="208" text-anchor="middle">鋭い入隅: 理論上の応力は無限大</text>
+<g class="k-shadow"><path class="k-alu" d="M300,54 L360,54 L360,114 A20,20 0 0 0 380,134 L480,134 L480,184 L300,184 Z"/></g>
+<rect x="300" y="54" width="180" height="130" fill="url(#mx-hot-b)" clip-path="url(#mx-cl-b)"/>
+<path class="k-edge" d="M300,54 L360,54 L360,114 A20,20 0 0 0 380,134 L480,134 L480,184 L300,184 Z"/>
+<path d="M360,114 A20,20 0 0 0 380,134" style="fill:none;stroke:var(--tb-warn)" stroke-width="4"/>
+<line class="k-force" x1="462" y1="102" x2="462" y2="131"/>
+<text class="lbl" x="374" y="104" style="fill:var(--tb-good)">有限の値に収束</text>
+<text class="k-note" x="390" y="208" text-anchor="middle">R を付けたモデル: 合否判定に使える</text>
+</svg>
+<p class="tb-caption">図: 鋭い入隅・点荷重・固定面の縁は特異点。実物に合わせて R を付け、面で荷重をかけたモデルで評価する</p>
+<svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="メッシュ細分化と最大応力">
+<line class="axis" x1="60" y1="180" x2="490" y2="180"/>
+<line class="axis" x1="60" y1="20" x2="60" y2="180"/>
+<path d="M90,150 L180,110 L270,82 L360,58 L450,36" style="fill:none;stroke:var(--tb-bad)" stroke-width="2.6"/>
+<path d="M90,130 L180,112 L270,106 L360,104 L450,103.5" style="fill:none;stroke:var(--tb-good)" stroke-width="2.6"/>
+<circle class="" cx="90" cy="150" r="3.5" style="fill:var(--tb-bad)"/><circle class="" cx="180" cy="110" r="3.5" style="fill:var(--tb-bad)"/><circle class="" cx="270" cy="82" r="3.5" style="fill:var(--tb-bad)"/><circle class="" cx="360" cy="58" r="3.5" style="fill:var(--tb-bad)"/><circle class="" cx="450" cy="36" r="3.5" style="fill:var(--tb-bad)"/>
+<circle class="" cx="90" cy="130" r="3.5" style="fill:var(--tb-good)"/><circle class="" cx="180" cy="112" r="3.5" style="fill:var(--tb-good)"/><circle class="" cx="270" cy="106" r="3.5" style="fill:var(--tb-good)"/><circle class="" cx="360" cy="104" r="3.5" style="fill:var(--tb-good)"/><circle class="" cx="450" cy="103.5" r="3.5" style="fill:var(--tb-good)"/>
+<rect class="k-alu" x="78" y="188" width="24" height="24"/><line class="k-thin" x1="86" y1="188" x2="86" y2="212"/><line class="k-thin" x1="78" y1="196" x2="102" y2="196"/><line class="k-thin" x1="94" y1="188" x2="94" y2="212"/><line class="k-thin" x1="78" y1="204" x2="102" y2="204"/>
+<rect class="k-alu" x="168" y="188" width="24" height="24"/><line class="k-thin" x1="174" y1="188" x2="174" y2="212"/><line class="k-thin" x1="168" y1="194" x2="192" y2="194"/><line class="k-thin" x1="180" y1="188" x2="180" y2="212"/><line class="k-thin" x1="168" y1="200" x2="192" y2="200"/><line class="k-thin" x1="186" y1="188" x2="186" y2="212"/><line class="k-thin" x1="168" y1="206" x2="192" y2="206"/>
+<rect class="k-alu" x="258" y="188" width="24" height="24"/><line class="k-thin" x1="262" y1="188" x2="262" y2="212"/><line class="k-thin" x1="258" y1="192" x2="282" y2="192"/><line class="k-thin" x1="266" y1="188" x2="266" y2="212"/><line class="k-thin" x1="258" y1="196" x2="282" y2="196"/><line class="k-thin" x1="270" y1="188" x2="270" y2="212"/><line class="k-thin" x1="258" y1="200" x2="282" y2="200"/><line class="k-thin" x1="274" y1="188" x2="274" y2="212"/><line class="k-thin" x1="258" y1="204" x2="282" y2="204"/><line class="k-thin" x1="278" y1="188" x2="278" y2="212"/><line class="k-thin" x1="258" y1="208" x2="282" y2="208"/>
+<rect class="k-alu" x="348" y="188" width="24" height="24"/><line class="k-thin" x1="351" y1="188" x2="351" y2="212"/><line class="k-thin" x1="348" y1="191" x2="372" y2="191"/><line class="k-thin" x1="354" y1="188" x2="354" y2="212"/><line class="k-thin" x1="348" y1="194" x2="372" y2="194"/><line class="k-thin" x1="357" y1="188" x2="357" y2="212"/><line class="k-thin" x1="348" y1="197" x2="372" y2="197"/><line class="k-thin" x1="360" y1="188" x2="360" y2="212"/><line class="k-thin" x1="348" y1="200" x2="372" y2="200"/><line class="k-thin" x1="363" y1="188" x2="363" y2="212"/><line class="k-thin" x1="348" y1="203" x2="372" y2="203"/><line class="k-thin" x1="366" y1="188" x2="366" y2="212"/><line class="k-thin" x1="348" y1="206" x2="372" y2="206"/><line class="k-thin" x1="369" y1="188" x2="369" y2="212"/><line class="k-thin" x1="348" y1="209" x2="372" y2="209"/>
+<rect class="k-alu" x="438" y="188" width="24" height="24"/><line class="k-thin" x1="440" y1="188" x2="440" y2="212"/><line class="k-thin" x1="438" y1="190" x2="462" y2="190"/><line class="k-thin" x1="442" y1="188" x2="442" y2="212"/><line class="k-thin" x1="438" y1="192" x2="462" y2="192"/><line class="k-thin" x1="444" y1="188" x2="444" y2="212"/><line class="k-thin" x1="438" y1="194" x2="462" y2="194"/><line class="k-thin" x1="446" y1="188" x2="446" y2="212"/><line class="k-thin" x1="438" y1="196" x2="462" y2="196"/><line class="k-thin" x1="448" y1="188" x2="448" y2="212"/><line class="k-thin" x1="438" y1="198" x2="462" y2="198"/><line class="k-thin" x1="450" y1="188" x2="450" y2="212"/><line class="k-thin" x1="438" y1="200" x2="462" y2="200"/><line class="k-thin" x1="452" y1="188" x2="452" y2="212"/><line class="k-thin" x1="438" y1="202" x2="462" y2="202"/><line class="k-thin" x1="454" y1="188" x2="454" y2="212"/><line class="k-thin" x1="438" y1="204" x2="462" y2="204"/><line class="k-thin" x1="456" y1="188" x2="456" y2="212"/><line class="k-thin" x1="438" y1="206" x2="462" y2="206"/><line class="k-thin" x1="458" y1="188" x2="458" y2="212"/><line class="k-thin" x1="438" y1="208" x2="462" y2="208"/><line class="k-thin" x1="460" y1="188" x2="460" y2="212"/><line class="k-thin" x1="438" y1="210" x2="462" y2="210"/>
+<text class="tick" x="72" y="204" text-anchor="end">粗い</text>
+<text class="tick" x="468" y="204">細かい</text>
+<text class="lbl" x="444" y="26" text-anchor="end" style="fill:var(--tb-bad)">鋭い入隅: 上がり続ける</text>
+<text class="lbl" x="444" y="96" text-anchor="end" style="fill:var(--tb-good)">R 付き: 収束</text>
+<text class="lbl" x="470" y="232" text-anchor="end">メッシュの細かさ</text>
+<text class="lbl" x="66" y="16">最大応力</text>
+</svg>
+<p class="tb-caption">図: メッシュを細かくしても値が落ち着かないのは特異点のサイン。収束した値だけを判断に使う (傾向を示す模式図)</p>
 <h2>手計算で検算する</h2>
 <p>解析の前に、はりの公式などで<b>おおよその答え</b>を出しておきましょう。解析結果が手計算と 2〜3 倍以上違うときは、多くの場合、条件の入力ミスです。</p>
 <ul>
@@ -152,6 +195,32 @@ export const KNOWHOW_MORE: TextChapter[] = [
 </table>
 <p>硬さは <b>HRC</b> (ロックウェル C) や <b>HV</b> (ビッカース) で指示します。例: 「高周波焼入れ HRC 50〜55、有効硬化層深さ 1〜2 mm」。
 焼入れするとひずむので、<b>精度の必要な面は熱処理後に研削</b>します。</p>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="表面硬化と有効硬化層深さ">
+<rect class="" x="70" y="20" width="186" height="160" style="fill:var(--tb-warn);opacity:0.09"/>
+<line class="axis" x1="70" y1="180" x2="470" y2="180"/>
+<line class="axis" x1="70" y1="20" x2="70" y2="180"/>
+<path d="M70,40.2 L83,40.3 L96,40.5 L109,40.7 L122,41 L135,41.5 L148,42.3 L161,43.4 L174,44.9 L187,47.2 L200,50.5 L213,55 L226,61.2 L239,69.2 L252,79.1 L265,90.6 L278,103 L291,115.4 L304,126.9 L317,136.8 L330,144.8 L343,151 L356,155.5 L369,158.8 L382,161.1 L395,162.6 L408,163.7 L421,164.5 L434,165 L447,165.3 L460,165.5" style="fill:none;stroke:var(--tb-accent)" stroke-width="2.6"/>
+<line class="guide" x1="70" y1="82" x2="470" y2="82"/>
+<line class="guide" x1="256" y1="82" x2="256" y2="180"/>
+<circle class="mark" cx="256" cy="82" r="4.5"/>
+<text class="mark-t" x="264" y="74">有効硬化層深さ (この例 ≈ 1.4 mm)</text>
+<text class="tick" x="466" y="98" text-anchor="end">限界硬さ (例 HV 550)</text>
+<text class="tick" x="70" y="196" text-anchor="middle">0</text>
+<text class="tick" x="200" y="196" text-anchor="middle">1</text>
+<text class="tick" x="330" y="196" text-anchor="middle">2</text>
+<text class="tick" x="460" y="196" text-anchor="middle">3</text>
+<text class="lbl" x="470" y="214" text-anchor="end">表面からの深さ (mm)</text>
+<text class="lbl" x="76" y="16">硬さ HV</text>
+<text class="tick" x="76" y="34">表面 ≈ HV 700</text>
+<text class="tick" x="460" y="156" text-anchor="end">芯部 (ねばい)</text>
+<circle class="" cx="150" cy="132" r="32" style="fill:var(--tb-warn);fill-opacity:0.75;stroke:var(--k-line)"/>
+<circle class="k-part" cx="150" cy="132" r="24"/>
+<text class="k-note" x="150" y="136" text-anchor="middle">芯部</text>
+<text class="k-note" x="194" y="112">硬化層</text>
+<line class="k-thin" x1="192" y1="110" x2="178" y2="118"/>
+<text class="k-note" x="150" y="178" text-anchor="middle">軸の断面</text>
+</svg>
+<p class="tb-caption">図: 表面硬化した軸の硬さ分布 (模式図)。表面から限界硬さまでの深さを有効硬化層深さと呼び、図面に「有効硬化層深さ 1〜2 mm」のように指示する。限界硬さは処理法・炭素量で決まる (浸炭は HV 550)</p>
 <h2>表面処理</h2>
 <table class="tb-table">
   <tr><th>処理</th><th>対象</th><th>特徴</th></tr>
@@ -168,7 +237,29 @@ export const KNOWHOW_MORE: TextChapter[] = [
   <li>めっき・アルマイトは<b>膜厚の分だけ寸法が変わる</b> (アルマイトは半分が内側、半分が外側に成長)。はめあい面は処理後の寸法を指示するか、マスキングを指示</li>
   <li>ねじ穴は処理で入りにくくなる — 処理後にタップを通す、または指示する</li>
   <li>めっきによる<b>水素ぜい化</b> (高強度ボルト 10.9 以上) に注意 — ベーキング処理を指示</li>
-</ul>`,
+</ul>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="アルマイト皮膜の成長">
+<g class="k-shadow"><rect class="k-alu" x="40" y="110" width="360" height="60"/></g>
+<rect class="k-ground" x="40" y="110" width="360" height="60" style="opacity:0.35"/>
+<rect class="k-accent" x="40" y="50" width="360" height="60"/>
+<line class="" x1="52" y1="52" x2="52" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="66" y1="52" x2="66" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="80" y1="52" x2="80" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="94" y1="52" x2="94" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="108" y1="52" x2="108" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="122" y1="52" x2="122" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="136" y1="52" x2="136" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="150" y1="52" x2="150" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="164" y1="52" x2="164" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="178" y1="52" x2="178" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="192" y1="52" x2="192" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="206" y1="52" x2="206" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="220" y1="52" x2="220" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="234" y1="52" x2="234" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="248" y1="52" x2="248" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="262" y1="52" x2="262" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="276" y1="52" x2="276" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="290" y1="52" x2="290" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="304" y1="52" x2="304" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="318" y1="52" x2="318" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="332" y1="52" x2="332" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="346" y1="52" x2="346" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="360" y1="52" x2="360" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="374" y1="52" x2="374" y2="98" style="stroke:#fff;stroke-opacity:0.35"/><line class="" x1="388" y1="52" x2="388" y2="98" style="stroke:#fff;stroke-opacity:0.35"/>
+<line class="" x1="30" y1="80" x2="410" y2="80" style="stroke:var(--tb-bad);stroke-dasharray:6 4" stroke-width="2"/>
+<text class="mark-t" x="220" y="70" text-anchor="middle" style="fill:#fff">外側に成長 (約半分)</text>
+<text class="mark-t" x="220" y="100" text-anchor="middle" style="fill:#fff">内側に食い込む (約半分)</text>
+<text class="lbl" x="220" y="146" text-anchor="middle">アルミ素地</text>
+<line class="k-ext" x1="404" y1="50" x2="450" y2="50"/>
+<line class="k-ext" x1="404" y1="110" x2="450" y2="110"/>
+<line class="k-ext" x1="414" y1="80" x2="450" y2="80" style="stroke:var(--tb-bad)"/>
+<line class="k-dimline" x1="444" y1="50" x2="444" y2="110"/>
+<text class="k-dimtext" x="452" y="102">膜厚 t</text>
+<line class="k-dimline" x1="428" y1="50" x2="428" y2="80"/>
+<text class="k-dimtext" x="452" y="62">≈ t/2</text>
+<text class="lbl" x="410" y="30" text-anchor="end" style="fill:var(--tb-bad)">処理前の表面</text>
+<line class="k-thin" x1="408" y1="34" x2="396" y2="76" style="stroke:var(--tb-bad)"/>
+<text class="tick" x="260" y="196" text-anchor="middle">膜厚 t のとき、寸法は片側で約 t/2 増える (目安。処理条件で比率は変わる)</text>
+</svg>
+<p class="tb-caption">図: アルマイトは素地を酸化させて皮膜を作るため、膜の一部が内側に食い込み、残りが外側に成長する</p>
+`,
     points: ["焼入れ + 焼戻し (調質) で強く、高周波・浸炭で表面だけ硬く", "硬さは HRC / HV で指示、精度面は熱処理後に研削", "防錆: 亜鉛めっき・ニッケル・塗装、アルミはアルマイト", "処理の膜厚と寸法変化、ねじ穴、水素ぜい化に注意"],
     exercises: [
       {
@@ -197,6 +288,32 @@ export const KNOWHOW_MORE: TextChapter[] = [
   <li><b>段取り費</b>: 治具の準備・プログラム・初品確認。ロットが小さいと 1 個あたりが高くなる</li>
   <li><b>型費</b>: 金型・プレス型。数量で割ると、量が多いほど安くなる</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 212" role="img" aria-label="単価の内訳とロット">
+<rect class="" x="120" y="168" width="90" height="14" rx="0" style="fill:var(--tb-text-3);fill-opacity:0.45;stroke:var(--k-line);stroke-width:1"/>
+<text class="tick" x="224" y="172">材料 500</text>
+<line class="k-thin" x1="222" y1="168" x2="210" y2="168"/>
+<rect class="" x="120" y="112" width="90" height="56" rx="0" style="fill:var(--tb-accent);fill-opacity:0.55;stroke:var(--k-line);stroke-width:1"/>
+<text class="tick" x="165" y="144" text-anchor="middle" style="fill:var(--tb-text)">加工 2000</text>
+<rect class="" x="120" y="56" width="90" height="56" rx="0" style="fill:var(--tb-warn);fill-opacity:0.65;stroke:var(--k-line);stroke-width:1"/>
+<text class="tick" x="165" y="88" text-anchor="middle" style="fill:var(--tb-text)">段取り 2000</text>
+<text class="mark-t" x="165" y="48" text-anchor="middle">4,500 円</text>
+<text class="tick" x="165" y="200" text-anchor="middle">ロット 10 個</text>
+<rect class="" x="330" y="168" width="90" height="14" rx="0" style="fill:var(--tb-text-3);fill-opacity:0.45;stroke:var(--k-line);stroke-width:1"/>
+<text class="tick" x="434" y="172">材料 500</text>
+<line class="k-thin" x1="432" y1="168" x2="420" y2="168"/>
+<rect class="" x="330" y="112" width="90" height="56" rx="0" style="fill:var(--tb-accent);fill-opacity:0.55;stroke:var(--k-line);stroke-width:1"/>
+<text class="tick" x="375" y="144" text-anchor="middle" style="fill:var(--tb-text)">加工 2000</text>
+<rect class="" x="330" y="111.4" width="90" height="1.2" rx="0" style="fill:var(--tb-warn);fill-opacity:0.65;stroke:var(--k-line);stroke-width:1"/>
+<text class="tick" x="434" y="115.4">段取り 20</text>
+<line class="k-thin" x1="432" y1="111.4" x2="420" y2="111.4"/>
+<text class="mark-t" x="375" y="103.4" text-anchor="middle">2,520 円</text>
+<text class="tick" x="375" y="200" text-anchor="middle">ロット 1000 個</text>
+<line class="axis" x1="80" y1="182" x2="450" y2="182"/>
+<path class="k-move" d="M214,74 C270,62 300,82 324,116" style="stroke-dasharray:5 4"/>
+<text class="k-note" x="262" y="62" text-anchor="middle">÷ ロット数</text>
+<text class="tick" x="260" y="22" text-anchor="middle">段取り費 2 万円をロット数で割る (数値は例、円/個)</text>
+</svg>
+<p class="tb-caption">図: 同じ部品でも、段取り費はロット数で割られるため少量ほど単価が高い</p>
 <h2>工法と数量</h2>
 <table class="tb-table">
   <tr><th>数量の目安</th><th>向く工法</th></tr>
@@ -205,6 +322,26 @@ export const KNOWHOW_MORE: TextChapter[] = [
   <tr><td>数千〜数百万個</td><td>射出成形、プレス、ダイカスト、鍛造</td></tr>
 </table>
 <div data-widget="cost"></div>
+<svg class="tb-chart" viewBox="0 0 520 230" role="img" aria-label="損益分岐数量">
+<path d="M60,180 L274.3,94.3 L60,100 Z" style="fill:var(--tb-warn);fill-opacity:0.10"/>
+<path d="M274.3,94.3 L480,12 L480,88.8 Z" style="fill:var(--tb-accent);fill-opacity:0.10"/>
+<line class="axis" x1="60" y1="180" x2="490" y2="180"/>
+<line class="axis" x1="60" y1="20" x2="60" y2="180"/>
+<line class="" x1="60" y1="180" x2="480" y2="12" style="stroke:var(--tb-warn)" stroke-width="2.6"/>
+<line class="" x1="60" y1="100" x2="480" y2="88.8" style="stroke:var(--tb-accent)" stroke-width="2.6"/>
+<line class="k-dimline" x1="70" y1="180" x2="70" y2="100"/>
+<text class="k-dimtext" x="78" y="128">型費 200 万</text>
+<circle class="mark" cx="274.3" cy="94.3" r="5" filter="url(#k-glow)"/>
+<line class="guide" x1="274.3" y1="94.3" x2="274.3" y2="180"/>
+<text class="mark-t" x="274.3" y="196" text-anchor="middle">≈ 714 個</text>
+<text class="tick" x="330" y="44" text-anchor="end" style="fill:var(--tb-warn)">切削 3,000 円/個</text>
+<text class="tick" x="476" y="106" text-anchor="end" style="fill:var(--tb-accent)">成形 型費 200 万 + 200 円/個</text>
+<text class="k-note" x="170" y="160" text-anchor="middle">切削が有利</text>
+<text class="k-note" x="410" y="76" text-anchor="middle">成形が有利</text>
+<text class="lbl" x="480" y="222" text-anchor="end">数量 (個)</text>
+<text class="lbl" x="66" y="16">総費用</text>
+</svg>
+<p class="tb-caption">図: 総費用 = 初期費用 + 単価 × 数量。2 本の直線の交点 N = 2,000,000 ÷ (3,000 − 200) ≈ 714 個より多く作るなら成形が有利 (数値は例)</p>
 <h2>設計でコストを下げる</h2>
 <ul>
   <li>市販品・標準部品を使う (ボルト・軸受・リニアガイド・アルミフレーム)</li>
@@ -247,6 +384,23 @@ export const KNOWHOW_MORE: TextChapter[] = [
   <tr><th>3. 使用上の情報</th><td>警告表示、取扱説明書、訓練 — 最後の手段</td></tr>
 </table>
 <p>「注意してください」と書くだけで済ませず、<b>まず設計で危険をなくす</b>のが原則です。</p>
+<svg class="tb-chart" viewBox="0 0 520 215" role="img" aria-label="リスク低減の 3 ステップ">
+<g class="k-shadow"><path d="M40,30 L480,30 L410,85 L110,85 Z" style="fill:var(--tb-good);fill-opacity:0.28;stroke:var(--tb-good)" stroke-width="1.6"/><path d="M110,90 L410,90 L340,145 L180,145 Z" style="fill:var(--tb-warn);fill-opacity:0.28;stroke:var(--tb-warn)" stroke-width="1.6"/><path d="M180,150 L340,150 L260,200 Z" style="fill:var(--tb-bad);fill-opacity:0.24;stroke:var(--tb-bad)" stroke-width="1.6"/></g>
+<text class="mark-t" x="260" y="55" text-anchor="middle">1. 本質的安全設計</text>
+<text class="tick" x="260" y="72" text-anchor="middle">危険そのものをなくす</text>
+<text class="mark-t" x="260" y="113" text-anchor="middle">2. 安全防護</text>
+<text class="tick" x="260" y="130" text-anchor="middle">ガード・インターロック</text>
+<text class="mark-t" x="260" y="170" text-anchor="middle">3. 使用上の情報</text>
+<rect class="k-part" x="366" y="44" width="30" height="22" rx="8"/>
+<text class="k-note" x="381" y="80" text-anchor="middle">角を丸める</text>
+<rect class="" x="140" y="102" width="34" height="26" rx="2" style="fill:none;stroke:var(--k-line);stroke-width:1.6"/>
+<line class="k-thin" x1="146.8" y1="102" x2="146.8" y2="128"/><line class="k-thin" x1="153.6" y1="102" x2="153.6" y2="128"/><line class="k-thin" x1="160.4" y1="102" x2="160.4" y2="128"/><line class="k-thin" x1="167.2" y1="102" x2="167.2" y2="128"/>
+<path d="M368,182 L380,160 L392,182 Z" style="fill:var(--tb-warn);stroke:var(--k-line)" stroke-width="1.4"/>
+<text class="k-badge-t" x="380" y="179" text-anchor="middle" style="fill:#111">!</text>
+<line class="" x1="30" y1="40" x2="30" y2="190" style="stroke:var(--tb-text-3);marker-end:url(#k-arrow)" stroke-width="2"/>
+<text class="tick" x="36" y="206">効果は下ほど小さい</text>
+</svg>
+<p class="tb-caption">図: 上から順に検討する。幅の広い段ほどリスク低減の効果が大きく、人の注意に頼る警告表示は最後の手段</p>
 <h2>安全設計の考え方</h2>
 <ul>
   <li><b>フェールセーフ</b>: 故障したら安全側になる (停電でブレーキがかかる、ばねで閉じるバルブ)</li>
@@ -254,6 +408,33 @@ export const KNOWHOW_MORE: TextChapter[] = [
   <li><b>インターロック</b>: 条件がそろわないと動かない</li>
   <li><b>冗長化</b>: 重要な機能を 2 重にする</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="リスクの見積もりと低減">
+<rect class="" x="120" y="30" width="86" height="41" rx="5" style="fill:var(--tb-warn);fill-opacity:0.28;stroke:var(--tb-warn);stroke-width:1"/>
+<rect class="" x="210" y="30" width="86" height="41" rx="5" style="fill:var(--tb-bad);fill-opacity:0.28;stroke:var(--tb-bad);stroke-width:1"/>
+<rect class="" x="300" y="30" width="86" height="41" rx="5" style="fill:var(--tb-bad);fill-opacity:0.28;stroke:var(--tb-bad);stroke-width:1"/>
+<rect class="" x="120" y="75" width="86" height="41" rx="5" style="fill:var(--tb-good);fill-opacity:0.28;stroke:var(--tb-good);stroke-width:1"/>
+<rect class="" x="210" y="75" width="86" height="41" rx="5" style="fill:var(--tb-warn);fill-opacity:0.28;stroke:var(--tb-warn);stroke-width:1"/>
+<rect class="" x="300" y="75" width="86" height="41" rx="5" style="fill:var(--tb-bad);fill-opacity:0.28;stroke:var(--tb-bad);stroke-width:1"/>
+<rect class="" x="120" y="120" width="86" height="41" rx="5" style="fill:var(--tb-good);fill-opacity:0.28;stroke:var(--tb-good);stroke-width:1"/>
+<rect class="" x="210" y="120" width="86" height="41" rx="5" style="fill:var(--tb-good);fill-opacity:0.28;stroke:var(--tb-good);stroke-width:1"/>
+<rect class="" x="300" y="120" width="86" height="41" rx="5" style="fill:var(--tb-warn);fill-opacity:0.28;stroke:var(--tb-warn);stroke-width:1"/>
+<text class="tick" x="163" y="182" text-anchor="middle">小</text>
+<text class="tick" x="253" y="182" text-anchor="middle">中</text>
+<text class="tick" x="343" y="182" text-anchor="middle">大</text>
+<text class="lbl" x="253" y="200" text-anchor="middle">危害のひどさ</text>
+<text class="tick" x="112" y="149" text-anchor="end">低</text>
+<text class="tick" x="112" y="104" text-anchor="end">中</text>
+<text class="tick" x="112" y="59" text-anchor="end">高</text>
+<text class="lbl" x="60" y="100" text-anchor="middle">発生の</text>
+<text class="lbl" x="60" y="116" text-anchor="middle">可能性</text>
+<circle class="" cx="343" cy="52" r="8" style="fill:var(--tb-bad)" filter="url(#k-glow)"/>
+<path class="k-move" d="M335,60 C320,100 290,120 262,136" stroke-width="2.4"/>
+<circle class="" cx="253" cy="142" r="8" style="fill:var(--tb-good)"/>
+<text class="mark-t" x="412" y="56">低減前</text>
+<text class="tick" x="396" y="146">低減後: 再見積もり</text>
+<line class="k-thin" x1="394" y1="142" x2="264" y2="142"/>
+</svg>
+<p class="tb-caption">図: リスクは危害のひどさと発生の可能性の組合せで見積もる (3×3 の簡易マトリクスの例)。低減策の後にもう一度見積もり、許容できるまで繰り返す</p>
 <h2>挟まれ防止のすき間 (ISO 13854 の例)</h2>
 <table class="tb-table">
   <tr><th>体の部位</th><th>最小すき間</th></tr>

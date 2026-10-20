@@ -12,15 +12,21 @@ export const CAD2D_ADV: TextChapter[] = [
 <h2>線分・角の等分と垂直二等分線</h2>
 <p>手描き製図では、線分 AB の両端からコンパスで同じ半径の円弧を描き、その 2 交点を結ぶと<b>垂直二等分線</b>が得られます。CAD では「中点拘束 + 直交拘束」で同じ結果を表現できます。
 角の二等分は、頂点から等距離の 2 点をとり、その 2 点から同半径の円弧を描いた交点と頂点を結びます。線分の n 等分は、任意の補助線上に等間隔で n 点を取り、平行線で写す方法 (平行線の比例) が古典的です。CAD ではディバイダ (等分点) 機能や、寸法式 (L/n) を使うのが普通です。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="垂直二等分線の作図">
-  <line class="axis" x1="120" y1="110" x2="400" y2="110"/>
-  <circle class="mark" cx="120" cy="110" r="4"/><text class="mark-t" x="105" y="128">A</text>
-  <circle class="mark" cx="400" cy="110" r="4"/><text class="mark-t" x="405" y="128">B</text>
-  <path class="guide" d="M260,10 A180,180 0 0 0 260,210" fill="none"/>
-  <path class="guide" d="M260,10 A180,180 0 0 1 260,210" fill="none"/>
-  <line x1="260" y1="15" x2="260" y2="195" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <circle class="mark" cx="260" cy="110" r="4"/><text class="mark-t" x="266" y="104">中点 M</text>
-  <text class="tick" x="290" y="30">A・B を中心とする同半径の円弧の交点</text>
+<svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="垂直二等分線の作図">
+<path class="k-edge" d="M254,15.3 A170,170 0 0 1 254,224.7" style="stroke:var(--tb-text-3)" stroke-width="1.2" stroke-dasharray="5 3"/>
+<path class="k-edge" d="M266,15.3 A170,170 0 0 0 266,224.7" style="stroke:var(--tb-text-3)" stroke-width="1.2" stroke-dasharray="5 3"/>
+<line class="k-thin" x1="120" y1="120" x2="260" y2="23.6"/><line class="k-thin" x1="400" y1="120" x2="260" y2="23.6"/>
+<text class="k-dimtext" x="176" y="66" text-anchor="end">R</text><text class="k-dimtext" x="344" y="66">R (同じ半径)</text>
+<line class="k-edge" x1="120" y1="120" x2="400" y2="120" stroke-width="2.4"/>
+<line x1="260" y1="12" x2="260" y2="228" style="stroke:var(--tb-accent)" stroke-width="2.6"/>
+<path class="k-edge" d="M260,109 L271,109 L271,120" stroke-width="1.2"/>
+<path class="k-edge" d="M186,114 l6,12 M194,114 l6,12 M320,114 l6,12 M328,114 l6,12" stroke-width="1.4"/>
+<circle cx="260" cy="23.6" r="4" style="fill:var(--tb-accent)"/><circle cx="260" cy="216.4" r="4" style="fill:var(--tb-accent)"/>
+<circle class="mark" cx="120" cy="120" r="4.5"/><text class="mark-t" x="112" y="140" text-anchor="end">A</text>
+<circle class="mark" cx="400" cy="120" r="4.5"/><text class="mark-t" x="408" y="140">B</text>
+<circle cx="260" cy="120" r="4.5" style="fill:var(--tb-text)"/><text class="mark-t" x="274" y="142">中点 M</text>
+<text class="tick" x="276" y="27.6">A・B を中心とする同半径の円弧の交点</text>
+<text class="k-note" x="274" y="220.4">交点を結ぶ線が垂直二等分線</text>
 </svg>
 <h2>正多角形 — 内接・外接・二面幅</h2>
 <p>正 n 角形は「外接円 (頂点が乗る円)」か「内接円 (辺が接する円)」のどちらで指定するかで大きさが変わります。CAD のポリゴンコマンドもこの 2 択を聞いてきます。</p>
@@ -39,14 +45,21 @@ export const CAD2D_ADV: TextChapter[] = [
   <li><b>内側で接する</b> (2 円を包み込む凸形状): 距離が R − r₁、R − r₂ (R が大きい必要がある)</li>
 </ul>
 <p>接点は「2 つの中心を結ぶ直線と円の交点」にあります。この考え方はフィレットの内部処理そのもので、補助円の交点がない (R が小さすぎる) と作図できません。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="2 円に外接する円弧">
-  <circle cx="150" cy="140" r="40" fill="none" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <circle cx="370" cy="140" r="30" fill="none" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <circle class="mark" cx="150" cy="140" r="3"/><circle class="mark" cx="370" cy="140" r="3"/>
-  <circle class="mark" cx="262" cy="40" r="3"/><text class="mark-t" x="268" y="36">円弧の中心 (R + r₁ と R + r₂ の交点)</text>
-  <line class="guide" x1="150" y1="140" x2="262" y2="40"/><line class="guide" x1="370" y1="140" x2="262" y2="40"/>
-  <path d="M180,113 A110,110 0 0 0 348,118" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <text class="tick" x="120" y="195">r₁</text><text class="tick" x="365" y="195">r₂</text>
+<svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="2 円に外接する円弧">
+<path class="k-thin" d="M280.1,75.4 A150,150 0 0 0 250.1,38.3" stroke-dasharray="5 3" stroke-width="1.1"/>
+<path class="k-thin" d="M282.9,40.4 A140,140 0 0 0 252.9,73.3" stroke-dasharray="5 3" stroke-width="1.1"/>
+<g class="k-shadow"><circle class="k-alu" cx="150" cy="150" r="40"/><circle class="k-alu" cx="370" cy="150" r="30"/></g>
+<line class="k-center" x1="100" y1="150" x2="200" y2="150"/><line class="k-center" x1="330" y1="150" x2="410" y2="150"/>
+<line class="k-thin" x1="266.6" y1="55.6" x2="150" y2="150" stroke-dasharray="4 3"/><line class="k-thin" x1="266.6" y1="55.6" x2="370" y2="150" stroke-dasharray="4 3"/>
+<path d="M181.1,124.8 A110,110 0 0 0 347.8,129.8" fill="none" style="stroke:var(--tb-accent)" stroke-width="3"/>
+<circle cx="181.1" cy="124.8" r="3.6" style="fill:var(--tb-good)"/><circle cx="347.8" cy="129.8" r="3.6" style="fill:var(--tb-good)"/>
+<line class="k-edge" x1="150" y1="150" x2="121.7" y2="178.3" style="stroke:var(--k-dim)" stroke-width="1.2"/><text class="k-dimtext" x="118" y="198" text-anchor="end">r₁</text>
+<line class="k-edge" x1="370" y1="150" x2="391.2" y2="171.2" style="stroke:var(--k-dim)" stroke-width="1.2"/><text class="k-dimtext" x="394" y="194">r₂</text>
+<text class="k-dimtext" x="215.8" y="90.2" text-anchor="end">R + r₁</text>
+<text class="k-dimtext" x="315.2" y="92.7">R + r₂</text>
+<circle class="mark" cx="150" cy="150" r="3"/><circle class="mark" cx="370" cy="150" r="3"/>
+<circle class="mark" cx="266.6" cy="55.6" r="4.5"/><text class="mark-t" x="276.6" y="59.6">円弧の中心 (R + r₁ と R + r₂ の交点)</text>
+<text class="k-note" x="276.5" y="187.6" text-anchor="middle">半径 R の円弧 (緑の点で接する)</text>
 </svg>
 <h2>楕円の近似作図</h2>
 <p>手描きでは、長軸・短軸から 4 つの円弧で楕円を近似する<b>四心法</b>がよく使われました。CAD には真の楕円 (ELLIPSE) がありますが、旧式の加工機や一部のデータ形式では円弧近似やポリラインに置き換わることがあります。斜めから見た円 (等角図の円) も楕円になります。</p>
@@ -87,16 +100,23 @@ export const CAD2D_ADV: TextChapter[] = [
   <tr><td>共通外接線</td><td>大円の中心に半径 r₁ − r₂ の補助円を描き、小円の中心から接線を引いて r₂ だけ平行移動</td><td>√(C² − (r₁ − r₂)²)</td><td>オープンベルト・チェーン、長穴・リンクの外形</td></tr>
   <tr><td>共通内接線</td><td>半径 r₁ + r₂ の補助円に小円の中心から接線を引いて平行移動</td><td>√(C² − (r₁ + r₂)²)</td><td>クロスベルト (回転方向が逆になる)</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="2 円の共通外接線">
-  <circle cx="140" cy="100" r="60" fill="none" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <circle cx="390" cy="100" r="35" fill="none" stroke="var(--tb-text-2)" stroke-width="2"/>
-  <circle class="mark" cx="140" cy="100" r="3"/><circle class="mark" cx="390" cy="100" r="3"/>
-  <line class="guide" x1="140" y1="100" x2="390" y2="100"/>
-  <line x1="134" y1="40.3" x2="386.5" y2="65.2" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line x1="134" y1="159.7" x2="386.5" y2="134.8" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <text class="tick" x="250" y="95" text-anchor="middle">中心距離 C</text>
-  <text class="mark-t" x="250" y="40" text-anchor="middle">共通外接線</text>
-  <text class="tick" x="140" y="190" text-anchor="middle">r₁</text><text class="tick" x="390" y="190" text-anchor="middle">r₂</text>
+<svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="2 円の共通外接線">
+<g class="k-shadow"><circle class="k-alu" cx="140" cy="104" r="60"/><circle class="k-alu" cx="390" cy="104" r="35"/></g>
+<line class="k-center" x1="68" y1="104" x2="438" y2="104"/>
+<line class="k-center" x1="140" y1="32" x2="140" y2="176"/><line class="k-center" x1="390" y1="58" x2="390" y2="150"/>
+<line x1="112.1" y1="42.1" x2="408.4" y2="71.3" style="stroke:var(--tb-accent)" stroke-width="2.8"/>
+<line x1="112.1" y1="165.9" x2="408.4" y2="136.7" style="stroke:var(--tb-accent)" stroke-width="2.8"/>
+<line class="k-thin" x1="140" y1="104" x2="134" y2="44.3"/><line class="k-thin" x1="390" y1="104" x2="386.5" y2="69.2"/>
+<circle cx="134" cy="44.3" r="3.4" style="fill:var(--tb-good)"/><circle cx="386.5" cy="69.2" r="3.4" style="fill:var(--tb-good)"/>
+<circle cx="134" cy="163.7" r="3.4" style="fill:var(--tb-good)"/><circle cx="386.5" cy="138.8" r="3.4" style="fill:var(--tb-good)"/>
+<line class="k-edge" x1="140" y1="104" x2="94" y2="142.6" style="stroke:var(--k-dim)" stroke-width="1.2"/>
+<line class="k-edge" x1="390" y1="104" x2="422.9" y2="92" style="stroke:var(--k-dim)" stroke-width="1.2"/>
+<text class="k-dimtext" x="90" y="164" text-anchor="end">r₁</text><text class="k-dimtext" x="428" y="94">r₂</text>
+<circle class="mark" cx="140" cy="104" r="3"/><circle class="mark" cx="390" cy="104" r="3"/>
+<line class="k-ext" x1="140" y1="178" x2="140" y2="200"/><line class="k-ext" x1="390" y1="152" x2="390" y2="200"/>
+<line class="k-dimline" x1="140" y1="194" x2="390" y2="194"/><text class="k-dimtext" x="265" y="188" text-anchor="middle">中心距離 C</text>
+<text class="mark-t" x="265" y="44.7" text-anchor="middle">共通外接線</text>
+<text class="k-note" x="265" y="108" text-anchor="middle" style="paint-order:stroke;stroke:var(--tb-surface);stroke-width:4px">接点で半径と直交</text>
 </svg>
 <h2>ベルト長さとの関係</h2>
 <p>オープンベルトの長さは「直線部 2 本 + 2 つのプーリへの巻き付け円弧」です。φ = asin((r₁ − r₂)/C) とすると</p>
@@ -202,18 +222,27 @@ export const CAD2D_ADV: TextChapter[] = [
 <h2>リンクの軌跡</h2>
 <p>4 節リンクでは、クランクを一定角度ずつ回した位置を作図し、中間リンク上の点を結ぶと<b>連接棒曲線</b> (カプラー曲線) が得られます。拘束スケッチなら、クランク角を寸法で与え、値を変えながら点の位置を記録できます。
 最短リンク s、最長リンク l、残り p・q について <b>s + l ≤ p + q</b> (グラスホフの条件) を満たすと、少なくとも 1 本のリンクが 1 回転できます。</p>
-<svg class="tb-chart" viewBox="0 0 520 220" aria-label="クランク・ロッカーの姿勢と軌跡">
-  <line class="axis" x1="60" y1="190" x2="480" y2="190"/>
-  <circle class="mark" cx="150" cy="170" r="5"/><circle class="mark" cx="350" cy="170" r="5"/>
-  <circle class="guide" cx="150" cy="170" r="50" fill="none"/>
-  <line x1="150" y1="170" x2="185" y2="134" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line x1="185" y1="134" x2="320" y2="70" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line x1="320" y1="70" x2="350" y2="170" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line class="sec" x1="150" y1="170" x2="110" y2="140"/><line class="sec" x1="110" y1="140" x2="280" y2="85"/><line class="sec" x1="280" y1="85" x2="350" y2="170"/>
-  <path class="guide" d="M265,70 C330,40 360,90 300,110 C240,125 200,100 265,70" fill="none"/>
-  <text class="mark-t" x="140" y="208">固定点 A</text><text class="mark-t" x="335" y="208">固定点 D</text>
-  <text class="tick" x="80" y="120">クランク (回転)</text><text class="tick" x="360" y="100">ロッカー (揺動)</text>
-  <text class="tick" x="300" y="35">中間リンク上の点の軌跡 (概念図)</text>
+<svg class="tb-chart" viewBox="0 0 520 236" role="img" aria-label="クランク・ロッカーの姿勢と軌跡">
+<rect class="k-ground" x="118" y="188" width="44" height="10"/><rect class="k-ground" x="318" y="188" width="44" height="10"/>
+<line class="k-edge" x1="118" y1="188" x2="162" y2="188"/><line class="k-edge" x1="318" y1="188" x2="362" y2="188"/>
+<path class="k-part" d="M128,188 L140,172 L152,188 Z"/><path class="k-part" d="M328,188 L340,172 L352,188 Z"/>
+<line class="k-center" x1="140" y1="176" x2="340" y2="176"/>
+<circle class="k-hidden" cx="140" cy="176" r="50"/>
+<g opacity="0.45"><rect class="k-alu" x="135" y="171" width="60" height="10" rx="5.0" transform="rotate(-150 140 176)"/><rect class="k-alu" x="335" y="171" width="115" height="10" rx="5.0" transform="rotate(-154.4 340 176)"/><rect class="k-alu" x="91.7" y="146" width="160" height="10" rx="5.0" transform="rotate(-7.8 96.7 151)"/><circle cx="96.7" cy="151" r="3" style="fill:var(--k-line)"/><circle cx="245.3" cy="130.6" r="3" style="fill:var(--k-line)"/></g>
+<g class="k-shadow"><rect class="k-part" x="134" y="170" width="62" height="12" rx="6.0" transform="rotate(-46 140 176)"/><rect class="k-part" x="334" y="170" width="117" height="12" rx="6.0" transform="rotate(-106.6 340 176)"/><rect class="k-alu" x="168.7" y="134" width="162" height="12" rx="6.0" transform="rotate(-25.5 174.7 140)"/></g>
+<polygon class="k-accent" points="174.7,140 310.1,75.4 230.3,82.4" style="fill-opacity:0.35"/>
+<polyline points="228.3,105.7 229.8,103.1 231.1,100.6 232.2,98.2 233,95.9 233.5,93.7 233.8,91.6 233.7,89.7 233.4,87.8 232.9,86.1 232,84.5 231,83.1 229.6,81.8 228.1,80.7 226.3,79.7 224.3,78.9 222.2,78.4 219.9,77.9 217.4,77.7 214.8,77.7 212.1,77.9 209.3,78.3 206.5,78.9 203.6,79.8 200.7,80.8 197.7,82.1 194.8,83.5 191.9,85.2 189.1,87.1 186.3,89.2 183.6,91.4 181,93.9 178.5,96.5 176.1,99.2 173.9,102.1 171.8,105.1 169.8,108.3 168,111.5 166.4,114.7 165,118 163.7,121.2 162.5,124.5 161.5,127.6 160.7,130.6 160,133.4 159.4,136 158.9,138.4 158.4,140.6 158.1,142.6 157.9,144.4 157.8,146.1 157.8,147.5 157.9,148.9 158.1,150.1 158.5,151.2 159,152.2 159.6,153.1 160.4,153.9 161.2,154.6 162.3,155.1 163.4,155.5 164.6,155.8 166,156 167.5,156 169.1,155.8 170.8,155.6 172.6,155.1 174.4,154.6 176.4,153.8 178.5,152.9 180.7,151.8 182.9,150.6 185.2,149.2 187.5,147.7 190,146 192.4,144.1 194.9,142.1 197.5,139.9 200.1,137.7 202.7,135.3 205.3,132.8 207.9,130.2 210.5,127.5 213,124.8 215.5,122.1 218,119.3 220.3,116.5 222.5,113.7 224.6,111 226.5,108.3 228.3,105.7" fill="none" style="stroke:var(--tb-warn)" stroke-width="2.4" stroke-dasharray="6 3"/>
+<circle cx="140" cy="176" r="3" style="fill:var(--k-line)"/><circle cx="340" cy="176" r="3" style="fill:var(--k-line)"/><circle cx="174.7" cy="140" r="3" style="fill:var(--k-line)"/><circle cx="310.1" cy="75.4" r="3" style="fill:var(--k-line)"/>
+<circle cx="230.3" cy="82.4" r="5" style="fill:var(--tb-warn);stroke:var(--k-line)" stroke-width="1.2"/>
+<path class="k-move" d="M148.7,153.6 A24,24 0 0 0 124,158.1" stroke-width="1.8"/>
+<text class="mark-t" x="140" y="228" text-anchor="middle">固定点 A</text><text class="mark-t" x="340" y="228" text-anchor="middle">固定点 D</text>
+<text class="tick" x="96" y="120" text-anchor="end">クランク (回転)</text>
+<line class="k-thin" x1="98" y1="122" x2="153.4" y2="158" style="marker-end:url(#k-arrow)"/>
+<text class="tick" x="392" y="125.7">ロッカー (揺動)</text>
+<line class="k-thin" x1="390" y1="121.7" x2="333" y2="125.7" style="marker-end:url(#k-arrow)"/>
+<text class="tick" x="250" y="30">中間リンク上の点の軌跡 (概念図)</text>
+<line class="k-thin" x1="248" y1="33" x2="218.8" y2="74.7" style="marker-end:url(#k-arrow)"/>
+<text class="k-note" x="508" y="228" text-anchor="end">薄い色: 別の姿勢</text>
 </svg>
 <h2>スケルトン図から 3D 部品へ</h2>
 <ol class="tb-flow">

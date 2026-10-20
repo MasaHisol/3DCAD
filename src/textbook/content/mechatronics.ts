@@ -169,15 +169,33 @@ export const MECHATRONICS: TextChapter[] = [
     body: `
 <h2>シリンダの推力</h2>
 <div class="tb-formula">押し側 F = p × (π D² / 4) × 負荷率　　引き側 F = p × π (D² − d²) / 4 × 負荷率<br>(p [MPa] × 面積 [mm²] = 力 [N])</div>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="シリンダの受圧面積">
-  <rect x="60" y="40" width="260" height="90" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="180" y="45" width="16" height="80" fill="var(--tb-accent)"/>
-  <rect x="196" y="77" width="250" height="16" fill="none" stroke="currentColor" stroke-width="2"/>
-  <line class="guide" x1="40" x2="40" y1="40" y2="130"/><text class="tick" x="34" y="90" text-anchor="end">D</text>
-  <line class="guide" x1="460" x2="460" y1="77" y2="93"/><text class="tick" x="466" y="89">d</text>
-  <text class="mark-t" x="120" y="30" text-anchor="middle">押し側: πD²/4</text>
-  <text class="mark-t" x="260" y="30" text-anchor="middle">引き側: π(D²−d²)/4</text>
-  <text class="lbl" x="188" y="150" text-anchor="middle">ピストン</text><text class="lbl" x="400" y="72">ロッド</text>
+<svg class="tb-chart" viewBox="0 0 520 212" role="img" aria-label="シリンダの受圧面積">
+<rect x="74" y="58" width="96" height="92" style="fill:var(--tb-accent)" opacity="0.13"/>
+<rect x="192" y="58" width="120" height="92" style="fill:var(--tb-accent)" opacity="0.13"/>
+<line class="k-center" x1="44" y1="104" x2="484" y2="104"/>
+<g class="k-shadow">
+<rect class="k-part" x="60" y="38" width="10" height="9"/><rect class="k-part" x="316" y="38" width="10" height="9"/>
+<rect class="k-cut" x="74" y="50" width="238" height="8"/><rect class="k-cut" x="74" y="150" width="238" height="8"/>
+<rect class="k-cut" x="56" y="46" width="18" height="116" rx="2"/>
+<rect class="k-cut" x="312" y="46" width="18" height="47" rx="2"/><rect class="k-cut" x="312" y="115" width="18" height="47" rx="2"/>
+<rect class="k-part" x="192" y="94" width="278" height="20" rx="2"/>
+<rect class="k-part" x="170" y="58" width="22" height="92" rx="2"/>
+</g>
+<rect x="177" y="59" width="8" height="90" style="fill:var(--k-line)" opacity="0.55"/>
+<path class="k-thin" d="M446,94 L446,114 M452,94 L452,114 M458,94 L458,114 M464,94 L464,114"/>
+<line class="k-move" x1="92" y1="76" x2="164" y2="76"/><line class="k-move" x1="92" y1="104" x2="164" y2="104"/><line class="k-move" x1="92" y1="132" x2="164" y2="132"/>
+<line class="k-move" x1="296" y1="72" x2="198" y2="72"/><line class="k-move" x1="296" y1="136" x2="198" y2="136"/>
+<line class="k-ext" x1="54" y1="58" x2="24" y2="58"/><line class="k-ext" x1="54" y1="150" x2="24" y2="150"/>
+<line class="k-dimline" x1="32" y1="58" x2="32" y2="150"/><text class="k-dimtext" x="26" y="108" text-anchor="end">D</text>
+<line class="k-ext" x1="474" y1="94" x2="504" y2="94"/><line class="k-ext" x1="474" y1="114" x2="504" y2="114"/>
+<line class="k-dimline" x1="498" y1="78" x2="498" y2="94" style="marker-start:none"/><line class="k-dimline" x1="498" y1="130" x2="498" y2="114" style="marker-start:none"/>
+<text class="k-dimtext" x="504" y="108">d</text>
+<text class="mark-t" x="122" y="30" text-anchor="middle">押し側: πD²/4</text>
+<text class="mark-t" x="252" y="30" text-anchor="middle">引き側: π(D²−d²)/4</text>
+<line class="k-thin" x1="181" y1="152" x2="181" y2="164"/><text class="lbl" x="181" y="178" text-anchor="middle">ピストン</text>
+<line class="k-thin" x1="400" y1="94" x2="400" y2="78"/><text class="lbl" x="400" y="72" text-anchor="middle">ロッド</text>
+<text class="k-note" x="110" y="202" text-anchor="middle">→ 圧縮空気が全面に</text>
+<text class="k-note" x="262" y="202" text-anchor="middle">← 環状部だけに</text>
 </svg>
 <p><b>負荷率</b>は理論推力に対して実際に使える割合で、静的な押付けで 0.7 程度、動かす (動的) 場合は 0.5 以下が目安です。空気圧の使用圧力は <b>0.4〜0.6 MPa</b> が一般的です (工場の元圧はもう少し高め)。</p>
 <div data-widget="pneumatic"></div>
@@ -306,17 +324,21 @@ export const MECHATRONICS: TextChapter[] = [
   <tr><td>D (微分)</td><td>偏差の変化の速さ</td><td>行き過ぎを抑えブレーキをかける</td><td>ノイズに敏感になる</td></tr>
 </table>
 <h2>位置決め制御 — 台形速度パターン</h2>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="台形速度パターン">
-  <line class="axis" x1="50" y1="170" x2="500" y2="170"/><line class="axis" x1="50" y1="170" x2="50" y2="15"/>
-  <line class="grid" x1="50" x2="480" y1="50" y2="50"/>
-  <path d="M50,170 L130,50 L400,50 L480,170" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line class="guide" x1="130" x2="130" y1="50" y2="170"/><line class="guide" x1="400" x2="400" y1="50" y2="170"/>
-  <text class="tick" x="90" y="186" text-anchor="middle">加速 ta</text>
-  <text class="tick" x="265" y="186" text-anchor="middle">定速</text>
-  <text class="tick" x="440" y="186" text-anchor="middle">減速 ta</text>
-  <text class="mark-t" x="265" y="42" text-anchor="middle">最高速度 v</text>
-  <text class="sec" x="265" y="120" text-anchor="middle">面積 = 移動距離 L</text>
-  <text class="lbl" x="495" y="198" text-anchor="end">時間 t</text><text class="lbl" x="56" y="24">速度</text>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="台形速度パターン">
+<line class="grid" x1="50" x2="490" y1="110" y2="110"/>
+<path d="M50,170 L130,50 L400,50 L480,170 Z" style="fill:var(--tb-accent)" opacity="0.14"/>
+<line class="axis" x1="50" y1="170" x2="502" y2="170" marker-end="url(#k-arrow)"/><line class="axis" x1="50" y1="170" x2="50" y2="14" marker-end="url(#k-arrow)"/>
+<line class="guide" x1="50" x2="130" y1="50" y2="50"/>
+<line class="guide" x1="130" x2="130" y1="50" y2="170"/><line class="guide" x1="400" x2="400" y1="50" y2="170"/>
+<path d="M50,170 L130,50 L400,50 L480,170" fill="none" style="stroke:var(--tb-accent)" stroke-width="2.8"/>
+<circle cx="130" cy="50" r="3.5" style="fill:var(--tb-accent)"/><circle cx="400" cy="50" r="3.5" style="fill:var(--tb-accent)"/>
+<line class="k-dimline" x1="52" y1="182" x2="128" y2="182"/><line class="k-dimline" x1="132" y1="182" x2="398" y2="182"/><line class="k-dimline" x1="402" y1="182" x2="478" y2="182"/>
+<text class="tick" x="90" y="200" text-anchor="middle">加速 ta</text>
+<text class="tick" x="265" y="200" text-anchor="middle">定速</text>
+<text class="tick" x="440" y="200" text-anchor="middle">減速 ta</text>
+<text class="mark-t" x="265" y="42" text-anchor="middle">最高速度 v</text>
+<text class="sec" x="265" y="120" text-anchor="middle">面積 = 移動距離 L</text>
+<text class="lbl" x="500" y="160" text-anchor="end">時間 t</text><text class="lbl" x="58" y="22">速度</text>
 </svg>
 <div class="tb-formula">加速・減速時間が等しいとき: 移動時間 t = L / v + ta　(条件: L ≥ v·ta)</div>
 <p>L &lt; v·ta のときは最高速度に届かず三角形のパターンになり、t = 2√(L·ta / v) です。加速を急にすると移動時間は短くなりますが、トルクと振動が増えます。</p>
@@ -421,15 +443,19 @@ export const QUALITY: TextChapter[] = [
 </table>
 <h2>工程能力指数</h2>
 <div class="tb-formula">Cp = (USL − LSL) / 6σ　　Cpk = min(USL − μ, μ − LSL) / 3σ</div>
-<svg class="tb-chart" viewBox="0 0 520 200" aria-label="正規分布と規格">
-  <line class="axis" x1="30" y1="170" x2="500" y2="170"/>
-  <path d="M120,170 C190,168 215,40 265,40 C315,40 340,168 410,170" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line class="guide" x1="70" x2="70" y1="20" y2="170"/><line class="guide" x1="460" x2="460" y1="20" y2="170"/>
-  <line class="grid" x1="265" x2="265" y1="40" y2="170"/>
-  <text class="mark-t" x="70" y="16" text-anchor="middle">LSL</text><text class="mark-t" x="460" y="16" text-anchor="middle">USL</text>
-  <text class="tick" x="265" y="186" text-anchor="middle">平均 μ</text>
-  <text class="sec" x="265" y="110" text-anchor="middle">±3σ</text>
-  <text class="lbl" x="495" y="198" text-anchor="end">測定値</text>
+<svg class="tb-chart" viewBox="0 0 520 205" role="img" aria-label="正規分布と規格">
+<rect x="70" y="24" width="390" height="146" style="fill:var(--tb-good)" opacity="0.07"/>
+<path d="M120,170 C190,168 215,40 265,40 C315,40 340,168 410,170 Z" style="fill:var(--tb-accent)" opacity="0.18"/>
+<line class="axis" x1="24" y1="170" x2="502" y2="170" marker-end="url(#k-arrow)"/>
+<line x1="70" x2="70" y1="24" y2="170" style="stroke:var(--tb-bad)" stroke-width="1.8" stroke-dasharray="6 3"/>
+<line x1="460" x2="460" y1="24" y2="170" style="stroke:var(--tb-bad)" stroke-width="1.8" stroke-dasharray="6 3"/>
+<line class="k-center" x1="265" x2="265" y1="32" y2="176"/>
+<path d="M120,170 C190,168 215,40 265,40 C315,40 340,168 410,170" fill="none" style="stroke:var(--tb-accent)" stroke-width="2.8"/>
+<line class="k-dimline" x1="134" y1="150" x2="396" y2="150"/>
+<text class="k-dimtext" x="300" y="143" text-anchor="middle">±3σ</text>
+<text class="k-bad-t" x="70" y="17" text-anchor="middle">LSL</text><text class="k-bad-t" x="460" y="17" text-anchor="middle">USL</text>
+<text class="tick" x="265" y="188" text-anchor="middle">平均 μ</text>
+<text class="lbl" x="500" y="198" text-anchor="end">測定値</text>
 </svg>
 <p>Cp は規格幅に対するばらつきの小ささ、Cpk は平均のずれも含めた実力です。</p>
 <table class="tb-table">

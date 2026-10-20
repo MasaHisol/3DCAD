@@ -36,18 +36,11 @@ export const KNOWHOW2: TextChapter[] = [
 <ol class="tb-flow">
   <li>機能を分解</li><li>インタフェースを定義・固定</li><li>モジュールごとに設計・評価</li><li>組み合わせで品種展開</li>
 </ol>
-<svg class="tb-chart" viewBox="0 0 520 190" aria-label="モジュールの組み合わせ">
-  <rect x="30" y="30" width="120" height="40" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="lbl" x="90" y="55" text-anchor="middle">駆動 A / B</text>
-  <rect x="200" y="30" width="120" height="40" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="lbl" x="260" y="55" text-anchor="middle">搬送 短 / 長</text>
-  <rect x="370" y="30" width="120" height="40" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="lbl" x="430" y="55" text-anchor="middle">制御 標準 / 高機能</text>
-  <line class="guide" x1="150" y1="50" x2="200" y2="50"/><line class="guide" x1="320" y1="50" x2="370" y2="50"/>
-  <rect x="30" y="120" width="460" height="40" fill="none" stroke="currentColor" stroke-width="1.5"/>
-  <text class="lbl" x="260" y="145" text-anchor="middle">共通プラットフォーム (フレーム・取付ピッチ・電源・通信)</text>
-  <line class="guide" x1="90" y1="70" x2="90" y2="120"/><line class="guide" x1="260" y1="70" x2="260" y2="120"/><line class="guide" x1="430" y1="70" x2="430" y2="120"/>
-  <text class="sec" x="260" y="182" text-anchor="middle">2 × 2 × 2 = 8 機種を 6 モジュール + 共通部で構成</text>
+<svg class="tb-chart" viewBox="0 0 520 206" role="img" aria-label="モジュールの組み合わせ">
+<g class="k-shadow"><rect class="k-part" x="30" y="120" width="460" height="42" rx="4"/></g>
+<g class="k-shadow"><rect class="k-plastic" x="34" y="22" width="128" height="44" rx="6"/><rect class="k-alu" x="26" y="30" width="128" height="44" rx="6" style="stroke:var(--tb-accent)"/></g><text class="lbl" x="90" y="57" text-anchor="middle">駆動 A / B</text><rect class="k-part" x="76" y="74" width="8" height="12" style="stroke-width:1"/><rect class="k-part" x="96" y="74" width="8" height="12" style="stroke-width:1"/><line class="k-move" x1="90" y1="90" x2="90" y2="112"/><rect x="72" y="120" width="36" height="6" style="fill:var(--tb-surface-2);stroke:var(--k-line)"/><g class="k-shadow"><rect class="k-plastic" x="204" y="22" width="128" height="44" rx="6"/><rect class="k-alu" x="196" y="30" width="128" height="44" rx="6" style="stroke:var(--tb-accent)"/></g><text class="lbl" x="260" y="57" text-anchor="middle">搬送 短 / 長</text><rect class="k-part" x="246" y="74" width="8" height="12" style="stroke-width:1"/><rect class="k-part" x="266" y="74" width="8" height="12" style="stroke-width:1"/><line class="k-move" x1="260" y1="90" x2="260" y2="112"/><rect x="242" y="120" width="36" height="6" style="fill:var(--tb-surface-2);stroke:var(--k-line)"/><g class="k-shadow"><rect class="k-plastic" x="374" y="22" width="128" height="44" rx="6"/><rect class="k-alu" x="366" y="30" width="128" height="44" rx="6" style="stroke:var(--tb-accent)"/></g><text class="lbl" x="430" y="57" text-anchor="middle">制御 標準 / 高機能</text><rect class="k-part" x="416" y="74" width="8" height="12" style="stroke-width:1"/><rect class="k-part" x="436" y="74" width="8" height="12" style="stroke-width:1"/><line class="k-move" x1="430" y1="90" x2="430" y2="112"/><rect x="412" y="120" width="36" height="6" style="fill:var(--tb-surface-2);stroke:var(--k-line)"/>
+<text class="lbl" x="260" y="150" text-anchor="middle">共通プラットフォーム (フレーム・取付ピッチ・電源・通信)</text>
+<text class="k-title" x="260" y="192" text-anchor="middle">2 × 2 × 2 = 8 機種を 6 モジュール + 共通部で構成</text>
 </svg>
 <h2>プラットフォーム化</h2>
 <p>複数の製品で共通に使う土台 (フレーム、取付ピッチ、電源、制御基板、ソフトウェア) を<b>プラットフォーム</b>として先に作り込み、製品ごとの違いは上に載るモジュールで出します。開発のたびに土台を作り直さないため、開発期間と評価工数が大きく減ります。</p>
@@ -65,6 +58,12 @@ export const KNOWHOW2: TextChapter[] = [
   <tr><td>開発期間</td><td>12 か月</td><td>7 か月</td></tr>
 </table>
 <p class="tb-note">数値は考え方を示すための一般的な例です。効果は製品・業種によって大きく変わります。</p>
+<svg class="tb-chart" viewBox="0 0 520 204" role="img" aria-label="標準化による種類数の削減 (例)">
+<line class="axis" x1="40" y1="160" x2="500" y2="160"/>
+<rect x="70" y="50" width="34" height="110" rx="3" style="fill:var(--tb-text-3);fill-opacity:0.45"/><rect x="110" y="132.5" width="34" height="27.5" rx="3" style="fill:var(--tb-accent)"/><text class="tick" x="87" y="45" text-anchor="middle">180</text><text class="mark-t" x="127" y="127.5" text-anchor="middle">45</text><text class="tick" x="87" y="174" text-anchor="middle">前</text><text class="tick" x="127" y="174" text-anchor="middle">後</text><text class="lbl" x="107" y="194" text-anchor="middle">ねじの品番数</text><path d="M106,60 Q150,62 150,122" class="k-move" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green);stroke-width:1.4"/><text class="k-good-t" x="154" y="74">−75%</text><rect x="220" y="50" width="34" height="110" rx="3" style="fill:var(--tb-text-3);fill-opacity:0.45"/><rect x="260" y="112.9" width="34" height="47.1" rx="3" style="fill:var(--tb-accent)"/><text class="tick" x="237" y="45" text-anchor="middle">28</text><text class="mark-t" x="277" y="107.9" text-anchor="middle">12</text><text class="tick" x="237" y="174" text-anchor="middle">前</text><text class="tick" x="277" y="174" text-anchor="middle">後</text><text class="lbl" x="257" y="194" text-anchor="middle">ドリル・タップ</text><path d="M256,60 Q300,62 300,103" class="k-move" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green);stroke-width:1.4"/><text class="k-good-t" x="304" y="74">−57%</text><rect x="370" y="50" width="34" height="110" rx="3" style="fill:var(--tb-text-3);fill-opacity:0.45"/><rect x="410" y="112.9" width="34" height="47.1" rx="3" style="fill:var(--tb-accent)"/><text class="tick" x="387" y="45" text-anchor="middle">70</text><text class="mark-t" x="427" y="107.9" text-anchor="middle">30</text><text class="tick" x="387" y="174" text-anchor="middle">前</text><text class="tick" x="427" y="174" text-anchor="middle">後</text><text class="lbl" x="407" y="194" text-anchor="middle">新規部品率 %</text><path d="M406,60 Q450,62 450,103" class="k-move" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green);stroke-width:1.4"/><text class="k-good-t" x="454" y="74">−57%</text>
+<text class="tick" x="260" y="22" text-anchor="middle">灰 = 標準化前、色 = 標準化後 (項目ごとに前を 100 として表示)</text>
+</svg>
+<p class="tb-caption">図: 上の「効果の例」の表をグラフにしたもの。数値は考え方を示す一般的な例</p>
 <div class="tb-tip"><b>3DCAD Studio</b>: <b>標準部品</b>ライブラリから締結部品を選び、<b>ルール・ファミリー表</b>と<b>パラメータ表</b>でサイズ違いを 1 つのモデルから展開できます。<b>部品表</b>で品番数を数え、標準外部品が混ざっていないか確認しましょう。</div>`,
     points: [
       "標準化は部品の「種類数」を減らし、設計から保守までの見えないコストを削る",
@@ -102,6 +101,13 @@ export const KNOWHOW2: TextChapter[] = [
   <tr><td>試験計画書・報告書</td><td>何をどう試し、結果はどうだったか</td><td>設計・品質保証</td></tr>
   <tr><td>変更記録 (改訂履歴)</td><td>いつ・誰が・何を・なぜ変えたか</td><td>製造・調達・保守</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 184" role="img" aria-label="設計文書のつながり">
+<g class="k-shadow"><path d="M20,50 H113 L125,62 V94 H20 Z" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.5"/></g><path d="M113,50 V62 H125" fill="none" style="stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="72" y="77" text-anchor="middle">仕様書</text><text class="tick" x="72" y="40" text-anchor="middle">何を</text><line class="k-move" x1="127" y1="72" x2="143" y2="72" style="stroke-width:1.6"/><g class="k-shadow"><path d="M145,50 H238 L250,62 V94 H145 Z" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.5"/></g><path d="M238,50 V62 H250" fill="none" style="stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="197" y="77" text-anchor="middle">設計計算書</text><text class="tick" x="197" y="40" text-anchor="middle">なぜ大丈夫か</text><line class="k-move" x1="252" y1="72" x2="268" y2="72" style="stroke-width:1.6"/><g class="k-shadow"><path d="M270,50 H363 L375,62 V94 H270 Z" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.5"/></g><path d="M363,50 V62 H375" fill="none" style="stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="322" y="77" text-anchor="middle">図面・部品表</text><text class="tick" x="322" y="40" text-anchor="middle">どう作るか</text><line class="k-move" x1="377" y1="72" x2="393" y2="72" style="stroke-width:1.6"/><g class="k-shadow"><path d="M395,50 H488 L500,62 V94 H395 Z" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="1.5"/></g><path d="M488,50 V62 H500" fill="none" style="stroke:var(--tb-accent)" stroke-width="1.2"/><text class="lbl" x="447" y="77" text-anchor="middle">試験報告書</text><text class="tick" x="447" y="40" text-anchor="middle">本当にそうか</text>
+<path d="M447,98 C447,150 72,150 72,100" fill="none" style="stroke:var(--tb-bad);marker-end:url(#k-arrow-red)" stroke-width="1.6" stroke-dasharray="5 3"/>
+<text class="k-bad-t" x="260" y="132" text-anchor="middle">NG なら戻る</text>
+<text class="tick" x="260" y="172" text-anchor="middle">試験で仕様を満たさなければ、仕様・計算・図面に戻って直し、改訂履歴に残す</text>
+</svg>
+<p class="tb-caption">図: 設計文書は 1 本の鎖。仕様の項目番号を計算書が引用し、計算結果が図面の寸法・材料に反映され、試験で確かめる</p>
 <h2>計算書の構成</h2>
 <ol class="tb-flow">
   <li>目的</li><li>条件</li><li>前提・仮定</li><li>式</li><li>結果</li><li>判定</li><li>参考文献</li>
@@ -127,6 +133,11 @@ export const KNOWHOW2: TextChapter[] = [
   <tr><td>日付・作成者・版がない</td><td>表紙に文書番号・版・作成/確認/承認者・日付</td></tr>
   <tr><td>不利な結果は書かない</td><td>NG や懸念点も書き、対策と残リスクを明記</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 160" role="img" aria-label="根拠のトレーサビリティ">
+<g class="k-shadow"><path d="M20,46 H148 L160,58 V108 H20 Z" style="fill:var(--tb-surface);stroke:var(--k-line-2)" stroke-width="1.5"/></g><path d="M148,46 V58 H160" fill="none" style="stroke:var(--k-line-2)" stroke-width="1.2"/><rect x="30" y="56" width="95" height="20" rx="10" style="fill:var(--tb-accent);fill-opacity:0.15"/><text class="lbl" x="37" y="71">仕様書 3.2 項</text><text class="tick" x="90" y="96" text-anchor="middle">先端荷重 200 N</text><line class="k-move" x1="163" y1="78" x2="187" y2="78" style="stroke-width:1.6"/><text class="k-note" x="175" y="66" text-anchor="middle">引用</text><g class="k-shadow"><path d="M190,46 H318 L330,58 V108 H190 Z" style="fill:var(--tb-surface);stroke:var(--k-line-2)" stroke-width="1.5"/></g><path d="M318,46 V58 H330" fill="none" style="stroke:var(--k-line-2)" stroke-width="1.2"/><rect x="200" y="56" width="95" height="20" rx="10" style="fill:var(--tb-accent);fill-opacity:0.15"/><text class="lbl" x="207" y="71">計算書 No.12</text><text class="tick" x="260" y="96" text-anchor="middle">M6 8.8 で安全率 3.1</text><line class="k-move" x1="333" y1="78" x2="357" y2="78" style="stroke-width:1.6"/><text class="k-note" x="345" y="66" text-anchor="middle">引用</text><g class="k-shadow"><path d="M360,46 H488 L500,58 V108 H360 Z" style="fill:var(--tb-surface);stroke:var(--k-line-2)" stroke-width="1.5"/></g><path d="M488,46 V58 H500" fill="none" style="stroke:var(--k-line-2)" stroke-width="1.2"/><rect x="370" y="56" width="86" height="20" rx="10" style="fill:var(--tb-accent);fill-opacity:0.15"/><text class="lbl" x="377" y="71">図面 A-102</text><text class="tick" x="430" y="96" text-anchor="middle">M6 × 4、強度区分 8.8</text>
+<text class="tick" x="260" y="140" text-anchor="middle">「なぜ M6 なのか」を後任が逆にたどれるよう、番号で引用し合う (数値は例)</text>
+</svg>
+<p class="tb-caption">図: 根拠は文書間の参照番号でつなぐ。図面の寸法から計算書、計算書から仕様へと逆にたどれることが大切</p>
 <h2>設計根拠を残すコツ</h2>
 <ul>
   <li><b>決めた理由を 1 行で書く</b>: 「φ20 は軸受内径の標準から」「SUS304 は洗浄液対策」など。数年後の自分が一番の読み手</li>
@@ -177,6 +188,11 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
   <tr><td>量産試作</td><td>量産工程・金型で品質が安定するか</td><td>量産の型・治具・作業者で作る</td></tr>
 </table>
 <div class="tb-note">機能試作を 3D プリントで作ると、材料が違うため強度・剛性・熱変形の評価には使えません。<b>何を確かめる試作か</b>を先に決め、それに合った作り方を選びます。</div>
+<svg class="tb-chart" viewBox="0 0 520 196" role="img" aria-label="試作段階ごとに確かめること">
+<rect x="140" y="24" width="100" height="24" rx="12" style="fill:var(--tb-accent);fill-opacity:0.15"/><text class="lbl" x="190" y="41" text-anchor="middle">機能試作</text><rect x="260" y="24" width="100" height="24" rx="12" style="fill:var(--tb-accent);fill-opacity:0.15"/><text class="lbl" x="310" y="41" text-anchor="middle">設計試作</text><rect x="380" y="24" width="100" height="24" rx="12" style="fill:var(--tb-accent);fill-opacity:0.15"/><text class="lbl" x="430" y="41" text-anchor="middle">量産試作</text><rect x="14" y="51" width="492" height="34" rx="6" style="fill:var(--tb-surface-2)"/><text class="lbl" x="116" y="72" text-anchor="end">原理・機能</text><text class="lbl" x="116" y="112" text-anchor="end">強度・寿命・環境</text><rect x="14" y="131" width="492" height="34" rx="6" style="fill:var(--tb-surface-2)"/><text class="lbl" x="116" y="152" text-anchor="end">量産の品質安定</text><circle cx="190" cy="68" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="190" y="72" text-anchor="middle">✓</text><circle cx="190" cy="108" r="9" fill="none" style="stroke:var(--tb-text-3)" stroke-width="1.4" stroke-dasharray="3 2"/><circle cx="190" cy="148" r="9" fill="none" style="stroke:var(--tb-text-3)" stroke-width="1.4" stroke-dasharray="3 2"/><circle cx="310" cy="68" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="310" y="72" text-anchor="middle">✓</text><circle cx="310" cy="108" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="310" y="112" text-anchor="middle">✓</text><circle cx="310" cy="148" r="9" fill="none" style="stroke:var(--tb-text-3)" stroke-width="1.4" stroke-dasharray="3 2"/><circle cx="430" cy="68" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="430" y="72" text-anchor="middle">✓</text><circle cx="430" cy="108" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="430" y="112" text-anchor="middle">✓</text><circle cx="430" cy="148" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="430" y="152" text-anchor="middle">✓</text>
+<text class="tick" x="300" y="182" text-anchor="middle">● 確かめられる  ○ 確かめられない (材料・工法が違うため)</text>
+</svg>
+<p class="tb-caption">図: 試作の段階が進むほど量産品に近づき、確かめられることが増える。機能試作の結果で強度を判断しない</p>
 <h2>評価試験の種類</h2>
 <table class="tb-table">
   <tr><th>分類</th><th>試験</th><th>確かめること</th></tr>
@@ -212,15 +228,18 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
   <li><b>温度の加速</b>: 化学反応による劣化は温度が高いほど速い (アレニウスの式)。経験則として「10 °C 上がると寿命が約半分」が目安に使われることがあるが、材料・劣化メカニズムで異なる</li>
   <li><b>荷重の加速</b>: S-N 曲線を使い、高い応力で回数を減らす</li>
 </ul>
-<svg class="tb-chart" viewBox="0 0 520 210" aria-label="温度と寿命 (10℃ 2 倍則の目安)">
-  <line class="axis" x1="60" y1="170" x2="490" y2="170"/><line class="axis" x1="60" y1="20" x2="60" y2="170"/>
-  <line class="grid" x1="60" y1="45" x2="490" y2="45"/><line class="grid" x1="60" y1="95" x2="490" y2="95"/><line class="grid" x1="60" y1="145" x2="490" y2="145"/>
-  <polyline points="80,35 140,52 200,68 260,85 320,102 380,118 440,135" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <circle class="mark" cx="80" cy="35" r="4"/><circle class="mark" cx="440" cy="135" r="4"/>
-  <text class="mark-t" x="88" y="30">25 °C: 1</text><text class="mark-t" x="430" y="155" text-anchor="end">85 °C: 1/64</text>
-  <text class="tick" x="80" y="186" text-anchor="middle">25</text><text class="tick" x="260" y="186" text-anchor="middle">55</text><text class="tick" x="440" y="186" text-anchor="middle">85</text>
-  <text class="lbl" x="485" y="204" text-anchor="end">温度 °C</text>
-  <text class="lbl" x="66" y="16">相対寿命 (対数目盛)</text>
+<svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="温度と寿命 (10℃ 2 倍則の目安)">
+<line class="grid" x1="60" y1="35" x2="490" y2="35"/><line class="grid" x1="60" y1="85" x2="490" y2="85"/><line class="grid" x1="60" y1="135" x2="490" y2="135"/>
+<text class="tick" x="54" y="39" text-anchor="end">1</text><text class="tick" x="54" y="89" text-anchor="end">1/8</text><text class="tick" x="54" y="139" text-anchor="end">1/64</text>
+<polygon points="80,35.0 140,51.7 200,68.3 260,85.0 320,101.7 380,118.4 440,135.0 440,170 80,170" style="fill:var(--tb-accent);fill-opacity:0.12"/>
+<line class="axis" x1="60" y1="170" x2="490" y2="170"/><line class="axis" x1="60" y1="20" x2="60" y2="170"/>
+<polyline points="80,35.0 140,51.7 200,68.3 260,85.0 320,101.7 380,118.4 440,135.0" fill="none" style="stroke:var(--tb-accent)" stroke-width="2.5"/>
+<circle cx="140" cy="51.7" r="3.5" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="2"/><circle cx="200" cy="68.3" r="3.5" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="2"/><circle cx="260" cy="85.0" r="3.5" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="2"/><circle cx="320" cy="101.7" r="3.5" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="2"/><circle cx="380" cy="118.4" r="3.5" style="fill:var(--tb-surface);stroke:var(--tb-accent)" stroke-width="2"/><text class="tick" x="144" y="43.7">1/2</text><text class="tick" x="204" y="60.3">1/4</text><text class="tick" x="264" y="77.0">1/8</text><text class="tick" x="324" y="93.7">1/16</text><text class="tick" x="384" y="110.4">1/32</text>
+<circle class="mark" cx="80" cy="35" r="5"/><circle class="mark" cx="440" cy="135" r="5"/>
+<text class="mark-t" x="90" y="30">25 °C: 1</text><text class="mark-t" x="446" y="125">85 °C: 1/64</text>
+<text class="tick" x="80" y="186" text-anchor="middle">25</text><text class="tick" x="260" y="186" text-anchor="middle">55</text><text class="tick" x="440" y="186" text-anchor="middle">85</text>
+<text class="lbl" x="485" y="204" text-anchor="end">温度 °C</text>
+<text class="lbl" x="66" y="16">相対寿命 (対数目盛)</text>
 </svg>
 <div class="tb-note">加速しすぎると、実使用では起こらない壊れ方 (樹脂の軟化、潤滑剤の分解など) が起きます。<b>壊れ方 (故障モード) が実使用と同じか</b>を必ず確認します。</div>
 <div class="tb-tip"><b>3DCAD Studio</b>: <b>応力解析・PDF レポート</b>で試験前に応力集中箇所を予測し、ひずみゲージの貼り位置や観察箇所を決めておくと、試験結果と解析の比較ができます。</div>`,
@@ -258,17 +277,16 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
 </ol>
 <h2>寸法ループと累積の計算</h2>
 <p>ハウジングの中に 4 つの部品を並べ、端に残るすき間 G を考えます。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="寸法ループ">
-  <rect x="40" y="40" width="440" height="60" fill="none" stroke="currentColor" stroke-width="1.5"/>
-  <rect x="40" y="50" width="100" height="40" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <rect x="140" y="50" width="150" height="40" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <rect x="290" y="50" width="75" height="40" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <rect x="365" y="50" width="100" height="40" fill="none" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="lbl" x="90" y="75" text-anchor="middle">A 20</text><text class="lbl" x="215" y="75" text-anchor="middle">B 30</text>
-  <text class="lbl" x="327" y="75" text-anchor="middle">C 15</text><text class="lbl" x="415" y="75" text-anchor="middle">D 10</text>
-  <text class="mark-t" x="472" y="35" text-anchor="middle">G</text>
-  <line class="guide" x1="40" y1="125" x2="480" y2="125"/>
-  <text class="sec" x="260" y="145" text-anchor="middle">ハウジング内寸 H = 75.5 ± 0.1</text>
+<svg class="tb-chart" viewBox="0 0 520 192" role="img" aria-label="寸法ループ">
+<g class="k-shadow"><path class="k-cut" d="M42,36 L58,36 L58,110 L462,110 L462,36 L478,36 L478,126 L42,126 Z"/><rect class="k-part" x="58" y="64" width="104" height="46" rx="2"/><rect class="k-alu" x="162" y="64" width="156" height="46" rx="2"/><rect class="k-part" x="318" y="64" width="78" height="46" rx="2"/><rect class="k-alu" x="396" y="64" width="52" height="46" rx="2"/></g>
+<text class="lbl" x="110" y="92" text-anchor="middle">A 20</text><text class="lbl" x="240" y="92" text-anchor="middle">B 30</text><text class="lbl" x="357" y="92" text-anchor="middle">C 15</text><text class="lbl" x="422" y="92" text-anchor="middle">D 10</text>
+<rect x="448" y="64" width="14" height="46" style="fill:var(--tb-bad);fill-opacity:0.2"/>
+<text class="k-bad-t" x="455" y="92" text-anchor="middle">G</text>
+<line class="k-ext" x1="58" y1="62" x2="58" y2="44"/><line class="k-dimline" x1="58" y1="50" x2="162" y2="50"/><line class="k-ext" x1="162" y1="62" x2="162" y2="44"/><line class="k-dimline" x1="162" y1="50" x2="318" y2="50"/><line class="k-ext" x1="318" y1="62" x2="318" y2="44"/><line class="k-dimline" x1="318" y1="50" x2="396" y2="50"/><line class="k-ext" x1="396" y1="62" x2="396" y2="44"/><line class="k-dimline" x1="396" y1="50" x2="448" y2="50"/><line class="k-ext" x1="448" y1="62" x2="448" y2="44"/>
+<text class="k-note" x="260" y="28" text-anchor="middle">部品 A〜D を並べた残りがすき間 G (G は誇張して表示)</text>
+<line class="k-ext" x1="58" y1="112" x2="58" y2="156"/><line class="k-ext" x1="462" y1="112" x2="462" y2="156"/>
+<line class="k-dimline" x1="58" y1="150" x2="462" y2="150"/>
+<text class="k-dimtext" x="260" y="174" text-anchor="middle">ハウジング内寸 H = 75.5 ± 0.1</text>
 </svg>
 <div class="tb-formula">G = H − (A + B + C + D)　　公称 G = 75.5 − 75 = 0.5</div>
 <table class="tb-table">
@@ -287,6 +305,23 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
   <tr><td>モンテカルロ</td><td>乱数で多数回 (例: 20 万回) 組み立て</td><td>RSS とほぼ同じ (±0.23 程度)</td><td>分布が偏っている・非線形でも使える</td></tr>
 </table>
 <div class="tb-note">RSS は部品数が少ない (2〜3 個) と楽観的になりやすく、加工が公差の片側に寄る (偏り) 場合も外れます。実務ではワーストケースと RSS の中間を取る修正 RSS (係数 1.5 倍など) を使う会社もあります。</div>
+<svg class="tb-chart" viewBox="0 0 520 226" role="img" aria-label="ワーストケースと RSS の範囲">
+<rect x="60" y="40" width="400" height="125" style="fill:var(--tb-bad);fill-opacity:0.07"/>
+<line x1="60" y1="36" x2="60" y2="165" style="stroke:var(--tb-bad)" stroke-width="1.5"/><line x1="460" y1="36" x2="460" y2="165" style="stroke:var(--tb-bad)" stroke-width="1.5"/>
+<line class="k-dimline" x1="60" y1="36" x2="460" y2="36" style="stroke:var(--tb-bad)"/>
+<text class="k-bad-t" x="260" y="28" text-anchor="middle">ワーストケース 0〜1.00</text>
+<polygon points="120.0,165.0 124.0,165.0 128.0,165.0 132.0,165.0 136.0,165.0 140.0,164.9 144.0,164.9 148.0,164.8 152.0,164.7 156.0,164.5 160.0,164.3 164.0,163.9 168.0,163.5 172.0,162.8 176.0,161.8 180.0,160.6 184.0,158.9 188.0,156.8 192.0,154.1 196.0,150.7 200.0,146.6 204.0,141.7 208.0,136.0 212.0,129.4 216.0,122.1 220.0,114.1 224.0,105.6 228.0,96.7 232.0,87.9 236.0,79.2 240.0,71.2 244.0,64.1 248.0,58.1 252.0,53.7 256.0,50.9 260.0,50.0 264.0,50.9 268.0,53.7 272.0,58.1 276.0,64.1 280.0,71.2 284.0,79.2 288.0,87.9 292.0,96.7 296.0,105.6 300.0,114.1 304.0,122.1 308.0,129.4 312.0,136.0 316.0,141.7 320.0,146.6 324.0,150.7 328.0,154.1 332.0,156.8 336.0,158.9 340.0,160.6 344.0,161.8 348.0,162.8 352.0,163.5 356.0,163.9 360.0,164.3 364.0,164.5 368.0,164.7 372.0,164.8 376.0,164.9 380.0,164.9 384.0,165.0 388.0,165.0 392.0,165.0 396.0,165.0 400.0,165.0" style="fill:var(--tb-accent);fill-opacity:0.18"/>
+<line x1="166" y1="60" x2="166" y2="196" style="stroke:var(--tb-accent)" stroke-dasharray="4 3"/><line x1="354" y1="60" x2="354" y2="196" style="stroke:var(--tb-accent)" stroke-dasharray="4 3"/>
+<polyline points="120.0,165.0 124.0,165.0 128.0,165.0 132.0,165.0 136.0,165.0 140.0,164.9 144.0,164.9 148.0,164.8 152.0,164.7 156.0,164.5 160.0,164.3 164.0,163.9 168.0,163.5 172.0,162.8 176.0,161.8 180.0,160.6 184.0,158.9 188.0,156.8 192.0,154.1 196.0,150.7 200.0,146.6 204.0,141.7 208.0,136.0 212.0,129.4 216.0,122.1 220.0,114.1 224.0,105.6 228.0,96.7 232.0,87.9 236.0,79.2 240.0,71.2 244.0,64.1 248.0,58.1 252.0,53.7 256.0,50.9 260.0,50.0 264.0,50.9 268.0,53.7 272.0,58.1 276.0,64.1 280.0,71.2 284.0,79.2 288.0,87.9 292.0,96.7 296.0,105.6 300.0,114.1 304.0,122.1 308.0,129.4 312.0,136.0 316.0,141.7 320.0,146.6 324.0,150.7 328.0,154.1 332.0,156.8 336.0,158.9 340.0,160.6 344.0,161.8 348.0,162.8 352.0,163.5 356.0,163.9 360.0,164.3 364.0,164.5 368.0,164.7 372.0,164.8 376.0,164.9 380.0,164.9 384.0,165.0 388.0,165.0 392.0,165.0 396.0,165.0 400.0,165.0" fill="none" style="stroke:var(--tb-accent)" stroke-width="2.5"/>
+<line class="axis" x1="40" y1="165" x2="490" y2="165"/>
+<text class="tick" x="60" y="181" text-anchor="middle">0</text><text class="tick" x="166" y="181" text-anchor="middle">0.265</text><text class="tick" x="260" y="181" text-anchor="middle">0.5</text><text class="tick" x="354" y="181" text-anchor="middle">0.735</text><text class="tick" x="460" y="181" text-anchor="middle">1.0</text>
+<line class="k-dimline" x1="166" y1="194" x2="354" y2="194"/>
+<text class="k-dimtext" x="260" y="214" text-anchor="middle">RSS 0.265〜0.735 (±3σ)</text>
+<text class="lbl" x="490" y="214" text-anchor="end">すき間 G (mm)</text>
+</svg>
+<p class="tb-caption">図: 上の例のすき間 G の分布。実際の組立品はほとんどが RSS の範囲に入り、ワーストケースの両端は極めてまれ (各寸法が独立・正規分布で ±3σ = 公差の前提)</p>
+<p>実際の組立品で何が起きるかをアニメーションで見てみましょう。寸法がばらついた部品を次々に組み立て、すき間と合否の数を積み上げていきます。ワーストケースの範囲の端にはほとんど届かないことが分かります。</p>
+<div data-widget="anim-stack"></div>
 <h2>寄与率と公差配分</h2>
 <div class="tb-formula">寄与率 = t<sub>i</sub>² / Σt²</div>
 <table class="tb-table">
@@ -350,6 +385,16 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
   <tr><td>団体・業界規格</td><td>JASO (自動車)、JEM (電機工業会) など</td><td>業界固有の要求</td></tr>
   <tr><td>社内規格</td><td>設計基準、標準部品リスト、製図規定</td><td>公的規格を自社向けに絞り込み・具体化</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 212" role="img" aria-label="規格の階層">
+<g class="k-shadow">
+<polygon points="260,20 330,70 190,70" style="fill:var(--tb-accent);fill-opacity:0.9"/><polygon points="260,20 330,70 346,62" style="fill:var(--k-accent-2)"/>
+<polygon points="190,74 330,74 390,116 130,116" style="fill:var(--tb-accent);fill-opacity:0.65"/><polygon points="330,74 346,66 406,108 390,116" style="fill:var(--k-accent-2);fill-opacity:0.8"/>
+<polygon points="130,120 390,120 440,156 80,156" style="fill:var(--tb-accent);fill-opacity:0.42"/><polygon points="390,120 406,112 456,148 440,156" style="fill:var(--k-accent-2);fill-opacity:0.6"/>
+<polygon points="80,160 440,160 490,196 30,196" style="fill:var(--tb-accent);fill-opacity:0.24"/><polygon points="440,160 456,152 506,188 490,196" style="fill:var(--k-accent-2);fill-opacity:0.4"/>
+</g>
+<text class="mark-t" x="260" y="60" text-anchor="middle">ISO / IEC</text><text class="mark-t" x="260" y="100" text-anchor="middle">JIS・ANSI・DIN (国家規格)</text><text class="mark-t" x="260" y="143" text-anchor="middle">JASO・JEM など (団体規格)</text><text class="mark-t" x="260" y="183" text-anchor="middle">社内規格 (設計基準・標準部品)</text>
+</svg>
+<p class="tb-caption">図: 上ほど適用範囲が広く、下ほど自社向けに具体的。社内規格は公的規格を絞り込み・具体化したもの</p>
 <h2>規格番号の読み方</h2>
 <pre class="tb-pre">JIS B 1180 : 2014
 │   │ │       └─ 制定・改正の年
@@ -375,6 +420,17 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
   <tr><td>例</td><td>労働安全衛生法、電気用品安全法、建築基準法</td><td>JIS、ISO、IEC</td></tr>
   <tr><td>関係</td><td colspan="2">法令が規格を引用すると、その規格は事実上の義務になる。契約・仕様書で指定された規格も守る義務が生じる</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 184" role="img" aria-label="法規と規格の関係">
+<ellipse cx="190" cy="90" rx="140" ry="64" style="fill:var(--tb-bad);fill-opacity:0.12;stroke:var(--tb-bad)" stroke-width="1.6"/>
+<ellipse cx="330" cy="90" rx="140" ry="64" style="fill:var(--tb-accent);fill-opacity:0.12;stroke:var(--tb-accent)" stroke-width="1.6"/>
+<rect x="84" y="62" width="72" height="20" rx="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="120" y="76" text-anchor="middle">強制</text>
+<rect x="364" y="62" width="72" height="20" rx="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="400" y="76" text-anchor="middle">任意</text>
+<text class="lbl" x="120" y="102" text-anchor="middle" style="fill:var(--tb-bad)">法規 (強制)</text><text class="tick" x="120" y="120" text-anchor="middle">守らないと違法</text>
+<text class="mark-t" x="400" y="102" text-anchor="middle">規格 (任意)</text><text class="tick" x="396" y="120" text-anchor="middle">守ると品質・互換性を示せる</text>
+<text class="mark-t" x="260" y="85" text-anchor="middle">法令が引用</text><text class="mark-t" x="260" y="104" text-anchor="middle">した規格</text>
+<text class="tick" x="260" y="176" text-anchor="middle">重なり: 法令が引用した規格は実質的に強制になる</text>
+</svg>
+<p class="tb-caption">図: 規格は本来任意だが、法令や契約で引用されると守る義務が生じる</p>
 <h2>機械設計でよく使う JIS</h2>
 <table class="tb-table">
   <tr><th>番号</th><th>名称 (略)</th></tr>
@@ -438,15 +494,18 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
 <div class="tb-formula">A = MTBF / (MTBF + MTTR)</div>
 <p>例: MTBF 10 000 h、MTTR 5 h → A = 10 000 / 10 005 ≈ 0.9995 (99.95 %)。年間 8 760 h のうち停止は約 4.4 h。MTTR を短くする (交換しやすい構造、予備品、診断機能) こともアベイラビリティ向上に効きます。</p>
 <h2>バスタブ曲線</h2>
-<svg class="tb-chart" viewBox="0 0 520 210" aria-label="バスタブ曲線">
-  <line class="axis" x1="50" y1="170" x2="500" y2="170"/><line class="axis" x1="50" y1="20" x2="50" y2="170"/>
-  <path d="M60,30 C90,110 120,130 170,130 L360,130 C410,130 450,110 490,35" fill="none" stroke="var(--tb-accent)" stroke-width="2.5"/>
-  <line class="guide" x1="170" y1="25" x2="170" y2="170"/><line class="guide" x1="360" y1="25" x2="360" y2="170"/>
-  <text class="sec" x="110" y="160" text-anchor="middle">初期故障期</text>
-  <text class="sec" x="265" y="160" text-anchor="middle">偶発故障期 (λ 一定)</text>
-  <text class="sec" x="430" y="160" text-anchor="middle">摩耗故障期</text>
-  <text class="lbl" x="495" y="190" text-anchor="end">時間</text>
-  <text class="lbl" x="56" y="16">故障率 λ</text>
+<svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="バスタブ曲線">
+<rect x="50" y="20" width="120" height="150" style="fill:var(--tb-warn);fill-opacity:0.08"/><rect x="170" y="20" width="190" height="150" style="fill:var(--tb-good);fill-opacity:0.08"/><rect x="360" y="20" width="140" height="150" style="fill:var(--tb-bad);fill-opacity:0.08"/>
+<line class="axis" x1="50" y1="170" x2="500" y2="170"/><line class="axis" x1="50" y1="20" x2="50" y2="170"/>
+<path d="M60,30 C90,110 120,130 170,130 L360,130 C410,130 450,110 490,35 L490,170 L60,170 Z" style="fill:var(--tb-accent);fill-opacity:0.12"/>
+<path d="M60,30 C90,110 120,130 170,130 L360,130 C410,130 450,110 490,35" fill="none" style="stroke:var(--tb-accent)" stroke-width="2.5"/>
+<line class="guide" x1="170" y1="25" x2="170" y2="170"/><line class="guide" x1="360" y1="25" x2="360" y2="170"/>
+<text class="k-note" x="120" y="48" text-anchor="middle">減少</text><text class="k-note" x="265" y="118" text-anchor="middle">一定</text><text class="k-note" x="410" y="48" text-anchor="middle">増加</text>
+<text class="lbl" x="110" y="160" text-anchor="middle">初期故障期</text>
+<text class="lbl" x="265" y="160" text-anchor="middle">偶発故障期 (λ 一定)</text>
+<text class="lbl" x="430" y="160" text-anchor="middle">摩耗故障期</text>
+<text class="lbl" x="495" y="190" text-anchor="end">時間</text>
+<text class="lbl" x="56" y="14">故障率 λ</text>
 </svg>
 <table class="tb-table">
   <tr><th>期間</th><th>原因</th><th>対策</th></tr>
@@ -456,20 +515,17 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
 </table>
 <h2>直列系と並列系</h2>
 <div class="tb-formula">直列: R<sub>s</sub> = Π R<sub>i</sub>　　並列: R<sub>p</sub> = 1 − Π (1 − R<sub>i</sub>)</div>
-<svg class="tb-chart" viewBox="0 0 520 170" aria-label="直列系と並列系">
-  <text class="lbl" x="20" y="25">直列</text>
-  <line class="guide" x1="20" y1="50" x2="240" y2="50"/>
-  <rect x="45" y="35" width="40" height="30" fill="var(--tb-bg, #fff)" stroke="var(--tb-accent)" stroke-width="2"/>
-  <rect x="110" y="35" width="40" height="30" fill="var(--tb-bg, #fff)" stroke="var(--tb-accent)" stroke-width="2"/>
-  <rect x="175" y="35" width="40" height="30" fill="var(--tb-bg, #fff)" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="tick" x="130" y="95" text-anchor="middle">1 つでも壊れると停止</text>
-  <text class="lbl" x="280" y="25">並列 (冗長)</text>
-  <line class="guide" x1="280" y1="80" x2="320" y2="80"/><line class="guide" x1="320" y1="50" x2="320" y2="110"/>
-  <line class="guide" x1="420" y1="50" x2="420" y2="110"/><line class="guide" x1="420" y1="80" x2="460" y2="80"/>
-  <line class="guide" x1="320" y1="50" x2="420" y2="50"/><line class="guide" x1="320" y1="110" x2="420" y2="110"/>
-  <rect x="350" y="35" width="40" height="30" fill="var(--tb-bg, #fff)" stroke="var(--tb-accent)" stroke-width="2"/>
-  <rect x="350" y="95" width="40" height="30" fill="var(--tb-bg, #fff)" stroke="var(--tb-accent)" stroke-width="2"/>
-  <text class="tick" x="370" y="150" text-anchor="middle">全部壊れるまで動く</text>
+<svg class="tb-chart" viewBox="0 0 520 184" role="img" aria-label="直列系と並列系">
+<rect class="k-panel" x="8" y="8" width="244" height="168" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="168" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">直列</text><circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">並列 (冗長)</text>
+<line class="k-edge" x1="22" y1="90" x2="238" y2="90"/>
+<line x1="150" y1="90" x2="238" y2="90" style="stroke:var(--tb-bad)" stroke-width="2" stroke-dasharray="4 3"/>
+<g class="k-shadow"><rect class="k-alu" x="45" y="75" width="40" height="30" rx="4" style="stroke:var(--tb-accent)"/><text class="lbl" x="65" y="95" text-anchor="middle">1</text><rect class="k-alu" x="110" y="75" width="40" height="30" rx="4" style="stroke:var(--tb-bad)"/><text class="lbl" x="130" y="95" text-anchor="middle">2</text><path d="M114,79 L146,101 M146,79 L114,101" fill="none" style="stroke:var(--tb-bad)" stroke-width="2"/><rect class="k-alu" x="175" y="75" width="40" height="30" rx="4" style="stroke:var(--tb-accent)"/><text class="lbl" x="195" y="95" text-anchor="middle">3</text></g>
+<text class="k-bad-t" x="130" y="150" text-anchor="middle">1 つでも壊れると停止</text>
+<path class="k-edge" d="M282,95 L320,95 M320,65 L320,125 M420,65 L420,125 M420,95 L498,95 M320,65 L420,65 M320,125 L420,125"/>
+<path d="M320,95 L320,125 L420,125 L420,95 L498,95" fill="none" style="stroke:var(--tb-good)" stroke-width="2.4"/><path d="M282,95 L320,95" fill="none" style="stroke:var(--tb-good)" stroke-width="2.4"/>
+<g class="k-shadow"><rect class="k-alu" x="350" y="50" width="40" height="30" rx="4" style="stroke:var(--tb-bad)"/><text class="lbl" x="370" y="70" text-anchor="middle">1</text><path d="M354,54 L386,76 M386,54 L354,76" fill="none" style="stroke:var(--tb-bad)" stroke-width="2"/><rect class="k-alu" x="350" y="110" width="40" height="30" rx="4" style="stroke:var(--tb-accent)"/><text class="lbl" x="370" y="130" text-anchor="middle">2</text></g>
+<text class="k-good-t" x="390" y="168" text-anchor="middle">全部壊れるまで動く</text>
 </svg>
 <p>例: 単体 MTBF 10 000 h、使用時間 1 000 h → R = exp(−0.1) ≈ 0.905。</p>
 <table class="tb-table">
@@ -530,6 +586,22 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
   <tr><th>対策</th><td>隅 R を大きく、逃げ溝の形状変更、表面硬化、疲労限度に基づく再計算</td></tr>
   <tr><th>教訓</th><td>繰返し荷重がかかる部品は必ず疲労で評価。破面のビーチマークは疲労のサイン</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 224" role="img" aria-label="段付き軸の隅 R と疲労き裂">
+<text class="k-note" x="260" y="16" text-anchor="middle">回転曲げ (繰返し応力) を受ける軸</text>
+<rect class="k-panel" x="8" y="24" width="244" height="196" rx="8"/><rect class="k-panel" x="268" y="24" width="244" height="196" rx="8"/>
+<circle class="k-badge" cx="28" cy="44" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="48" text-anchor="middle">✕</text><text class="k-title" x="46" y="48">隅 R が小さい</text><circle class="k-badge" cx="288" cy="44" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="48" text-anchor="middle">✓</text><text class="k-title" x="306" y="48">隅 R を大きく</text>
+<g class="k-shadow"><path class="k-part" d="M24,72 L130,72 L130,92 L236,92 L236,132 L130,132 L130,152 L24,152 Z"/>
+<path class="k-part" d="M284,72 L380,72 A20,20 0 0 0 400,92 L496,92 L496,132 L400,132 A20,20 0 0 0 380,152 L284,152 Z"/></g>
+<line class="k-center" x1="18" y1="112" x2="242" y2="112"/><line class="k-center" x1="278" y1="112" x2="502" y2="112"/>
+<circle cx="130" cy="92" r="11" class="k-glow" style="fill:var(--tb-bad);fill-opacity:0.25"/>
+<polyline points="131,93 138,101 134,107 139,113" fill="none" style="stroke:var(--tb-bad)" stroke-width="2.2"/>
+<circle cx="392" cy="86" r="14" style="fill:var(--tb-good);fill-opacity:0.15;stroke:var(--tb-good)" stroke-width="1.4" stroke-dasharray="3 2"/>
+<text class="k-dimtext" x="404" y="76">R</text>
+<path class="k-move" d="M226,160 A10,6 0 1 1 226,168" style="stroke-width:1.6"/><path class="k-move" d="M486,160 A10,6 0 1 1 486,168" style="stroke-width:1.6"/>
+<text class="k-bad-t" x="130" y="194" text-anchor="middle">応力集中 → き裂</text>
+<text class="k-good-t" x="390" y="194" text-anchor="middle">応力集中を緩和</text>
+</svg>
+<p class="tb-caption">図: 事例 1。段付き部の隅 R が小さいと、繰返し荷重で隅からき裂が進む (破面にビーチマーク)</p>
 <h2>2. 熱膨張</h2>
 <table class="tb-table">
   <tr><th>現象</th><td>アルミフレームに鋼のリニアガイドを固定した装置が、夏場に動きが渋くなる</td></tr>
@@ -537,6 +609,14 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
   <tr><th>対策</th><td>片側固定・片側フリー、同材質化、温度範囲の再定義</td></tr>
   <tr><th>教訓</th><td>異種材料を長い距離で拘束しない。使用温度範囲を仕様に明記する</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="異種材料の拘束と片側フリー">
+<g class="k-shadow"><rect class="k-alu" x="40" y="52" width="440" height="20" rx="2"/><rect class="k-part" x="60" y="40" width="400" height="12" rx="2"/></g><text class="tick" x="260" y="67" text-anchor="middle">アルミフレーム (23 × 10⁻⁶ /K)</text><rect x="64" y="32" width="12" height="8" rx="2" style="fill:var(--tb-bad)"/><rect x="444" y="32" width="12" height="8" rx="2" style="fill:var(--tb-bad)"/><path d="M76,36 Q260,14 444,36" fill="none" style="stroke:var(--tb-bad)" stroke-width="1.4" stroke-dasharray="4 3"/>
+<text class="lbl" x="260" y="96" text-anchor="middle" style="fill:var(--tb-bad)">両端固定: 膨張差 0.22 mm が逃げられず、反り・渋り</text>
+<g class="k-shadow"><rect class="k-alu" x="40" y="140" width="440" height="20" rx="2"/><rect class="k-part" x="60" y="128" width="400" height="12" rx="2"/></g><text class="tick" x="260" y="155" text-anchor="middle">アルミフレーム</text><text class="k-note" x="260" y="122" text-anchor="middle">鋼のリニアガイド</text><rect x="64" y="120" width="12" height="8" rx="2" style="fill:var(--tb-bad)"/><rect x="440" y="118" width="28" height="14" rx="7" style="fill:var(--tb-surface);stroke:var(--tb-good)" stroke-width="2"/><circle cy="125" r="4.5" style="fill:var(--tb-good)"><animate attributeName="cx" values="447;461;447" dur="3s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1"/></circle><text class="k-note" x="70" y="116" text-anchor="middle">固定</text><text class="k-note" x="454" y="114" text-anchor="middle">長穴</text>
+<text class="lbl" x="260" y="184" text-anchor="middle" style="fill:var(--tb-good)">片側固定 + 長穴: 伸び縮みを逃がす</text>
+<text class="tick" x="260" y="208" text-anchor="middle">鋼のリニアガイド 500 mm、ΔT 40 K のとき 500 × 11 × 10⁻⁶ × 40 ≈ 0.22 mm</text>
+</svg>
+<p class="tb-caption">図: 事例 2。線膨張係数の違う材料を長い距離で両端固定しない。片側は長穴などで動けるようにする (緑の点が温度変化で動く)</p>
 <h2>3. 電食 (異種金属接触腐食)</h2>
 <table class="tb-table">
   <tr><th>現象</th><td>屋外装置のアルミ板とステンレスねじの周りが白く腐食し、ねじが緩む</td></tr>
