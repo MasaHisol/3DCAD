@@ -511,4 +511,6 @@ export interface PartDocument {
   drawing?: import("../drawing/types").DrawingDoc;
   /** Recorded revisions (oldest first). */
   revisions?: import("./revisions").Revision[];
+  /** MBD: 3D annotations (PMI) attached to model faces / edges. */
+  pmi?: import("../mbd/pmi").PmiAnno[];
 }

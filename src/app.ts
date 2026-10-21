@@ -31,6 +31,8 @@ import { read3mf, readGlb, readPly } from "./io/meshin";
 import { openNativeInfo } from "./io/nativeDialog";
 import type { Rule, RuleContext, RuleResult } from "./rules/engine";
 import { DrawingEnv } from "./drawing/env";
+import { PmiLayer } from "./mbd/layer";
+import { editPmi } from "./mbd/commands";
 import { newAssembly, type AssemblyDocument } from "./assembly/types";
 import { openLearningCenter, startLessonById } from "./learn/lazy";
 import { listenForLessons, openTextbook } from "./learn/textbookLink";
@@ -52,6 +54,8 @@ export class App {
   browser!: ModelBrowser;
   panelHost!: HTMLElement;
   commands!: CommandRegistry;
+  /** MBD: 3D annotations (PMI) display. */
+  pmi!: PmiLayer;
 
   /** Active environment: part modelling or assembly. */
   env: "part" | "assembly" | "drawing" = "part";
@@ -175,6 +179,8 @@ export class App {
     main.appendChild(vpEl);
 
     this.vp = new Viewport(vpEl);
+    this.pmi = new PmiLayer(this);
+    this.pmi.onLabelDblClick = (id) => editPmi(this, id);
     this.loadSettings();
     this.timeline = new Timeline(vpEl, this);
     this.cube = new ViewCube(this.vp, vpEl, () => this.homeView());
@@ -327,6 +333,7 @@ export class App {
     if (reason === "refs") return;
     this.watchRules(reason);
     this.scheduleAutosave();
+    if (reason.startsWith("PMI")) return void this.refreshUI(); // annotations only: no rebuild
     if (this.mode === "sketch" && this.sketchEditor) {
       if (!this.store.feature(this.sketchEditor.sketchId)) {
         // sketch removed by undo
@@ -1827,6 +1834,7 @@ export class App {
     this.browser.render();
     this.ribbon.refresh();
     this.timeline?.render();
+    this.pmi?.refresh();
   }
 
   private syncMaterial() {

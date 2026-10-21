@@ -3,6 +3,7 @@ import type { App } from "../app";
 import { featureSketchRefs, ORIGIN_PLANES, uid } from "../core/document";
 import { formatNumber } from "../core/expr";
 import { holeCenterPoints, planeToWorld, worldToPlane } from "../core/resolve";
+import { PMI_COMMANDS, startPmiCommand } from "../mbd/commands";
 import { ensureSheetStyle, matchEdge, outerEdges, segPointDist, type SheetEdge } from "../sheetmetal/sheet";
 import { clearanceHole, counterbore, countersink, FAMILY_LABEL, FIT_LABEL, tapDrill, threadByName, threadsOf, type Fit, type ThreadFamily } from "../core/threads";
 import type {
@@ -2329,6 +2330,12 @@ export function buildCommands(app: App): CommandRegistry {
     stress: { id: "stress", label: "応力解析", icon: "stress" },
     cam: { id: "cam", label: "CAM", icon: "cam" },
     printcheck: { id: "printcheck", label: "3D プリント チェック", icon: "printcheck" },
+    "pmi-dim": { id: "pmi-dim", label: "3D 寸法 (MBD)", icon: "dimension" },
+    "pmi-diameter": { id: "pmi-diameter", label: "3D 直径 (MBD)", icon: "hole" },
+    "pmi-gdt": { id: "pmi-gdt", label: "3D 幾何公差 (MBD)", icon: "iprops" },
+    "pmi-datum": { id: "pmi-datum", label: "3D データム (MBD)", icon: "fix" },
+    "pmi-surface": { id: "pmi-surface", label: "3D 表面性状 (MBD)", icon: "pushpull" },
+    "pmi-note": { id: "pmi-note", label: "3D 注記 (MBD)", icon: "edit" },
   };
   const make = (id: string, f: Feature | null): Command | null => {
     switch (id) {
@@ -2398,6 +2405,7 @@ export function buildCommands(app: App): CommandRegistry {
       case "printcheck":
         return new PrintCheckCommand(app);
     }
+    if (id in PMI_COMMANDS) return startPmiCommand(app, id);
     return null;
   };
   const needsProfile = new Set(["extrude", "revolve", "loft", "sweep", "sheetFace", "coil"]);

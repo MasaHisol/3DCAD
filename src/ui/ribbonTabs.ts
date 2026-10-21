@@ -6,6 +6,7 @@ import { openFlatPattern, openSheetStyle } from "../sheetmetal/ui";
 import { openIProperties, openParameters, openShortcuts } from "./dialogs";
 import { openToleranceStack } from "../analysis/toleranceUi";
 import { openRevisions } from "./revisionsUi";
+import { exportPmiCsv, openPmiList, togglePmi } from "../mbd/commands";
 import type { RibbonButton, RibbonTab } from "./ribbon";
 
 export function buildRibbonTabs(app: App): RibbonTab[] {
@@ -279,6 +280,40 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
         {
           title: "図面",
           items: [{ id: "drawing", label: "図面ビュー", icon: "drawing", tip: "正面・平面・側面・等角ビューの 2D 図面 (隠れ線付き) を作成します。", action: () => app.openDrawingEnv() }],
+        },
+      ],
+    },
+    {
+      id: "mbd",
+      label: "MBD",
+      visible: isPart,
+      panels: [
+        {
+          title: "MBD (3D 注記)",
+          items: [
+            cmd("pmi-dim", "寸法", "dimension", undefined, "2 つの面・エッジ間の距離を 3D 寸法として記入します (± 公差・はめあい)。モデルの変更に追従します。"),
+            cmd("pmi-diameter", "直径", "hole", undefined, "円筒面・円形エッジの直径 / 半径を記入します (H7 などのはめあい)。"),
+            {
+              stack: [
+                cmd("pmi-gdt", "幾何公差", "iprops", undefined, "面に幾何公差の枠 (記号・公差値・データム) を付けます。", "small"),
+                cmd("pmi-datum", "データム", "fix", undefined, "面にデータム記号 (A, B, C …) を付けます。", "small"),
+                cmd("pmi-surface", "表面性状", "pushpull", undefined, "面に表面性状 (Ra) を指示します。", "small"),
+              ],
+            },
+            cmd("pmi-note", "注記", "edit", undefined, "面・エッジに引出線付きのテキスト注記を付けます。"),
+          ],
+        },
+        {
+          title: "管理",
+          items: [
+            { id: "pmi-toggle", label: "表示切替", icon: "eye", tip: "3D 注記 (PMI) の表示 / 非表示を切り替えます。", action: () => togglePmi(app), active: () => app.pmi.visible },
+            {
+              stack: [
+                { id: "pmi-list", label: "一覧", icon: "iprops", size: "small", tip: "すべての 3D 注記を一覧表示し、編集・削除・表示切替を行います。", action: () => openPmiList(app) },
+                { id: "pmi-csv", label: "PMI 一覧 CSV", icon: "export", size: "small", tip: "3D 注記の一覧を CSV (Excel 対応) で書き出します。", action: () => exportPmiCsv(app) },
+              ],
+            },
+          ],
         },
       ],
     },

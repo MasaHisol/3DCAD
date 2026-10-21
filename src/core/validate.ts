@@ -6,6 +6,7 @@
 import type { AssemblyDocument } from "../assembly/types";
 import { FEATURE_LABELS, MATERIALS } from "./document";
 import type { PartDocument } from "./types";
+import { cleanPmi } from "../mbd/pmi";
 
 export const FILE_VERSION = 1;
 
@@ -67,6 +68,7 @@ export function validatePart(raw: unknown, where = "パーツ"): Checked<PartDoc
     if (missing.length) warnings.push(`${f.name}: 参照先のスケッチが見つかりません (再定義が必要です)`);
   }
   if (!Array.isArray(doc.revisions)) delete doc.revisions;
+  warnings.push(...cleanPmi(doc));
   return { doc, warnings };
 }
 

@@ -9,6 +9,7 @@ import { IDENTITY } from "../assembly/types";
 import { confirmDialog, contextMenu, download, h, iconEl, modal, pickFile, promptDialog, toast, type MenuItem } from "../ui/dom";
 import type { RibbonTab } from "../ui/ribbon";
 import { arrangeDims, findChamfers, holeTable } from "./annolayout";
+import { pmiToDrawing } from "../mbd/drawing";
 import { dimValue, linearPoints, projectedFrame, resnap, sectionFrame, snapAt, toSheet, toView, viewBox, viewSpec, type Snap } from "./geom";
 import { renderSheet, type BomRow } from "./render";
 import {
@@ -120,6 +121,31 @@ export class DrawingEnv {
     return this.doc.sheets[Math.min(this.activeSheet, this.doc.sheets.length - 1)];
   }
 
+  /** Import the part's 3D annotations (PMI) into newly created base views. */
+  // off until the import is verified in the app (it produced no annotations in the browser test)
+  pmiOnCreate = false;
+
+  /** MBD: project the part's PMI into a view (selected, else the first base view) as drawing annotations. */
+  importPmi(viewId?: string): number {
+    if (this.source !== "part") return void toast("PMI の取り込みはパーツ図面でのみ使えます", "info"), 0;
+    const pmi = this.app.store.doc.pmi ?? [];
+    if (!pmi.length) return void toast("3D 注記 (PMI) がありません", "info"), 0;
+    const sh = this.sheet;
+    const v =
+      sh.views.find((x) => x.id === viewId) ??
+      sh.views.find((x) => this.selected.has(x.id) && (x.kind === "base" || x.kind === "projected")) ??
+      sh.views.find((x) => x.kind === "base");
+    if (!v) return void toast("先に基準ビューを配置してください", "warn"), 0;
+    const existing = new Set(sh.annos.map((a) => a.id));
+    const res = pmiToDrawing(pmi.map((anno) => ({ anno, geom: this.app.pmi.geometry(anno) })), v, existing);
+    if (!res.annos.length) return void toast("取り込める PMI はありません (取り込み済み)", "info"), 0;
+    this.mutate("PMI 取り込み", (d) => d.sheets[this.activeSheet].annos.push(...res.annos));
+    this.render();
+    const n = res.annos.filter((a) => !a.id.startsWith("pmi-table-")).length;
+    toast(`PMI ${n} 個を「${v.label}」に取り込みました${res.skipped.length ? ` (${res.skipped.length} 個は PMI 一覧の表に記載)` : ""}`, "ok");
+    return n;
+  }
+
   private mutate(label: string, fn: (d: DrawingDoc) => void) {
     this.store.mutate(label, (doc) => fn(doc.drawing!));
   }
@@ -154,6 +180,7 @@ export class DrawingEnv {
       this.autoLayout();
       await this.refresh(true);
       this.fit();
+      if (this.pmiOnCreate && this.source === "part" && app.store.doc.pmi?.length) this.importPmi();
       toast("図面を作成しました — 寸法 (D) や断面図・注記を追加できます", "ok");
     } else this.fit();
   }
@@ -1061,6 +1088,7 @@ export class DrawingEnv {
         this.mutate("基準ビュー", (d) => d.sheets[this.activeSheet].views.push(v));
         await this.refresh();
         this.centerView(v.id, p);
+        if (this.pmiOnCreate && this.source === "part" && this.app.store.doc.pmi?.length) this.importPmi(v.id);
         this.setTool("select");
         return;
       }
@@ -1735,6 +1763,12 @@ export class DrawingEnv {
             { stack: [t("note", "テキスト", "edit", "テキスト注記を配置します。", "small"), t("leader", "引出線注記", "edit", "引出線付きの注記を配置します。", "small"), t("surface", "表面性状", "pushpull", "表面性状記号 (Ra) を記入します。", "small")] },
             { stack: [t("gdt", "幾何公差", "iprops", "幾何公差の枠 (平面度・位置度 など) を記入します。", "small"), t("datum", "データム", "fix", "データム記号を記入します。", "small"), t("balloon", "風船", "circPattern", "部品の品番を示す風船を記入します (アセンブリ)。", "small")] },
             t("weld", "溶接記号", "weld", "JIS の溶接記号 (隅肉・開先・スポット、全周・現場溶接) を記入します。"),
+            {
+              stack: [
+                { id: "dw-pmi", label: "PMI 取り込み", icon: "dimension", size: "small", tip: "パーツの 3D 注記 (MBD / PMI) の寸法・公差・幾何公差・データム・表面性状を、選択したビュー (なければ基準ビュー) に図面注記として取り込みます。表示できないものは PMI 一覧の表にします。", action: () => void this.importPmi() },
+                { id: "dw-pmi-auto", label: "PMI 自動取り込み", icon: "check", size: "small", tip: "基準ビューを作成したときに 3D 注記 (PMI) を自動で取り込みます。", active: () => this.pmiOnCreate, action: () => (this.pmiOnCreate = !this.pmiOnCreate) },
+              ],
+            },
             { id: "dw-parts", label: "部品表", icon: "rectPattern", tip: "部品表 (品番・品名・数量・材質) の表示を切り替えます。", action: () => this.togglePartsList() },
           ],
         },
