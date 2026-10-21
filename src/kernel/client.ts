@@ -40,8 +40,14 @@ export class KernelClient {
   dropEngine(key: string): Promise<boolean> {
     return this.call({ kind: "dropEngine", key });
   }
-  exportAssembly(format: "step" | "stl", placements: Placement[]): Promise<ArrayBuffer> {
-    return this.call({ kind: "exportAssembly", format, placements });
+  exportAssembly(format: "step" | "stl", placements: Placement[], withRoutes = false): Promise<ArrayBuffer> {
+    return this.call({ kind: "exportAssembly", format, placements, withRoutes });
+  }
+  buildRoutes(routes: import("./route").RouteSolidSpec[]): Promise<import("./route").RouteSolidResult[]> {
+    return this.call({ kind: "routeBuild", routes });
+  }
+  routeInterference(placements: Placement[]): Promise<{ route: string; comp: number; volume: number }[]> {
+    return this.call({ kind: "routeInterference", placements });
   }
   interference(placements: Placement[]): Promise<Interference[]> {
     return this.call({ kind: "interference", placements });

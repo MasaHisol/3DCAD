@@ -346,6 +346,8 @@ export interface WeldFeature extends FeatureBase {
 export interface ThickenFeature extends FeatureBase {
   type: "thicken";
   faces: FaceRef[];
+  /** Surface feature to thicken into a solid (surface modelling); `faces` is then unused. */
+  surface?: string;
   distance: string;
   flip: boolean;
   op: BoolOp;
@@ -443,7 +445,82 @@ export interface MoveFeature extends FeatureBase {
   rz: string;
 }
 
+// ------------------------------------------------------ surface modelling ---
+// Surface features create open shells ("surface bodies") kept apart from the
+// solids. Other surface features reference them by feature id.
+
+/** 押し出しサーフェス: sketch curves (open or closed) extruded into a surface. */
+export interface SurfExtrudeFeature extends FeatureBase {
+  type: "surfExtrude";
+  sketch: string;
+  extent: "distance" | "symmetric";
+  distance: string;
+  flip: boolean;
+}
+
+/** 回転サーフェス. */
+export interface SurfRevolveFeature extends FeatureBase {
+  type: "surfRevolve";
+  sketch: string;
+  /** Sketch line id, "X" / "Y", or "wa:<work axis id>". */
+  axis: string;
+  extent: "angle" | "full";
+  angle: string;
+  flip: boolean;
+}
+
+/** ロフトサーフェス through 2+ section sketches (first curve chain of each). */
+export interface SurfLoftFeature extends FeatureBase {
+  type: "surfLoft";
+  sketches: string[];
+  ruled: boolean;
+}
+
+/** 境界パッチ: fills a closed loop of model edges, or a closed sketch chain. */
+export interface SurfPatchFeature extends FeatureBase {
+  type: "surfPatch";
+  /** Sketch giving the loop (used when set), otherwise `edges`. */
+  sketch?: string;
+  edges: EdgeRef[];
+}
+
+export type SurfTrimTool =
+  | { kind: "origin"; key: "XY" | "YZ" | "XZ" }
+  | { kind: "workplane"; id: string }
+  | { kind: "sketch"; sketch: string }
+  | { kind: "surface"; id: string };
+
+/** トリム: cut a surface with a plane, a sketch profile (projected along its normal) or another surface. */
+export interface SurfTrimFeature extends FeatureBase {
+  type: "surfTrim";
+  surface: string;
+  tool: SurfTrimTool;
+  /** Keep the other side (plane / surface: negative side; sketch: outside of the profile). */
+  flip: boolean;
+}
+
+/** ステッチ (縫合): sews surfaces together; makes a solid when they close. */
+export interface SurfStitchFeature extends FeatureBase {
+  type: "surfStitch";
+  surfaces: string[];
+  tolerance: string;
+  /** Make a solid when the sewn shell is closed. */
+  solid: boolean;
+  op: BoolOp;
+}
+
+/** オフセットサーフェス. */
+export interface SurfOffsetFeature extends FeatureBase {
+  type: "surfOffset";
+  surface: string;
+  distance: string;
+  flip: boolean;
+}
+
+export type SurfaceFeature = SurfExtrudeFeature | SurfRevolveFeature | SurfLoftFeature | SurfPatchFeature | SurfTrimFeature | SurfStitchFeature | SurfOffsetFeature;
+
 export type Feature =
+  | SurfaceFeature
   | SketchFeature
   | ExtrudeFeature
   | RevolveFeature

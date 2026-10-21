@@ -8,6 +8,7 @@ import { openToleranceStack } from "../analysis/toleranceUi";
 import { openRevisions } from "./revisionsUi";
 import { exportPmiCsv, openPmiList, togglePmi } from "../mbd/commands";
 import type { RibbonButton, RibbonTab } from "./ribbon";
+import { curvatureActive, toggleCurvature, toggleZebra } from "../commands/surface";
 
 export function buildRibbonTabs(app: App): RibbonTab[] {
   const cmd = (id: string, label: string, icon: string, shortcut?: string, tip?: string, size: "large" | "small" = "large"): RibbonButton => ({
@@ -122,6 +123,46 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
         {
           title: "パラメータ",
           items: [{ id: "params", label: "パラメータ", icon: "params", tip: "モデル パラメータとユーザ パラメータを表示・編集します (式・単位付き)。", action: () => openParameters(app) }],
+        },
+      ],
+    },
+    {
+      id: "surface",
+      label: "サーフェス",
+      visible: isPart,
+      panels: [
+        {
+          title: "スケッチ",
+          items: [cmd("sketch", "2D スケッチ", "sketch", undefined, "サーフェスの輪郭・断面にするスケッチを作成します。")],
+        },
+        {
+          title: "作成",
+          items: [
+            cmd("surfExtrude", "押し出し", "surfExtrude", undefined, "スケッチの曲線 (開いた曲線・閉じた輪郭) を押し出してサーフェスを作成します。"),
+            cmd("surfRevolve", "回転", "surfRevolve", undefined, "スケッチの曲線を軸まわりに回転してサーフェスを作成します。"),
+            cmd("surfLoft", "ロフト", "surfLoft", undefined, "2 つ以上の断面スケッチを通るサーフェスを作成します。"),
+            cmd("surfPatch", "境界パッチ", "surfPatch", undefined, "閉じたエッジのループ、またはスケッチの閉じた輪郭を面で埋めます (平らでないループは N 辺フィリング)。"),
+          ],
+        },
+        {
+          title: "編集",
+          items: [
+            cmd("surfTrim", "トリム", "surfTrim", undefined, "サーフェスを平面・スケッチの輪郭・別のサーフェスで切り取ります。"),
+            cmd("surfStitch", "ステッチ", "surfStitch", undefined, "サーフェスを縫合 (縫い合わせ) します。すき間なく閉じるとソリッドになります。"),
+            {
+              stack: [
+                cmd("surfOffset", "オフセット", "surfOffset", undefined, "サーフェスを法線方向に一定距離オフセットした新しいサーフェスを作成します。", "small"),
+                { ...cmd("thicken", "厚み付け", "thicken", undefined, "サーフェスに厚みをつけてソリッドにします (厚み付けコマンドで「対象」にサーフェスを選択)。", "small"), id: "surf-thicken", active: () => app.command?.id === "thicken" },
+              ],
+            },
+          ],
+        },
+        {
+          title: "解析",
+          items: [
+            { id: "zebra", label: "ゼブラ", icon: "zebra", tip: "縞模様の映り込みで面のつながり (G0 / G1 / G2 連続) を確認します。", action: () => toggleZebra(app), active: () => app.vp.zebra },
+            { id: "curvature", label: "曲率", icon: "curvature", tip: "表示メッシュから推定した曲率を色分け表示します (青 = 平ら → 赤 = 曲率大)。", action: () => toggleCurvature(app), active: () => curvatureActive() },
+          ],
         },
       ],
     },

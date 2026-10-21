@@ -4,6 +4,7 @@ import opencascade from "replicad-opencascadejs";
 import wasmUrl from "replicad-opencascadejs/wasm?url";
 import { setOC } from "replicad";
 import { drawView, exportPlaced, GeometryEngine, interferences, placeShape } from "./geometry";
+import { buildRoutes, routeInterference, routeShapes } from "./route";
 import type { BodyMesh, Placement, ThreadInfo, WorkerRequest, WorkerResponse } from "./protocol";
 import type { Vec3 } from "../core/types";
 
@@ -63,7 +64,7 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
       return { result: req.views.map((v) => drawView(items, v, threads)), transfer: [] };
     }
     case "exportAssembly": {
-      const buf = await exportPlaced(placed(req.placements), req.format).arrayBuffer();
+      const buf = await exportPlaced([...placed(req.placements), ...(req.withRoutes ? routeShapes() : [])], req.format).arrayBuffer();
       return { result: buf, transfer: [buf] };
     }
     case "interference": {
@@ -71,6 +72,14 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
       const hits = interferences(shapes.map((x) => x.shape)).map((h) => ({ a: shapes[h.a].index, b: shapes[h.b].index, volume: h.volume }));
       return { result: hits.filter((h) => h.a !== h.b), transfer: [] };
     }
+    case "routeBuild": {
+      const res = buildRoutes(req.routes);
+      const transfer: Transferable[] = [];
+      for (const r of res) if (r.mesh) transfer.push(r.mesh.positions.buffer, r.mesh.normals.buffer, r.mesh.indices.buffer, r.mesh.faceRanges.buffer, r.mesh.edgePositions.buffer, r.mesh.edgeRanges.buffer);
+      return { result: res, transfer };
+    }
+    case "routeInterference":
+      return { result: routeInterference(placed(req.placements)), transfer: [] };
     case "rebuild": {
       const res = await eng.rebuild(req.features, req.captureBefore);
       const transfer: Transferable[] = [];

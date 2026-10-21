@@ -3,6 +3,7 @@
 
 import type { BoolOp, EdgeRef, FaceRef, PlaneDef, Vec2, Vec3 } from "../core/types";
 import type { LoopSeg } from "../sketch/profiles";
+import type { SurfaceRFeature } from "./surface";
 
 export interface RRegion {
   outer: LoopSeg[];
@@ -101,7 +102,8 @@ export type RFeature =
     }
   | { id: string; type: "primitive"; shape: "box" | "cylinder" | "sphere" | "torus"; plane: PlaneDef; center: Vec2; a: number; b: number; c: number; op: BoolOp }
   | { id: string; type: "import"; format: "step" | "stl"; data: string }
-  | { id: string; type: "move"; transform: Transform };
+  | { id: string; type: "move"; transform: Transform }
+  | SurfaceRFeature;
 
 export type SecLoop = { pts: Vec2[] } | { r: number };
 
@@ -180,10 +182,14 @@ export interface BodyMesh {
   /** Pairs (start, count) of vertices into `edgePositions` for each edge. */
   edgeRanges: Int32Array;
   edges: EdgeInfo[];
+  /** Surface body (open shell): id of the feature that made it. */
+  surface?: string;
 }
 
 export interface RebuildResult {
   bodies: BodyMesh[];
+  /** Surface bodies (displayed after the solids, double sided). */
+  surfaces?: BodyMesh[];
   /** Bodies just before the feature named in `captureBefore` (for picking while editing it). */
   before?: BodyMesh[];
   errors: Record<string, string>;
@@ -275,9 +281,11 @@ export type WorkerRequest =
   | { kind: "massProps"; key?: string }
   | { kind: "measure"; a: PickRef; b?: PickRef; key?: string }
   | { kind: "projection"; views: { name: string; dir: Vec3; xAxis: Vec3 }[]; key?: string; placements?: Placement[] }
-  | { kind: "exportAssembly"; format: "step" | "stl"; placements: Placement[] }
+  | { kind: "exportAssembly"; format: "step" | "stl"; placements: Placement[]; withRoutes?: boolean }
   | { kind: "interference"; placements: Placement[] }
   | { kind: "dropEngine"; key: string }
-  | { kind: "drawViews"; key?: string; placements?: Placement[]; views: ViewSpec[] };
+  | { kind: "drawViews"; key?: string; placements?: Placement[]; views: ViewSpec[] }
+  | { kind: "routeBuild"; routes: import("./route").RouteSolidSpec[] }
+  | { kind: "routeInterference"; placements: Placement[] };
 
 export type WorkerResponse = { id: number; ok: true; result: unknown } | { id: number; ok: false; error: string };

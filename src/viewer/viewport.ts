@@ -80,6 +80,30 @@ const COLORS = {
   edge: new THREE.Color("#1d1f24"),
 };
 
+/** Surface bodies (open shells) are drawn in this colour, both sides visible. */
+export const SURFACE_COLOR = "#e9a23b";
+
+/** Zebra stripes from the reflected view direction (continuity / curvature check). */
+function zebraMaterial(): THREE.ShaderMaterial {
+  return new THREE.ShaderMaterial({
+    side: THREE.DoubleSide,
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
+    uniforms: { stripes: { value: 14 } },
+    vertexShader: `varying vec3 vN; varying vec3 vV;
+      void main() { vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = mv.xyz; vN = normalMatrix * normal; gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `uniform float stripes; varying vec3 vN; varying vec3 vV;
+      void main() {
+        vec3 n = normalize(vN); if (!gl_FrontFacing) n = -n;
+        vec3 r = reflect(normalize(vV), n);
+        float s = smoothstep(-0.08, 0.08, sin(r.y * stripes));
+        float shade = 0.55 + 0.45 * abs(n.z);
+        gl_FragColor = vec4(vec3(mix(0.08, 1.0, s) * shade), 1.0);
+      }`,
+  });
+}
+
 export class Viewport {
   readonly el: HTMLElement;
   readonly renderer: THREE.WebGLRenderer;
@@ -335,7 +359,28 @@ export class Viewport {
   bodyColors: (string | undefined)[] = [];
   highlighted = new Set<number>();
 
+  /** Indices of displayed bodies that are surface bodies (open shells). */
+  surfaceBodies = new Set<number>();
+  /** Zebra-stripe display (surface continuity check). */
+  zebra = false;
+  private zebraMat: THREE.Material | null = null;
+  private surfaceMats = new Map<string, THREE.MeshStandardMaterial>();
+
   private materialFor(bi: number): THREE.MeshStandardMaterial {
+    if (this.zebra) return (this.zebraMat ??= zebraMaterial()) as unknown as THREE.MeshStandardMaterial;
+    if (this.surfaceBodies.has(bi)) {
+      // surfaces: own colour, both sides lit and pickable
+      const hl = this.highlighted.has(bi);
+      const key = hl ? "hl" : "n";
+      let m = this.surfaceMats.get(key);
+      if (!m) {
+        m = new THREE.MeshStandardMaterial({ color: SURFACE_COLOR, metalness: 0.05, roughness: 0.5, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+        if (hl) (m.emissive.set("#1f6feb"), (m.emissiveIntensity = 0.35));
+        this.surfaceMats.set(key, m);
+      }
+      m.clippingPlanes = this.material.clippingPlanes;
+      return m;
+    }
     const color = this.bodyColors[bi];
     const hl = this.highlighted.has(bi);
     if (!color && !hl) return this.material;
@@ -594,7 +639,7 @@ export class Viewport {
     return url;
   }
 
-  private resultMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.65, metalness: 0, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+  private resultMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.65, metalness: 0, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
 
   /**
    * Analysis result display: per-vertex colours and optionally displaced
@@ -731,6 +776,7 @@ export class Viewport {
 
   setBodies(bodies: BodyMesh[], pickBodies?: BodyMesh[], colors?: (string | undefined)[], matrices?: THREE.Matrix4[]) {
     this.bodyColors = colors ?? [];
+    this.surfaceBodies = new Set(bodies.flatMap((b, i) => (b.surface ? [i] : [])));
     this.highlighted = new Set([...this.highlighted].filter((i) => i < bodies.length));
     const sharedPick = this.pickViews === this.bodies;
     this.disposeViews(this.bodies);
@@ -765,6 +811,13 @@ export class Viewport {
     this.hover = null;
     this.refreshHighlights();
     if (this.realistic) this.updateRealism();
+  }
+
+  /** Zebra stripes on all bodies (on) or the normal materials (off). */
+  setZebra(on: boolean) {
+    this.zebra = on;
+    this.bodies.forEach((b, i) => (b.mesh.material = this.materialFor(i)));
+    this.invalidate();
   }
 
   setMaterialColor(color: string) {

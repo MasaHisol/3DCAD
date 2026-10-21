@@ -25,6 +25,7 @@ import type {
   ViewGeometry,
   ViewSpec,
 } from "./protocol";
+import { evalSurface, isSurfaceRFeature } from "./surface";
 
 type Shape = R.Shape3D;
 
@@ -33,6 +34,8 @@ interface State {
   tools: Map<string, { shape: Shape; op: string }>;
   /** Cosmetic threads created so far. */
   threads?: ThreadInfo[];
+  /** Surface bodies (open shells) by the id of the feature that made them. */
+  surfaces?: Map<string, Shape>;
 }
 
 interface CacheEntry {
@@ -396,6 +399,20 @@ function buildPrimitive(f: Extract<RFeature, { type: "primitive" }>): Shape {
 }
 
 async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<State> {
+  if (isSurfaceRFeature(f)) {
+    const res = evalSurface(f, {
+      bodies: st.bodies,
+      surfaces: st.surfaces ?? new Map(),
+      diag: modelDiag([...st.bodies, ...(st.surfaces?.values() ?? [])]),
+      applyOp,
+      resolveEdges,
+      regionTool: (plane, regions, from, to) => profileSolid({ ...plane, origin: add(plane.origin, scale(plane.normal, from)) }, regions, (sk) => sk.extrude(to - from)),
+    });
+    if (res.refs) entry.refs = res.refs;
+    const tools = new Map(st.tools);
+    if (res.tool) tools.set(f.id, res.tool);
+    return { bodies: res.bodies, tools, threads: st.threads, surfaces: res.surfaces };
+  }
   const out = await evalShape(f, st, entry);
   let threads = out.threads ?? st.threads ?? [];
   if (f.type === "hole" && f.thread) threads = [...threads, ...holeThreads(f, f.thread, out.bodies)];
@@ -405,7 +422,7 @@ async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<S
     threads = [...threads, ...f.transforms.flatMap((tr) => base.map((t) => transformThread(t, tr)))];
   }
   if (f.type === "move") threads = threads.map((t) => transformThread(t, f.transform));
-  return { ...out, threads };
+  return { ...out, threads, surfaces: out.surfaces ?? st.surfaces };
 }
 
 /** Thread size for a cylinder of diameter `dia` (external: major ≈ dia, internal: minor ≈ dia). */
@@ -493,7 +510,7 @@ function ensureFont() {
   return fontReady;
 }
 
-async function evalShape(f: RFeature, st: State, entry: CacheEntry): Promise<State> {
+async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: State, entry: CacheEntry): Promise<State> {
   const bodies = st.bodies;
   const tools = new Map(st.tools);
   const diag = modelDiag(bodies);
@@ -937,6 +954,8 @@ export class GeometryEngine {
   private cache: CacheEntry[] = [];
   bodies: Shape[] = [];
   threads: ThreadInfo[] = [];
+  /** Surface bodies (open shells) after the last rebuild, in display order. */
+  surfaces: { id: string; shape: Shape }[] = [];
 
   async rebuild(features: RFeature[], captureBefore?: string): Promise<RebuildResult> {
     const t0 = performance.now();
@@ -947,9 +966,10 @@ export class GeometryEngine {
     let prefix = "";
     let valid = true;
     let before: Shape[] | null = null;
+    let beforeSurf: [string, Shape][] = [];
     for (let i = 0; i < features.length; i++) {
       const f = features[i];
-      if (f.id === captureBefore) before = state.bodies;
+      if (f.id === captureBefore) (before = state.bodies), (beforeSurf = [...(state.surfaces?.entries() ?? [])]);
       prefix += JSON.stringify(f).length + ":" + JSON.stringify(f);
       const key = prefix;
       const cached = this.cache[i];
@@ -962,7 +982,9 @@ export class GeometryEngine {
         try {
           entry.state = await evalFeature(f, state, entry);
         } catch (e) {
-          entry.state = state;
+          // surface stitching that could not close keeps its sewn surface
+          const partial = (e as { partial?: { bodies: Shape[]; surfaces: Map<string, Shape> } })?.partial;
+          entry.state = partial ? { ...state, bodies: partial.bodies, surfaces: partial.surfaces } : state;
           entry.error = errorMessage(e);
         }
       }
@@ -974,10 +996,15 @@ export class GeometryEngine {
     this.cache = next;
     this.bodies = state.bodies;
     this.threads = state.threads ?? [];
-    const diag = modelDiag(this.bodies);
+    this.surfaces = [...(state.surfaces ?? new Map()).entries()].map(([id, shape]) => ({ id, shape }));
+    const diag = modelDiag([...this.bodies, ...this.surfaces.map((s) => s.shape)]);
     const bodies = this.bodies.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag));
-    const beforeMeshes = before ? before.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag)) : undefined;
-    return { bodies, before: beforeMeshes, errors, updatedRefs, timeMs: performance.now() - t0, threads: this.threads };
+    const surfaces = this.surfaces.map((s, i) => ({ ...meshBody(s.shape, `サーフェス${i + 1}`, diag), surface: s.id }));
+    // picking while editing: solids, then surfaces (same order as the display)
+    const beforeMeshes = before
+      ? [...before.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag)), ...beforeSurf.map(([id, b], i) => ({ ...meshBody(b, `サーフェス${i + 1}`, diag), surface: id }))]
+      : undefined;
+    return { bodies, surfaces, before: beforeMeshes, errors, updatedRefs, timeMs: performance.now() - t0, threads: this.threads };
   }
 
   exportFile(format: "step" | "stl" | "brep", name: string): Blob {
@@ -993,8 +1020,9 @@ export class GeometryEngine {
       return new Blob([data as BlobPart], { type: "application/octet-stream" });
     }
     if (format === "step") {
+      // surface bodies are exported too (open shells)
       return R.exportSTEP(
-        this.bodies.map((shape, i) => ({ shape, name: this.bodies.length > 1 ? `${name}_${i + 1}` : name })),
+        [...this.bodies.map((shape, i) => ({ shape, name: this.bodies.length > 1 ? `${name}_${i + 1}` : name })), ...this.surfaces.map((s, i) => ({ shape: s.shape, name: `${name}_surface${i + 1}` }))],
         { unit: "MM" } as never,
       );
     }
@@ -1025,7 +1053,7 @@ export class GeometryEngine {
   }
 
   private topo(p: PickRef): R.AnyShape {
-    const b = this.bodies[p.body];
+    const b = [...this.bodies, ...this.surfaces.map((s) => s.shape)][p.body];
     if (!b) throw new Error("ボディが見つかりません");
     if (p.kind === "face") return b.faces[p.index];
     if (p.kind === "edge") return b.edges[p.index];

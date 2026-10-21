@@ -1,6 +1,7 @@
 import { validateAssembly, validatePart } from "./core/validate";
 import { idbGet, idbSet } from "./core/idb";
 import * as THREE from "three";
+import { refreshCurvature } from "./commands/surface";
 import { DocumentStore, FEATURE_LABELS, MATERIALS, ORIGIN_PLANES, featureSketchRefs, newDocument, uid } from "./core/document";
 import { formatNumber } from "./core/expr";
 import { evaluateParams } from "./core/params";
@@ -72,6 +73,8 @@ export class App {
   bodies: BodyMesh[] = [];
   /** Bodies used for picking: the state before the edited feature while a command needs it. */
   pickBodies: BodyMesh[] = [];
+  /** Surface bodies (open shells) of the last rebuild; displayed after `bodies`. */
+  surfaces: BodyMesh[] = [];
   featureErrors: Record<string, string> = {};
   browserSelection = new Set<string>();
   originVis = new Set<string>();
@@ -154,6 +157,7 @@ export class App {
       doc: () => this.store.doc,
       errors: () => this.featureErrors,
       bodyCount: () => this.bodies.length,
+      surfaceCount: () => this.surfaces.length,
       activeSketch: () => this.sketchEditor?.sketchId ?? null,
       selected: () => this.browserSelection,
       originVisible: (k) => this.originVis.has(k),
@@ -382,8 +386,12 @@ export class App {
     if (seq !== this.regenSeq) return; // a newer regen superseded this one
     this.featureErrors = { ...resolved.errors, ...res.errors };
     this.bodies = res.bodies;
-    this.pickBodies = res.before ?? res.bodies;
-    this.vp.setBodies(res.bodies, res.before);
+    // surface bodies are shown (and picked) after the solids
+    this.surfaces = res.surfaces ?? [];
+    const shown = this.surfaces.length ? [...res.bodies, ...this.surfaces] : res.bodies;
+    this.pickBodies = res.before ?? shown;
+    this.vp.setBodies(shown, res.before);
+    refreshCurvature(this);
     this.vp.setThreads(res.threads ?? []);
     this.vp.setMaterialColor(doc.material.color);
     this.statusRegen.textContent = `${Math.round(res.timeMs)} ms`;

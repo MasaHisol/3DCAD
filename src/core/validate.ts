@@ -67,6 +67,7 @@ export function validatePart(raw: unknown, where = "パーツ"): Checked<PartDoc
     const missing = [r.sketch, r.path && r.path !== "3d" ? r.path : undefined, ...(r.sketches ?? [])].filter((x): x is string => !!x && !ids.has(x));
     if (missing.length) warnings.push(`${f.name}: 参照先のスケッチが見つかりません (再定義が必要です)`);
   }
+  warnings.push(...checkSurfaceFeatures(doc, ids));
   if (!Array.isArray(doc.revisions)) delete doc.revisions;
   warnings.push(...cleanPmi(doc));
   return { doc, warnings };
@@ -118,4 +119,71 @@ export function validateAssembly(raw: unknown): Checked<AssemblyDocument> {
     warnings.push("接地されたコンポーネントがなかったため、最初のコンポーネントを接地しました");
   }
   return { doc, warnings };
+}
+
+/**
+ * Surface features (サーフェス): normalise their fields and report references
+ * to surfaces / sketches that no longer exist.
+ */
+function checkSurfaceFeatures(doc: PartDocument, ids: Set<string>): string[] {
+  const warnings: string[] = [];
+  const str = (v: unknown, d: string) => (typeof v === "string" && v ? v : d);
+  for (const f of doc.features) {
+    const fx = f as unknown as Record<string, unknown>;
+    const missingRef = (id: unknown) => typeof id === "string" && id !== "" && !ids.has(id);
+    switch (f.type) {
+      case "surfExtrude":
+        if (f.extent !== "distance" && f.extent !== "symmetric") f.extent = "distance";
+        f.distance = str(f.distance, "10");
+        f.flip = !!f.flip;
+        break;
+      case "surfRevolve":
+        if (f.extent !== "angle" && f.extent !== "full") f.extent = "full";
+        f.angle = str(f.angle, "360");
+        f.axis = str(f.axis, "X");
+        f.flip = !!f.flip;
+        break;
+      case "surfLoft":
+        if (!Array.isArray(f.sketches)) f.sketches = [];
+        f.ruled = !!f.ruled;
+        break;
+      case "surfPatch":
+        if (!Array.isArray(f.edges)) f.edges = [];
+        f.edges = f.edges.filter((e) => e && finite(e.mid, 3));
+        if (f.sketch && missingRef(f.sketch)) warnings.push(`${f.name}: 参照先のスケッチが見つかりません (再定義が必要です)`);
+        break;
+      case "surfTrim": {
+        const t = fx.tool as { kind?: string; key?: string; id?: string; sketch?: string } | undefined;
+        if (!t || !["origin", "workplane", "sketch", "surface"].includes(String(t.kind))) {
+          f.tool = { kind: "origin", key: "XY" };
+          warnings.push(`${f.name}: トリム ツールが不正だったため XY 平面にしました`);
+        } else if ((t.kind === "workplane" || t.kind === "surface") && missingRef(t.id)) warnings.push(`${f.name}: トリム ツールが見つかりません (再定義が必要です)`);
+        else if (t.kind === "sketch" && missingRef(t.sketch)) warnings.push(`${f.name}: トリム用のスケッチが見つかりません (再定義が必要です)`);
+        if (missingRef(f.surface)) warnings.push(`${f.name}: トリムするサーフェスが見つかりません (再定義が必要です)`);
+        f.flip = !!f.flip;
+        break;
+      }
+      case "surfStitch": {
+        if (!Array.isArray(f.surfaces)) f.surfaces = [];
+        const n0 = f.surfaces.length;
+        f.surfaces = f.surfaces.filter((id) => typeof id === "string" && ids.has(id));
+        if (f.surfaces.length < n0) warnings.push(`${f.name}: 見つからないサーフェス ${n0 - f.surfaces.length} 個を縫合から外しました`);
+        f.tolerance = str(f.tolerance, "0.001");
+        f.solid = f.solid !== false;
+        if (!["new", "join", "cut", "intersect"].includes(f.op)) f.op = "new";
+        break;
+      }
+      case "surfOffset":
+        f.distance = str(f.distance, "1");
+        f.flip = !!f.flip;
+        if (missingRef(f.surface)) warnings.push(`${f.name}: オフセットするサーフェスが見つかりません (再定義が必要です)`);
+        break;
+      case "thicken":
+        if (!Array.isArray(f.faces)) f.faces = [];
+        if (f.surface !== undefined && typeof f.surface !== "string") delete f.surface;
+        if (missingRef(f.surface)) warnings.push(`${f.name}: 厚み付けするサーフェスが見つかりません (再定義が必要です)`);
+        break;
+    }
+  }
+  return warnings;
 }

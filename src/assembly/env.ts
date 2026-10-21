@@ -18,6 +18,7 @@ import { startDrive, startExplode } from "./motionUi";
 import { patternMatrices, type AsmPattern } from "./pattern";
 import { boxMatrix, isolateVisibility, matchesFilter, rebuildOrder, useProxy } from "./largeAsm";
 import { constraintError, solveAssembly, type SolverConstraint } from "./solver";
+import { RouteManager } from "../routing/ui";
 import { IDENTITY, newAssembly, type AsmComponent, type AsmConstraint, type AsmConstraintType, type AssemblyDocument, type GeoRef } from "./types";
 
 const PALETTE = ["#c9ced6", "#9fb7d6", "#d8c39a", "#a9c9a4", "#d3a6a6", "#b8a9d6", "#9fd0cf", "#d6b38f"];
@@ -69,6 +70,9 @@ export class AssemblyEnv {
   loading: { done: number; total: number } | null = null;
   private progressEl: HTMLElement | null = null;
   private lastProgressRender = 0;
+
+  /** Wire / pipe routes (配線・配管). */
+  readonly routes: RouteManager = new RouteManager(this);
 
   constructor(readonly app: App) {
     this.store.on((r) => this.onChange(r));
@@ -388,6 +392,7 @@ export class AssemblyEnv {
     this.applyLight();
     if (this.motionTrace) for (let i = 1; i < this.motionTrace.length; i++) trails.push([this.motionTrace[i - 1], this.motionTrace[i]]);
     vp.setTrails(trails);
+    this.routes.render();
     this.highlightSelection();
     this.app.refreshUI();
   }
@@ -748,6 +753,7 @@ export class AssemblyEnv {
       );
       this.rowEvents(el, c.id, "component");
     }
+    this.routes.renderBrowser(list);
   }
 
   private rowEvents(el: HTMLElement, id: string, kind: "component" | "constraint") {
@@ -1017,6 +1023,7 @@ export class AssemblyEnv {
         ),
       );
     }
+    rows.push(...this.routes.bomRows(i));
     const table = h(
       "table",
       { class: "ptable" },
@@ -1074,7 +1081,8 @@ export class AssemblyEnv {
       return;
     }
     try {
-      const buf = await this.app.kernel.exportAssembly("step", this.placements());
+      const withRoutes = this.routes.hasRoutes() && (await this.routes.ensureBuilt()) > 0;
+      const buf = await this.app.kernel.exportAssembly("step", this.placements(), withRoutes);
       download(`${this.doc.name}.stp`, buf, "application/step");
       toast(`${this.doc.name}.stp をエクスポートしました — Inventor で開けます`, "ok");
     } catch (e) {
@@ -1179,6 +1187,7 @@ export class AssemblyEnv {
           title: "検査",
           items: [
             { id: "asm-interf", label: "干渉解析", icon: "intersect", tip: "コンポーネント同士の干渉 (重なり) 体積を計算します。", action: () => this.checkInterference() },
+            { id: "asm-route", label: "配線・配管", icon: "sweep", tip: "電線・ケーブル / ホース / パイプの経路を部品の面・円の中心・コネクタ点で定義し、曲げ R 付きのチューブを作成します (長さ・曲げ・干渉チェック、切断リスト)。", action: () => this.routes.open(), active: () => this.command?.id === "routes" || this.command?.id === "route" },
             { id: "asm-bom", label: "部品表", icon: "iprops", tip: "部品表 (BOM) を表示し CSV に書き出します。", action: () => this.openBom() },
           ],
         },

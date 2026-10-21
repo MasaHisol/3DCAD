@@ -53,6 +53,7 @@ import { PrintCheckCommand } from "../analysis/printui";
 import { pointMap } from "../viewer/sketchRender";
 import { samePick, type Pick, type ToolHandler } from "../viewer/viewport";
 import { FeatureCommand, type Command } from "./command";
+import { makeSurfaceCommand, SURFACE_COMMAND_INFO, surfaceSources } from "./surface";
 
 export interface CommandInfo {
   id: string;
@@ -1412,30 +1413,55 @@ class ThickenCommand extends FeatureCommand<ThickenFeature> {
     this.openPanel(this.editing ? `厚み付け: ${f.name}` : "厚み付け", "thicken", true);
     const p = this.panel;
     const sec = p.section("面");
+    // surface modelling: thicken a whole surface body into a solid
+    const surfs = surfaceSources(app, this.featureId);
+    if (surfs.length || f.surface) {
+      this.srcSel = p.select(sec, "対象", [{ value: "", label: "ソリッドの平面" }, ...surfs.map((s) => ({ value: s.id, label: `サーフェス: ${s.name}` }))], f.surface ?? "", (v) => this.setSurface(v));
+    }
     this.fp = p.picker(sec, "面", "thicken", () => {}, () => (this.update((x) => (x.faces = [])), this.sync()));
     this.fp.setActive(true);
     p.expr(sec, "厚さ", this.expr(f.distance), "mm", (e) => this.setParam(this.feature.distance, e), f.distance);
     p.checkbox(sec, "内側に厚みをつける", f.flip, (v) => this.update((x) => (x.flip = v)));
     p.toggles(sec, "ブール演算", OPS, f.op, (v) => this.update((x) => (x.op = v as BoolOp)));
     app.vp.pickKinds = new Set(["face"]);
-    app.vp.pickFilter = (pk) => app.pickBodies[pk.body]?.faces[pk.index]?.type === "PLANE";
+    app.vp.pickFilter = (pk) => !!app.pickBodies[pk.body]?.surface || app.pickBodies[pk.body]?.faces[pk.index]?.type === "PLANE";
     this.handler = {
       cursor: "pointer",
       onPointerMove: (e, vp) => vp.setHover(vp.pick(e)),
       onPointerDown: (e, vp) => {
         if (e.button !== 0) return;
         const pk = vp.pick(e);
+        const sid = pk && app.pickBodies[pk.body]?.surface;
+        if (sid && app.store.feature(sid)) return void this.setSurface(sid);
         const r = pk && app.faceRef(pk);
         if (!r) return;
+        if (this.feature.surface) this.setSurface("");
         this.update((x) => toggleFace(x.faces, r));
         this.sync();
       },
     };
     this.sync();
-    app.status("厚みをつける平面をクリック");
+    app.status("厚みをつける平面、またはサーフェスをクリック");
+  }
+  private srcSel?: HTMLSelectElement;
+  private setSurface(id: string) {
+    this.update((x) => {
+      if (id) (x.surface = id), (x.faces = []);
+      else delete x.surface;
+    });
+    if (this.srcSel) this.srcSel.value = id;
+    this.sync();
   }
   private sync() {
-    const n = this.feature.faces.length;
+    const f = this.feature;
+    const n = f.faces.length;
+    if (f.surface) {
+      this.fp.setCount(1, this.app.store.feature(f.surface)?.name ?? "サーフェス");
+      const sel: Pick[] = [];
+      this.app.pickBodies.forEach((b, bi) => b.surface === f.surface && b.faces.forEach((fc, fi) => sel.push({ kind: "face", body: bi, index: fi, point: fc.center })));
+      this.app.vp.setSelection(sel);
+      return;
+    }
     this.fp.setCount(n, n ? `${n} 面` : "平面を選択");
     this.app.vp.setSelection(facePicks(this.app, this.feature.faces));
   }
@@ -2336,6 +2362,7 @@ export function buildCommands(app: App): CommandRegistry {
     "pmi-datum": { id: "pmi-datum", label: "3D データム (MBD)", icon: "fix" },
     "pmi-surface": { id: "pmi-surface", label: "3D 表面性状 (MBD)", icon: "pushpull" },
     "pmi-note": { id: "pmi-note", label: "3D 注記 (MBD)", icon: "edit" },
+    ...SURFACE_COMMAND_INFO,
   };
   const make = (id: string, f: Feature | null): Command | null => {
     switch (id) {
@@ -2406,6 +2433,7 @@ export function buildCommands(app: App): CommandRegistry {
         return new PrintCheckCommand(app);
     }
     if (id in PMI_COMMANDS) return startPmiCommand(app, id);
+    if (id in SURFACE_COMMAND_INFO) return makeSurfaceCommand(app, id, f);
     return null;
   };
   const needsProfile = new Set(["extrude", "revolve", "loft", "sweep", "sheetFace", "coil"]);
@@ -2419,7 +2447,7 @@ export function buildCommands(app: App): CommandRegistry {
         toast("閉じたプロファイルを持つスケッチがありません。先に 2D スケッチを作成してください", "warn");
         return;
       }
-      if (needsBody.has(id) && !app.hasBodies()) {
+      if (needsBody.has(id) && !app.hasBodies() && !(id === "thicken" && app.surfaces.length)) {
         toast("このコマンドにはソリッド ボディが必要です", "warn");
         return;
       }
