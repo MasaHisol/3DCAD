@@ -8,6 +8,19 @@ document.addEventListener("mousedown", (e) => {
   if (b) e.preventDefault();
 });
 
+// Unexpected errors must not fail silently: show them (rate limited) so the user knows
+// an action did not complete, and keep the details in the console for reports.
+let lastErr = 0;
+const reportError = (msg: string) => {
+  if (/ResizeObserver loop|Script error\.?$/.test(msg)) return;
+  console.error("unexpected error:", msg);
+  if (Date.now() - lastErr < 5000) return;
+  lastErr = Date.now();
+  void import("./ui/dom").then(({ toast }) => toast(`予期しないエラーが発生しました: ${msg.slice(0, 160)}  (作業内容は自動保存されています)`, "error", 8000));
+};
+window.addEventListener("error", (e) => reportError(e.message || String(e.error)));
+window.addEventListener("unhandledrejection", (e) => reportError((e.reason as Error)?.message ?? String(e.reason)));
+
 const app = new App();
 try {
   app.mount(document.getElementById("app")!);

@@ -1,4 +1,5 @@
 import { validateAssembly, validatePart } from "./core/validate";
+import { idbGet, idbSet } from "./core/idb";
 import * as THREE from "three";
 import { DocumentStore, FEATURE_LABELS, MATERIALS, ORIGIN_PLANES, featureSketchRefs, newDocument, uid } from "./core/document";
 import { formatNumber } from "./core/expr";
@@ -209,7 +210,7 @@ export class App {
       if (f) this.openOrImport(f);
     });
 
-    this.restoreAutosave();
+    void this.restoreAutosave();
     this.refreshUI();
     listenForLessons((id) => startLessonById(this, id));
     this.kernel
@@ -1597,24 +1598,32 @@ export class App {
   private scheduleAutosave() {
     clearTimeout(this.autosaveTimer);
     this.autosaveTimer = window.setTimeout(() => {
+      const asmActive = this.asmDoc || !!this.asm.editingPart;
+      const json = JSON.stringify({ env: asmActive ? "assembly" : "part", part: asmActive ? null : this.store.doc, asm: asmActive ? this.asm.doc : null, t: Date.now() });
+      // IndexedDB holds large models (STEP imports, big assemblies); localStorage stays as a fallback
+      void idbSet(AUTOSAVE_KEY, json)
+        .then(() => (this.autosaveWarned = false))
+        .catch(() => {
+          if (!this.autosaveWarned) toast("自動保存できませんでした。こまめに保存してください (Ctrl+S)", "warn", 8000);
+          this.autosaveWarned = true;
+        });
       try {
-        const asmActive = this.asmDoc || !!this.asm.editingPart;
-        localStorage.setItem(
-          AUTOSAVE_KEY,
-          JSON.stringify({ env: asmActive ? "assembly" : "part", part: asmActive ? null : this.store.doc, asm: asmActive ? this.asm.doc : null }),
-        );
-        this.autosaveWarned = false;
+        if (json.length < 2_000_000) localStorage.setItem(AUTOSAVE_KEY, json);
+        else localStorage.removeItem(AUTOSAVE_KEY);
       } catch {
-        // quota (large STEP imports) / private mode: tell the user once, the file must be saved manually
-        if (!this.autosaveWarned) toast("自動保存できませんでした (データが大きすぎます)。こまめに保存してください (Ctrl+S)", "warn", 8000);
-        this.autosaveWarned = true;
+        /* quota / private mode: IndexedDB keeps the copy */
       }
     }, 800);
   }
 
-  private restoreAutosave() {
+  private async restoreAutosave() {
+    let s: string | null | undefined = null;
     try {
-      const s = localStorage.getItem(AUTOSAVE_KEY);
+      // the newer of the two copies (IndexedDB is written first and has no size limit)
+      const fromIdb = await idbGet<string>(AUTOSAVE_KEY).catch(() => undefined);
+      const fromLs = localStorage.getItem(AUTOSAVE_KEY);
+      const t = (x: string | null | undefined) => (x ? ((JSON.parse(x) as { t?: number }).t ?? 0) : -1);
+      s = t(fromIdb) >= t(fromLs) ? fromIdb : fromLs;
       if (!s) {
         this.showWelcome();
         return;
@@ -1634,8 +1643,7 @@ export class App {
     } catch (e) {
       // keep the unreadable autosave instead of overwriting it with the next edit
       try {
-        const s = localStorage.getItem(AUTOSAVE_KEY);
-        if (s) localStorage.setItem(`${AUTOSAVE_KEY}.broken`, s);
+        if (s) void idbSet(`${AUTOSAVE_KEY}.broken`, s);
       } catch {
         /* ignore */
       }
