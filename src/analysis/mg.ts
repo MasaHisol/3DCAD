@@ -286,7 +286,9 @@ export class Multigrid {
       const rj = j * n;
       let d = A[rj + j];
       for (let k = 0; k < j; k++) d -= A[rj + k] * A[rj + k];
-      d = Math.sqrt(Math.max(d, maxd * 1e-12));
+      // a (numerically) zero pivot is a rigid mode of an unsupported, unloaded part: drop that
+      // unknown (infinite pivot -> zero correction) instead of dividing by ~0, which overflowed to NaN
+      d = d > maxd * 1e-12 ? Math.sqrt(d) : Infinity;
       A[rj + j] = d;
       for (let i = j + 1; i < n; i++) {
         const ri = i * n;

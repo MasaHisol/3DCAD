@@ -16,6 +16,7 @@ import { lazyCommand, loadLazyCommand } from "../commands/features";
 import { analyzeDof, explodeOffsets, type DofReport } from "./motion";
 import { startDrive, startExplode } from "./motionUi";
 import { patternMatrices, type AsmPattern } from "./pattern";
+import { boxMatrix, isolateVisibility, matchesFilter, rebuildOrder, useProxy } from "./largeAsm";
 import { constraintError, solveAssembly, type SolverConstraint } from "./solver";
 import { IDENTITY, newAssembly, type AsmComponent, type AsmConstraint, type AsmConstraintType, type AssemblyDocument, type GeoRef } from "./types";
 
@@ -60,6 +61,14 @@ export class AssemblyEnv {
   private pendingUpdate = false;
   /** Part currently opened for editing (in-place). */
   editingPart: string | null = null;
+  /** 軽量表示: components not being edited are drawn as bounding boxes, small parts lose their edges when zoomed out. */
+  light = false;
+  /** パターンの簡略表示: pattern instances drawn as bounding boxes. */
+  simplifyPatterns = false;
+  /** Part rebuild progress while loading (null when idle). */
+  loading: { done: number; total: number } | null = null;
+  private progressEl: HTMLElement | null = null;
+  private lastProgressRender = 0;
 
   constructor(readonly app: App) {
     this.store.on((r) => this.onChange(r));
@@ -116,18 +125,73 @@ export class AssemblyEnv {
         this.parts.delete(id);
         void this.app.kernel.dropEngine(key(id));
       }
-    for (const p of this.doc.parts) {
-      const hash = p.kind === "step" ? `step:${p.step?.length}:${p.fileName}` : JSON.stringify([p.doc?.features, p.doc?.params, p.doc?.endOfPart]);
-      const cached = this.parts.get(p.id);
-      if (cached && cached.hash === hash) continue;
-      try {
-        const res = await this.app.kernel.rebuildKey(key(p.id), this.partFeatures(p.id));
-        const errs = Object.values(res.errors);
-        this.parts.set(p.id, { hash, bodies: res.bodies, error: errs[0] });
-      } catch (e) {
-        this.parts.set(p.id, { hash, bodies: [], error: (e as Error).message });
+    const hashOf = (p: (typeof this.doc.parts)[number]) => (p.kind === "step" ? `step:${p.step?.length}:${p.fileName}` : JSON.stringify([p.doc?.features, p.doc?.params, p.doc?.endOfPart]));
+    const todo = rebuildOrder(
+      this.doc.parts.map((p) => p.id),
+      this.doc.components,
+    ).filter((id) => {
+      const p = this.doc.parts.find((x) => x.id === id)!;
+      return this.parts.get(id)?.hash !== hashOf(p);
+    });
+    // several parts to build (opening a file): show placeholders and fill in as the kernel finishes
+    const progressive = todo.length > 1;
+    if (progressive) {
+      this.loading = { done: 0, total: todo.length };
+      this.showProgress();
+      this.render();
+    }
+    try {
+      for (const id of todo) {
+        const p = this.doc.parts.find((x) => x.id === id);
+        if (!p) continue;
+        const hash = hashOf(p);
+        try {
+          const res = await this.app.kernel.rebuildKey(key(p.id), this.partFeatures(p.id));
+          const errs = Object.values(res.errors);
+          this.parts.set(p.id, { hash, bodies: res.bodies, error: errs[0] });
+        } catch (e) {
+          this.parts.set(p.id, { hash, bodies: [], error: (e as Error).message });
+        }
+        if (this.loading) {
+          this.loading.done++;
+          this.showProgress();
+          // redraw at most every 150 ms (each redraw rebuilds the scene graph)
+          const now = performance.now();
+          if (now - this.lastProgressRender > 150 && this.loading.done < this.loading.total) {
+            this.lastProgressRender = now;
+            this.render();
+          }
+        }
+      }
+    } finally {
+      if (progressive) {
+        this.loading = null;
+        this.showProgress();
       }
     }
+  }
+
+  /** Progress indicator over the viewport while parts rebuild. */
+  private showProgress() {
+    const l = this.loading;
+    if (!l) {
+      this.progressEl?.remove();
+      this.progressEl = null;
+      return;
+    }
+    if (!this.progressEl) {
+      this.progressEl = h(
+        "div",
+        { class: "asm-progress", role: "progressbar", style: "position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:5;background:var(--panel-bg,#fff);color:inherit;border:1px solid rgba(127,127,127,.35);border-radius:6px;padding:6px 12px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:220px;pointer-events:none" },
+        h("div", { class: "asm-progress-text" }),
+        h("div", { style: "height:4px;background:rgba(127,127,127,.25);border-radius:2px;margin-top:4px;overflow:hidden" }, h("div", { class: "asm-progress-bar", style: "height:100%;width:0;background:#1f8fff;transition:width .15s" })),
+      );
+      this.app.vp.el.appendChild(this.progressEl);
+    }
+    this.progressEl.setAttribute("aria-valuenow", String(l.done));
+    this.progressEl.setAttribute("aria-valuemax", String(l.total));
+    this.progressEl.querySelector(".asm-progress-text")!.textContent = `パーツを読み込み中… ${l.done} / ${l.total}`;
+    (this.progressEl.querySelector(".asm-progress-bar") as HTMLElement).style.width = `${(100 * l.done) / Math.max(1, l.total)}%`;
   }
 
   /** Follow picked geometry after a part was edited (nearest matching face / edge). */
@@ -251,8 +315,8 @@ export class AssemblyEnv {
   }
 
   /** Visible bodies in assembly coordinates (same order as the viewport bodies), with their materials. */
-  worldBodies(): { mesh: BodyMesh; material: { name: string; density: number } }[] {
-    const out: { mesh: BodyMesh; material: { name: string; density: number } }[] = [];
+  worldBodies(): { mesh: BodyMesh; material: { name: string; density: number }; name: string }[] {
+    const out: { mesh: BodyMesh; material: { name: string; density: number }; name: string }[] = [];
     for (const c of this.doc.components) {
       if (c.visible === false) continue;
       const cache = this.parts.get(c.partId);
@@ -274,7 +338,7 @@ export class AssemblyEnv {
           const c3 = new THREE.Vector3(...f.center).applyMatrix4(m), n3 = new THREE.Vector3(...f.normal).applyMatrix3(nm).normalize();
           return { ...f, center: [c3.x, c3.y, c3.z] as Vec3, normal: [n3.x, n3.y, n3.z] as Vec3 };
         });
-        out.push({ mesh: { ...b, positions, normals, faces }, material: { name: material.name, density: material.density } });
+        out.push({ mesh: { ...b, positions, normals, faces }, material: { name: material.name, density: material.density }, name: c.name });
       }
     }
     return out;
@@ -295,10 +359,15 @@ export class AssemblyEnv {
     this.bodyMap = [];
     const ex = this.explodeMap();
     const trails: [Vec3, Vec3][] = [];
+    const placeholders: { matrix: number[]; color?: string }[] = [];
     this.doc.components.forEach((c) => {
       if (c.visible === false) return;
       const cache = this.parts.get(c.partId);
-      if (!cache) return;
+      if (!cache) {
+        // not built yet: a placeholder box at the component origin
+        placeholders.push({ matrix: m4(c.matrix).multiply(m4(boxMatrix([-10, -10, -10], [10, 10, 10]))).toArray(), color: "#b8c0cc" });
+        return;
+      }
       const color = this.partColor(c.partId);
       const off = ex.get(c.id);
       const m = m4(c.matrix);
@@ -315,10 +384,69 @@ export class AssemblyEnv {
       });
     });
     vp.setBodies(bodies, undefined, colors, mats);
+    this.placeholders = placeholders;
+    this.applyLight();
     if (this.motionTrace) for (let i = 1; i < this.motionTrace.length; i++) trails.push([this.motionTrace[i - 1], this.motionTrace[i]]);
     vp.setTrails(trails);
     this.highlightSelection();
     this.app.refreshUI();
+  }
+
+  private placeholders: { matrix: number[]; color?: string }[] = [];
+
+  /** Lightweight display / simplified patterns: box proxies for components not being edited. */
+  applyLight() {
+    const vp = this.app.vp;
+    const opts = { light: this.light, simplifyPatterns: this.simplifyPatterns };
+    const comps = new Map(this.doc.components.map((c) => [c.id, c]));
+    const proxied = new Set<number>();
+    const boxes = [...this.placeholders];
+    this.bodyMap.forEach((bm, i) => {
+      const c = comps.get(bm.comp);
+      if (!c || !useProxy(opts, c, this.selected)) return;
+      proxied.add(i);
+      const b = this.parts.get(c.partId)?.bodies[bm.local];
+      const v = vp.bodies[i];
+      if (!b || !v) return;
+      const m = (v.matrix ?? new THREE.Matrix4()).clone().multiply(m4(boxMatrix(b.bbox[0], b.bbox[1])));
+      boxes.push({ matrix: m.toArray(), color: this.partColor(c.partId) });
+    });
+    vp.setBodyProxied(proxied);
+    vp.setProxyBoxes(boxes);
+    vp.edgeCullPx = this.light ? 12 : 0;
+    vp.invalidate();
+  }
+
+  setLight(on: boolean) {
+    this.light = on;
+    this.applyLight();
+    this.app.ribbon.refresh();
+    this.app.status(on ? "軽量表示: 選択していないコンポーネントを境界ボックスで表示します (選択すると詳細表示)" : "準備完了");
+  }
+
+  setSimplifyPatterns(on: boolean) {
+    this.simplifyPatterns = on;
+    this.applyLight();
+    this.app.ribbon.refresh();
+  }
+
+  /** Hide / show the given components (one undo step). */
+  setVisible(ids: string[], on: boolean) {
+    const set = new Set(ids);
+    if (!set.size) return;
+    this.store.mutate(on ? "表示" : "非表示", (d) => d.components.forEach((c) => set.has(c.id) && (c.visible = on)));
+  }
+
+  /** Isolate: only the selected components stay visible. */
+  isolateSelection() {
+    const sel = new Set(this.doc.components.filter((c) => this.selected.has(c.id)).map((c) => c.id));
+    if (!sel.size) return void toast("分離するコンポーネントを選択してください", "warn");
+    const vis = isolateVisibility(this.doc.components.map((c) => c.id), sel);
+    this.store.mutate("分離", (d) => d.components.forEach((c) => (c.visible = vis.get(c.id)!)));
+  }
+
+  showAll() {
+    this.store.mutate("すべて表示", (d) => d.components.forEach((c) => (c.visible = true)));
   }
 
   partColor(partId: string): string {
@@ -505,6 +633,7 @@ export class AssemblyEnv {
 
   select(ids: string[]) {
     this.selected = new Set(ids);
+    if (this.light || this.simplifyPatterns) this.applyLight();
     this.highlightSelection();
     this.app.browser.render();
     this.app.ribbon.refresh();
@@ -578,8 +707,15 @@ export class AssemblyEnv {
       );
       this.rowEvents(el, c.id, "constraint");
     }
+    const q = this.app.browser.query;
+    let shown = 0;
     for (const c of doc.components) {
       const part = doc.parts.find((p) => p.id === c.partId);
+      if (!matchesFilter(q, c.name, part?.name, part?.doc?.iprops?.["パーツ番号"])) continue;
+      if (++shown > 2000) {
+        if (shown === 2001) row("__more", "dot", `… 他 ${doc.components.length - 2000} 個 (検索で絞り込み)`, 1, "dimmed");
+        continue;
+      }
       const err = this.parts.get(c.partId)?.error;
       const vis = c.visible !== false;
       const df = this.dof?.perComp.get(c.id);
@@ -654,6 +790,15 @@ export class AssemblyEnv {
         { label: c.suppressed ? "抑制を解除" : "抑制", action: () => this.store.mutate("抑制", (d) => (d.constraints.find((x) => x.id === c.id)!.suppressed = !c.suppressed)) },
       );
     }
+    if (comps.length) {
+      const anyHidden = comps.some((c) => c.visible === false);
+      items.push(
+        { separator: true, label: "" },
+        anyHidden ? { label: "表示", icon: "eye", action: () => this.setVisible(comps.map((c) => c.id), true) } : { label: "非表示", icon: "eyeOff", action: () => this.setVisible(comps.map((c) => c.id), false) },
+        { label: "分離 (他を非表示)", icon: "eye", action: () => this.isolateSelection() },
+      );
+    }
+    if (this.doc.components.some((c) => c.visible === false)) items.push({ label: "すべて表示", icon: "eye", action: () => this.showAll() });
     if (comps.length || cons.length) items.push({ separator: true, label: "" }, { label: "削除", icon: "trash", shortcut: "Delete", danger: true, action: () => this.deleteSelection() });
     return items;
   }
@@ -1015,6 +1160,19 @@ export class AssemblyEnv {
               },
             },
             { id: "asm-explode", label: "分解", icon: "explode", tip: "コンポーネントを拘束の軸方向に分解して表示します (プレゼンテーション)。", action: () => startExplode(this), active: () => this.command?.id === "explode" || this.explode > 0 },
+          ],
+        },
+        {
+          title: "表示",
+          items: [
+            { id: "asm-light", label: "軽量表示", icon: "box", tip: "選択していない (編集中でない) コンポーネントを境界ボックスで表示し、縮小時は小さい部品のエッジを省略します (大規模アセンブリ)。", action: () => this.setLight(!this.light), active: () => this.light },
+            {
+              stack: [
+                { id: "asm-simplify", label: "パターンの簡略表示", icon: "rectPattern", size: "small", tip: "パターン インスタンス (サブアセンブリ相当) を境界ボックスで表示します。", action: () => this.setSimplifyPatterns(!this.simplifyPatterns), active: () => this.simplifyPatterns },
+                { id: "asm-isolate", label: "分離", icon: "eye", size: "small", tip: "選択したコンポーネント以外を非表示にします。", action: () => this.isolateSelection() },
+                { id: "asm-showall", label: "すべて表示", icon: "eyeOff", size: "small", tip: "非表示のコンポーネントをすべて表示します。", action: () => this.showAll() },
+              ],
+            },
           ],
         },
         {

@@ -144,12 +144,17 @@ export class StressCommand implements Command {
   /** Analysed bodies (part bodies, or assembly bodies in assembly coordinates) and their materials. */
   private B: BodyMesh[];
   private mats: { name: string; density: number }[];
+  /** Component names of the analysed bodies (assemblies). */
+  private names: string[] = [];
+  /** Assemblies: parts bonded at their interfaces, or in contact (may separate). */
+  private contactMode: "bonded" | "contact" = "bonded";
 
   constructor(private app: App) {
     if (app.env === "assembly") {
       const wb = app.asm.worldBodies();
       this.B = wb.map((b) => b.mesh);
       this.mats = wb.map((b) => b.material);
+      this.names = wb.map((b) => b.name);
     } else {
       this.B = app.bodies;
       this.mats = app.bodies.map(() => app.store.doc.material);
@@ -217,6 +222,20 @@ export class StressCommand implements Command {
       `${this.app.env === "assembly" ? `アセンブリ (部品ごとの材料、基準 ${this.matName()})` : this.matName()}: E ${formatNumber(mat.E, 0)} MPa / ν ${mat.nu} / 降伏 ${formatNumber(mat.yield, 0)} MPa / 密度 ${this.refDensity()} g/cm³` +
         (thermalKind ? ` / 熱伝導率 ${tm.k} W/(m·K) / 線膨張係数 ${formatNumber(tm.alpha * 1e6, 1)}×10⁻⁶/K` : ""),
     );
+    if (this.app.env === "assembly" && this.kind === "static") {
+      const cs = p.select(
+        ks,
+        "部品間の接触",
+        [
+          { value: "bonded", label: "接着 (現在)" },
+          { value: "contact", label: "接触 (離れる・すべりなし)" },
+        ],
+        this.contactMode,
+        (v) => (this.contactMode = v as "bonded" | "contact"),
+      );
+      cs.dataset.k = "contact";
+      cs.title = "接触: 引張になる部品間の面を離して再計算します (押し付け合う面は一体、すべりはなし)";
+    }
     const bc = p.section("境界条件");
     for (const key of KIND_SETS[this.kind]) {
       const pk = p.picker(bc, SET_LABEL[key], SET_ICON[key], () => this.setActive(key), () => ((this.sets[key] = []), this.boundaryChanged(), this.sync()));
@@ -447,6 +466,7 @@ export class StressCommand implements Command {
           count: b.indices.length / 3,
           stiff: (FEA_MATERIALS[this.mats[i].name] ?? FEA_MATERIALS["汎用"]).E / ref.E,
           density: this.mats[i].density,
+          name: this.names[i],
         }))
       : undefined;
     return { mesh: { positions, indices, parts }, tris };
@@ -510,7 +530,10 @@ export class StressCommand implements Command {
     const { mesh, tris } = this.buildMesh();
     const k = this.kind;
     const req: FeaRequest = { kind: k, mesh, bc: { fixed: [], loads: [] }, mat: this.material(), opt: { targetElements: target } };
-    if (k === "static") req.bc = this.structural(tris, true);
+    if (k === "static") {
+      req.bc = this.structural(tris, true);
+      if (this.app.env === "assembly" && this.contactMode === "contact") req.opt.contact = "contact";
+    }
     if (k === "buckling") {
       req.bc = this.structural(tris, true);
       req.opt.targetElements = Math.min(target, 60000);
@@ -758,6 +781,15 @@ export class StressCommand implements Command {
     row("疲労安全率 (両振り)", Number.isFinite(fsf) ? formatNumber(fsf, 2) : "∞", fsf < 1 ? "bad" : fsf < 1.5 ? "warn" : "ok", `疲労限度 ${formatNumber(this.enduranceLimit(), 0)} MPa (引張強さからの推定) に対する完全両振りの安全率`);
     const rf = Math.hypot(...s.reaction);
     if (!s.thermal) row("支点反力", `${formatNumber(rf, 2)} N (つり合い誤差 ${eqText(s.equilibriumError)})`, s.equilibriumError < 1e-3 ? "ok" : "warn", "反力の合計が荷重の合計と釣り合っているかの検算です");
+    if (s.contact) {
+      const c = s.contact;
+      row(
+        "部品間の接触",
+        c.faces ? `接触 ${c.closed.toLocaleString()} 面 / 離れた ${c.released.toLocaleString()} 面 (${c.iterations} 回)` : "接する面がありません",
+        c.converged ? "" : "warn",
+        c.converged ? "引張になる部品間の面を離して再計算した結果です" : "接触状態が反復上限までに確定しませんでした (結果は目安)",
+      );
+    }
     row("要素", `${s.elements.toLocaleString()} 個 (要素サイズ ${formatNumber(s.h, 2)} mm)`);
     row("計算", `${s.iterations} 反復${time}${s.converged ? "" : " (未収束)"}`, s.converged ? "" : "warn");
     if (this.convergence) {

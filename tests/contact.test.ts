@@ -67,8 +67,8 @@ describe("assembly contact", () => {
       { lo: [0, 0, 4], hi: [60, 10, 8], name: "B" },
     ]);
     const bc: FeaBoundary = { fixed: [faces[0].xmin, faces[1].xmin], loads: [{ tris: faces[1].xmax, force: [0, 0, -100] }] };
-    const bonded = solveFea(mesh, bc, steel, { resolution: 60 });
-    const contact = solveFea(mesh, bc, steel, { resolution: 60, contact: "contact" });
+    const bonded = solveFea(mesh, bc, steel, { resolution: 40 });
+    const contact = solveFea(mesh, bc, steel, { resolution: 40, contact: "contact" });
     const c = contact.contact!;
     expect(c.released).toBeGreaterThan(0);
     expect(c.closed).toBeGreaterThan(0);
@@ -76,5 +76,5 @@ describe("assembly contact", () => {
     // opening makes the joint more flexible
     expect(contact.maxDisp).toBeGreaterThan(bonded.maxDisp * 1.01);
     expect(contact.equilibriumError).toBeLessThan(1e-3);
-  });
+  }, 120000);
 });

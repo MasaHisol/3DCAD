@@ -353,7 +353,7 @@ export function solveContact(
     let maxU = 0;
     for (let i = 0; i < u.length; i++) maxU = Math.max(maxU, Math.abs(u[i]));
     const ftol = Fscale * 1e-3, gtol = maxU * 1e-4;
-    let changes = 0, nRel = 0, nTie = 0;
+    let changes = 0;
     // release the tensile pairs first; only once nothing opens any more are penetrating
     // pairs closed again, and those stay closed (no release/close cycling at the front)
     for (const x of inodes) {
@@ -363,7 +363,7 @@ export function solveContact(
         // traction on part 2 from part 1 (n points 1 -> 2): positive = pressed together
         let pn = 0;
         for (let k = 0; k < 3; k++) pn += ((f[p.l2 * 3 + k] - f[p.l1 * 3 + k]) / 2) * p.n[k];
-        if (pn < -ftol) (p.tied = false), changes++, nRel++;
+        if (pn < -ftol) (p.tied = false), changes++;
       }
     }
     if (!changes)
@@ -372,9 +372,8 @@ export function solveContact(
           if (p.tied) continue;
           let g = 0;
           for (let k = 0; k < 3; k++) g += (u[x.ids[p.l2] * 3 + k] - u[x.ids[p.l1] * 3 + k]) * p.n[k];
-          if (g < -gtol) (p.tied = true), (p.locked = true), changes++, nTie++;
+          if (g < -gtol) (p.tied = true), (p.locked = true), changes++;
         }
-    if ((globalThis as { __CDBG?: boolean }).__CDBG) console.log("pass", pass, "rel", nRel, "tie", nTie, "it", sol.it, "NN-nNodes", NN - nNodes);
     if (!changes) {
       converged = true;
       break;

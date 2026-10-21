@@ -82,6 +82,11 @@ export class ModelBrowser {
     parent.appendChild(this.el);
   }
 
+  /** Current search text (lower case), for custom renderers such as the assembly browser. */
+  get query(): string {
+    return this.filter;
+  }
+
   startRename(id: string) {
     this.renaming = id;
     this.render();

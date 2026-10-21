@@ -3,6 +3,7 @@ import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { BodyMesh, ThreadInfo } from "../kernel/protocol";
 import type { PlaneDef, Vec3 } from "../core/types";
+import { edgeVisibleAtZoom } from "../assembly/largeAsm";
 
 export type PickKind = "face" | "edge" | "plane" | "axis" | "point";
 
@@ -53,6 +54,15 @@ interface BodyView {
   segEdge: Uint32Array;
   faceGeoms: Map<number, THREE.BufferGeometry>;
   edgeGeoms: Map<number, THREE.BufferGeometry>;
+  /** Mesh / edge geometry is shared with other views of the same BodyMesh (assembly instances). */
+  shared?: boolean;
+}
+
+/** GPU geometry shared by every view of one BodyMesh (e.g. all instances of a bolt). */
+interface SharedGeom {
+  geom: THREE.BufferGeometry;
+  edges: THREE.BufferGeometry;
+  segEdge: Uint32Array;
 }
 
 interface RefGeom {
@@ -267,6 +277,7 @@ export class Viewport {
     }
     if (!this.needsRender) return;
     this.needsRender = false;
+    this.cullEdges();
     const r = this.renderer;
     r.setScissorTest(false);
     r.clear();
@@ -352,7 +363,34 @@ export class Viewport {
     this.invalidate();
   }
 
-  private buildView(data: BodyMesh, bi: number, forPick: boolean): BodyView {
+  /** Shared geometries keyed by the BodyMesh object (assembly part cache bodies are reused per instance). */
+  private geomCache = new Map<BodyMesh, SharedGeom>();
+  /** Share GPU geometry between instances (false = one geometry per body, for comparison). */
+  shareGeometry = true;
+
+  private sharedGeom(data: BodyMesh): SharedGeom {
+    let s = this.geomCache.get(data);
+    if (!s) {
+      const v = this.buildView(data, 0, true, false);
+      s = { geom: v.mesh.geometry, edges: v.edges.geometry, segEdge: v.segEdge };
+      this.geomCache.set(data, s);
+    }
+    return s;
+  }
+
+  private buildView(data: BodyMesh, bi: number, forPick: boolean, share = false): BodyView {
+    if (share) {
+      const s = this.sharedGeom(data);
+      const mesh = new THREE.Mesh(s.geom, this.materialFor(bi));
+      mesh.userData.body = bi;
+      const back = new THREE.Mesh(s.geom, this.backMaterial);
+      back.visible = !!this.clipPlane;
+      const edges = new THREE.LineSegments(s.edges, this.edgeMaterial);
+      const hidden = new THREE.LineSegments(s.edges, this.hiddenMaterial);
+      hidden.renderOrder = -1;
+      hidden.visible = false;
+      return { data, mesh, back, edges, hidden, segEdge: s.segEdge, faceGeoms: new Map(), edgeGeoms: new Map(), shared: true };
+    }
     const geom = new THREE.BufferGeometry();
     geom.setAttribute("position", new THREE.BufferAttribute(data.positions, 3));
     geom.setAttribute("normal", new THREE.BufferAttribute(data.normals, 3));
@@ -387,8 +425,10 @@ export class Viewport {
 
   private disposeViews(views: BodyView[]) {
     for (const b of views) {
-      b.mesh.geometry.dispose();
-      b.edges.geometry.dispose();
+      if (!b.shared) {
+        b.mesh.geometry.dispose();
+        b.edges.geometry.dispose();
+      }
       b.faceGeoms.forEach((g) => g.dispose());
       b.edgeGeoms.forEach((g) => g.dispose());
     }
@@ -412,6 +452,70 @@ export class Viewport {
     this.placeView(v, m.clone());
     if (this.pickViews !== this.bodies && this.pickViews[i]) this.placeView(this.pickViews[i], m.clone());
     this.refreshHighlights();
+  }
+
+  // ------------------------------------------------- large assemblies ---
+
+  /** Bodies drawn as bounding-box proxies (lightweight display); their meshes stay pickable. */
+  proxied = new Set<number>();
+  /** Hide the edges of bodies smaller than this many pixels on screen (0 = off). */
+  edgeCullPx = 0;
+  private edgeCullState = "";
+  readonly proxyLayer = new THREE.Group();
+  private proxyMat = new THREE.MeshStandardMaterial({ color: "#ffffff", metalness: 0.05, roughness: 0.6, transparent: true, opacity: 0.55, depthWrite: false });
+  private proxyGeom = new THREE.BoxGeometry(1, 1, 1);
+
+  /** Show the given bodies as proxies (their meshes and edges are hidden but still picked). */
+  setBodyProxied(indices: Set<number>) {
+    this.proxied = indices;
+    this.applyStyle();
+  }
+
+  /**
+   * Bounding-box proxies (lightweight display / load placeholders) drawn as one
+   * InstancedMesh. `matrix` maps the unit cube to the box (column-major).
+   */
+  setProxyBoxes(items: { matrix: number[]; color?: string }[]) {
+    for (const c of [...this.proxyLayer.children]) {
+      this.proxyLayer.remove(c);
+      (c as THREE.InstancedMesh).dispose();
+    }
+    if (!this.proxyLayer.parent) this.scene.add(this.proxyLayer);
+    if (items.length) {
+      const im = new THREE.InstancedMesh(this.proxyGeom, this.proxyMat, items.length);
+      const m = new THREE.Matrix4(), col = new THREE.Color();
+      items.forEach((it, i) => {
+        im.setMatrixAt(i, m.fromArray(it.matrix));
+        im.setColorAt(i, col.set(it.color ?? "#9aa4b2"));
+      });
+      im.instanceMatrix.needsUpdate = true;
+      if (im.instanceColor) im.instanceColor.needsUpdate = true;
+      im.computeBoundingSphere();
+      this.proxyLayer.add(im);
+    }
+    this.invalidate();
+  }
+
+  /** Edges of small bodies are hidden when zoomed out (edgeCullPx > 0). */
+  private cullEdges() {
+    if (this.style === "shaded") return;
+    const ps = this.pixelSize;
+    const key = this.edgeCullPx > 0 ? `${this.edgeCullPx}|${ps.toPrecision(3)}|${this.bodies.length}` : "off";
+    if (key === this.edgeCullState) return;
+    const was = this.edgeCullState;
+    this.edgeCullState = key;
+    if (key === "off" && was === "") return;
+    this.bodies.forEach((b, i) => {
+      if (this.proxied.has(i) || !b.mesh.visible && this.style !== "wireframe") return;
+      const r = b.mesh.geometry.boundingSphere?.radius ?? Infinity;
+      b.edges.visible = edgeVisibleAtZoom(r, ps, this.edgeCullPx);
+    });
+  }
+
+  /** Renderer statistics (geometries / textures in GPU memory, last frame draw calls / triangles). */
+  stats() {
+    const i = this.renderer.info;
+    return { geometries: i.memory.geometries, textures: i.memory.textures, calls: i.render.calls, triangles: i.render.triangles, bodies: this.bodies.length, sharedGeometries: this.geomCache.size };
   }
 
   // ------------------------------------------------------- realistic ---
@@ -499,6 +603,15 @@ export class Viewport {
   setResult(per: ({ colors: Float32Array; positions?: Float32Array } | null)[] | null) {
     this.bodies.forEach((b, bi) => {
       const r = per?.[bi] ?? null;
+      if (r && b.shared) {
+        // results differ per instance: give this body its own geometry
+        const own = b.mesh.geometry.clone();
+        b.mesh.geometry = own;
+        b.back.geometry = own;
+        b.edges.geometry = b.edges.geometry.clone();
+        b.hidden.geometry = b.edges.geometry;
+        b.shared = false;
+      }
       const g = b.mesh.geometry;
       if (r) {
         g.setAttribute("color", new THREE.BufferAttribute(r.colors, 3));
@@ -623,8 +736,10 @@ export class Viewport {
     this.disposeViews(this.bodies);
     if (!sharedPick) this.disposeViews(this.pickViews);
     this.model.clear();
+    // assembly instances (placed by matrices) share geometry per BodyMesh
+    const share = this.shareGeometry && !!matrices && !pickBodies;
     this.bodies = bodies.map((data, bi) => {
-      const v = this.buildView(data, bi, false);
+      const v = this.buildView(data, bi, false, share);
       this.placeView(v, matrices?.[bi]);
       this.model.add(v.mesh, v.back, v.edges, v.hidden);
       return v;
@@ -636,6 +751,15 @@ export class Viewport {
         return v;
       });
     } else this.pickViews = this.bodies;
+    // drop shared geometries no longer shown
+    const used = new Set(this.bodies.filter((b) => b.shared).map((b) => b.data));
+    for (const [d, s] of this.geomCache)
+      if (!used.has(d)) {
+        s.geom.dispose();
+        s.edges.dispose();
+        this.geomCache.delete(d);
+      }
+    this.proxied = new Set([...this.proxied].filter((i) => i < this.bodies.length));
     this.applyStyle();
     this.applyClip();
     this.hover = null;
@@ -652,8 +776,9 @@ export class Viewport {
   setBodyVisible(i: number, on: boolean) {
     const b = this.bodies[i];
     if (!b) return;
-    b.mesh.visible = on && this.style !== "wireframe";
-    b.edges.visible = on && this.style !== "shaded";
+    const px = this.proxied.has(i);
+    b.mesh.visible = on && !px && this.style !== "wireframe";
+    b.edges.visible = on && !px && this.style !== "shaded";
     this.invalidate();
   }
 
@@ -663,11 +788,13 @@ export class Viewport {
   }
 
   private applyStyle() {
-    for (const b of this.bodies) {
-      b.mesh.visible = this.style !== "wireframe";
-      b.edges.visible = this.style !== "shaded";
-      b.hidden.visible = this.style === "hiddenEdges" || this.style === "wireframe";
-    }
+    this.bodies.forEach((b, i) => {
+      const px = this.proxied.has(i);
+      b.mesh.visible = !px && this.style !== "wireframe";
+      b.edges.visible = !px && this.style !== "shaded";
+      b.hidden.visible = !px && (this.style === "hiddenEdges" || this.style === "wireframe");
+    });
+    this.edgeCullState = "";
     this.hiddenMaterial.depthTest = false;
     this.hiddenMaterial.opacity = this.style === "wireframe" ? 0.9 : 0.5;
     this.invalidate();
