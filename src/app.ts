@@ -1618,12 +1618,17 @@ export class App {
 
   private async restoreAutosave() {
     let s: string | null | undefined = null;
+    // the read is asynchronous: if the user (or a file / lesson) already opened something
+    // meanwhile, neither restore over it nor cover it with the welcome card
+    const untouched = (gen: number) => this.store.generation === gen && !this.asmDoc && this.env === "part";
+    const gen0 = this.store.generation;
     try {
       // the newer of the two copies (IndexedDB is written first and has no size limit)
       const fromIdb = await idbGet<string>(AUTOSAVE_KEY).catch(() => undefined);
       const fromLs = localStorage.getItem(AUTOSAVE_KEY);
       const t = (x: string | null | undefined) => (x ? ((JSON.parse(x) as { t?: number }).t ?? 0) : -1);
       s = t(fromIdb) >= t(fromLs) ? fromIdb : fromLs;
+      if (!untouched(gen0)) return;
       if (!s) {
         this.showWelcome();
         return;
@@ -1660,7 +1665,9 @@ export class App {
   }
 
   private showWelcome() {
-    const close = () => w.remove();
+    // any document change (a file opened from the menu, a lesson, the OS) also dismisses it
+    const off = this.store.on(() => close());
+    const close = () => (w.remove(), off());
     const card = (ic: string, title: string, desc: string, fn: () => void) =>
       h("button", { class: "wc-card", onClick: () => (close(), fn()) }, iconEl(ic), h("strong", {}, title), h("span", {}, desc));
     const w = h(

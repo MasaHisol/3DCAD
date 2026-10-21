@@ -21,7 +21,11 @@ export class Store<T> {
     return () => this.listeners.delete(l);
   }
 
+  /** Counts every change (edits, loads, undo): lets async work notice the document moved on. */
+  generation = 0;
+
   emit(reason: string) {
+    this.generation++;
     for (const l of this.listeners) l(reason);
   }
 

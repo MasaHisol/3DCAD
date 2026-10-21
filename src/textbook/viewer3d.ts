@@ -37,7 +37,7 @@ interface Kit {
   toggle: (label: string, init: boolean, on: (v: boolean) => void) => HTMLButtonElement;
   slider: (label: string, min: number, max: number, value: number, step: number, unit: string, on: (v: number) => void) => HTMLInputElement;
   select: (options: [string, string][], value: string, on: (v: string) => void) => HTMLSelectElement;
-  setView: (v: ViewName, animate?: boolean) => void;
+  setView: (v: ViewName, animate?: boolean, fit?: { target: [number, number, number]; scale: number }) => void;
 }
 
 type ViewName = "iso" | "front" | "top" | "right";
@@ -137,6 +137,7 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
     const st0 = opts.start ?? [35, 24];
     const orbit = { th: (st0[0] * Math.PI) / 180, ph: (st0[1] * Math.PI) / 180, d: fitDist };
     const home = { ...orbit };
+    const home0 = target.clone();
 
     // studio lighting
     const hemi = new T.HemisphereLight(0xffffff, 0x8a9099, 2.1);
@@ -181,7 +182,7 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
     // --------------------------------------------------- render scheduling
     let visible = true;
     let animating = false;
-    let tween: { from: typeof orbit; to: typeof orbit; t: number } | null = null;
+    let tween: { from: typeof orbit; to: typeof orbit; t: number; t0?: T3.Vector3; t1?: T3.Vector3 } | null = null;
     let raf = 0;
     let last = 0;
     let disposed = false;
@@ -203,6 +204,7 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
         orbit.th = tween.from.th + (tween.to.th - tween.from.th) * e;
         orbit.ph = tween.from.ph + (tween.to.ph - tween.from.ph) * e;
         orbit.d = tween.from.d + (tween.to.d - tween.from.d) * e;
+        if (tween.t0 && tween.t1) target.lerpVectors(tween.t0, tween.t1, e);
         if (tween.t >= 1) tween = null;
         else more = true;
       }
@@ -287,14 +289,15 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
     canvas.addEventListener("wheel", onWheel, { passive: false });
     canvas.addEventListener("dblclick", onDbl);
 
-    function goTo(to: typeof orbit, animate = true) {
+    function goTo(to: typeof orbit, animate = true, tgt = home0) {
       // shortest way round in azimuth
       const tw = Math.PI * 2;
       to.th = orbit.th + ((((to.th - orbit.th) % tw) + tw * 1.5) % tw) - Math.PI;
       if (!animate || reduced) {
         Object.assign(orbit, to);
+        target.copy(tgt);
         tween = null;
-      } else tween = { from: { ...orbit }, to, t: 0 };
+      } else tween = { from: { ...orbit }, to, t: 0, t0: target.clone(), t1: tgt.clone() };
       invalidate();
     }
 
@@ -318,8 +321,8 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
       b.addEventListener("click", () => setView(k));
       views.appendChild(b);
     }
-    function setView(k: ViewName, animate = true) {
-      goTo({ th: VIEWS[k][0], ph: VIEWS[k][1], d: fitDist }, animate);
+    function setView(k: ViewName, animate = true, fit?: { target: [number, number, number]; scale: number }) {
+      goTo({ th: VIEWS[k][0], ph: VIEWS[k][1], d: fitDist * (fit?.scale ?? 1) }, animate, fit ? new T.Vector3(...fit.target) : home0);
     }
 
     const textures: T3.Texture[] = [];
@@ -648,7 +651,7 @@ export const VIEW3D: Record<string, (host: HTMLElement) => void> = {
         goal = v ? 1 : 0;
         if (v) {
           showBox = true;
-          k.setView("front");
+          k.setView("front", true, { target: [30, 48, 0], scale: 1.3 });
         }
         if (k.reduced) {
           unfold = goal;
@@ -732,7 +735,7 @@ export const VIEW3D: Record<string, (host: HTMLElement) => void> = {
 
   // ------------------------------------------------------------- bearing
   "3d-bearing": (host) =>
-    view3d(host, "深溝玉軸受の構造", { target: [0, 0, 0], radius: 46, start: [28, 28] }, (k) => {
+    view3d(host, "深溝玉軸受の構造", { target: [0, 0, 0], radius: 52, start: [28, 28] }, (k) => {
       const { T, root } = k;
       const steel = k.mat(0xb8c0ca, { metalness: 0.55, roughness: 0.3, side: T.DoubleSide });
       const ballMat = k.mat(0xdde3ea, { metalness: 0.7, roughness: 0.18 });
@@ -782,9 +785,9 @@ export const VIEW3D: Record<string, (host: HTMLElement) => void> = {
       const ratio = (1 - (2 * br) / (2 * pcr)) / 2; // cage speed / inner-ring speed
       const apply = () => {
         const e = ex * ex * (3 - 2 * ex);
-        outer.position.y = 26 * e;
-        inner.position.y = -26 * e;
-        cage.position.y = 13 * e;
+        outer.position.y = 16 * e;
+        inner.position.y = -16 * e;
+        cage.position.y = 7 * e;
         inner.rotation.y = -ang;
         cage.rotation.y = -ang * ratio;
         balls.rotation.y = -ang * ratio;
@@ -1224,7 +1227,7 @@ export const VIEW3D: Record<string, (host: HTMLElement) => void> = {
       const stopTime = 2.4; // s, coast-down
       const status = () => {
         const closed = doorA < 0.01;
-        lampMat.color.set(speed > 0.01 ? 0x22c55e : closed ? 0xf59e0b : 0xef4444);
+        lampMat.color.set(!closed ? 0xef4444 : speed > 0.01 ? 0x22c55e : 0xf59e0b);
         lampMat.emissive.copy(lampMat.color);
         let msg: string;
         if (closed && !wantOpen) msg = "ガードが閉じているときだけ主軸が回ります (インターロック)。";

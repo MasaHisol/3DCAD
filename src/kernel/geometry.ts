@@ -1147,6 +1147,42 @@ function circumcircle(a: P2, b: P2, c: P2): { c: P2; r: number } | null {
   return { c: [cx, cy], r: Math.hypot(a[0] - cx, a[1] - cy) };
 }
 
+/**
+ * Adaptive polyline of a free-form 2D curve (ellipse, B-spline): split until the
+ * chord deviates less than `tol` mm from the curve (drawings stay smooth when zoomed).
+ */
+export function sampleCurve(at: (t: number) => P2, t0: number, t1: number, tol = 0.01, maxPts = 600): P2[] {
+  const out: P2[] = [];
+  const pt = (t: number): P2 => {
+    const v = at(t);
+    return [v[0], v[1]];
+  };
+  const dev = (a: P2, b: P2, m: P2) => {
+    const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    return l < 1e-12 ? Math.hypot(m[0] - a[0], m[1] - a[1]) : Math.abs((m[0] - a[0]) * dy - (m[1] - a[1]) * dx) / l;
+  };
+  const rec = (ta: number, a: P2, tb: number, b: P2, depth: number) => {
+    const tm = (ta + tb) / 2, m = pt(tm);
+    // also probe the quarter points so an S-shaped span is not taken for straight
+    const q1 = pt((ta + tm) / 2), q3 = pt((tm + tb) / 2);
+    if (depth < 12 && out.length < maxPts && Math.max(dev(a, b, m), dev(a, b, q1), dev(a, b, q3)) > tol) {
+      rec(ta, a, tm, m, depth + 1);
+      rec(tm, m, tb, b, depth + 1);
+    } else out.push(b);
+  };
+  // start from 8 spans so closed curves (first = last point) are handled
+  const n = 8;
+  let ta = t0, a = pt(t0);
+  out.push(a);
+  for (let i = 1; i <= n; i++) {
+    const tb = t0 + ((t1 - t0) * i) / n, b = pt(tb);
+    rec(ta, a, tb, b, 0);
+    ta = tb;
+    a = b;
+  }
+  return out;
+}
+
 /** Curve2D list of a projected Drawing -> simple segments. */
 function drawingSegments(d: R.Drawing, tag: number): Seg2[] {
   const curves: R.Curve2D[] = [];
@@ -1179,12 +1215,7 @@ function drawingSegments(d: R.Drawing, tag: number): Seg2[] {
         out.push({ t: "arc", c: cc.c, r: cc.r, a0, a1, tag });
       }
     } else {
-      const pts: P2[] = [];
-      for (let i = 0; i <= 24; i++) {
-        const v = c.value(t0 + ((t1 - t0) * i) / 24) as P2;
-        pts.push([v[0], v[1]]);
-      }
-      out.push({ t: "poly", pts, tag });
+      out.push({ t: "poly", pts: sampleCurve((t) => c.value(t) as P2, t0, t1), tag });
     }
   }
   return out;
@@ -1311,7 +1342,7 @@ export function drawView(items: { shape: Shape; tag: number }[], v: ViewSpec, th
     // assemblies: identify which placement each visible edge belongs to (balloons, parts lists)
     if (shapes.length > 1) {
       const key = (s: Seg2) => {
-        const p = s.t === "line" ? [(s.a[0] + s.b[0]) / 2, (s.a[1] + s.b[1]) / 2] : s.t === "poly" ? s.pts[12] : s.c;
+        const p = s.t === "line" ? [(s.a[0] + s.b[0]) / 2, (s.a[1] + s.b[1]) / 2] : s.t === "poly" ? s.pts[s.pts.length >> 1] : s.c;
         return `${p[0].toFixed(3)},${p[1].toFixed(3)}`;
       };
       const owner = new Map<string, number>();
