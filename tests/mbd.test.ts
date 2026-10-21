@@ -5,7 +5,8 @@ import type { PartDocument } from "../src/core/types";
 import type { BodyMesh } from "../src/kernel/protocol";
 import { addPmi, cleanPmi, nextDatumLetter, pmiCsv, pmiText, removePmi, updatePmi, type PmiAnno, type PmiDim, type PmiDiameter } from "../src/mbd/pmi";
 import { measureLinear, pmiGeometry, resolveRef } from "../src/mbd/resolve";
-import { pmiToDrawing } from "../src/mbd/drawing";
+import { pmiToDrawing, pmiToViews } from "../src/mbd/drawing";
+import { resnap } from "../src/drawing/geom";
 import type { DView } from "../src/drawing/types";
 
 const face = (center: [number, number, number], normal: [number, number, number], type = "PLANE") => ({ kind: "face" as const, ref: { center, normal, type } });
@@ -163,5 +164,39 @@ describe("MBD / PMI geometry", () => {
     // re-import skips what is already there
     const again = pmiToDrawing(items.map((anno) => ({ anno, geom: pmiGeometry(anno, [b]) })), front, new Set(res.annos.map((a) => a.id)));
     expect(again.annos.length).toBe(0);
+  });
+
+  it("imports PMI the front view cannot show into the other views instead of only the table", () => {
+    // regression: the import targeted the front view only; PMI on faces perpendicular to its
+    // direction (dims along it, datums / surfaces on faces seen face-on) all went to the table
+    const b = block();
+    const front: DView = { id: "v1", label: "正面図", kind: "base", dir: [0, 0, 1], xAxis: [1, 0, 0], scale: 1, x: 100, y: 150, hidden: true, centerMarks: true };
+    const top: DView = { id: "v2", label: "", kind: "projected", dir: [0, 1, 0], xAxis: [1, 0, 0], scale: 1, x: 100, y: 80, hidden: true, centerMarks: true };
+    const items: PmiAnno[] = [
+      { id: "z", type: "dim", refs: [face([50, 25, 0], [0, 0, -1]), face([50, 25, 20], [0, 0, 1])] },
+      { id: "a", type: "datum", letter: "A", refs: [face([50, 25, 20], [0, 0, 1])] },
+      { id: "s", type: "surface", ra: "1.6", removal: "required", refs: [face([50, 25, 0], [0, 0, -1])] },
+    ];
+    const geo = items.map((anno) => ({ anno, geom: pmiGeometry(anno, [b]) }));
+    const only = pmiToDrawing(geo, front, new Set());
+    expect(only.annos.filter((a) => !a.id.startsWith("pmi-table")).length).toBe(0);
+    const res = pmiToViews(geo, [front, top], new Set());
+    expect(res.skipped).toEqual([]);
+    expect(res.annos.map((a) => a.id).sort()).toEqual(["pmi-a-v2", "pmi-s-v2", "pmi-z-v2"]);
+    const d = res.annos.find((a) => a.id === "pmi-z-v2");
+    expect(d?.type === "dim" && d.kind).toBe("vertical");
+    // the 3D label offset points along the top view's direction: the label must still be off the dim line
+    if (d?.type === "dim") expect(Math.abs(d.pos[0] - d.refs[0].p[0])).toBeGreaterThan(5);
+    // already imported in either view -> not imported again (also when a new view is added)
+    const ids = new Set(res.annos.map((a) => a.id));
+    expect(pmiToViews(geo, [front], ids, undefined, [front, top]).annos).toEqual([]);
+  });
+
+  it("a PMI dim placed mid-edge is not pulled onto a nearby feature with a tight resnap tolerance", () => {
+    // regression: the drawing re-snapped imported dims with a 25 mm tolerance, collapsing both ends onto a hole centre
+    const g = { visible: [{ t: "circle", c: [0, 0], r: 15 }, { t: "line", a: [-40, -25], b: [40, -25] }], hidden: [] } as unknown as Parameters<typeof resnap>[0];
+    const r = { kind: "point" as const, p: [0, -25] as [number, number] };
+    expect(resnap(g, r, 25)?.p).toEqual([0, 0]);
+    expect(resnap(g, r, 0.5)).toBeNull();
   });
 });

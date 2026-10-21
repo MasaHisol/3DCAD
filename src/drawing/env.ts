@@ -9,7 +9,7 @@ import { IDENTITY } from "../assembly/types";
 import { confirmDialog, contextMenu, download, h, iconEl, modal, pickFile, promptDialog, toast, type MenuItem } from "../ui/dom";
 import type { RibbonTab } from "../ui/ribbon";
 import { arrangeDims, findChamfers, holeTable } from "./annolayout";
-import { pmiToDrawing } from "../mbd/drawing";
+import { pmiToViews } from "../mbd/drawing";
 import { dimValue, linearPoints, projectedFrame, resnap, sectionFrame, snapAt, toSheet, toView, viewBox, viewSpec, type Snap } from "./geom";
 import { renderSheet, type BomRow } from "./render";
 import {
@@ -122,27 +122,35 @@ export class DrawingEnv {
   }
 
   /** Import the part's 3D annotations (PMI) into newly created base views. */
-  // off until the import is verified in the app (it produced no annotations in the browser test)
-  pmiOnCreate = false;
+  pmiOnCreate = true;
 
-  /** MBD: project the part's PMI into a view (selected, else the first base view) as drawing annotations. */
+  /**
+   * MBD: project the part's PMI into the sheet's views as drawing annotations.
+   * With `viewId` (a newly placed base view) only that view is used; otherwise each
+   * annotation goes to the first view it reads in: the selected view (else the
+   * first base view), then the other orthographic views, the iso view last.
+   */
   importPmi(viewId?: string): number {
     if (this.source !== "part") return void toast("PMI の取り込みはパーツ図面でのみ使えます", "info"), 0;
     const pmi = this.app.store.doc.pmi ?? [];
     if (!pmi.length) return void toast("3D 注記 (PMI) がありません", "info"), 0;
     const sh = this.sheet;
-    const v =
-      sh.views.find((x) => x.id === viewId) ??
-      sh.views.find((x) => this.selected.has(x.id) && (x.kind === "base" || x.kind === "projected")) ??
-      sh.views.find((x) => x.kind === "base");
-    if (!v) return void toast("先に基準ビューを配置してください", "warn"), 0;
+    const usable = sh.views.filter((x) => x.kind === "base" || x.kind === "projected");
+    const first = viewId
+      ? sh.views.find((x) => x.id === viewId)
+      : (usable.find((x) => this.selected.has(x.id)) ?? usable.find((x) => x.kind === "base") ?? usable[0]);
+    if (!first) return void toast("先に基準ビューを配置してください", "warn"), 0;
+    const ortho = (x: DView) => x.dir.filter((c) => Math.abs(c) > 1e-6).length === 1;
+    const rest = viewId ? [] : usable.filter((x) => x !== first).sort((a, b) => Number(ortho(b)) - Number(ortho(a)));
+    const views = [first, ...rest];
     const existing = new Set(sh.annos.map((a) => a.id));
-    const res = pmiToDrawing(pmi.map((anno) => ({ anno, geom: this.app.pmi.geometry(anno) })), v, existing);
+    const res = pmiToViews(pmi.map((anno) => ({ anno, geom: this.app.pmi.geometry(anno) })), views, existing, undefined, sh.views);
     if (!res.annos.length) return void toast("取り込める PMI はありません (取り込み済み)", "info"), 0;
     this.mutate("PMI 取り込み", (d) => d.sheets[this.activeSheet].annos.push(...res.annos));
     this.render();
     const n = res.annos.filter((a) => !a.id.startsWith("pmi-table-")).length;
-    toast(`PMI ${n} 個を「${v.label}」に取り込みました${res.skipped.length ? ` (${res.skipped.length} 個は PMI 一覧の表に記載)` : ""}`, "ok");
+    const where = [...new Set(res.annos.flatMap((a) => (a.id.startsWith("pmi-table-") ? [] : views.filter((v) => a.id.endsWith(`-${v.id}`)).map((v) => v.label || "投影ビュー"))))];
+    toast(`PMI ${n} 個を「${where.join("・") || first.label}」に取り込みました${res.skipped.length ? ` (${res.skipped.length} 個は PMI 一覧の表に記載)` : ""}`, n ? "ok" : "info");
     return n;
   }
 
@@ -751,9 +759,13 @@ export class DrawingEnv {
       const g = this.geom.get(a.view);
       if (!g) continue;
       const v = this.sheet.views.find((x) => x.id === a.view);
-      const tol = 25 / (v?.scale ?? 1);
+      // imported PMI dims are placed at exact model points (often mid-edge, not a drawn vertex):
+      // only follow geometry that is really there, never jump to a nearby feature
+      const tol = (a.id.startsWith("pmi-") ? 0.5 : 25) / (v?.scale ?? 1);
       const refs = a.refs.map((r) => resnap(g, r, tol) ?? r);
-      if (JSON.stringify(refs) !== JSON.stringify(a.refs)) changes.push({ id: a.id, refs });
+      // never collapse a linear dimension onto a single point
+      const collapsed = refs.length === 2 && refs[0].kind === "point" && refs[1].kind === "point" && Math.hypot(refs[0].p[0] - refs[1].p[0], refs[0].p[1] - refs[1].p[1]) < 1e-6;
+      if (!collapsed && JSON.stringify(refs) !== JSON.stringify(a.refs)) changes.push({ id: a.id, refs });
     }
     if (changes.length)
       this.patch((d) => {
