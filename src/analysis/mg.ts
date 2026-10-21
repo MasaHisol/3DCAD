@@ -22,6 +22,8 @@ export interface MgFine {
   /** Fixed node flags on the fine node grid. */
   fixed: Uint8Array;
   used: Uint8Array;
+  /** Optional (multi-threaded) y = K x on the fine level, unmasked. */
+  fineApply?: (x: Float64Array, y: Float64Array) => void;
 }
 
 interface Level {
@@ -173,6 +175,11 @@ export class Multigrid {
   /** y = A x on a level (non-free rows zero). */
   apply(l: number, x: Float64Array, y: Float64Array) {
     const L = this.levels[l];
+    if (l === 0 && this.fine.fineApply) {
+      this.fine.fineApply(x, y);
+      for (let i = 0; i < y.length; i++) if (!L.free[i]) y[i] = 0;
+      return;
+    }
     y.fill(0);
     const ue = new Float64Array(24);
     for (let e = 0; e < L.ne; e++) {

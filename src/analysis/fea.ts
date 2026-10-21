@@ -146,6 +146,7 @@ export interface FeaResult {
   gaussStress?: Float32Array;
 }
 
+import { kxPool, PAR_MIN_ELEMENTS } from "./par";
 import { Multigrid } from "./mg";
 
 // ------------------------------------------------------- voxelisation ---
@@ -542,7 +543,16 @@ export function buildOperator(G: FeaGrid, mat: FeaMaterial, opt: FeaOptions, fix
   const diag = new Float64Array(N3);
   for (let e = 0; e < ne; e++) for (let a = 0; a < 24; a++) diag[conn[e * 8 + ((a / 3) | 0)] * 3 + (a % 3)] += KE[a * 25] * phi[e];
   const ue = new Float64Array(24);
+  // large models: split the products over the helper threads (see par.ts)
+  const pool = kxPool();
+  const job = pool && ne >= PAR_MIN_ELEMENTS ? pool.job(conn, phi, KE, ne, N3) : null;
+  const parKx = job ? (x: Float64Array, y: Float64Array) => pool!.kx(job, x, y) : undefined;
   const Kx = (x: Float64Array, y: Float64Array, mask = true) => {
+    if (parKx) {
+      parKx(x, y);
+      if (mask) for (let i = 0; i < N3; i++) if (!free[i]) y[i] = 0;
+      return;
+    }
     y.fill(0);
     for (let e = 0; e < ne; e++) {
       const c = e * 8, s = phi[e];
@@ -561,7 +571,7 @@ export function buildOperator(G: FeaGrid, mat: FeaMaterial, opt: FeaOptions, fix
     }
     if (mask) for (let i = 0; i < N3; i++) if (!free[i]) y[i] = 0;
   };
-  const mg = opt.solver === "jacobi" ? null : new Multigrid({ dims, elems, KE, phi, fixed, used });
+  const mg = opt.solver === "jacobi" ? null : new Multigrid({ dims, elems, KE, phi, fixed, used, fineApply: parKx });
   const prec = (r: Float64Array, z: Float64Array) => {
     if (mg) mg.precondition(r, z);
     else for (let i = 0; i < N3; i++) z[i] = free[i] && diag[i] ? r[i] / diag[i] : 0;

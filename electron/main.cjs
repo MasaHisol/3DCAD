@@ -227,7 +227,14 @@ if (!app.requestSingleInstanceLock()) {
       if (!file.startsWith(DIST)) return new Response("forbidden", { status: 403 });
       try {
         const data = await fs.promises.readFile(file);
-        return new Response(data, { headers: { "content-type": MIME[path.extname(file).toLowerCase()] ?? "application/octet-stream" } });
+        return new Response(data, {
+          headers: {
+            "content-type": MIME[path.extname(file).toLowerCase()] ?? "application/octet-stream",
+            // cross-origin isolation: shared memory for the multi-core analysis
+            "cross-origin-opener-policy": "same-origin",
+            "cross-origin-embedder-policy": "require-corp",
+          },
+        });
       } catch {
         return new Response("not found", { status: 404 });
       }

@@ -16,6 +16,7 @@ import type { TopoResult } from "./topo";
 import { THERMAL_MATERIALS, type BucklingResult, type ModalResult, type ThermalBoundary, type ThermalResult } from "./advanced";
 import { FEA_MATERIALS, sampleDisp, sampleNodal, type FeaBoundary, type FeaMesh, type FeaResult, type GridLike } from "./fea";
 import type { AnalysisKind, FeaRequest } from "./worker";
+import { spawnKxHelpers } from "./par";
 
 type Dir = "push" | "pull" | "+X" | "-X" | "+Y" | "-Y" | "+Z" | "-Z";
 const DIRS: { value: Dir; label: string }[] = [
@@ -546,6 +547,9 @@ export class StressCommand implements Command {
     this.worker?.terminate();
     const w = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
     this.worker = w;
+    // multi-core solver threads (only with cross-origin isolation)
+    const helpers = spawnKxHelpers();
+    if (helpers) req.ports = helpers.ports;
     return new Promise<AnyResult>((resolve, reject) => {
       w.onmessage = (e) => {
         const d = e.data as { progress?: { it: number; res: number }; result?: AnyResult; error?: string };
@@ -554,9 +558,10 @@ export class StressCommand implements Command {
         else reject(new Error(d.error));
       };
       w.onerror = (e) => reject(new Error(e.message));
-      w.postMessage(req);
+      w.postMessage(req, req.ports ?? []);
     }).finally(() => {
       w.terminate();
+      helpers?.stop();
       if (this.worker === w) this.worker = null;
     });
   }
