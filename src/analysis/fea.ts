@@ -53,7 +53,7 @@ export interface FeaMesh {
    * stiffness relative to the analysis material and density (g/cm³). Parts
    * that touch are bonded.
    */
-  parts?: { start: number; count: number; stiff: number; density: number }[];
+  parts?: { start: number; count: number; stiff: number; density: number; name?: string }[];
 }
 
 export interface FeaLoad {
@@ -106,6 +106,11 @@ export interface FeaOptions {
   elementScale?: Float32Array;
   /** Mesh only this box of the part (sub-model / zoom analysis). */
   region?: { lo: [number, number, number]; hi: [number, number, number] };
+  /**
+   * Assemblies (mesh.parts): "bonded" (default) ties touching parts together; "contact" lets
+   * interfaces in tension open (frictionless, no penetration), see contact.ts.
+   */
+  contact?: "bonded" | "contact";
 }
 
 export interface FeaResult {
@@ -144,10 +149,13 @@ export interface FeaResult {
   fixedMask?: Uint8Array;
   /** Gauss-point stresses (ne × 8 × 6), when requested (buckling). */
   gaussStress?: Float32Array;
+  /** Contact analysis between assembly parts (opt.contact = "contact"). */
+  contact?: ContactStats;
 }
 
 import { kxPool, PAR_MIN_ELEMENTS } from "./par";
 import { Multigrid } from "./mg";
+import { solveContact, type ContactStats } from "./contact";
 
 // ------------------------------------------------------- voxelisation ---
 
@@ -441,14 +449,20 @@ export function buildGrid(mesh: FeaMesh, opt: FeaOptions) {
   let frac: Float32Array;
   // per-cell material mix of assemblies
   let stiffMix: Float32Array | null = null, rhoMix: Float32Array | null = null;
+  /** Assemblies: the part with the largest volume fraction of each cell. */
+  let cellBody: Int32Array | null = null;
   if (mesh.parts?.length) {
     frac = new Float32Array(dims[0] * dims[1] * dims[2]);
     stiffMix = new Float32Array(frac.length);
     rhoMix = new Float32Array(frac.length);
-    for (const part of mesh.parts) {
+    cellBody = new Int32Array(frac.length).fill(-1);
+    const best = new Float32Array(frac.length);
+    for (let pi = 0; pi < mesh.parts.length; pi++) {
+      const part = mesh.parts[pi];
       const f = cells(sub(part));
       for (let i = 0; i < f.length; i++)
         if (f[i]) {
+          if (f[i] > best[i]) (best[i] = f[i]), (cellBody[i] = pi);
           frac[i] += f[i];
           stiffMix[i] += f[i] * part.stiff;
           rhoMix[i] += f[i] * part.density;
@@ -469,6 +483,7 @@ export function buildGrid(mesh: FeaMesh, opt: FeaOptions) {
   const elems: number[] = [];
   /** Stiffness weight (solid fraction × relative modulus), solid fraction, relative modulus, density. */
   const phi: number[] = [], solid: number[] = [], eratio: number[] = [], rho: number[] = [];
+  const bodyOf: number[] = [];
   for (let k = 0; k < nz; k++)
     for (let j = 0; j < ny; j++)
       for (let i = 0; i < nx; i++) {
@@ -485,6 +500,7 @@ export function buildGrid(mesh: FeaMesh, opt: FeaOptions) {
         eratio.push(er);
         rho.push(rhoMix ? rhoMix[c] : NaN);
         phi.push(sf * er);
+        if (cellBody) bodyOf.push(cellBody[c]);
         for (const [a, b, c] of CORNERS) used[nodeId(i + a, j + b, k + c)] = 1;
       }
   const ne = elems.length / 3;
@@ -498,6 +514,8 @@ export function buildGrid(mesh: FeaMesh, opt: FeaOptions) {
   const conn = new Int32Array(ne * 8);
   for (let e = 0; e < ne; e++) for (let n = 0; n < 8; n++) conn[e * 8 + n] = nodeId(elems[e * 3] + CORNERS[n][0], elems[e * 3 + 1] + CORNERS[n][1], elems[e * 3 + 2] + CORNERS[n][2]);
   const volume = solid.reduce((s, f) => s + f, 0) * h * h * h;
+  /** Part index of every element (assemblies only). */
+  const body = cellBody ? Int32Array.from(bodyOf) : null;
 
   // ---- boundary nodes: solid nodes close to the selected faces
   const nodePos = (n: number) => {
@@ -528,7 +546,7 @@ export function buildGrid(mesh: FeaMesh, opt: FeaOptions) {
         }
     return out;
   };
-  return { P, I, h, origin, dims, nx, ny, nz, NX, NY, NZ, nodeId, nNodes, used, elems, phi, solid, eratio, rho, ne, conn, volume, frac, nodePos, tri, near, cut };
+  return { P, I, h, origin, dims, nx, ny, nz, NX, NY, NZ, nodeId, nNodes, used, elems, phi, solid, eratio, rho, ne, conn, volume, frac, nodePos, tri, near, cut, body };
 }
 export type FeaGrid = ReturnType<typeof buildGrid>;
 
@@ -799,16 +817,26 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
     Kx(prescribed, ku, false);
     rhs = Float64Array.from(F, (f, i) => f - ku[i]);
   }
-  const sol = op.solve(rhs, progress);
+  // assemblies with contact: active-set loop on an extended node set (contact.ts)
+  const cs = opt.contact === "contact" && G.body && !bc.submodel ? solveContact(G, op, F, fixed, opt, mesh.parts?.map((p) => p.name) ?? [], progress) : null;
+  const sol = cs ?? op.solve(rhs, progress);
   const { it, res } = sol;
   const u = sol.u;
+  /** Element connectivity into u (split interface copies in contact mode). */
+  const connU = cs ? cs.conn : conn;
   if (bc.submodel) for (let i = 0; i < N3; i++) if (!op.free[i]) u[i] = prescribed[i];
   const tol = opt.tol ?? 1e-8;
 
   // ---- reactions at the supports (equilibrium check)
-  Kx(u, q, false);
   const reaction: [number, number, number] = [0, 0, 0];
-  for (let n = 0; n < nNodes; n++) if (fixed[n]) for (let k = 0; k < 3; k++) reaction[k] += q[n * 3 + k] - F[n * 3 + k];
+  if (cs) {
+    const qx = new Float64Array(cs.NN * 3);
+    cs.Kx(u, qx);
+    for (let n = 0; n < cs.NN; n++) if (cs.fixedX[n]) for (let k = 0; k < 3; k++) reaction[k] += qx[n * 3 + k] - cs.Fx[n * 3 + k];
+  } else {
+    Kx(u, q, false);
+    for (let n = 0; n < nNodes; n++) if (fixed[n]) for (let k = 0; k < 3; k++) reaction[k] += q[n * 3 + k] - F[n * 3 + k];
+  }
   const an = Math.hypot(...applied);
   const equilibriumError = an > 0 ? Math.hypot(applied[0] + reaction[0], applied[1] + reaction[1], applied[2] + reaction[2]) / an : 0;
 
@@ -836,7 +864,7 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
   const gaussStress = opt.keepGauss ? new Float32Array(ne * 48) : undefined;
   const sg: number[][] = Array.from({ length: 8 }, () => new Array(6).fill(0));
   for (let e = 0; e < ne; e++) {
-    for (let n = 0; n < 8; n++) for (let k = 0; k < 3; k++) full[n * 3 + k] = u[conn[e * 8 + n] * 3 + k];
+    for (let n = 0; n < 8; n++) for (let k = 0; k < 3; k++) full[n * 3 + k] = u[connU[e * 8 + n] * 3 + k];
     if (el.T) for (let a = 0; a < 9; a++) full[24 + a] = el.T[a].reduce((s, v, j) => s + v * full[j], 0);
     const nc = el.T ? 33 : 24;
     for (let g = 0; g < 8; g++) {
@@ -901,7 +929,8 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
   return {
     h, origin, dims, frac, disp, stress, vm, s1, s3, used,
     maxVm, maxS1, minS3, maxDisp, applied, reaction, equilibriumError,
-    elements: ne, iterations: it, converged: res < tol, fixedNodes, loadedNodes, volume, gaussStress, fixedMask: bc.submodel ? undefined : fixed,
+    elements: ne, iterations: it, converged: res < tol && (!cs || cs.stats.converged), fixedNodes, loadedNodes, volume, gaussStress, fixedMask: bc.submodel ? undefined : fixed,
+    ...(cs ? { contact: cs.stats } : {}),
   };
 }
 
