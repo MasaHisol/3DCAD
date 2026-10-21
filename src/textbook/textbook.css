@@ -1116,3 +1116,8 @@ mark {
   min-height: 4.6em;
   font-size: 13.5px;
 }
+
+.tb-v3d-active {
+  outline: 2px solid var(--tb-accent);
+  outline-offset: -2px;
+}

@@ -124,7 +124,7 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
     stage.appendChild(canvas);
     const hint = document.createElement("div");
     hint.className = "tb-v3d-hint";
-    hint.textContent = "ドラッグで回転 ・ ホイール / ピンチで拡大 ・ ダブルクリックで戻す";
+    hint.textContent = "ドラッグで回転 ・ Ctrl + ホイールで拡大 ・ ダブルクリックで戻す (タッチ: タップしてから操作)";
     stage.appendChild(hint);
 
     const reduced = reducedMotion();
@@ -244,7 +244,25 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
     let d0 = orbit.d;
     const clampPh = (p: number) => Math.max(-Math.PI / 2 + 1e-3, Math.min(Math.PI / 2 - 1e-4, p));
     const clampD = (d: number) => Math.max(fitDist * 0.3, Math.min(fitDist * 3, d));
+    // touch: the page scrolls through the figure until it is tapped (then rotate / pinch);
+    // a tap elsewhere hands the gestures back to the page
+    let touchActive = false;
+    const setTouch = (on: boolean) => {
+      touchActive = on;
+      canvas.style.touchAction = on ? "none" : "pan-y";
+      stage.classList.toggle("tb-v3d-active", on);
+    };
+    setTouch(false);
+    const offTouch = (e: PointerEvent) => {
+      if (touchActive && !stage.contains(e.target as Node)) setTouch(false);
+    };
+    document.addEventListener("pointerdown", offTouch);
     const onDown = (e: PointerEvent) => {
+      if (e.pointerType === "touch" && !touchActive) {
+        setTouch(true);
+        hint.classList.add("off");
+        return;
+      }
       canvas.setPointerCapture(e.pointerId);
       ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
       tween = null;
@@ -276,6 +294,11 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
       pinch0 = 0;
     };
     const onWheel = (e: WheelEvent) => {
+      // plain wheel scrolls the page; Ctrl / ⌘ + wheel (and trackpad pinch) zooms the figure
+      if (!e.ctrlKey && !e.metaKey) {
+        hint.classList.remove("off");
+        return;
+      }
       e.preventDefault();
       tween = null;
       orbit.d = clampD(orbit.d * Math.exp(e.deltaY * 0.0012));
@@ -467,6 +490,7 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
       mq?.removeEventListener("change", applyTheme);
       clearInterval(poll);
       canvas.removeEventListener("wheel", onWheel);
+      document.removeEventListener("pointerdown", offTouch);
       scene.traverse((o) => {
         const m = o as T3.Mesh;
         m.geometry?.dispose();
