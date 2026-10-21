@@ -595,7 +595,23 @@ class RouteCommand {
     const centre: Vec3 = [(body.bbox[0][0] + body.bbox[1][0]) / 2, (body.bbox[0][1] + body.bbox[1][1]) / 2, (body.bbox[0][2] + body.bbox[1][2]) / 2];
     const outward = (o: Vec3, d: Vec3): Vec3 => ((o[0] - centre[0]) * d[0] + (o[1] - centre[1]) * d[1] + (o[2] - centre[2]) * d[2] < 0 ? [-d[0], -d[1], -d[2]] : d);
     if (this.mode === "face" || (pk.kind === "face" && this.mode === "circle" && !body.faces[pk.index]?.axis)) {
-      return { ...base, local: toLocal(comp.matrix, pk.point), snap: "face", label: `${comp.name} 面上の点` };
+      // lift the centre line off the face by the tube radius (+0.5 mm) so the cable lies on
+      // the surface instead of sinking half into the part
+      const local = toLocal(comp.matrix, pk.point);
+      const f = pk.kind === "face" ? body.faces[pk.index] : undefined;
+      let n: Vec3 | null = null;
+      if (f?.type === "PLANE") n = outward(local, f.normal);
+      else if (f?.axis) {
+        // cylinder / cone: radial direction from the axis through the picked point
+        const a = f.axis, d = [local[0] - a.origin[0], local[1] - a.origin[1], local[2] - a.origin[2]];
+        const t = d[0] * a.dir[0] + d[1] * a.dir[1] + d[2] * a.dir[2];
+        const r: Vec3 = [d[0] - a.dir[0] * t, d[1] - a.dir[1] * t, d[2] - a.dir[2] * t];
+        const l = Math.hypot(...r);
+        if (l > 1e-9) n = outward(local, [r[0] / l, r[1] / l, r[2] / l]);
+      }
+      const lift = (this.route?.od ?? 0) / 2 + 0.5;
+      const p: Vec3 = n ? [local[0] + n[0] * lift, local[1] + n[1] * lift, local[2] + n[2] * lift] : local;
+      return { ...base, local: p, snap: "face", label: `${comp.name} 面上の点` };
     }
     if (pk.kind === "edge") {
       const e = body.edges[pk.index];
