@@ -1121,3 +1121,7 @@ mark {
   outline: 2px solid var(--tb-accent);
   outline-offset: -2px;
 }
+
+.tb-v3d-info {
+  margin: 0;
+}

@@ -79,9 +79,14 @@ function frame3d(host: HTMLElement, title: string) {
   stage.setAttribute("role", "img");
   stage.setAttribute("aria-label", title);
   stage.innerHTML = `<div class="tb-v3d-msg">3D 図を読み込み中…</div>`;
-  const out = document.createElement("div");
-  out.className = "tb-widget-out";
-  host.append(head, ctl, stage, out);
+  const box = document.createElement("div");
+  box.className = "tb-widget-out";
+  // the readout lives in its own element (like the 2D widgets), shown at once
+  const out = document.createElement("p");
+  out.className = "tb-v3d-info";
+  out.textContent = "図をドラッグして回転できます。";
+  box.appendChild(out);
+  host.append(head, ctl, stage, box);
   return { ctl, stage, out };
 }
 
