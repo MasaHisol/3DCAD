@@ -48,9 +48,7 @@ import { pointInRegion, type Region } from "../sketch/profiles";
 import { download, h, iconEl, toast } from "../ui/dom";
 import { cutList, findSize, sectionShape, STEEL, unitMass, type SectionKind } from "../library/steel";
 import { PropertyPanel, type ExprField } from "../ui/panel";
-import { StressCommand } from "../analysis/ui";
 import { PrintCheckCommand } from "../analysis/printui";
-import { CamCommand } from "../cam/camUi";
 import { pointMap } from "../viewer/sketchRender";
 import { samePick, type Pick, type ToolHandler } from "../viewer/viewport";
 import { FeatureCommand, type Command } from "./command";
@@ -65,6 +63,28 @@ export interface CommandRegistry {
   run(id: string): void;
   edit(f: Feature): void;
   get(id: string): CommandInfo | undefined;
+}
+
+// ------------------------------------------------------- code-split commands ---
+type LazyCtor = new (app: App) => Command;
+const LAZY_COMMANDS: Record<string, () => Promise<LazyCtor>> = {
+  stress: () => import("../analysis/ui").then((m) => m.StressCommand),
+  cam: () => import("../cam/camUi").then((m) => m.CamCommand),
+};
+const lazyLoaded: Record<string, LazyCtor> = {};
+
+/** Load a code-split command module (cached). */
+export async function loadLazyCommand(id: string): Promise<LazyCtor> {
+  return (lazyLoaded[id] ??= await LAZY_COMMANDS[id]());
+}
+/** The command if its module is loaded, otherwise null. */
+export function lazyCommand(id: string, app: App): Command | null {
+  const C = lazyLoaded[id];
+  return C ? new C(app) : null;
+}
+/** Fetch the code-split commands in the background once the app is idle. */
+export function preloadLazyCommands() {
+  for (const id of Object.keys(LAZY_COMMANDS)) void loadLazyCommand(id).catch(() => undefined);
 }
 
 const OPS = [
@@ -2375,12 +2395,8 @@ export function buildCommands(app: App): CommandRegistry {
         return new MoveCommand(app, f as MoveFeature | null);
       case "measure":
         return new MeasureCommand(app);
-      case "stress":
-        return new StressCommand(app);
       case "printcheck":
         return new PrintCheckCommand(app);
-      case "cam":
-        return new CamCommand(app);
     }
     return null;
   };
@@ -2397,6 +2413,14 @@ export function buildCommands(app: App): CommandRegistry {
       }
       if (needsBody.has(id) && !app.hasBodies()) {
         toast("このコマンドにはソリッド ボディが必要です", "warn");
+        return;
+      }
+      if (LAZY_COMMANDS[id]) {
+        // heavy commands (analysis, CAM) are code-split: started at once when already loaded
+        app.lastCommand = id;
+        const ready = lazyCommand(id, app);
+        if (ready) app.startCommand(ready);
+        else void loadLazyCommand(id).then(() => app.startCommand(lazyCommand(id, app)!));
         return;
       }
       const cmd = make(id, null);

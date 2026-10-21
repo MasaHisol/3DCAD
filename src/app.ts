@@ -8,7 +8,7 @@ import type { EdgeRef, FaceRef, Feature, PartDocument, PlaneDef, SketchFeature, 
 import { KernelClient } from "./kernel/client";
 import type { BodyMesh, RebuildResult } from "./kernel/protocol";
 import type { Command } from "./commands/command";
-import { buildCommands, type CommandRegistry } from "./commands/features";
+import { buildCommands, preloadLazyCommands, type CommandRegistry } from "./commands/features";
 import { ModelBrowser } from "./ui/browser";
 import { closeMenus, confirmDialog, contextMenu, download, h, iconEl, markingMenu, modal, pickFile, promptDialog, toast, type MenuItem } from "./ui/dom";
 import { icon } from "./ui/icons";
@@ -31,7 +31,7 @@ import { openNativeInfo } from "./io/nativeDialog";
 import type { Rule, RuleContext, RuleResult } from "./rules/engine";
 import { DrawingEnv } from "./drawing/env";
 import { newAssembly, type AssemblyDocument } from "./assembly/types";
-import { openLearningCenter, startLessonById } from "./learn/center";
+import { openLearningCenter, startLessonById } from "./learn/lazy";
 import { listenForLessons, openTextbook } from "./learn/textbookLink";
 
 const AUTOSAVE_KEY = "3dcad.autosave.v2";
@@ -218,6 +218,8 @@ export class App {
         this.kernelReady = true;
         this.status("準備完了 — 「2D スケッチを作成」(S) から始めましょう");
         this.regenNow();
+        // fetch the code-split analysis / CAM modules while the user starts modelling
+        setTimeout(preloadLazyCommands, 1500);
       })
       .catch((e) => toast(`ジオメトリ カーネルの初期化に失敗しました: ${e.message}`, "error", 10000));
   }

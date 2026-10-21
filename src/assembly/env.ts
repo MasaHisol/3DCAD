@@ -12,7 +12,7 @@ import { confirmDialog, contextMenu, download, h, iconEl, markingMenu, modal, pi
 import { PropertyPanel } from "../ui/panel";
 import type { RibbonTab } from "../ui/ribbon";
 import type { Pick, ToolHandler } from "../viewer/viewport";
-import { StressCommand } from "../analysis/ui";
+import { lazyCommand, loadLazyCommand } from "../commands/features";
 import { analyzeDof, explodeOffsets, type DofReport } from "./motion";
 import { startDrive, startExplode } from "./motionUi";
 import { patternMatrices, type AsmPattern } from "./pattern";
@@ -1006,7 +1006,9 @@ export class AssemblyEnv {
               action: () => {
                 this.app.cancelAsmCommand();
                 if (this.explode) (this.explode = 0), this.render();
-                this.app.startCommand(new StressCommand(this.app));
+                const ready = lazyCommand("stress", this.app);
+                if (ready) this.app.startCommand(ready);
+                else void loadLazyCommand("stress").then(() => this.app.startCommand(lazyCommand("stress", this.app)!));
               },
             },
             { id: "asm-explode", label: "分解", icon: "explode", tip: "コンポーネントを拘束の軸方向に分解して表示します (プレゼンテーション)。", action: () => startExplode(this), active: () => this.command?.id === "explode" || this.explode > 0 },

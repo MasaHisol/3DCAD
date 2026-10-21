@@ -1,5 +1,5 @@
 import type { App } from "../app";
-import { openLearningCenter } from "../learn/center";
+import { openLearningCenter } from "../learn/lazy";
 import { openTextbook } from "../learn/textbookLink";
 import { h, iconEl } from "./dom";
 
