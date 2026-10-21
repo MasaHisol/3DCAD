@@ -86,11 +86,15 @@ export function solveTopology(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, 
   let KE: Float64Array | null = null;
   let c0 = 0, it = 0, change = 1;
   const ue = new Float64Array(24);
-  const solveWith = (xx: Float64Array) => {
+  // successive designs change little: start each solve from the previous displacements
+  // and use a looser tolerance inside the loop (the sensitivities do not need 1e-6)
+  let uPrev: Float64Array | undefined;
+  const solveWith = (xx: Float64Array, tol = 1e-6) => {
     const phi = Float64Array.from(phi0, (v, e) => v * (xmin + (1 - xmin) * xx[e] ** p));
     const op = buildOperator({ ...G, phi: phi as unknown as number[] }, mat, opt, fixed);
     KE = op.KE;
-    return op.solve(F, undefined, 1e-6).u;
+    uPrev = op.solve(F, undefined, tol, uPrev).u;
+    return uPrev;
   };
   // reference: the full (all solid) design
   {
@@ -99,7 +103,7 @@ export function solveTopology(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, 
   }
   const dc = new Float64Array(ne), dcf = new Float64Array(ne);
   for (; it < maxIt; it++) {
-    const u = solveWith(x);
+    const u = solveWith(x, 1e-4);
     let c = 0;
     for (let i = 0; i < F.length; i++) c += F[i] * u[i];
     history.push(c);

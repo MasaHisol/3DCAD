@@ -566,10 +566,17 @@ export function buildOperator(G: FeaGrid, mat: FeaMaterial, opt: FeaOptions, fix
     if (mg) mg.precondition(r, z);
     else for (let i = 0; i < N3; i++) z[i] = free[i] && diag[i] ? r[i] / diag[i] : 0;
   };
-  const solve = (F: Float64Array, progress?: (it: number, res: number) => void, tolOverride?: number) => {
+  /** Preconditioned CG. `x0` (optional) is a starting guess, e.g. the previous solution of a nearby system. */
+  const solve = (F: Float64Array, progress?: (it: number, res: number) => void, tolOverride?: number, x0?: Float64Array) => {
     const u = new Float64Array(N3), r = new Float64Array(N3), z = new Float64Array(N3), p = new Float64Array(N3), q = new Float64Array(N3);
-    for (let i = 0; i < N3; i++) r[i] = free[i] ? F[i] : 0;
-    const bnorm = Math.sqrt(r.reduce((s, v) => s + v * v, 0)) || 1;
+    let bn = 0;
+    for (let i = 0; i < N3; i++) if (free[i]) bn += F[i] * F[i];
+    const bnorm = Math.sqrt(bn) || 1;
+    if (x0) {
+      for (let i = 0; i < N3; i++) u[i] = free[i] ? x0[i] : 0;
+      Kx(u, q);
+      for (let i = 0; i < N3; i++) r[i] = free[i] ? F[i] - q[i] : 0;
+    } else for (let i = 0; i < N3; i++) r[i] = free[i] ? F[i] : 0;
     prec(r, z);
     p.set(z);
     let rz = r.reduce((s, v, i) => s + v * z[i], 0);
