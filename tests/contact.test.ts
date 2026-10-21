@@ -77,4 +77,60 @@ describe("assembly contact", () => {
     expect(contact.maxDisp).toBeGreaterThan(bonded.maxDisp * 1.01);
     expect(contact.equilibriumError).toBeLessThan(1e-3);
   }, 120000);
+
+  /** Largest |x| displacement and most negative z displacement of the result. */
+  const extremes = (r: ReturnType<typeof solveFea>) => {
+    let mx = 0, mz = 0;
+    for (let n = 0; n < r.disp.length / 3; n++) {
+      mx = Math.max(mx, Math.abs(r.disp[n * 3]));
+      mz = Math.min(mz, r.disp[n * 3 + 2]);
+    }
+    return { mx, mz };
+  };
+
+  it("block pressed onto a fixed block: same normal displacement in all modes", () => {
+    const { mesh, faces } = stack();
+    const bc: FeaBoundary = { fixed: [faces[0].zmin], loads: [{ tris: faces[1].zmax, force: [0, 0, -1000] }] };
+    const ref = extremes(solveFea(mesh, bc, steel, opt)).mz;
+    for (const mode of ["contact", "frictionless"] as const) {
+      const r = solveFea(mesh, bc, steel, { ...opt, contact: mode });
+      expect(r.contact!.mode).toBe(mode);
+      expect(r.contact!.converged).toBe(true);
+      expect(r.contact!.released).toBeLessThan(r.contact!.faces * 0.1);
+      expect(Math.abs(extremes(r).mz - ref) / Math.abs(ref)).toBeLessThan(0.02);
+      expect(r.equilibriumError).toBeLessThan(1e-3);
+    }
+  });
+
+  it("block pushed sideways: slides on a frictionless interface (stabilised, with a warning)", () => {
+    const { mesh, faces } = stack();
+    const bc: FeaBoundary = { fixed: [faces[0].zmin], loads: [{ tris: faces[1].zmax, force: [300, 0, -1000] }] };
+    const stick = solveFea(mesh, bc, steel, { ...opt, contact: "contact" });
+    const slide = solveFea(mesh, bc, steel, { ...opt, contact: "frictionless" });
+    expect(stick.contact!.stabilized).toEqual([]);
+    // only the normals (z) hold the upper block: it gets the weak tangential spring, named in the result
+    expect(slide.contact!.stabilized).toEqual(["上"]);
+    expect(slide.contact!.converged).toBe(true);
+    expect(extremes(slide).mx).toBeGreaterThan(extremes(stick).mx * 10);
+    // the normal response is unchanged
+    expect(Math.abs(extremes(slide).mz - extremes(stick).mz) / Math.abs(extremes(stick).mz)).toBeLessThan(0.02);
+    // the stabilising springs carry the tangential load to the support: still in equilibrium
+    expect(slide.equilibriumError).toBeLessThan(1e-3);
+  });
+
+  it("frictionless stacked cantilevers: the plates slide and bend more than without slip", () => {
+    const { mesh, faces } = boxes([
+      { lo: [0, 0, 0], hi: [40, 10, 4], name: "A" },
+      { lo: [0, 0, 4], hi: [60, 10, 8], name: "B" },
+    ]);
+    const bc: FeaBoundary = { fixed: [faces[0].xmin, faces[1].xmin], loads: [{ tris: faces[1].xmax, force: [0, 0, -100] }] };
+    const stick = solveFea(mesh, bc, steel, { resolution: 40, contact: "contact" });
+    const slide = solveFea(mesh, bc, steel, { resolution: 40, contact: "frictionless" });
+    const c = slide.contact!;
+    expect(c.converged).toBe(true);
+    expect(c.stabilized).toEqual([]); // both plates are clamped
+    expect(c.released).toBeGreaterThan(0);
+    expect(slide.maxDisp).toBeGreaterThan(stick.maxDisp * 1.5);
+    expect(slide.equilibriumError).toBeLessThan(1e-3);
+  }, 120000);
 });

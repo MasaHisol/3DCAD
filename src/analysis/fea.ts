@@ -108,9 +108,10 @@ export interface FeaOptions {
   region?: { lo: [number, number, number]; hi: [number, number, number] };
   /**
    * Assemblies (mesh.parts): "bonded" (default) ties touching parts together; "contact" lets
-   * interfaces in tension open (frictionless, no penetration), see contact.ts.
+   * interfaces in tension open (no penetration, closed faces do not slip); "frictionless" also
+   * lets closed faces slide tangentially. See contact.ts.
    */
-  contact?: "bonded" | "contact";
+  contact?: "bonded" | "contact" | "frictionless";
 }
 
 export interface FeaResult {
@@ -149,7 +150,7 @@ export interface FeaResult {
   fixedMask?: Uint8Array;
   /** Gauss-point stresses (ne × 8 × 6), when requested (buckling). */
   gaussStress?: Float32Array;
-  /** Contact analysis between assembly parts (opt.contact = "contact"). */
+  /** Contact analysis between assembly parts (opt.contact = "contact" / "frictionless"). */
   contact?: ContactStats;
 }
 
@@ -818,7 +819,9 @@ export function solveFea(mesh: FeaMesh, bc: FeaBoundary, mat: FeaMaterial, opt: 
     rhs = Float64Array.from(F, (f, i) => f - ku[i]);
   }
   // assemblies with contact: active-set loop on an extended node set (contact.ts)
-  const cs = opt.contact === "contact" && G.body && !bc.submodel ? solveContact(G, op, F, fixed, opt, mesh.parts?.map((p) => p.name) ?? [], progress) : null;
+  const cs = (opt.contact === "contact" || opt.contact === "frictionless") && G.body && !bc.submodel
+    ? solveContact(G, op, F, fixed, opt, mesh.parts?.map((p) => p.name) ?? [], progress, opt.contact)
+    : null;
   const sol = cs ?? op.solve(rhs, progress);
   const { it, res } = sol;
   const u = sol.u;

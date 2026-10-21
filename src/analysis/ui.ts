@@ -147,7 +147,7 @@ export class StressCommand implements Command {
   /** Component names of the analysed bodies (assemblies). */
   private names: string[] = [];
   /** Assemblies: parts bonded at their interfaces, or in contact (may separate). */
-  private contactMode: "bonded" | "contact" = "bonded";
+  private contactMode: "bonded" | "contact" | "frictionless" = "bonded";
 
   constructor(private app: App) {
     if (app.env === "assembly") {
@@ -227,14 +227,20 @@ export class StressCommand implements Command {
         ks,
         "部品間の接触",
         [
-          { value: "bonded", label: "接着 (現在)" },
-          { value: "contact", label: "接触 (離れる・すべりなし)" },
+          { value: "bonded", label: "接着" },
+          { value: "contact", label: "接触 (すべりなし)" },
+          { value: "frictionless", label: "接触 (摩擦なし・すべり可)" },
         ],
         this.contactMode,
-        (v) => (this.contactMode = v as "bonded" | "contact"),
+        (v) => (this.contactMode = v as "bonded" | "contact" | "frictionless"),
       );
       cs.dataset.k = "contact";
-      cs.title = "接触: 引張になる部品間の面を離して再計算します (押し付け合う面は一体、すべりはなし)";
+      cs.title = "接着: 部品同士を一体として計算 / 接触: 引張になる面は離れ、押し付け合う面だけ力を伝えます";
+      p.note(
+        ks,
+        "接着: 接する面は一体 (引張もせん断も伝える)。接触 (すべりなし): 引張になる面は離れ、押し付け合う面は一体で横にずれない。" +
+          "接触 (摩擦なし・すべり可): 押し付け合う面は面に垂直な方向だけ力を伝え、面に沿ってすべる。すべりを止めるものがない部品には弱いばねを入れ、結果に警告を出します",
+      );
     }
     const bc = p.section("境界条件");
     for (const key of KIND_SETS[this.kind]) {
@@ -532,7 +538,7 @@ export class StressCommand implements Command {
     const req: FeaRequest = { kind: k, mesh, bc: { fixed: [], loads: [] }, mat: this.material(), opt: { targetElements: target } };
     if (k === "static") {
       req.bc = this.structural(tris, true);
-      if (this.app.env === "assembly" && this.contactMode === "contact") req.opt.contact = "contact";
+      if (this.app.env === "assembly" && this.contactMode !== "bonded") req.opt.contact = this.contactMode;
     }
     if (k === "buckling") {
       req.bc = this.structural(tris, true);
@@ -785,10 +791,22 @@ export class StressCommand implements Command {
       const c = s.contact;
       row(
         "部品間の接触",
-        c.faces ? `接触 ${c.closed.toLocaleString()} 面 / 離れた ${c.released.toLocaleString()} 面 (${c.iterations} 回)` : "接する面がありません",
+        (c.mode === "frictionless" ? "摩擦なし・すべり可: " : "すべりなし: ") +
+          (c.faces ? `接触 ${c.closed.toLocaleString()} 面 / 離れた ${c.released.toLocaleString()} 面 (${c.iterations} 回)` : "接する面がありません"),
         c.converged ? "" : "warn",
-        c.converged ? "引張になる部品間の面を離して再計算した結果です" : "接触状態が反復上限までに確定しませんでした (結果は目安)",
+        c.converged
+          ? c.mode === "frictionless"
+            ? "引張になる部品間の面を離し、押し付け合う面は面に沿ってすべるとして計算した結果です"
+            : "引張になる部品間の面を離して再計算した結果です (押し付け合う面はすべらない)"
+          : "接触状態が反復上限までに確定しませんでした (結果は目安)",
       );
+      if (c.stabilized?.length)
+        row(
+          "すべりの安定化",
+          `${c.stabilized.map((n) => `「${n}」`).join("・")} に弱いばね`,
+          "warn",
+          "摩擦なしの接触だけではこの部品の面に沿った動きが止まりません。計算のため面に沿った弱いばね (法線剛性の 10⁻⁶) を入れたので、この方向の変位は大きく出ます (実際には摩擦や他の拘束が必要)",
+        );
     }
     row("要素", `${s.elements.toLocaleString()} 個 (要素サイズ ${formatNumber(s.h, 2)} mm)`);
     row("計算", `${s.iterations} 反復${time}${s.converged ? "" : " (未収束)"}`, s.converged ? "" : "warn");
