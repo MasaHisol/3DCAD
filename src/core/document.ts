@@ -58,7 +58,8 @@ export function featureSurfaceRefs(f: Feature): string[] {
   if (typeof fx.surface === "string" && fx.surface) out.push(fx.surface);
   if (Array.isArray(fx.surfaces)) out.push(...fx.surfaces);
   if (fx.type === "surfTrim" && fx.tool?.kind === "surface" && fx.tool.id) out.push(fx.tool.id);
-  return out;
+  // pattern / mirror copies are keyed "<feature id>#<n>"
+  return out.map((k) => k.split("#")[0]);
 }
 
 export const MATERIALS = [
@@ -168,9 +169,9 @@ export class DocumentStore extends Store<PartDocument> {
     doc.params = doc.params.filter((p) => !(p.owner && set.has(p.owner)));
     for (const f of doc.features) {
       const fx = f as unknown as Record<string, unknown>;
-      if (Array.isArray(fx.features)) fx.features = (fx.features as string[]).filter((x) => !set.has(x));
+      if (Array.isArray(fx.features)) fx.features = (fx.features as string[]).filter((x) => !set.has(x.split("#")[0]));
       if (Array.isArray(fx.sketches)) fx.sketches = (fx.sketches as string[]).filter((x) => !set.has(x));
-      if (Array.isArray(fx.surfaces)) fx.surfaces = (fx.surfaces as string[]).filter((x) => !set.has(x));
+      if (Array.isArray(fx.surfaces)) fx.surfaces = (fx.surfaces as string[]).filter((x) => !set.has(x.split("#")[0]));
     }
   }
 

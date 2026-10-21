@@ -102,7 +102,7 @@ export type RFeature =
     }
   | { id: string; type: "primitive"; shape: "box" | "cylinder" | "sphere" | "torus"; plane: PlaneDef; center: Vec2; a: number; b: number; c: number; op: BoolOp }
   | { id: string; type: "import"; format: "step" | "stl"; data: string }
-  | { id: string; type: "move"; transform: Transform }
+  | { id: string; type: "move"; transform: Transform; surfaces?: string[]; solids?: boolean }
   | SurfaceRFeature;
 
 export type SecLoop = { pts: Vec2[] } | { r: number };

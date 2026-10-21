@@ -22,6 +22,7 @@ import { ViewCube } from "./viewer/viewcube";
 import { samePick, Viewport, type Pick, type ToolHandler, type VisualStyle } from "./viewer/viewport";
 import { openIProperties, openParameters, openShortcuts } from "./ui/dialogs";
 import { sampleAssembly, sampleDocument } from "./samples";
+import { SURFACE_ONLY_MSG } from "./core/surfaceResolve";
 import { decodeDxf, encodeDxf, exportMeshes, objToStl, parseDxf, sketchToDxf, type MeshFormat } from "./io/formats";
 import { NAV_PRESETS, type NavPreset } from "./viewer/viewport";
 import { Timeline } from "./ui/timeline";
@@ -1444,8 +1445,8 @@ export class App {
       }
       return;
     }
-    if (!this.bodies.length) {
-      toast("エクスポートするソリッドがありません", "warn");
+    if (!this.bodies.length && !(format === "step" && this.surfaces.length)) {
+      toast(this.surfaces.length ? SURFACE_ONLY_MSG : "エクスポートするソリッドがありません", "warn");
       return;
     }
     try {

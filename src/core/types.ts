@@ -443,6 +443,10 @@ export interface MoveFeature extends FeatureBase {
   rx: string;
   ry: string;
   rz: string;
+  /** Surface bodies to move (feature id, or "<pattern id>#<n>" for pattern copies). */
+  surfaces?: string[];
+  /** Move the solid bodies too (default true). */
+  solids?: boolean;
 }
 
 // ------------------------------------------------------ surface modelling ---

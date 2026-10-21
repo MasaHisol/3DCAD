@@ -1,4 +1,5 @@
 import type { App } from "../app";
+import { SURFACE_ONLY_MSG } from "../core/surfaceResolve";
 import { MATERIALS } from "../core/document";
 import { evaluate, formatNumber, references } from "../core/expr";
 import { createsCycle, evaluateParams, PARAM_NAME_RE } from "../core/params";
@@ -164,6 +165,7 @@ export async function openIProperties(app: App) {
   let mp: Awaited<ReturnType<App["kernel"]["massProps"]>> | null = null;
   try {
     if (app.bodies.length) mp = await app.kernel.massProps();
+    else if (app.surfaces.length) toast(`質量特性はソリッドのみ対象です。${SURFACE_ONLY_MSG}`, "info");
   } catch (e) {
     toast((e as Error).message, "error");
   }
@@ -189,7 +191,7 @@ export async function openIProperties(app: App) {
     const draw = () => {
       out.innerHTML = "";
       if (!mp || !mp.bodies) {
-        out.appendChild(h("p", { class: "muted" }, "ソリッド ボディがありません"));
+        out.appendChild(h("p", { class: "muted" }, app.surfaces.length ? `ソリッド ボディがありません。${SURFACE_ONLY_MSG}` : "ソリッド ボディがありません"));
         return;
       }
       const dens = app.store.doc.material.density;

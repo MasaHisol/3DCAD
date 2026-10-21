@@ -4,7 +4,7 @@
 
 import type { App } from "../app";
 import { ORIGIN_PLANES, uid } from "../core/document";
-import { isSurfaceFeature, sketchWires } from "../core/surfaceResolve";
+import { isSurfaceFeature, sketchWires, surfaceBase } from "../core/surfaceResolve";
 import type {
   BoolOp,
   EdgeRef,
@@ -52,15 +52,39 @@ export function surfaceSources(app: App, beforeId?: string): Feature[] {
   return doc.features.filter((f, i) => i < (limit < 0 ? doc.endOfPart : limit) && !f.suppressed && isSurfaceFeature(f));
 }
 
-/** Feature id of the surface body under a pick, if any. */
-function pickedSurface(app: App, p: Pick | null): string | null {
+/** Surface key of the surface body under a pick, if any: a feature id, or "<pattern id>#<n>" for a pattern / mirror copy. */
+export function pickedSurface(app: App, p: Pick | null): string | null {
   if (!p || p.body < 0) return null;
   const id = app.pickBodies[p.body]?.surface;
-  return id && app.store.feature(id) ? id : null;
+  return id && app.store.feature(surfaceBase(id)) ? id : null;
 }
 
-/** Highlight whole surface bodies (by feature id) on the pick model. */
-function surfacePicks(app: App, ids: string[]): Pick[] {
+/** Display name of a surface key ("ミラー1 #2" for pattern / mirror copies). */
+export function surfaceLabel(app: App, key: string): string {
+  const base = surfaceBase(key);
+  const name = app.store.feature(base)?.name ?? base;
+  return key === base ? name : `${name} ${key.slice(base.length)}`;
+}
+
+/**
+ * Surfaces available before `beforeId`: surface features plus the surface
+ * copies made by patterns / mirrors (taken from the pick model, which holds the
+ * state before the edited feature).
+ */
+export function surfaceChoices(app: App, beforeId?: string): { id: string; name: string }[] {
+  const out = surfaceSources(app, beforeId).map((s) => ({ id: s.id, name: s.name }));
+  const doc = app.store.doc;
+  const limit = beforeId ? doc.features.findIndex((f) => f.id === beforeId) : doc.endOfPart;
+  const before = new Set(doc.features.slice(0, limit < 0 ? doc.endOfPart : limit).map((f) => f.id));
+  for (const b of app.pickBodies) {
+    const k = b.surface;
+    if (k && k !== surfaceBase(k) && before.has(surfaceBase(k)) && !out.some((o) => o.id === k)) out.push({ id: k, name: surfaceLabel(app, k) });
+  }
+  return out;
+}
+
+/** Highlight whole surface bodies (by surface key) on the pick model. */
+export function surfacePicks(app: App, ids: string[]): Pick[] {
   const out: Pick[] = [];
   app.pickBodies.forEach((b, bi) => {
     if (b.surface && ids.includes(b.surface)) b.faces.forEach((f, fi) => out.push({ kind: "face", body: bi, index: fi, point: f.center }));
@@ -267,7 +291,8 @@ class SurfPatchCommand extends FeatureCommand<SurfPatchFeature> {
 abstract class OneSurfaceCommand<F extends SurfTrimFeature | SurfOffsetFeature> extends FeatureCommand<F> {
   protected surfSel!: HTMLSelectElement;
   protected setupSurfacePick(sec: HTMLElement, label: string) {
-    const opts = surfaceSources(this.app, this.featureId).map((s) => ({ value: s.id, label: s.name }));
+    const opts = surfaceChoices(this.app, this.featureId).map((s) => ({ value: s.id, label: s.name }));
+    if (this.feature.surface && !opts.some((o) => o.value === this.feature.surface)) opts.push({ value: this.feature.surface, label: surfaceLabel(this.app, this.feature.surface) });
     this.surfSel = this.panel.select(sec, label, [{ value: "", label: "サーフェスをクリック…" }, ...opts], this.feature.surface, (v) => this.setSurface(v));
     this.app.vp.pickKinds = new Set(["face"]);
     this.app.vp.pickFilter = (pk) => !!this.app.pickBodies[pk.body]?.surface;
@@ -323,7 +348,7 @@ class SurfTrimCommand extends OneSurfaceCommand<SurfTrimFeature> {
       { value: "origin:XY", label: "XY 平面" },
       ...app.store.doc.features.filter((x): x is WorkPlaneFeature => x.type === "workplane").map((w) => ({ value: `wp:${w.id}`, label: w.name })),
       ...curveSketches(app, this.featureId).filter((s) => (app.sketchState(s.id)?.regions.length ?? 0) > 0).map((s) => ({ value: `sk:${s.id}`, label: `スケッチ: ${s.name} (輪郭を投影)` })),
-      ...surfaceSources(app, this.featureId).map((s) => ({ value: `sf:${s.id}`, label: `サーフェス: ${s.name}` })),
+      ...surfaceChoices(app, this.featureId).map((s) => ({ value: `sf:${s.id}`, label: `サーフェス: ${s.name}` })),
     ];
     this.toolSel = p.select(tool, "ツール", opts, toolKey(f.tool), (v) => this.setTool(v));
     p.checkbox(tool, "反対側を残す", f.flip, (v) => this.update((x) => (x.flip = v)));
@@ -387,7 +412,7 @@ class SurfStitchCommand extends FeatureCommand<SurfStitchFeature> {
         id,
         type: "surfStitch",
         name: app.store.nextFeatureName("surfStitch"),
-        surfaces: surfaceSources(app).filter((s) => shown.has(s.id)).map((s) => s.id),
+        surfaces: surfaceChoices(app).filter((s) => shown.has(s.id)).map((s) => s.id),
         tolerance: app.store.addParam(app.store.doc, "0.01", "mm", id),
         solid: true,
         op: app.hasBodies() ? "join" : "new",
@@ -399,12 +424,14 @@ class SurfStitchCommand extends FeatureCommand<SurfStitchFeature> {
     const sec = p.section("サーフェス");
     this.pick = p.picker(sec, "サーフェス", "surfPatch", () => {}, () => (this.update((x) => (x.surfaces = [])), this.sync()));
     this.pick.setActive(true);
-    for (const s of surfaceSources(app, this.featureId)) this.boxes.set(s.id, p.checkbox(sec, s.name, f.surfaces.includes(s.id), () => this.toggle(s.id)));
+    const choices = surfaceChoices(app, this.featureId);
+    for (const id of f.surfaces) if (!choices.some((c) => c.id === id)) choices.push({ id, name: surfaceLabel(app, id) });
+    for (const s of choices) this.boxes.set(s.id, p.checkbox(sec, s.name, f.surfaces.includes(s.id), () => this.toggle(s.id)));
     const opt = p.section("オプション");
     p.expr(opt, "許容差", this.expr(f.tolerance), "mm", (e) => this.setParam(this.feature.tolerance, e), f.tolerance);
     p.checkbox(opt, "閉じていればソリッドを作成", f.solid, (v) => this.update((x) => (x.solid = v)));
     p.toggles(opt, "ブール演算", OPS, f.op, (v) => this.update((x) => (x.op = v as BoolOp)));
-    p.note(opt, "隙間が許容差以下のエッジをつなぎます。すき間なく閉じるとソリッドになり、閉じない場合は 1 つのサーフェスとして残ります。");
+    p.note(opt, "隙間が許容差以下のエッジをつなぎます。すき間なく閉じるとソリッドになり、閉じない場合は 1 つのサーフェスとして残ります。パターン / ミラーで作ったサーフェスのコピー (#番号) も選べます。");
     app.vp.pickKinds = new Set(["face"]);
     app.vp.pickFilter = (pk) => !!app.pickBodies[pk.body]?.surface;
     this.handler = {

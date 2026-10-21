@@ -53,7 +53,8 @@ import { PrintCheckCommand } from "../analysis/printui";
 import { pointMap } from "../viewer/sketchRender";
 import { samePick, type Pick, type ToolHandler } from "../viewer/viewport";
 import { FeatureCommand, type Command } from "./command";
-import { makeSurfaceCommand, SURFACE_COMMAND_INFO, surfaceSources } from "./surface";
+import { makeSurfaceCommand, pickedSurface, SURFACE_COMMAND_INFO, surfaceChoices, surfaceLabel, surfacePicks } from "./surface";
+import { isSurfaceFeature } from "../core/surfaceResolve";
 
 export interface CommandInfo {
   id: string;
@@ -1414,7 +1415,8 @@ class ThickenCommand extends FeatureCommand<ThickenFeature> {
     const p = this.panel;
     const sec = p.section("面");
     // surface modelling: thicken a whole surface body into a solid
-    const surfs = surfaceSources(app, this.featureId);
+    const surfs = surfaceChoices(app, this.featureId);
+    if (f.surface && !surfs.some((s) => s.id === f.surface)) surfs.push({ id: f.surface, name: surfaceLabel(app, f.surface) });
     if (surfs.length || f.surface) {
       this.srcSel = p.select(sec, "対象", [{ value: "", label: "ソリッドの平面" }, ...surfs.map((s) => ({ value: s.id, label: `サーフェス: ${s.name}` }))], f.surface ?? "", (v) => this.setSurface(v));
     }
@@ -1431,8 +1433,8 @@ class ThickenCommand extends FeatureCommand<ThickenFeature> {
       onPointerDown: (e, vp) => {
         if (e.button !== 0) return;
         const pk = vp.pick(e);
-        const sid = pk && app.pickBodies[pk.body]?.surface;
-        if (sid && app.store.feature(sid)) return void this.setSurface(sid);
+        const sid = pickedSurface(app, pk);
+        if (sid) return void this.setSurface(sid);
         const r = pk && app.faceRef(pk);
         if (!r) return;
         if (this.feature.surface) this.setSurface("");
@@ -1456,7 +1458,7 @@ class ThickenCommand extends FeatureCommand<ThickenFeature> {
     const f = this.feature;
     const n = f.faces.length;
     if (f.surface) {
-      this.fp.setCount(1, this.app.store.feature(f.surface)?.name ?? "サーフェス");
+      this.fp.setCount(1, surfaceLabel(this.app, f.surface));
       const sel: Pick[] = [];
       this.app.pickBodies.forEach((b, bi) => b.surface === f.surface && b.faces.forEach((fc, fi) => sel.push({ kind: "face", body: bi, index: fi, point: fc.center })));
       this.app.vp.setSelection(sel);
@@ -1834,16 +1836,20 @@ const AXIS_OPTS = [
   { value: "Z", label: "Z 軸" },
 ];
 
+const PATTERN_SOLID_TYPES = ["extrude", "revolve", "hole", "box", "cylinder", "sphere", "torus"];
+
 abstract class FeatureListCommand<F extends PatternFeature | MirrorFeature> extends FeatureCommand<F> {
   protected featPick!: ReturnType<PropertyPanel["picker"]>;
 
-  onBrowserSelect(id: string): boolean {
+  /** Solid features (extrude / revolve / hole / primitives), surface features, or pattern / mirror features that made surface copies. */
+  protected patternable(id: string): boolean {
     const f = this.app.store.feature(id);
-    if (!f || id === this.featureId) return true;
-    if (!["extrude", "revolve", "hole", "box", "cylinder", "sphere", "torus"].includes(f.type)) {
-      toast("押し出し・回転・穴・プリミティブのフィーチャを選択してください", "info");
-      return true;
-    }
+    if (!f || id === this.featureId) return false;
+    if (PATTERN_SOLID_TYPES.includes(f.type) || isSurfaceFeature(f)) return true;
+    return ["rectPattern", "circPattern", "mirror"].includes(f.type) && this.app.pickBodies.some((b) => b.surface?.startsWith(`${id}#`));
+  }
+
+  private toggle(id: string) {
     this.update((x) => {
       const k = x.features.indexOf(id);
       if (k >= 0) x.features.splice(k, 1);
@@ -1852,29 +1858,55 @@ abstract class FeatureListCommand<F extends PatternFeature | MirrorFeature> exte
     this.app.browserSelection = new Set(this.feature.features);
     this.app.browser.render();
     this.refreshCount();
+  }
+
+  onBrowserSelect(id: string): boolean {
+    if (id === this.featureId || !this.app.store.feature(id)) return true;
+    if (!this.patternable(id)) {
+      toast("押し出し・回転・穴・プリミティブ、またはサーフェスのフィーチャを選択してください", "info");
+      return true;
+    }
+    this.toggle(id);
     return true;
   }
 
   protected refreshCount() {
-    const names = this.feature.features.map((id) => this.app.store.feature(id)?.name).filter(Boolean);
-    this.featPick.setCount(names.length, names.length ? names.join(", ") : "ブラウザで選択");
+    const names = this.feature.features.map((id) => (this.app.store.feature(id.split("#")[0]) ? surfaceLabel(this.app, id) : "")).filter(Boolean);
+    this.featPick.setCount(names.length, names.length ? names.join(", ") : "ブラウザまたはサーフェスをクリック");
+    this.app.vp.setSelection(surfacePicks(this.app, this.feature.features));
   }
 
   protected initialFeatures(): string[] {
-    const doc = this.app.store.doc;
-    return [...this.app.browserSelection].filter((id) => {
-      const f = doc.features.find((x) => x.id === id);
-      return f && ["extrude", "revolve", "hole", "box", "cylinder", "sphere", "torus"].includes(f.type);
-    });
+    return [...this.app.browserSelection].filter((id) => this.patternable(id));
   }
 
   protected setupFeatures(sec: HTMLElement) {
     this.featPick = this.panel.picker(sec, "フィーチャ", "part", () => {});
     this.featPick.setActive(true);
+    this.panel.note(sec, "サーフェスはビューでクリックしても選べます。サーフェスのコピーは新しいサーフェス (名前 #番号) になり、トリム・ステッチ・厚み付けで使えます。");
+    this.app.vp.pickKinds = new Set(["face"]);
+    this.app.vp.pickFilter = (pk) => !!this.app.pickBodies[pk.body]?.surface;
+    this.handler = {
+      cursor: "pointer",
+      onPointerMove: (e, vp) => vp.setHover(vp.pick(e)),
+      onPointerDown: (e, vp) => {
+        if (e.button !== 0) return;
+        const id = pickedSurface(this.app, vp.pick(e));
+        if (id && !id.startsWith(`${this.featureId}#`) && id !== this.featureId) this.toggle(id);
+      },
+    };
     this.refreshCount();
     this.app.browserSelection = new Set(this.feature.features);
     this.app.browser.render();
-    this.app.status("パターン化するフィーチャをモデル ブラウザでクリック");
+    this.app.status("パターン化するフィーチャをモデル ブラウザでクリック (サーフェスはビューでもクリックできます)");
+  }
+
+  captureBefore() {
+    return this.featureId;
+  }
+  onRegen() {
+    super.onRegen();
+    if (this.featPick) this.refreshCount();
   }
 
   cancel() {
@@ -2201,6 +2233,7 @@ class WorkPointCommand extends FeatureCommand<WorkPointFeature> {
 
 class MoveCommand extends FeatureCommand<MoveFeature> {
   readonly id = "move";
+  private sp!: ReturnType<PropertyPanel["picker"]>;
   constructor(app: App, existing: MoveFeature | null) {
     super(app, existing, () => {
       const id = uid("mv");
@@ -2209,12 +2242,50 @@ class MoveCommand extends FeatureCommand<MoveFeature> {
     });
     const f = this.feature;
     this.openPanel(this.editing ? `ボディを移動: ${f.name}` : "ボディを移動", "move");
+    const tg = this.panel.section("対象");
+    this.panel.checkbox(tg, "ソリッド ボディ (すべて)", f.solids !== false, (v) => this.update((x) => (x.solids = v ? undefined : false)));
+    this.sp = this.panel.picker(tg, "サーフェス", "surfPatch", () => {}, () => (this.update((x) => delete x.surfaces), this.sync()));
+    this.sp.setActive(true);
+    this.panel.note(tg, "移動するサーフェスをビューでクリックします (もう一度クリックで解除)。");
     const t = this.panel.section("移動");
     const k = ["dx", "dy", "dz"] as const;
     ["X", "Y", "Z"].forEach((a, i) => this.panel.expr(t, `${a} 方向`, this.expr(f[k[i]]), "mm", (e) => this.setParam(this.feature[k[i]], e), f[k[i]]));
     const r = this.panel.section("回転 (原点まわり)");
     const rk = ["rx", "ry", "rz"] as const;
     ["X", "Y", "Z"].forEach((a, i) => this.panel.expr(r, `${a} 軸`, this.expr(f[rk[i]]), "deg", (e) => this.setParam(this.feature[rk[i]], e), f[rk[i]]));
+    app.vp.pickKinds = new Set(["face"]);
+    app.vp.pickFilter = (pk) => !!app.pickBodies[pk.body]?.surface;
+    this.handler = {
+      cursor: "pointer",
+      onPointerMove: (e, vp) => vp.setHover(vp.pick(e)),
+      onPointerDown: (e, vp) => {
+        if (e.button !== 0) return;
+        const id = pickedSurface(app, vp.pick(e));
+        if (!id || id === this.featureId) return;
+        this.update((x) => {
+          const list = x.surfaces ?? [];
+          const i = list.indexOf(id);
+          if (i >= 0) list.splice(i, 1);
+          else list.push(id);
+          if (list.length) x.surfaces = list;
+          else delete x.surfaces;
+        });
+        this.sync();
+      },
+    };
+    this.sync();
+  }
+  private sync() {
+    const ids = this.feature.surfaces ?? [];
+    this.sp.setCount(ids.length, ids.length ? ids.map((id) => surfaceLabel(this.app, id)).join(", ") : "なし");
+    this.app.vp.setSelection(surfacePicks(this.app, ids));
+  }
+  captureBefore() {
+    return this.featureId;
+  }
+  onRegen() {
+    super.onRegen();
+    this.sync();
   }
 }
 
@@ -2447,7 +2518,7 @@ export function buildCommands(app: App): CommandRegistry {
         toast("閉じたプロファイルを持つスケッチがありません。先に 2D スケッチを作成してください", "warn");
         return;
       }
-      if (needsBody.has(id) && !app.hasBodies() && !(id === "thicken" && app.surfaces.length)) {
+      if (needsBody.has(id) && !app.hasBodies() && !((id === "thicken" || id === "move") && app.surfaces.length)) {
         toast("このコマンドにはソリッド ボディが必要です", "warn");
         return;
       }

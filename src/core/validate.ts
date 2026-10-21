@@ -6,6 +6,7 @@
 import type { AssemblyDocument } from "../assembly/types";
 import { FEATURE_LABELS, MATERIALS } from "./document";
 import type { PartDocument } from "./types";
+import { surfaceBase } from "./surfaceResolve";
 import { cleanPmi } from "../mbd/pmi";
 
 export const FILE_VERSION = 1;
@@ -130,7 +131,7 @@ function checkSurfaceFeatures(doc: PartDocument, ids: Set<string>): string[] {
   const str = (v: unknown, d: string) => (typeof v === "string" && v ? v : d);
   for (const f of doc.features) {
     const fx = f as unknown as Record<string, unknown>;
-    const missingRef = (id: unknown) => typeof id === "string" && id !== "" && !ids.has(id);
+    const missingRef = (id: unknown) => typeof id === "string" && id !== "" && !ids.has(surfaceBase(id));
     switch (f.type) {
       case "surfExtrude":
         if (f.extent !== "distance" && f.extent !== "symmetric") f.extent = "distance";
@@ -166,7 +167,7 @@ function checkSurfaceFeatures(doc: PartDocument, ids: Set<string>): string[] {
       case "surfStitch": {
         if (!Array.isArray(f.surfaces)) f.surfaces = [];
         const n0 = f.surfaces.length;
-        f.surfaces = f.surfaces.filter((id) => typeof id === "string" && ids.has(id));
+        f.surfaces = f.surfaces.filter((id) => typeof id === "string" && ids.has(surfaceBase(id)));
         if (f.surfaces.length < n0) warnings.push(`${f.name}: 見つからないサーフェス ${n0 - f.surfaces.length} 個を縫合から外しました`);
         f.tolerance = str(f.tolerance, "0.001");
         f.solid = f.solid !== false;

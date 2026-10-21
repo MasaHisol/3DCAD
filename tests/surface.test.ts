@@ -195,4 +195,55 @@ describe("surface modelling", () => {
     const k = Array.from(vertexCurvature(res.surfaces![0])).sort((a, b) => a - b);
     expect(k[k.length >> 1]).toBeCloseTo(0.1, 2);
   }, 60000);
+
+  it("mirror a half tube surface, then stitch it with caps into a closed solid", async () => {
+    const top: PlaneDef = { origin: [0, 0, 10], xDir: [1, 0, 0], normal: [0, 0, 1] };
+    const { res, eng } = await build([
+      sketch("u", [[[0, -10], [20, -10], [20, 10], [0, 10]]]),
+      { id: "half", name: "half", type: "surfExtrude", sketch: "u", extent: "distance", distance: "10", flip: false },
+      { id: "mi", name: "mi", type: "mirror", features: ["half"], plane: "YZ", offset: "0" },
+      sketch("cb", [[[-20, -10], [20, -10], [20, 10], [-20, 10], [-20, -10]]]),
+      sketch("ct", [[[-20, -10], [20, -10], [20, 10], [-20, 10], [-20, -10]]], [], top),
+      { id: "bot", name: "bot", type: "surfPatch", sketch: "cb", edges: [] },
+      { id: "cap", name: "cap", type: "surfPatch", sketch: "ct", edges: [] },
+      { id: "st", name: "st", type: "surfStitch", surfaces: ["half", "mi#1", "bot", "cap"], tolerance: "0.001", solid: true, op: "new" },
+    ]);
+    expect(res.errors).toEqual({});
+    expect(res.surfaces?.length ?? 0).toBe(0);
+    expect(eng.bodies.length).toBe(1);
+    expect(R.measureVolume(eng.bodies[0] as never)).toBeCloseTo(8000, 1);
+  }, 60000);
+
+  it("rectangular pattern of a patch gives N surfaces keyed by the pattern id", async () => {
+    const { res, eng } = await build([
+      rect,
+      { id: "p", name: "p", type: "surfPatch", sketch: "sk1", edges: [] },
+      { id: "rp", name: "rp", type: "rectPattern", features: ["p"], axis: "X", count: "4", spacing: "50", axis2: "Y", count2: "2", spacing2: "30", flip: false },
+    ]);
+    expect(res.errors).toEqual({});
+    expect(res.bodies.length).toBe(0);
+    expect(eng.surfaces.length).toBe(8);
+    expect(eng.surfaces.map((s) => s.id).sort()).toEqual(["p", ...Array.from({ length: 7 }, (_, i) => `rp#${i + 1}`)].sort());
+    for (const s of eng.surfaces) expect(area(s)).toBeCloseTo(800, 3);
+    const xs = eng.surfaces.map((s) => Math.round(s.shape.boundingBox.bounds[0][0]));
+    expect(new Set(xs)).toEqual(new Set([0, 50, 100, 150]));
+  }, 60000);
+
+  it("move a surface (keeps its key; solids stay put when unchecked)", async () => {
+    const { res, eng } = await build([
+      rect,
+      { id: "p", name: "p", type: "surfPatch", sketch: "sk1", edges: [] },
+      { id: "mv", name: "mv", type: "move", dx: "5", dy: "0", dz: "7", rx: "0", ry: "0", rz: "90", surfaces: ["p"], solids: false },
+      { id: "tk", name: "tk", type: "thicken", faces: [], surface: "p", distance: "2", flip: false, op: "new" },
+    ]);
+    expect(res.errors).toEqual({});
+    expect(eng.bodies.length).toBe(1);
+    const [lo, hi] = eng.bodies[0].boundingBox.bounds;
+    // rotated 90° about Z: x ∈ [-20, 0] (+5), y ∈ [0, 40]; z lifted by 7
+    expect(lo[0]).toBeCloseTo(-15, 3);
+    expect(hi[0]).toBeCloseTo(5, 3);
+    expect(hi[1]).toBeCloseTo(40, 3);
+    expect(Math.min(lo[2], hi[2])).toBeGreaterThan(4.9);
+    expect(R.measureVolume(eng.bodies[0] as never)).toBeCloseTo(1600, 1);
+  }, 60000);
 });

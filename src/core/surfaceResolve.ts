@@ -7,6 +7,14 @@ import { ORIGIN_PLANES } from "./document";
 import type { Feature, PartDocument, PlaneDef, SketchFeature, SkLine, SkPoint, SurfaceFeature, ThickenFeature, Vec2, Vec3, WorkPlaneFeature } from "./types";
 
 const SURFACE_TYPES = new Set(["surfExtrude", "surfRevolve", "surfLoft", "surfPatch", "surfTrim", "surfStitch", "surfOffset"]);
+/** Shown when the part has only surfaces and the command needs volume (STL, mass properties). */
+export const SURFACE_ONLY_MSG = "サーフェスには体積がありません。ステッチ (閉じたサーフェスを縫合) または厚み付けでソリッドにしてください";
+
+/** Feature id behind a surface key: pattern / mirror copies are keyed "<feature id>#<n>". */
+export const surfaceBase = (key: string) => {
+  const k = key.indexOf("#");
+  return k < 0 ? key : key.slice(0, k);
+};
 export const isSurfaceFeature = (f: Feature): f is SurfaceFeature => SURFACE_TYPES.has(f.type);
 
 function cross(a: Vec3, b: Vec3): Vec3 {
@@ -98,7 +106,7 @@ export function resolveSurfaceFeature(doc: PartDocument, f: SurfaceFeature | Thi
   };
   const surfRef = (id: string, label = "サーフェス") => {
     if (!id) throw new Error(`${label}を選択してください`);
-    if (!doc.features.some((x) => x.id === id)) throw new Error(`${label}が見つかりません`);
+    if (!doc.features.some((x) => x.id === surfaceBase(id))) throw new Error(`${label}が見つかりません`);
     return id;
   };
   switch (f.type) {

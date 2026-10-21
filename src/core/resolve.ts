@@ -448,8 +448,10 @@ function resolveFeature(
       const v = (e: string, l: string) => num(f, e, l);
       const t: Transform = { translate: [v(f.dx, "X"), v(f.dy, "Y"), v(f.dz, "Z")] };
       const rx = v(f.rx, "回転 X"), ry = v(f.ry, "回転 Y"), rz = v(f.rz, "回転 Z");
-      if (rx || ry || rz) return composeMove(f.id, [rx, ry, rz], t);
-      return { id: f.id, type: "move", transform: t };
+      const targets = { surfaces: f.surfaces?.length ? f.surfaces : undefined, solids: f.solids === false ? false : undefined };
+      if (f.solids === false && !f.surfaces?.length) throw new Error("移動するボディまたはサーフェスを選択してください");
+      if (rx || ry || rz) return { ...composeMove(f.id, [rx, ry, rz], t), ...targets } as RFeature;
+      return { id: f.id, type: "move", transform: t, ...targets };
     }
     default:
       return null;

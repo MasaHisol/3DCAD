@@ -611,12 +611,23 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
     }
     case "pattern": {
       let out = bodies;
+      const surfIn = st.surfaces ?? new Map<string, Shape>();
+      let surfaces: Map<string, Shape> | undefined;
+      let n = 0;
       for (const src of f.sources) {
         const t = tools.get(src);
-        if (!t) throw new Error("パターン化できないフィーチャが含まれています (押し出し/回転/穴/プリミティブのみ)");
-        for (const tr of f.transforms) out = applyOp(out, transformShape(t.shape, tr), t.op === "new" ? "join" : t.op);
+        if (t) {
+          for (const tr of f.transforms) out = applyOp(out, transformShape(t.shape, tr), t.op === "new" ? "join" : t.op);
+          continue;
+        }
+        // surface bodies: each copy becomes a new surface keyed "<pattern id>#<n>"
+        // a pattern / mirror feature stands for all the surface copies it made
+        const keys = surfIn.has(src) ? [src] : [...surfIn.keys()].filter((k) => k.startsWith(`${src}#`));
+        if (!keys.length) throw new Error("パターン化できないフィーチャが含まれています (押し出し/回転/穴/プリミティブ/サーフェスのみ。サーフェスはトリム・ステッチなどで使用済みの可能性があります)");
+        surfaces ??= new Map(surfIn);
+        for (const k of keys) for (const tr of f.transforms) surfaces.set(`${f.id}#${++n}`, transformShape(surfIn.get(k)!, tr));
       }
-      return { bodies: out, tools };
+      return { bodies: out, tools, surfaces };
     }
     case "primitive": {
       const tool = buildPrimitive(f);
@@ -634,7 +645,16 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
       return { bodies: [...bodies, ...solids], tools };
     }
     case "move": {
-      return { bodies: bodies.map((b) => transformShape(b, f.transform)), tools };
+      const moved = f.solids === false ? bodies : bodies.map((b) => transformShape(b, f.transform));
+      if (!f.surfaces?.length) return { bodies: moved, tools };
+      // surfaces keep their key so later surface features still find them
+      const surfaces = new Map(st.surfaces ?? []);
+      for (const id of f.surfaces) {
+        const sf = surfaces.get(id);
+        if (!sf) throw new Error("移動するサーフェスが見つかりません (先のフィーチャで使用済みの可能性があります)");
+        surfaces.set(id, transformShape(sf, f.transform));
+      }
+      return { bodies: moved, tools, surfaces };
     }
     case "flange": {
       const T = f.thickness, Rr = f.radius, th = (f.angle * Math.PI) / 180;
@@ -1008,7 +1028,8 @@ export class GeometryEngine {
   }
 
   exportFile(format: "step" | "stl" | "brep", name: string): Blob {
-    if (!this.bodies.length) throw new Error("エクスポートするボディがありません");
+    if (!this.bodies.length && !(format === "step" && this.surfaces.length))
+      throw new Error(this.surfaces.length ? "サーフェスには体積がないため STL / BREP に書き出せません。ステッチまたは厚み付けでソリッドにしてください (STEP ならサーフェスも書き出せます)" : "エクスポートするボディがありません");
     if (format === "brep") {
       // OpenCascade native B-rep (FreeCAD, Salome, CAD Exchanger, OCCT tools)
       const oc = R.getOC() as unknown as { BRepTools: { Write(s: unknown, f: string, p: unknown): boolean }; Message_ProgressRange: new () => unknown; FS: { readFile(f: string): Uint8Array; unlink(f: string): void } };
