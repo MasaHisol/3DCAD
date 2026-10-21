@@ -22,6 +22,8 @@ export interface MgFine {
   /** Fixed node flags on the fine node grid. */
   fixed: Uint8Array;
   used: Uint8Array;
+  /** Optional (multi-threaded) y = K x on the fine level, unmasked. */
+  fineApply?: (x: Float64Array, y: Float64Array) => void;
 }
 
 interface Level {
@@ -74,10 +76,10 @@ export class Multigrid {
   private fine: MgFine;
   private chol: { n: number; L: Float64Array; map: Int32Array } | null = null;
   private omega = 0.6;
-  private sweeps = 2;
+  private sweeps = 1;
   readonly depth: number;
 
-  constructor(fine: MgFine, maxCoarseDofs = 1500) {
+  constructor(fine: MgFine, maxCoarseDofs = 400) {
     this.fine = fine;
     const [nx, ny, nz] = fine.dims;
     const ne = fine.elems.length / 3;
@@ -173,6 +175,11 @@ export class Multigrid {
   /** y = A x on a level (non-free rows zero). */
   apply(l: number, x: Float64Array, y: Float64Array) {
     const L = this.levels[l];
+    if (l === 0 && this.fine.fineApply) {
+      this.fine.fineApply(x, y);
+      for (let i = 0; i < y.length; i++) if (!L.free[i]) y[i] = 0;
+      return;
+    }
     y.fill(0);
     const ue = new Float64Array(24);
     for (let e = 0; e < L.ne; e++) {
@@ -213,12 +220,14 @@ export class Multigrid {
         for (let i = 0; i < FX; i++) {
           const n = (k * FY + j) * FX + i;
           if (!F.free[n * 3]) continue;
-          const is = i & 1 ? [i >> 1, (i >> 1) + 1] : [i >> 1], js = j & 1 ? [j >> 1, (j >> 1) + 1] : [j >> 1], ks = k & 1 ? [k >> 1, (k >> 1) + 1] : [k >> 1];
-          const w = 1 / (is.length * js.length * ks.length);
-          for (const ck of ks)
-            for (const cj of js)
-              for (const ci of is) {
-                const m = (ck * CY + cj) * CX + ci;
+          // coarse neighbours: one per axis on even indices, two (halfway) on odd ones
+          const i0 = i >> 1, j0 = j >> 1, k0 = k >> 1;
+          const ni = (i & 1) + 1, nj = (j & 1) + 1, nk = (k & 1) + 1;
+          const w = 1 / (ni * nj * nk);
+          for (let dk = 0; dk < nk; dk++)
+            for (let dj = 0; dj < nj; dj++)
+              for (let di = 0; di < ni; di++) {
+                const m = ((k0 + dk) * CY + j0 + dj) * CX + i0 + di;
                 xf[n * 3] += w * xc[m * 3];
                 xf[n * 3 + 1] += w * xc[m * 3 + 1];
                 xf[n * 3 + 2] += w * xc[m * 3 + 2];
@@ -237,12 +246,14 @@ export class Multigrid {
         for (let i = 0; i < FX; i++) {
           const n = (k * FY + j) * FX + i;
           if (!F.free[n * 3]) continue;
-          const is = i & 1 ? [i >> 1, (i >> 1) + 1] : [i >> 1], js = j & 1 ? [j >> 1, (j >> 1) + 1] : [j >> 1], ks = k & 1 ? [k >> 1, (k >> 1) + 1] : [k >> 1];
-          const w = 1 / (is.length * js.length * ks.length);
-          for (const ck of ks)
-            for (const cj of js)
-              for (const ci of is) {
-                const m = (ck * CY + cj) * CX + ci;
+          // coarse neighbours: one per axis on even indices, two (halfway) on odd ones
+          const i0 = i >> 1, j0 = j >> 1, k0 = k >> 1;
+          const ni = (i & 1) + 1, nj = (j & 1) + 1, nk = (k & 1) + 1;
+          const w = 1 / (ni * nj * nk);
+          for (let dk = 0; dk < nk; dk++)
+            for (let dj = 0; dj < nj; dj++)
+              for (let di = 0; di < ni; di++) {
+                const m = ((k0 + dk) * CY + j0 + dj) * CX + i0 + di;
                 rc[m * 3] += w * rf[n * 3];
                 rc[m * 3 + 1] += w * rf[n * 3 + 1];
                 rc[m * 3 + 2] += w * rf[n * 3 + 2];
@@ -272,14 +283,18 @@ export class Multigrid {
     let maxd = 0;
     for (let i = 0; i < n; i++) maxd = Math.max(maxd, A[i * n + i]);
     for (let j = 0; j < n; j++) {
-      let d = A[j * n + j];
-      for (let k = 0; k < j; k++) d -= A[j * n + k] ** 2;
-      d = Math.sqrt(Math.max(d, maxd * 1e-12));
-      A[j * n + j] = d;
+      const rj = j * n;
+      let d = A[rj + j];
+      for (let k = 0; k < j; k++) d -= A[rj + k] * A[rj + k];
+      // a (numerically) zero pivot is a rigid mode of an unsupported, unloaded part: drop that
+      // unknown (infinite pivot -> zero correction) instead of dividing by ~0, which overflowed to NaN
+      d = d > maxd * 1e-12 ? Math.sqrt(d) : Infinity;
+      A[rj + j] = d;
       for (let i = j + 1; i < n; i++) {
-        let s = A[i * n + j];
-        for (let k = 0; k < j; k++) s -= A[i * n + k] * A[j * n + k];
-        A[i * n + j] = s / d;
+        const ri = i * n;
+        let s = A[ri + j];
+        for (let k = 0; k < j; k++) s -= A[ri + k] * A[rj + k];
+        A[ri + j] = s / d;
       }
     }
     this.chol = { n, L: A, map };
@@ -324,19 +339,27 @@ export class Multigrid {
       }
       return;
     }
-    const tmp = new Float64Array(x.length);
+    const w = this.work(l);
+    const tmp = w.tmp, r = w.r, rc = w.rc!, xc = w.xc!;
     x.fill(0);
     this.smooth(l, b, x, tmp);
     this.apply(l, x, tmp);
-    const r = new Float64Array(x.length);
     for (let i = 0; i < r.length; i++) r[i] = b[i] - tmp[i];
-    const C = this.levels[l + 1];
-    const rc = new Float64Array(C.nNodes * 3), xc = new Float64Array(C.nNodes * 3);
     this.restrict(l, r, rc);
     this.vcycle(l + 1, rc, xc);
     this.prolong(l, xc, tmp);
     for (let i = 0; i < x.length; i++) x[i] += tmp[i];
     this.smooth(l, b, x, tmp);
+  }
+
+  private ws: { tmp: Float64Array; r: Float64Array; rc?: Float64Array; xc?: Float64Array }[] = [];
+  /** Reused work vectors of a level (the V-cycle runs hundreds of times per solve). */
+  private work(l: number) {
+    if (!this.ws[l]) {
+      const n = this.levels[l].nNodes * 3, C = this.levels[l + 1];
+      this.ws[l] = { tmp: new Float64Array(n), r: new Float64Array(n), rc: C && new Float64Array(C.nNodes * 3), xc: C && new Float64Array(C.nNodes * 3) };
+    }
+    return this.ws[l];
   }
 
   /** z = M⁻¹ r (one V-cycle). */

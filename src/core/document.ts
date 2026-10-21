@@ -42,7 +42,25 @@ export const FEATURE_LABELS: Record<FeatureType, string> = {
   workpoint: "作業点",
   import: "インポート",
   move: "ボディを移動",
+  surfExtrude: "押し出しサーフェス",
+  surfRevolve: "回転サーフェス",
+  surfLoft: "ロフトサーフェス",
+  surfPatch: "境界パッチ",
+  surfTrim: "トリム",
+  surfStitch: "ステッチ",
+  surfOffset: "オフセットサーフェス",
 };
+
+/** Surface features a feature consumes or references (surface modelling). */
+export function featureSurfaceRefs(f: Feature): string[] {
+  const fx = f as unknown as { type: string; surface?: string; surfaces?: string[]; tool?: { kind: string; id?: string } };
+  const out: string[] = [];
+  if (typeof fx.surface === "string" && fx.surface) out.push(fx.surface);
+  if (Array.isArray(fx.surfaces)) out.push(...fx.surfaces);
+  if (fx.type === "surfTrim" && fx.tool?.kind === "surface" && fx.tool.id) out.push(fx.tool.id);
+  // pattern / mirror copies are keyed "<feature id>#<n>"
+  return out.map((k) => k.split("#")[0]);
+}
 
 export const MATERIALS = [
   { name: "汎用", density: 1.0, color: "#c9ced6" },
@@ -135,6 +153,7 @@ export class DocumentStore extends Store<PartDocument> {
       if (f.id === id) return false;
       const fx = f as unknown as Record<string, unknown>;
       if (featureSketchRefs(f).includes(id)) return true;
+      if (featureSurfaceRefs(f).includes(id)) return true;
       if (Array.isArray(fx.features) && (fx.features as string[]).includes(id)) return true;
       return false;
     });
@@ -150,8 +169,9 @@ export class DocumentStore extends Store<PartDocument> {
     doc.params = doc.params.filter((p) => !(p.owner && set.has(p.owner)));
     for (const f of doc.features) {
       const fx = f as unknown as Record<string, unknown>;
-      if (Array.isArray(fx.features)) fx.features = (fx.features as string[]).filter((x) => !set.has(x));
+      if (Array.isArray(fx.features)) fx.features = (fx.features as string[]).filter((x) => !set.has(x.split("#")[0]));
       if (Array.isArray(fx.sketches)) fx.sketches = (fx.sketches as string[]).filter((x) => !set.has(x));
+      if (Array.isArray(fx.surfaces)) fx.surfaces = (fx.surfaces as string[]).filter((x) => !set.has(x.split("#")[0]));
     }
   }
 

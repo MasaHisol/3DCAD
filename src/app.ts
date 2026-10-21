@@ -1,5 +1,7 @@
 import { validateAssembly, validatePart } from "./core/validate";
+import { idbGet, idbSet } from "./core/idb";
 import * as THREE from "three";
+import { refreshCurvature } from "./commands/surface";
 import { DocumentStore, FEATURE_LABELS, MATERIALS, ORIGIN_PLANES, featureSketchRefs, newDocument, uid } from "./core/document";
 import { formatNumber } from "./core/expr";
 import { evaluateParams } from "./core/params";
@@ -8,7 +10,7 @@ import type { EdgeRef, FaceRef, Feature, PartDocument, PlaneDef, SketchFeature, 
 import { KernelClient } from "./kernel/client";
 import type { BodyMesh, RebuildResult } from "./kernel/protocol";
 import type { Command } from "./commands/command";
-import { buildCommands, type CommandRegistry } from "./commands/features";
+import { buildCommands, preloadLazyCommands, type CommandRegistry } from "./commands/features";
 import { ModelBrowser } from "./ui/browser";
 import { closeMenus, confirmDialog, contextMenu, download, h, iconEl, markingMenu, modal, pickFile, promptDialog, toast, type MenuItem } from "./ui/dom";
 import { icon } from "./ui/icons";
@@ -20,6 +22,7 @@ import { ViewCube } from "./viewer/viewcube";
 import { samePick, Viewport, type Pick, type ToolHandler, type VisualStyle } from "./viewer/viewport";
 import { openIProperties, openParameters, openShortcuts } from "./ui/dialogs";
 import { sampleAssembly, sampleDocument } from "./samples";
+import { SURFACE_ONLY_MSG } from "./core/surfaceResolve";
 import { decodeDxf, encodeDxf, exportMeshes, objToStl, parseDxf, sketchToDxf, type MeshFormat } from "./io/formats";
 import { NAV_PRESETS, type NavPreset } from "./viewer/viewport";
 import { Timeline } from "./ui/timeline";
@@ -30,8 +33,10 @@ import { read3mf, readGlb, readPly } from "./io/meshin";
 import { openNativeInfo } from "./io/nativeDialog";
 import type { Rule, RuleContext, RuleResult } from "./rules/engine";
 import { DrawingEnv } from "./drawing/env";
+import { PmiLayer } from "./mbd/layer";
+import { editPmi } from "./mbd/commands";
 import { newAssembly, type AssemblyDocument } from "./assembly/types";
-import { openLearningCenter, startLessonById } from "./learn/center";
+import { openLearningCenter, startLessonById } from "./learn/lazy";
 import { listenForLessons, openTextbook } from "./learn/textbookLink";
 
 const AUTOSAVE_KEY = "3dcad.autosave.v2";
@@ -51,6 +56,8 @@ export class App {
   browser!: ModelBrowser;
   panelHost!: HTMLElement;
   commands!: CommandRegistry;
+  /** MBD: 3D annotations (PMI) display. */
+  pmi!: PmiLayer;
 
   /** Active environment: part modelling or assembly. */
   env: "part" | "assembly" | "drawing" = "part";
@@ -67,6 +74,8 @@ export class App {
   bodies: BodyMesh[] = [];
   /** Bodies used for picking: the state before the edited feature while a command needs it. */
   pickBodies: BodyMesh[] = [];
+  /** Surface bodies (open shells) of the last rebuild; displayed after `bodies`. */
+  surfaces: BodyMesh[] = [];
   featureErrors: Record<string, string> = {};
   browserSelection = new Set<string>();
   originVis = new Set<string>();
@@ -149,6 +158,7 @@ export class App {
       doc: () => this.store.doc,
       errors: () => this.featureErrors,
       bodyCount: () => this.bodies.length,
+      surfaceCount: () => this.surfaces.length,
       activeSketch: () => this.sketchEditor?.sketchId ?? null,
       selected: () => this.browserSelection,
       originVisible: (k) => this.originVis.has(k),
@@ -174,6 +184,8 @@ export class App {
     main.appendChild(vpEl);
 
     this.vp = new Viewport(vpEl);
+    this.pmi = new PmiLayer(this);
+    this.pmi.onLabelDblClick = (id) => editPmi(this, id);
     this.loadSettings();
     this.timeline = new Timeline(vpEl, this);
     this.cube = new ViewCube(this.vp, vpEl, () => this.homeView());
@@ -209,7 +221,7 @@ export class App {
       if (f) this.openOrImport(f);
     });
 
-    this.restoreAutosave();
+    void this.restoreAutosave();
     this.refreshUI();
     listenForLessons((id) => startLessonById(this, id));
     this.kernel
@@ -218,6 +230,8 @@ export class App {
         this.kernelReady = true;
         this.status("準備完了 — 「2D スケッチを作成」(S) から始めましょう");
         this.regenNow();
+        // fetch the code-split analysis / CAM modules while the user starts modelling
+        setTimeout(preloadLazyCommands, 1500);
       })
       .catch((e) => toast(`ジオメトリ カーネルの初期化に失敗しました: ${e.message}`, "error", 10000));
   }
@@ -324,6 +338,7 @@ export class App {
     if (reason === "refs") return;
     this.watchRules(reason);
     this.scheduleAutosave();
+    if (reason.startsWith("PMI")) return void this.refreshUI(); // annotations only: no rebuild
     if (this.mode === "sketch" && this.sketchEditor) {
       if (!this.store.feature(this.sketchEditor.sketchId)) {
         // sketch removed by undo
@@ -372,8 +387,12 @@ export class App {
     if (seq !== this.regenSeq) return; // a newer regen superseded this one
     this.featureErrors = { ...resolved.errors, ...res.errors };
     this.bodies = res.bodies;
-    this.pickBodies = res.before ?? res.bodies;
-    this.vp.setBodies(res.bodies, res.before);
+    // surface bodies are shown (and picked) after the solids
+    this.surfaces = res.surfaces ?? [];
+    const shown = this.surfaces.length ? [...res.bodies, ...this.surfaces] : res.bodies;
+    this.pickBodies = res.before ?? shown;
+    this.vp.setBodies(shown, res.before);
+    refreshCurvature(this);
     this.vp.setThreads(res.threads ?? []);
     this.vp.setMaterialColor(doc.material.color);
     this.statusRegen.textContent = `${Math.round(res.timeMs)} ms`;
@@ -1426,8 +1445,8 @@ export class App {
       }
       return;
     }
-    if (!this.bodies.length) {
-      toast("エクスポートするソリッドがありません", "warn");
+    if (!this.bodies.length && !(format === "step" && this.surfaces.length)) {
+      toast(this.surfaces.length ? SURFACE_ONLY_MSG : "エクスポートするソリッドがありません", "warn");
       return;
     }
     try {
@@ -1595,24 +1614,37 @@ export class App {
   private scheduleAutosave() {
     clearTimeout(this.autosaveTimer);
     this.autosaveTimer = window.setTimeout(() => {
+      const asmActive = this.asmDoc || !!this.asm.editingPart;
+      const json = JSON.stringify({ env: asmActive ? "assembly" : "part", part: asmActive ? null : this.store.doc, asm: asmActive ? this.asm.doc : null, t: Date.now() });
+      // IndexedDB holds large models (STEP imports, big assemblies); localStorage stays as a fallback
+      void idbSet(AUTOSAVE_KEY, json)
+        .then(() => (this.autosaveWarned = false))
+        .catch(() => {
+          if (!this.autosaveWarned) toast("自動保存できませんでした。こまめに保存してください (Ctrl+S)", "warn", 8000);
+          this.autosaveWarned = true;
+        });
       try {
-        const asmActive = this.asmDoc || !!this.asm.editingPart;
-        localStorage.setItem(
-          AUTOSAVE_KEY,
-          JSON.stringify({ env: asmActive ? "assembly" : "part", part: asmActive ? null : this.store.doc, asm: asmActive ? this.asm.doc : null }),
-        );
-        this.autosaveWarned = false;
+        if (json.length < 2_000_000) localStorage.setItem(AUTOSAVE_KEY, json);
+        else localStorage.removeItem(AUTOSAVE_KEY);
       } catch {
-        // quota (large STEP imports) / private mode: tell the user once, the file must be saved manually
-        if (!this.autosaveWarned) toast("自動保存できませんでした (データが大きすぎます)。こまめに保存してください (Ctrl+S)", "warn", 8000);
-        this.autosaveWarned = true;
+        /* quota / private mode: IndexedDB keeps the copy */
       }
     }, 800);
   }
 
-  private restoreAutosave() {
+  private async restoreAutosave() {
+    let s: string | null | undefined = null;
+    // the read is asynchronous: if the user (or a file / lesson) already opened something
+    // meanwhile, neither restore over it nor cover it with the welcome card
+    const untouched = (gen: number) => this.store.generation === gen && !this.asmDoc && this.env === "part";
+    const gen0 = this.store.generation;
     try {
-      const s = localStorage.getItem(AUTOSAVE_KEY);
+      // the newer of the two copies (IndexedDB is written first and has no size limit)
+      const fromIdb = await idbGet<string>(AUTOSAVE_KEY).catch(() => undefined);
+      const fromLs = localStorage.getItem(AUTOSAVE_KEY);
+      const t = (x: string | null | undefined) => (x ? ((JSON.parse(x) as { t?: number }).t ?? 0) : -1);
+      s = t(fromIdb) >= t(fromLs) ? fromIdb : fromLs;
+      if (!untouched(gen0)) return;
       if (!s) {
         this.showWelcome();
         return;
@@ -1632,8 +1664,7 @@ export class App {
     } catch (e) {
       // keep the unreadable autosave instead of overwriting it with the next edit
       try {
-        const s = localStorage.getItem(AUTOSAVE_KEY);
-        if (s) localStorage.setItem(`${AUTOSAVE_KEY}.broken`, s);
+        if (s) void idbSet(`${AUTOSAVE_KEY}.broken`, s);
       } catch {
         /* ignore */
       }
@@ -1650,7 +1681,9 @@ export class App {
   }
 
   private showWelcome() {
-    const close = () => w.remove();
+    // any document change (a file opened from the menu, a lesson, the OS) also dismisses it
+    const off = this.store.on(() => close());
+    const close = () => (w.remove(), off());
     const card = (ic: string, title: string, desc: string, fn: () => void) =>
       h("button", { class: "wc-card", onClick: () => (close(), fn()) }, iconEl(ic), h("strong", {}, title), h("span", {}, desc));
     const w = h(
@@ -1810,6 +1843,7 @@ export class App {
     this.browser.render();
     this.ribbon.refresh();
     this.timeline?.render();
+    this.pmi?.refresh();
   }
 
   private syncMaterial() {

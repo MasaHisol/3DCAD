@@ -25,6 +25,8 @@ export const DRAFTING: TextChapter[] = [
   <tr><td>ブラケット・ブロック</td><td>特徴的な輪郭が見える向き</td><td>2〜3</td></tr>
   <tr><td>ハウジング・鋳物</td><td>主軸線を水平に</td><td>3 以上 + 断面図</td></tr>
 </table>
+<div data-widget="3d-projection"></div>
+<p class="tb-caption">3D 図: 品物をガラス箱に入れて各面に投影し、「展開」で開くと第三角法の配置 (平面図は上、右側面図は右) になります。</p>
 <h2>特殊な投影図</h2>
 <table class="tb-table">
   <tr><th>名称</th><th>使う場面</th><th>描き方</th></tr>
@@ -114,6 +116,8 @@ export const DRAFTING: TextChapter[] = [
   <text class="k-note" x="326" y="196" text-anchor="middle">かくれ線なし</text>
 </svg>
 <p>片側断面図では、外形側に<b>かくれ線を描かない</b>のが原則です (内部は断面側でわかるため)。外形と断面の境界は中心線です。</p>
+<div data-widget="3d-section"></div>
+<p class="tb-caption">3D 図: 切断位置を動かすと、切り口のハッチングの形が変わります。穴の中心で切ると、穴の部分 (空間) にはハッチングが入らず切り口が左右に分かれます。</p>
 <h2>切断線と矢示</h2>
 <p>切断位置は<b>細い一点鎖線で、端部と曲がり角を太く</b>した切断線で示し、見る方向を矢印で、断面を英大文字 (A–A など) で対応させます。階段断面では、断面図の上で<b>切断面の折れ目の線は描きません</b>。</p>
 <h2>ハッチング</h2>

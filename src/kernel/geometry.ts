@@ -25,6 +25,7 @@ import type {
   ViewGeometry,
   ViewSpec,
 } from "./protocol";
+import { evalSurface, isSurfaceRFeature } from "./surface";
 
 type Shape = R.Shape3D;
 
@@ -33,6 +34,8 @@ interface State {
   tools: Map<string, { shape: Shape; op: string }>;
   /** Cosmetic threads created so far. */
   threads?: ThreadInfo[];
+  /** Surface bodies (open shells) by the id of the feature that made them. */
+  surfaces?: Map<string, Shape>;
 }
 
 interface CacheEntry {
@@ -396,6 +399,20 @@ function buildPrimitive(f: Extract<RFeature, { type: "primitive" }>): Shape {
 }
 
 async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<State> {
+  if (isSurfaceRFeature(f)) {
+    const res = evalSurface(f, {
+      bodies: st.bodies,
+      surfaces: st.surfaces ?? new Map(),
+      diag: modelDiag([...st.bodies, ...(st.surfaces?.values() ?? [])]),
+      applyOp,
+      resolveEdges,
+      regionTool: (plane, regions, from, to) => profileSolid({ ...plane, origin: add(plane.origin, scale(plane.normal, from)) }, regions, (sk) => sk.extrude(to - from)),
+    });
+    if (res.refs) entry.refs = res.refs;
+    const tools = new Map(st.tools);
+    if (res.tool) tools.set(f.id, res.tool);
+    return { bodies: res.bodies, tools, threads: st.threads, surfaces: res.surfaces };
+  }
   const out = await evalShape(f, st, entry);
   let threads = out.threads ?? st.threads ?? [];
   if (f.type === "hole" && f.thread) threads = [...threads, ...holeThreads(f, f.thread, out.bodies)];
@@ -405,7 +422,7 @@ async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<S
     threads = [...threads, ...f.transforms.flatMap((tr) => base.map((t) => transformThread(t, tr)))];
   }
   if (f.type === "move") threads = threads.map((t) => transformThread(t, f.transform));
-  return { ...out, threads };
+  return { ...out, threads, surfaces: out.surfaces ?? st.surfaces };
 }
 
 /** Thread size for a cylinder of diameter `dia` (external: major ≈ dia, internal: minor ≈ dia). */
@@ -493,7 +510,7 @@ function ensureFont() {
   return fontReady;
 }
 
-async function evalShape(f: RFeature, st: State, entry: CacheEntry): Promise<State> {
+async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: State, entry: CacheEntry): Promise<State> {
   const bodies = st.bodies;
   const tools = new Map(st.tools);
   const diag = modelDiag(bodies);
@@ -594,12 +611,23 @@ async function evalShape(f: RFeature, st: State, entry: CacheEntry): Promise<Sta
     }
     case "pattern": {
       let out = bodies;
+      const surfIn = st.surfaces ?? new Map<string, Shape>();
+      let surfaces: Map<string, Shape> | undefined;
+      let n = 0;
       for (const src of f.sources) {
         const t = tools.get(src);
-        if (!t) throw new Error("パターン化できないフィーチャが含まれています (押し出し/回転/穴/プリミティブのみ)");
-        for (const tr of f.transforms) out = applyOp(out, transformShape(t.shape, tr), t.op === "new" ? "join" : t.op);
+        if (t) {
+          for (const tr of f.transforms) out = applyOp(out, transformShape(t.shape, tr), t.op === "new" ? "join" : t.op);
+          continue;
+        }
+        // surface bodies: each copy becomes a new surface keyed "<pattern id>#<n>"
+        // a pattern / mirror feature stands for all the surface copies it made
+        const keys = surfIn.has(src) ? [src] : [...surfIn.keys()].filter((k) => k.startsWith(`${src}#`));
+        if (!keys.length) throw new Error("パターン化できないフィーチャが含まれています (押し出し/回転/穴/プリミティブ/サーフェスのみ。サーフェスはトリム・ステッチなどで使用済みの可能性があります)");
+        surfaces ??= new Map(surfIn);
+        for (const k of keys) for (const tr of f.transforms) surfaces.set(`${f.id}#${++n}`, transformShape(surfIn.get(k)!, tr));
       }
-      return { bodies: out, tools };
+      return { bodies: out, tools, surfaces };
     }
     case "primitive": {
       const tool = buildPrimitive(f);
@@ -617,7 +645,16 @@ async function evalShape(f: RFeature, st: State, entry: CacheEntry): Promise<Sta
       return { bodies: [...bodies, ...solids], tools };
     }
     case "move": {
-      return { bodies: bodies.map((b) => transformShape(b, f.transform)), tools };
+      const moved = f.solids === false ? bodies : bodies.map((b) => transformShape(b, f.transform));
+      if (!f.surfaces?.length) return { bodies: moved, tools };
+      // surfaces keep their key so later surface features still find them
+      const surfaces = new Map(st.surfaces ?? []);
+      for (const id of f.surfaces) {
+        const sf = surfaces.get(id);
+        if (!sf) throw new Error("移動するサーフェスが見つかりません (先のフィーチャで使用済みの可能性があります)");
+        surfaces.set(id, transformShape(sf, f.transform));
+      }
+      return { bodies: moved, tools, surfaces };
     }
     case "flange": {
       const T = f.thickness, Rr = f.radius, th = (f.angle * Math.PI) / 180;
@@ -937,6 +974,8 @@ export class GeometryEngine {
   private cache: CacheEntry[] = [];
   bodies: Shape[] = [];
   threads: ThreadInfo[] = [];
+  /** Surface bodies (open shells) after the last rebuild, in display order. */
+  surfaces: { id: string; shape: Shape }[] = [];
 
   async rebuild(features: RFeature[], captureBefore?: string): Promise<RebuildResult> {
     const t0 = performance.now();
@@ -947,9 +986,10 @@ export class GeometryEngine {
     let prefix = "";
     let valid = true;
     let before: Shape[] | null = null;
+    let beforeSurf: [string, Shape][] = [];
     for (let i = 0; i < features.length; i++) {
       const f = features[i];
-      if (f.id === captureBefore) before = state.bodies;
+      if (f.id === captureBefore) (before = state.bodies), (beforeSurf = [...(state.surfaces?.entries() ?? [])]);
       prefix += JSON.stringify(f).length + ":" + JSON.stringify(f);
       const key = prefix;
       const cached = this.cache[i];
@@ -962,7 +1002,9 @@ export class GeometryEngine {
         try {
           entry.state = await evalFeature(f, state, entry);
         } catch (e) {
-          entry.state = state;
+          // surface stitching that could not close keeps its sewn surface
+          const partial = (e as { partial?: { bodies: Shape[]; surfaces: Map<string, Shape> } })?.partial;
+          entry.state = partial ? { ...state, bodies: partial.bodies, surfaces: partial.surfaces } : state;
           entry.error = errorMessage(e);
         }
       }
@@ -974,14 +1016,20 @@ export class GeometryEngine {
     this.cache = next;
     this.bodies = state.bodies;
     this.threads = state.threads ?? [];
-    const diag = modelDiag(this.bodies);
+    this.surfaces = [...(state.surfaces ?? new Map()).entries()].map(([id, shape]) => ({ id, shape }));
+    const diag = modelDiag([...this.bodies, ...this.surfaces.map((s) => s.shape)]);
     const bodies = this.bodies.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag));
-    const beforeMeshes = before ? before.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag)) : undefined;
-    return { bodies, before: beforeMeshes, errors, updatedRefs, timeMs: performance.now() - t0, threads: this.threads };
+    const surfaces = this.surfaces.map((s, i) => ({ ...meshBody(s.shape, `サーフェス${i + 1}`, diag), surface: s.id }));
+    // picking while editing: solids, then surfaces (same order as the display)
+    const beforeMeshes = before
+      ? [...before.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag)), ...beforeSurf.map(([id, b], i) => ({ ...meshBody(b, `サーフェス${i + 1}`, diag), surface: id }))]
+      : undefined;
+    return { bodies, surfaces, before: beforeMeshes, errors, updatedRefs, timeMs: performance.now() - t0, threads: this.threads };
   }
 
   exportFile(format: "step" | "stl" | "brep", name: string): Blob {
-    if (!this.bodies.length) throw new Error("エクスポートするボディがありません");
+    if (!this.bodies.length && !(format === "step" && this.surfaces.length))
+      throw new Error(this.surfaces.length ? "サーフェスには体積がないため STL / BREP に書き出せません。ステッチまたは厚み付けでソリッドにしてください (STEP ならサーフェスも書き出せます)" : "エクスポートするボディがありません");
     if (format === "brep") {
       // OpenCascade native B-rep (FreeCAD, Salome, CAD Exchanger, OCCT tools)
       const oc = R.getOC() as unknown as { BRepTools: { Write(s: unknown, f: string, p: unknown): boolean }; Message_ProgressRange: new () => unknown; FS: { readFile(f: string): Uint8Array; unlink(f: string): void } };
@@ -993,8 +1041,9 @@ export class GeometryEngine {
       return new Blob([data as BlobPart], { type: "application/octet-stream" });
     }
     if (format === "step") {
+      // surface bodies are exported too (open shells)
       return R.exportSTEP(
-        this.bodies.map((shape, i) => ({ shape, name: this.bodies.length > 1 ? `${name}_${i + 1}` : name })),
+        [...this.bodies.map((shape, i) => ({ shape, name: this.bodies.length > 1 ? `${name}_${i + 1}` : name })), ...this.surfaces.map((s, i) => ({ shape: s.shape, name: `${name}_surface${i + 1}` }))],
         { unit: "MM" } as never,
       );
     }
@@ -1025,7 +1074,7 @@ export class GeometryEngine {
   }
 
   private topo(p: PickRef): R.AnyShape {
-    const b = this.bodies[p.body];
+    const b = [...this.bodies, ...this.surfaces.map((s) => s.shape)][p.body];
     if (!b) throw new Error("ボディが見つかりません");
     if (p.kind === "face") return b.faces[p.index];
     if (p.kind === "edge") return b.edges[p.index];
@@ -1147,6 +1196,42 @@ function circumcircle(a: P2, b: P2, c: P2): { c: P2; r: number } | null {
   return { c: [cx, cy], r: Math.hypot(a[0] - cx, a[1] - cy) };
 }
 
+/**
+ * Adaptive polyline of a free-form 2D curve (ellipse, B-spline): split until the
+ * chord deviates less than `tol` mm from the curve (drawings stay smooth when zoomed).
+ */
+export function sampleCurve(at: (t: number) => P2, t0: number, t1: number, tol = 0.01, maxPts = 600): P2[] {
+  const out: P2[] = [];
+  const pt = (t: number): P2 => {
+    const v = at(t);
+    return [v[0], v[1]];
+  };
+  const dev = (a: P2, b: P2, m: P2) => {
+    const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy);
+    return l < 1e-12 ? Math.hypot(m[0] - a[0], m[1] - a[1]) : Math.abs((m[0] - a[0]) * dy - (m[1] - a[1]) * dx) / l;
+  };
+  const rec = (ta: number, a: P2, tb: number, b: P2, depth: number) => {
+    const tm = (ta + tb) / 2, m = pt(tm);
+    // also probe the quarter points so an S-shaped span is not taken for straight
+    const q1 = pt((ta + tm) / 2), q3 = pt((tm + tb) / 2);
+    if (depth < 12 && out.length < maxPts && Math.max(dev(a, b, m), dev(a, b, q1), dev(a, b, q3)) > tol) {
+      rec(ta, a, tm, m, depth + 1);
+      rec(tm, m, tb, b, depth + 1);
+    } else out.push(b);
+  };
+  // start from 8 spans so closed curves (first = last point) are handled
+  const n = 8;
+  let ta = t0, a = pt(t0);
+  out.push(a);
+  for (let i = 1; i <= n; i++) {
+    const tb = t0 + ((t1 - t0) * i) / n, b = pt(tb);
+    rec(ta, a, tb, b, 0);
+    ta = tb;
+    a = b;
+  }
+  return out;
+}
+
 /** Curve2D list of a projected Drawing -> simple segments. */
 function drawingSegments(d: R.Drawing, tag: number): Seg2[] {
   const curves: R.Curve2D[] = [];
@@ -1179,12 +1264,7 @@ function drawingSegments(d: R.Drawing, tag: number): Seg2[] {
         out.push({ t: "arc", c: cc.c, r: cc.r, a0, a1, tag });
       }
     } else {
-      const pts: P2[] = [];
-      for (let i = 0; i <= 24; i++) {
-        const v = c.value(t0 + ((t1 - t0) * i) / 24) as P2;
-        pts.push([v[0], v[1]]);
-      }
-      out.push({ t: "poly", pts, tag });
+      out.push({ t: "poly", pts: sampleCurve((t) => c.value(t) as P2, t0, t1), tag });
     }
   }
   return out;
@@ -1311,7 +1391,7 @@ export function drawView(items: { shape: Shape; tag: number }[], v: ViewSpec, th
     // assemblies: identify which placement each visible edge belongs to (balloons, parts lists)
     if (shapes.length > 1) {
       const key = (s: Seg2) => {
-        const p = s.t === "line" ? [(s.a[0] + s.b[0]) / 2, (s.a[1] + s.b[1]) / 2] : s.t === "poly" ? s.pts[12] : s.c;
+        const p = s.t === "line" ? [(s.a[0] + s.b[0]) / 2, (s.a[1] + s.b[1]) / 2] : s.t === "poly" ? s.pts[s.pts.length >> 1] : s.c;
         return `${p[0].toFixed(3)},${p[1].toFixed(3)}`;
       };
       const owner = new Map<string, number>();

@@ -36,6 +36,13 @@ export const FEATURE_ICONS: Record<string, string> = {
   workpoint: "workpoint",
   import: "import",
   move: "move",
+  surfExtrude: "surfExtrude",
+  surfRevolve: "surfRevolve",
+  surfLoft: "surfLoft",
+  surfPatch: "surfPatch",
+  surfTrim: "surfTrim",
+  surfStitch: "surfStitch",
+  surfOffset: "surfOffset",
 };
 
 export interface BrowserHost {
@@ -44,6 +51,8 @@ export interface BrowserHost {
   doc(): PartDocument;
   errors(): Record<string, string>;
   bodyCount(): number;
+  /** Surface bodies (open shells) shown under their own folder. */
+  surfaceCount?(): number;
   activeSketch(): string | null;
   selected(): Set<string>;
   originVisible(key: string): boolean;
@@ -80,6 +89,11 @@ export class ModelBrowser {
       this.list,
     );
     parent.appendChild(this.el);
+  }
+
+  /** Current search text (lower case), for custom renderers such as the assembly browser. */
+  get query(): string {
+    return this.filter;
   }
 
   startRename(id: string) {
@@ -210,6 +224,12 @@ export class ModelBrowser {
       onToggle: () => this.toggle("__solids"),
     });
     if (solidsOpen) for (let i = 0; i < nb; i++) row({ id: `__body${i}`, icon: "solid", label: `ソリッド${i + 1}`, depth: 2 });
+    const ns = this.host.surfaceCount?.() ?? 0;
+    if (ns > 0) {
+      const open = this.expanded.has("__surfaces");
+      row({ id: "__surfaces", icon: "folder", label: `サーフェス本体(${ns})`, depth: 1, expander: true, expanded: open, onToggle: () => this.toggle("__surfaces") });
+      if (open) for (let i = 0; i < ns; i++) row({ id: `__surf${i}`, icon: "surfPatch", label: `サーフェス${i + 1}`, depth: 2 });
+    }
 
     // features (consumed sketches are nested under their consumer, like Inventor)
     const consumer = new Map<string, string>();

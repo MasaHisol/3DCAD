@@ -66,6 +66,8 @@ export interface AssemblyDocument {
   params: Parameter[];
   iprops: Record<string, string>;
   drawing?: import("../drawing/types").DrawingDoc;
+  /** Wire / cable, hose and pipe routes (配線・配管); absent in older files. */
+  routes?: import("../routing/types").AsmRoute[];
 }
 
 export function newAssembly(name = "アセンブリ1"): AssemblyDocument {

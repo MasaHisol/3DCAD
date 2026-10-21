@@ -16,6 +16,7 @@ import type { TopoResult } from "./topo";
 import { THERMAL_MATERIALS, type BucklingResult, type ModalResult, type ThermalBoundary, type ThermalResult } from "./advanced";
 import { FEA_MATERIALS, sampleDisp, sampleNodal, type FeaBoundary, type FeaMesh, type FeaResult, type GridLike } from "./fea";
 import type { AnalysisKind, FeaRequest } from "./worker";
+import { spawnKxHelpers } from "./par";
 
 type Dir = "push" | "pull" | "+X" | "-X" | "+Y" | "-Y" | "+Z" | "-Z";
 const DIRS: { value: Dir; label: string }[] = [
@@ -143,12 +144,17 @@ export class StressCommand implements Command {
   /** Analysed bodies (part bodies, or assembly bodies in assembly coordinates) and their materials. */
   private B: BodyMesh[];
   private mats: { name: string; density: number }[];
+  /** Component names of the analysed bodies (assemblies). */
+  private names: string[] = [];
+  /** Assemblies: parts bonded at their interfaces, or in contact (may separate). */
+  private contactMode: "bonded" | "contact" | "frictionless" = "bonded";
 
   constructor(private app: App) {
     if (app.env === "assembly") {
       const wb = app.asm.worldBodies();
       this.B = wb.map((b) => b.mesh);
       this.mats = wb.map((b) => b.material);
+      this.names = wb.map((b) => b.name);
     } else {
       this.B = app.bodies;
       this.mats = app.bodies.map(() => app.store.doc.material);
@@ -216,6 +222,26 @@ export class StressCommand implements Command {
       `${this.app.env === "assembly" ? `アセンブリ (部品ごとの材料、基準 ${this.matName()})` : this.matName()}: E ${formatNumber(mat.E, 0)} MPa / ν ${mat.nu} / 降伏 ${formatNumber(mat.yield, 0)} MPa / 密度 ${this.refDensity()} g/cm³` +
         (thermalKind ? ` / 熱伝導率 ${tm.k} W/(m·K) / 線膨張係数 ${formatNumber(tm.alpha * 1e6, 1)}×10⁻⁶/K` : ""),
     );
+    if (this.app.env === "assembly" && this.kind === "static") {
+      const cs = p.select(
+        ks,
+        "部品間の接触",
+        [
+          { value: "bonded", label: "接着" },
+          { value: "contact", label: "接触 (すべりなし)" },
+          { value: "frictionless", label: "接触 (摩擦なし・すべり可)" },
+        ],
+        this.contactMode,
+        (v) => (this.contactMode = v as "bonded" | "contact" | "frictionless"),
+      );
+      cs.dataset.k = "contact";
+      cs.title = "接着: 部品同士を一体として計算 / 接触: 引張になる面は離れ、押し付け合う面だけ力を伝えます";
+      p.note(
+        ks,
+        "接着: 接する面は一体 (引張もせん断も伝える)。接触 (すべりなし): 引張になる面は離れ、押し付け合う面は一体で横にずれない。" +
+          "接触 (摩擦なし・すべり可): 押し付け合う面は面に垂直な方向だけ力を伝え、面に沿ってすべる。すべりを止めるものがない部品には弱いばねを入れ、結果に警告を出します",
+      );
+    }
     const bc = p.section("境界条件");
     for (const key of KIND_SETS[this.kind]) {
       const pk = p.picker(bc, SET_LABEL[key], SET_ICON[key], () => this.setActive(key), () => ((this.sets[key] = []), this.boundaryChanged(), this.sync()));
@@ -446,6 +472,7 @@ export class StressCommand implements Command {
           count: b.indices.length / 3,
           stiff: (FEA_MATERIALS[this.mats[i].name] ?? FEA_MATERIALS["汎用"]).E / ref.E,
           density: this.mats[i].density,
+          name: this.names[i],
         }))
       : undefined;
     return { mesh: { positions, indices, parts }, tris };
@@ -509,7 +536,10 @@ export class StressCommand implements Command {
     const { mesh, tris } = this.buildMesh();
     const k = this.kind;
     const req: FeaRequest = { kind: k, mesh, bc: { fixed: [], loads: [] }, mat: this.material(), opt: { targetElements: target } };
-    if (k === "static") req.bc = this.structural(tris, true);
+    if (k === "static") {
+      req.bc = this.structural(tris, true);
+      if (this.app.env === "assembly" && this.contactMode !== "bonded") req.opt.contact = this.contactMode;
+    }
     if (k === "buckling") {
       req.bc = this.structural(tris, true);
       req.opt.targetElements = Math.min(target, 60000);
@@ -546,6 +576,9 @@ export class StressCommand implements Command {
     this.worker?.terminate();
     const w = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
     this.worker = w;
+    // multi-core solver threads (only with cross-origin isolation)
+    const helpers = spawnKxHelpers();
+    if (helpers) req.ports = helpers.ports;
     return new Promise<AnyResult>((resolve, reject) => {
       w.onmessage = (e) => {
         const d = e.data as { progress?: { it: number; res: number }; result?: AnyResult; error?: string };
@@ -554,9 +587,10 @@ export class StressCommand implements Command {
         else reject(new Error(d.error));
       };
       w.onerror = (e) => reject(new Error(e.message));
-      w.postMessage(req);
+      w.postMessage(req, req.ports ?? []);
     }).finally(() => {
       w.terminate();
+      helpers?.stop();
       if (this.worker === w) this.worker = null;
     });
   }
@@ -753,6 +787,27 @@ export class StressCommand implements Command {
     row("疲労安全率 (両振り)", Number.isFinite(fsf) ? formatNumber(fsf, 2) : "∞", fsf < 1 ? "bad" : fsf < 1.5 ? "warn" : "ok", `疲労限度 ${formatNumber(this.enduranceLimit(), 0)} MPa (引張強さからの推定) に対する完全両振りの安全率`);
     const rf = Math.hypot(...s.reaction);
     if (!s.thermal) row("支点反力", `${formatNumber(rf, 2)} N (つり合い誤差 ${eqText(s.equilibriumError)})`, s.equilibriumError < 1e-3 ? "ok" : "warn", "反力の合計が荷重の合計と釣り合っているかの検算です");
+    if (s.contact) {
+      const c = s.contact;
+      row(
+        "部品間の接触",
+        (c.mode === "frictionless" ? "摩擦なし・すべり可: " : "すべりなし: ") +
+          (c.faces ? `接触 ${c.closed.toLocaleString()} 面 / 離れた ${c.released.toLocaleString()} 面 (${c.iterations} 回)` : "接する面がありません"),
+        c.converged ? "" : "warn",
+        c.converged
+          ? c.mode === "frictionless"
+            ? "引張になる部品間の面を離し、押し付け合う面は面に沿ってすべるとして計算した結果です"
+            : "引張になる部品間の面を離して再計算した結果です (押し付け合う面はすべらない)"
+          : "接触状態が反復上限までに確定しませんでした (結果は目安)",
+      );
+      if (c.stabilized?.length)
+        row(
+          "すべりの安定化",
+          `${c.stabilized.map((n) => `「${n}」`).join("・")} に弱いばね`,
+          "warn",
+          "摩擦なしの接触だけではこの部品の面に沿った動きが止まりません。計算のため面に沿った弱いばね (法線剛性の 10⁻⁶) を入れたので、この方向の変位は大きく出ます (実際には摩擦や他の拘束が必要)",
+        );
+    }
     row("要素", `${s.elements.toLocaleString()} 個 (要素サイズ ${formatNumber(s.h, 2)} mm)`);
     row("計算", `${s.iterations} 反復${time}${s.converged ? "" : " (未収束)"}`, s.converged ? "" : "warn");
     if (this.convergence) {

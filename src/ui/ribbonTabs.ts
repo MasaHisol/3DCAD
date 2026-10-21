@@ -6,7 +6,9 @@ import { openFlatPattern, openSheetStyle } from "../sheetmetal/ui";
 import { openIProperties, openParameters, openShortcuts } from "./dialogs";
 import { openToleranceStack } from "../analysis/toleranceUi";
 import { openRevisions } from "./revisionsUi";
+import { exportPmiCsv, openPmiList, togglePmi } from "../mbd/commands";
 import type { RibbonButton, RibbonTab } from "./ribbon";
+import { curvatureActive, toggleCurvature, toggleZebra } from "../commands/surface";
 
 export function buildRibbonTabs(app: App): RibbonTab[] {
   const cmd = (id: string, label: string, icon: string, shortcut?: string, tip?: string, size: "large" | "small" = "large"): RibbonButton => ({
@@ -121,6 +123,46 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
         {
           title: "パラメータ",
           items: [{ id: "params", label: "パラメータ", icon: "params", tip: "モデル パラメータとユーザ パラメータを表示・編集します (式・単位付き)。", action: () => openParameters(app) }],
+        },
+      ],
+    },
+    {
+      id: "surface",
+      label: "サーフェス",
+      visible: isPart,
+      panels: [
+        {
+          title: "スケッチ",
+          items: [cmd("sketch", "2D スケッチ", "sketch", undefined, "サーフェスの輪郭・断面にするスケッチを作成します。")],
+        },
+        {
+          title: "作成",
+          items: [
+            cmd("surfExtrude", "押し出し", "surfExtrude", undefined, "スケッチの曲線 (開いた曲線・閉じた輪郭) を押し出してサーフェスを作成します。"),
+            cmd("surfRevolve", "回転", "surfRevolve", undefined, "スケッチの曲線を軸まわりに回転してサーフェスを作成します。"),
+            cmd("surfLoft", "ロフト", "surfLoft", undefined, "2 つ以上の断面スケッチを通るサーフェスを作成します。"),
+            cmd("surfPatch", "境界パッチ", "surfPatch", undefined, "閉じたエッジのループ、またはスケッチの閉じた輪郭を面で埋めます (平らでないループは N 辺フィリング)。"),
+          ],
+        },
+        {
+          title: "編集",
+          items: [
+            cmd("surfTrim", "トリム", "surfTrim", undefined, "サーフェスを平面・スケッチの輪郭・別のサーフェスで切り取ります。"),
+            cmd("surfStitch", "ステッチ", "surfStitch", undefined, "サーフェスを縫合 (縫い合わせ) します。すき間なく閉じるとソリッドになります。"),
+            {
+              stack: [
+                cmd("surfOffset", "オフセット", "surfOffset", undefined, "サーフェスを法線方向に一定距離オフセットした新しいサーフェスを作成します。", "small"),
+                { ...cmd("thicken", "厚み付け", "thicken", undefined, "サーフェスに厚みをつけてソリッドにします (厚み付けコマンドで「対象」にサーフェスを選択)。", "small"), id: "surf-thicken", active: () => app.command?.id === "thicken" },
+              ],
+            },
+          ],
+        },
+        {
+          title: "解析",
+          items: [
+            { id: "zebra", label: "ゼブラ", icon: "zebra", tip: "縞模様の映り込みで面のつながり (G0 / G1 / G2 連続) を確認します。", action: () => toggleZebra(app), active: () => app.vp.zebra },
+            { id: "curvature", label: "曲率", icon: "curvature", tip: "表示メッシュから推定した曲率を色分け表示します (青 = 平ら → 赤 = 曲率大)。", action: () => toggleCurvature(app), active: () => curvatureActive() },
+          ],
         },
       ],
     },
@@ -279,6 +321,40 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
         {
           title: "図面",
           items: [{ id: "drawing", label: "図面ビュー", icon: "drawing", tip: "正面・平面・側面・等角ビューの 2D 図面 (隠れ線付き) を作成します。", action: () => app.openDrawingEnv() }],
+        },
+      ],
+    },
+    {
+      id: "mbd",
+      label: "MBD",
+      visible: isPart,
+      panels: [
+        {
+          title: "MBD (3D 注記)",
+          items: [
+            cmd("pmi-dim", "寸法", "dimension", undefined, "2 つの面・エッジ間の距離を 3D 寸法として記入します (± 公差・はめあい)。モデルの変更に追従します。"),
+            cmd("pmi-diameter", "直径", "hole", undefined, "円筒面・円形エッジの直径 / 半径を記入します (H7 などのはめあい)。"),
+            {
+              stack: [
+                cmd("pmi-gdt", "幾何公差", "iprops", undefined, "面に幾何公差の枠 (記号・公差値・データム) を付けます。", "small"),
+                cmd("pmi-datum", "データム", "fix", undefined, "面にデータム記号 (A, B, C …) を付けます。", "small"),
+                cmd("pmi-surface", "表面性状", "pushpull", undefined, "面に表面性状 (Ra) を指示します。", "small"),
+              ],
+            },
+            cmd("pmi-note", "注記", "edit", undefined, "面・エッジに引出線付きのテキスト注記を付けます。"),
+          ],
+        },
+        {
+          title: "管理",
+          items: [
+            { id: "pmi-toggle", label: "表示切替", icon: "eye", tip: "3D 注記 (PMI) の表示 / 非表示を切り替えます。", action: () => togglePmi(app), active: () => app.pmi.visible },
+            {
+              stack: [
+                { id: "pmi-list", label: "一覧", icon: "iprops", size: "small", tip: "すべての 3D 注記を一覧表示し、編集・削除・表示切替を行います。", action: () => openPmiList(app) },
+                { id: "pmi-csv", label: "PMI 一覧 CSV", icon: "export", size: "small", tip: "3D 注記の一覧を CSV (Excel 対応) で書き出します。", action: () => exportPmiCsv(app) },
+              ],
+            },
+          ],
         },
       ],
     },

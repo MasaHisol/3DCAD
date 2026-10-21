@@ -167,21 +167,29 @@ function renderDim(d: DimAnno, v: DView, g: ViewGeometry | undefined): string {
     ext(B, B2);
     line(A2, B2);
     const len = Math.hypot(B2[0] - A2[0], B2[1] - A2[1]);
+    const u: Vec2 = [(B2[0] - A2[0]) / (len || 1), (B2[1] - A2[1]) / (len || 1)];
+    // no room for the value between the arrows: it goes outside, past B, on an extended dimension line (JIS)
+    const tw = dimText(d, 1, null).main.length * 2.1 + 2;
+    const outside = len < tw + 6;
     if (len > 8) parts.push(arrow(A2, B2), arrow(B2, A2));
     else {
       // small dimension: arrows outside
-      const u: Vec2 = [(B2[0] - A2[0]) / (len || 1), (B2[1] - A2[1]) / (len || 1)];
       parts.push(arrow(A2, [A2[0] - u[0] * 4, A2[1] - u[1] * 4]), arrow(B2, [B2[0] + u[0] * 4, B2[1] + u[1] * 4]));
       line([A2[0] - u[0] * 6, A2[1] - u[1] * 6], A2);
-      line(B2, [B2[0] + u[0] * 6, B2[1] + u[1] * 6]);
     }
+    // the value goes past the end that is farther from the view centre (away from the part)
+    const vc = g ? S([(g.bounds[0] + g.bounds[2]) / 2, (g.bounds[1] + g.bounds[3]) / 2]) : P;
+    const flip = Math.hypot(A2[0] - vc[0], A2[1] - vc[1]) > Math.hypot(B2[0] - vc[0], B2[1] - vc[1]);
+    const E = flip ? A2 : B2, eu: Vec2 = flip ? [-u[0], -u[1]] : u;
+    if (len <= 8) line(B2, [B2[0] + u[0] * 6, B2[1] + u[1] * 6]);
+    if (outside) line(E, [E[0] + eu[0] * (6 + tw), E[1] + eu[1] * (6 + tw)]);
     // text: along the dimension line, read from the bottom or the right (JIS)
     let rot = (Math.atan2(dir[1], dir[0]) * 180) / Math.PI;
     if (rot > 90) rot -= 180;
     if (rot <= -90) rot += 180;
     const along = (P[0] - A2[0]) * dir[0] + (P[1] - A2[1]) * dir[1];
     const tPos = Math.abs(along) > 0 && Math.abs(along) < len ? along : len / 2;
-    const T: Vec2 = [A2[0] + dir[0] * tPos, A2[1] + dir[1] * tPos];
+    const T: Vec2 = outside ? [E[0] + eu[0] * (6 + tw / 2), E[1] + eu[1] * (6 + tw / 2)] : [A2[0] + dir[0] * tPos, A2[1] + dir[1] * tPos];
     const nn: Vec2 = [Math.sin((rot * Math.PI) / 180), -Math.cos((rot * Math.PI) / 180)];
     parts.push(dimLabel(d, T[0] + nn[0] * 1, T[1] + nn[1] * 1, rot, 1));
   }
@@ -482,7 +490,10 @@ function renderView(v: DView, ctx: RenderCtx, views: Map<string, DView>): string
   else if (v.kind === "detail") label = `詳細 ${v.label}`;
   else if (v.label && v.kind !== "projected") label = v.label;
   const sc = Math.abs(v.scale - base) > 1e-9 || v.kind === "detail" ? ` (${scaleText(v.scale)})` : "";
-  if (label || sc) out += text((b[0] + b[2]) / 2, b[3] + 7, `${label}${sc}`, 4);
+  // below the view and below its own dimensions, so the name never sits on a dimension
+  let below = b[3];
+  for (const a of ctx.sheet.annos) if (a.type === "dim" && a.view === v.id) below = Math.max(below, toSheet(v, a.pos)[1] + 3);
+  if (label || sc) out += text((b[0] + b[2]) / 2, below + 7, `${label}${sc}`, 4);
   return out + "</g>";
 }
 

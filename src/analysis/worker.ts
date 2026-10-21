@@ -5,6 +5,7 @@ import { solveTopology, type TopoOptions } from "./topo";
 import { solvePlastic } from "./nonlinear";
 import { solveDynamic, type DynamicOptions } from "./dynamic";
 import { solveBuckling, solveModal, solveThermal, type ThermalBoundary, type ThermalMaterial } from "./advanced";
+import { initKxPool } from "./par";
 
 export type AnalysisKind = "static" | "modal" | "buckling" | "thermal" | "thermalStress" | "topology" | "plastic" | "dynamic";
 
@@ -19,6 +20,8 @@ export interface FeaRequest {
   thermal?: { bc: ThermalBoundary; mat: ThermalMaterial; Tref: number };
   topo?: TopoOptions;
   dynamic?: DynamicOptions;
+  /** Ports to the page-spawned helper threads (multi-core K·x). */
+  ports?: MessagePort[];
 }
 
 const transfer = (o: unknown, out: Transferable[] = []): Transferable[] => {
@@ -28,7 +31,9 @@ const transfer = (o: unknown, out: Transferable[] = []): Transferable[] => {
   return [...new Set(out)];
 };
 
-self.onmessage = (e: MessageEvent<FeaRequest>) => {
+self.onmessage = async (e: MessageEvent<FeaRequest>) => {
+  const kxPool = initKxPool(e.data.ports);
+  if (kxPool) await kxPool.ready;
   const { kind = "static", mesh, bc, mat, opt } = e.data;
   const progress = (it: number, res: number) => self.postMessage({ progress: { it, res } });
   try {

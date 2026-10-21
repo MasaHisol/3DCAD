@@ -10,6 +10,7 @@ import { findRegions, pointInRegion, type Region } from "../sketch/profiles";
 import { solve, type SolveResult } from "../sketch/solver";
 import { evalWith } from "./params";
 import { findSize, sectionShape } from "../library/steel";
+import { isSurfaceFeature, resolveSurfaceFeature } from "./surfaceResolve";
 import type { AxisRef, Feature, PartDocument, PlaneDef, SheetFaceFeature, SketchFeature, SkLine, SkPoint, Vec2, Vec3, WorkPlaneFeature } from "./types";
 
 export interface SketchState {
@@ -168,6 +169,11 @@ function resolveFeature(
     if (!rs.length) throw new Error("プロファイルが選択されていないか、スケッチが変更されました");
     return rs;
   };
+  if (isSurfaceFeature(f) || (f.type === "thicken" && f.surface))
+    return resolveSurfaceFeature(doc, f as Parameters<typeof resolveSurfaceFeature>[1], num, (id) => {
+      const { sk, st } = sketchOf(id);
+      return { plane: sk.plane, regions: st.regions.filter((r) => !r.island).map((r) => ({ outer: r.outer, holes: r.holes })) };
+    });
   switch (f.type) {
     case "extrude": {
       const { sk, st } = sketchOf(f.sketch);
@@ -442,8 +448,10 @@ function resolveFeature(
       const v = (e: string, l: string) => num(f, e, l);
       const t: Transform = { translate: [v(f.dx, "X"), v(f.dy, "Y"), v(f.dz, "Z")] };
       const rx = v(f.rx, "回転 X"), ry = v(f.ry, "回転 Y"), rz = v(f.rz, "回転 Z");
-      if (rx || ry || rz) return composeMove(f.id, [rx, ry, rz], t);
-      return { id: f.id, type: "move", transform: t };
+      const targets = { surfaces: f.surfaces?.length ? f.surfaces : undefined, solids: f.solids === false ? false : undefined };
+      if (f.solids === false && !f.surfaces?.length) throw new Error("移動するボディまたはサーフェスを選択してください");
+      if (rx || ry || rz) return { ...composeMove(f.id, [rx, ry, rz], t), ...targets } as RFeature;
+      return { id: f.id, type: "move", transform: t, ...targets };
     }
     default:
       return null;

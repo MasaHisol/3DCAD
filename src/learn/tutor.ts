@@ -3,7 +3,8 @@ import { evaluateParams } from "../core/params";
 import { confirmDialog, h, iconEl, toast } from "../ui/dom";
 import { ALL_LESSONS, EXERCISES } from "./curriculum";
 import { loadProgress, today, updateProgress } from "./progress";
-import { openTextbook, TEXTBOOK_TITLES } from "./textbookLink";
+import { openTextbook } from "./textbookLink";
+import { TEXTBOOK_TITLES } from "./textbookTitles";
 import type { Exercise, LearnState, Lesson, LessonSetup } from "./types";
 
 /** Read the running application into a LearnState snapshot. */

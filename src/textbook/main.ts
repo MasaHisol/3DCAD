@@ -51,7 +51,7 @@ function startLesson(id: string) {
       ch.close();
       if (!acked) window.open(`index.html#lesson=${encodeURIComponent(id)}`, "_blank");
       else flash(`3DCAD Studio でレッスン ${id} を開きました`);
-    }, 600);
+    }, 1500);
   } catch {
     window.open(`index.html#lesson=${encodeURIComponent(id)}`, "_blank");
   }
