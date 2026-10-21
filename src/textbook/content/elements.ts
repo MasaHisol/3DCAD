@@ -31,6 +31,8 @@ export const ELEMENTS: TextChapter[] = [
 <rect class="k-panel" x="392" y="8" width="120" height="192" rx="8"/><line class="k-center" x1="404" y1="150" x2="500" y2="150"/><g class="k-shadow"><rect class="k-part" x="408" y="120" width="88" height="22" rx="2"/></g><g class="k-shadow"><rect class="k-cut" x="422" y="54" width="60" height="16"/><rect class="k-cut2" x="422" y="104" width="60" height="16"/><rect class="k-part" x="432" y="72" width="40" height="30" rx="3"/></g><line class="k-force" x1="452" y1="18" x2="452" y2="50" stroke-width="3.6"/><text class="tick" x="458" y="32" style="fill:var(--tb-bad)">R</text><text class="k-title" x="452" y="172" text-anchor="middle">円筒ころ</text><text class="k-note" x="452" y="190" text-anchor="middle">自由側に向く</text>
 </svg>
 <p class="tb-caption">図: 軸受の上半分の断面。矢印 R はラジアル荷重、A はアキシアル荷重で、太さは受けられる大きさの目安。円筒ころは軸方向に動ける</p>
+<div data-widget="3d-bearing"></div>
+<p class="tb-caption">3D 図: 深溝玉軸受を分解すると、外輪・内輪・玉・保持器の 4 部品からなることがわかります。</p>
 <h2>寿命の計算</h2>
 <div class="tb-formula">L10 = (C / P)ᵖ × 10⁶ 回転　　(玉軸受 p = 3、ころ軸受 p = 10/3)<br>寿命時間 L10h = L10 / (60 n)</div>
 <p>C は<b>基本動定格荷重</b> (カタログ値)、P は<b>動等価荷重</b>です。L10 は、同じ条件で使った軸受の 90 % が転がり疲れで壊れずに回れる回転数です。
@@ -120,6 +122,8 @@ export const ELEMENTS: TextChapter[] = [
 <div class="tb-formula">速比 i = z₂ / z₁ = n₁ / n₂　　出力トルク T₂ = T₁ × i × 効率</div>
 <p>小歯車 (ピニオン) で大歯車を回すと、回転は遅くなり、トルクは大きくなります (減速)。動力 (トルク × 回転数) は効率の分だけ減ってそのまま伝わります。</p>
 <div data-widget="gear"></div>
+<div data-widget="3d-gears"></div>
+<p class="tb-caption">3D 図: 赤い印で回転数を数えると、速度比 i = z₂ / z₁ が確かめられます。歯数の組合せを変えてみましょう。</p>
 <h2>歯車の種類</h2>
 <table class="tb-table">
   <tr><th>種類</th><th>軸の配置</th><th>特徴</th></tr>

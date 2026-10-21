@@ -6,6 +6,7 @@ import { ANIM4 } from "./anim4";
 import { ANIM5 } from "./anim5";
 import { ANIM6 } from "./anim6";
 import { ANIM7 } from "./anim7";
+import { VIEW3D } from "./viewer3d";
 import { fmt, lineChart } from "./chart";
 import {
   charHeight,
@@ -1321,7 +1322,7 @@ function diagram(kind: BeamCase, aRatio: number): string {
   return s + "</svg>";
 }
 
-Object.assign(WIDGETS, MORE, MORE2, MORE3, ANIM, ANIM2, ANIM3, ANIM4, ANIM5, ANIM6, ANIM7);
+Object.assign(WIDGETS, MORE, MORE2, MORE3, ANIM, ANIM2, ANIM3, ANIM4, ANIM5, ANIM6, ANIM7, VIEW3D);
 
 export function mountWidgets(root: HTMLElement) {
   for (const el of root.querySelectorAll<HTMLElement>("[data-widget]")) {
