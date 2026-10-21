@@ -54,6 +54,8 @@ export class AssemblyEnv {
   /** Exploded view factor (0 = assembled) and trail lines. */
   explode = 0;
   trails = true;
+  /** Motion study trace path (assembly mm), drawn as a polyline. */
+  motionTrace: Vec3[] | null = null;
   private updating: Promise<void> | null = null;
   private pendingUpdate = false;
   /** Part currently opened for editing (in-place). */
@@ -313,6 +315,7 @@ export class AssemblyEnv {
       });
     });
     vp.setBodies(bodies, undefined, colors, mats);
+    if (this.motionTrace) for (let i = 1; i < this.motionTrace.length; i++) trails.push([this.motionTrace[i - 1], this.motionTrace[i]]);
     vp.setTrails(trails);
     this.highlightSelection();
     this.app.refreshUI();
