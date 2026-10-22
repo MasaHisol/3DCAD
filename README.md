@@ -14,9 +14,9 @@ Windows / macOS / Linux で動くパラメトリック 3D CAD アプリケーシ
 
 | OS | 配布ファイル |
 | --- | --- |
-| Windows 10 / 11 (x64) | `3DCAD-Studio-Setup-<版>.exe` (インストーラ) / `3DCAD-Studio-<版>-portable.exe` (インストール不要版) |
-| macOS (Intel / Apple シリコン) | `3DCAD-Studio-<版>-mac.dmg` |
-| Linux (x64) | `3DCAD-Studio-<版>-linux-x86_64.AppImage` / `.deb` |
+| Windows 10 / 11 (x64) | `3DCAD-Studio-Setup-<版>.exe` |
+| macOS (Intel / Apple シリコン) | `3DCAD-Studio-<版>-mac-arm64.dmg` (Apple シリコン) / `3DCAD-Studio-<版>-mac-x64.dmg` (Intel) |
+| Linux (x64) | `3DCAD-Studio-<版>-linux-x86_64.AppImage` |
 
 - `.3dcp` (パーツ) / `.3dca` (アセンブリ) がアプリに関連付けられ、ダブルクリックで開けます
 - 保存・書き出しは OS の保存ダイアログで行います。未保存の変更がある状態で閉じると確認が表示されます
