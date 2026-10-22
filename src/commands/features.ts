@@ -1892,7 +1892,15 @@ abstract class FeatureListCommand<F extends PatternFeature | MirrorFeature> exte
       onPointerDown: (e, vp) => {
         if (e.button !== 0) return;
         const id = pickedSurface(this.app, vp.pick(e));
-        if (id && !id.startsWith(`${this.featureId}#`) && id !== this.featureId) this.toggle(id);
+        if (id && !id.startsWith(`${this.featureId}#`) && id !== this.featureId) return void this.toggle(id);
+        // a click on a solid face selects nothing here (solid features are chosen in the
+        // browser): say so instead of silently ignoring the click
+        const f = vp.pickFilter;
+        vp.pickFilter = null;
+        const raw = vp.pick(e);
+        vp.pickFilter = f;
+        if (raw?.kind === "face" && !this.app.pickBodies[raw.body]?.surface)
+          toast("ソリッドのフィーチャ (押し出し・穴など) は、左のモデル ブラウザでクリックして選択します", "info", 4000);
       },
     };
     this.refreshCount();

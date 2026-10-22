@@ -151,7 +151,7 @@ export class Viewport {
   private raycaster = new THREE.Raycaster();
   private needsRender = true;
   private anim: { from: ViewState; to: ViewState; t0: number; dur: number } | null = null;
-  private drag: { mode: "orbit" | "pan" | "zoom"; x: number; y: number; pivot: THREE.Vector3; button: number; moved: boolean } | null = null;
+  private drag: { mode: "orbit" | "pan" | "zoom"; x: number; y: number; pivot: THREE.Vector3; button: number; moved: boolean; down: PointerEvent } | null = null;
   /** Mouse mapping familiar from other CAD systems. */
   navPreset: NavPreset = "inventor";
   invertWheel = false;
@@ -1159,7 +1159,7 @@ export class Viewport {
     else if (e.button === 2 && e.shiftKey) mode = "orbit";
     if (mode) {
       const pivot = mode === "orbit" ? (this.surfacePoint(e) ?? this.view.target.clone()) : this.view.target.clone();
-      this.drag = { mode, x: e.clientX, y: e.clientY, pivot, button: e.button, moved: false };
+      this.drag = { mode, x: e.clientX, y: e.clientY, pivot, button: e.button, moved: false, down: e };
       this.renderer.domElement.style.cursor = mode === "orbit" ? "grabbing" : mode === "pan" ? "move" : "ns-resize";
       this.anim = null;
       return;
@@ -1191,6 +1191,12 @@ export class Viewport {
       this.renderer.domElement.style.cursor = this.tool?.cursor ?? "";
       // a right click without dragging still opens the menu (Onshape style)
       if (!d.moved && d.button === 2) this.tool?.onContextMenu?.(e, this);
+      // a left click without dragging still selects, even while an orbit / pan / zoom mode
+      // (navigation bar, F2-F4, Alt) is on: only a drag navigates
+      if (!d.moved && d.button === 0) {
+        this.tool?.onPointerDown?.(d.down, this);
+        this.tool?.onPointerUp?.(e, this);
+      }
       return;
     }
     if (e.button === 2) {
