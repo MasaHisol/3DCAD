@@ -29,6 +29,8 @@ import { SAFETY2 } from "./safety2";
 import { OPUX } from "./opux";
 import { CASES } from "./cases";
 import { DRILLS } from "./drills";
+import { ELEMENTS2 } from "./elements2";
+import { MECHATRONICS3 } from "./mechatronics3";
 
 export const PARTS: Part[] = [
   { id: "cad2d", title: "第 1 部 2D CAD 初級〜上級", desc: "座標と入力、作図・編集、拘束と寸法、線種と画層、図面の作図手順、幾何作図、接線、標準化、レイアウト設計、データ交換、図面管理", color: "#0891b2" },
@@ -36,8 +38,8 @@ export const PARTS: Part[] = [
   { id: "basics", title: "第 3 部 設計の基礎", desc: "設計の進め方、製図の基本、公差とはめあい、材料、締結", color: "#2563eb" },
   { id: "drafting", title: "第 4 部 製図の実践", desc: "投影図の選び方、断面図、寸法記入、機械要素の略画法、溶接記号、幾何公差、図面を読む", color: "#4f46e5" },
   { id: "mechanics", title: "第 5 部 構造力学 (材料力学)", desc: "つり合いから応力・はり・座屈・疲労・振動・熱、組合せ応力、圧力容器、不静定、衝撃、接触、FEM、疲労設計・溶接・ボルト継手の上級まで", color: "#b45309" },
-  { id: "elements", title: "第 6 部 機械要素", desc: "軸受、歯車、ばね、キー・ピン・軸継手、ベルト・チェーン・ねじ送り、リンクとカム", color: "#be123c" },
-  { id: "mechatronics", title: "第 7 部 メカトロニクスと駆動", desc: "モーター・減速機・直動案内・空気圧・センサ・制御、電気の基礎、ロボットの運動学、動作パターンと振動抑制", color: "#7c3aed" },
+  { id: "elements", title: "第 6 部 機械要素", desc: "軸受、歯車、ばね、キー・ピン・軸継手、ベルト・チェーン・ねじ送り、リンクとカム、軸の設計、潤滑と密封、送りねじ・ボールねじ、軸継手・クラッチ・ブレーキ", color: "#be123c" },
+  { id: "mechatronics", title: "第 7 部 メカトロニクスと駆動", desc: "モーター・減速機・直動案内・空気圧・センサ・制御、電気の基礎、ロボットの運動学、動作パターンと振動抑制、サーボモーター選定計算、空気圧機器の選定、シーケンス制御と PLC", color: "#7c3aed" },
   { id: "knowhow", title: "第 8 部 設計ノウハウ", desc: "加工法別の設計、組立性、CAD の作法、解析、熱処理、コスト、安全、測定・品質、標準化、設計文書、試験、公差設計、規格、信頼性、失敗事例", color: "#0f766e" },
   { id: "design", title: "第 9 部 デザイン・意匠", desc: "形と比率、CMF、ユーザ中心設計、サステナブル、デザインの進め方、スケッチ、造形と面、色彩、デザイン言語、意匠権、デザインレビュー", color: "#9333ea" },
   { id: "ux", title: "第 10 部 人間工学・UX", desc: "人の感覚と情報処理、人体寸法、操作具、ターゲットの大きさ (フィッツの法則)、表示とサイン、UI/UX の原則、ヒューマンエラー、フィードバック、操作パネルの UX、ユニバーサル・インクルーシブデザイン、作業負担、UX リサーチと指標", color: "#db2777" },
@@ -46,7 +48,7 @@ export const PARTS: Part[] = [
 
 /** Reading order. The review chapter closes the know-how part. */
 const knowhow = [...KNOWHOW3.filter((c) => c.id === "design-thinking-eng"), ...KNOWHOW.filter((c) => c.id !== "review"), ...KNOWHOW_MORE, ...QUALITY, ...KNOWHOW2, ...SAFETY2, ...PROCESS.filter((c) => c.part !== "basics"), ...KNOWHOW3.filter((c) => c.id !== "design-thinking-eng"), ...KNOWHOW.filter((c) => c.id === "review")];
-export const CHAPTERS: TextChapter[] = [...CAD2D, ...CAD2D_ADV, ...CAD3D, ...BASICS, ...PROCESS.filter((c) => c.part === "basics"), ...DRAFTING, ...DRAFTING2, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...MECHANICS3, ...STIFFNESS, ...ELEMENTS, ...MECHATRONICS, ...MECHATRONICS2, ...knowhow, ...DESIGN2.filter((c) => c.id === "design-process"), ...DESIGN3.filter((c) => c.id === "form-language"), ...DESIGN, ...DESIGN3.filter((c) => c.id !== "form-language"), ...DESIGN_MORE, ...DESIGN2.filter((c) => c.id !== "design-process"), ...IDESIGN, ...UX2.filter((c) => c.id === "human-senses"), ...UX, ...OPUX, ...UX2.filter((c) => c.id !== "human-senses"), ...SERVICE, ...CASES, ...DRILLS];
+export const CHAPTERS: TextChapter[] = [...CAD2D, ...CAD2D_ADV, ...CAD3D, ...BASICS, ...PROCESS.filter((c) => c.part === "basics"), ...DRAFTING, ...DRAFTING2, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...MECHANICS3, ...STIFFNESS, ...ELEMENTS, ...ELEMENTS2, ...MECHATRONICS, ...MECHATRONICS2, ...MECHATRONICS3, ...knowhow, ...DESIGN2.filter((c) => c.id === "design-process"), ...DESIGN3.filter((c) => c.id === "form-language"), ...DESIGN, ...DESIGN3.filter((c) => c.id !== "form-language"), ...DESIGN_MORE, ...DESIGN2.filter((c) => c.id !== "design-process"), ...IDESIGN, ...UX2.filter((c) => c.id === "human-senses"), ...UX, ...OPUX, ...UX2.filter((c) => c.id !== "human-senses"), ...SERVICE, ...CASES, ...DRILLS];
 
 const EXTRA: GlossaryEntry[] = [
   { term: "応力", en: "Stress", desc: "単位面積あたりの内力。σ = F / A (MPa = N/mm²)。" },

@@ -205,4 +205,11 @@ export const TEXTBOOK_TITLES: Record<string, string> = {
   control: "制御の基礎",
   measurement: "測定と検査",
   quality: "品質管理の基礎",
+  "shaft-design": "軸の設計",
+  "lubrication-seals": "潤滑と密封",
+  "screws-power": "送りねじ・ボールねじの選定",
+  "clutch-brake-coupling": "軸継手・クラッチ・ブレーキ",
+  "servo-sizing": "サーボモーター選定の計算",
+  "pneumatic-sizing": "空気圧機器の選定",
+  "plc-sequence": "シーケンス制御と PLC の基礎",
 };
