@@ -955,6 +955,14 @@ mark {
   --k-line: #2b3340;
   --k-line-2: #8b95a5;
   --k-dim: #3d6fd6;
+  --k-steel-0: #ffffff;
+  --k-plastic-3: #e6a965;
+  --k-rubber-1: #4a5260;
+  --k-rubber-2: #262b33;
+  --k-glass-1: rgba(186, 222, 255, 0.55);
+  --k-glass-2: rgba(120, 170, 220, 0.35);
+  --k-person-1: #5b7fb8;
+  --k-person-2: #3f5f93;
   --k-steel-1: #f4f6f9;
   --k-steel-2: #d5dbe3;
   --k-steel-3: #a9b3c1;
@@ -974,7 +982,15 @@ mark {
     --k-line: #d6dbe3;
     --k-line-2: #7d8796;
     --k-dim: #7fa8ff;
-    --k-steel-1: #6b7787;
+    --k-steel-0: #8796a9;
+  --k-plastic-3: #5a3a1a;
+  --k-rubber-1: #2a2f37;
+  --k-rubber-2: #15181d;
+  --k-glass-1: rgba(120, 170, 220, 0.35);
+  --k-glass-2: rgba(70, 110, 160, 0.25);
+  --k-person-1: #7d9fd6;
+  --k-person-2: #56739f;
+  --k-steel-1: #6b7787;
     --k-steel-2: #4c5664;
     --k-steel-3: #343c47;
     --k-alu-1: #5e6a7a;
@@ -993,6 +1009,14 @@ mark {
   --k-line: #d6dbe3;
   --k-line-2: #7d8796;
   --k-dim: #7fa8ff;
+  --k-steel-0: #8796a9;
+  --k-plastic-3: #5a3a1a;
+  --k-rubber-1: #2a2f37;
+  --k-rubber-2: #15181d;
+  --k-glass-1: rgba(120, 170, 220, 0.35);
+  --k-glass-2: rgba(70, 110, 160, 0.25);
+  --k-person-1: #7d9fd6;
+  --k-person-2: #56739f;
   --k-steel-1: #6b7787;
   --k-steel-2: #4c5664;
   --k-steel-3: #343c47;
@@ -1060,7 +1084,29 @@ mark {
 .tb-chart .k-note { fill: var(--tb-text-3); font-size: 11px; }
 .tb-chart .k-badge { fill: var(--tb-accent); }
 .tb-chart .k-badge-t { fill: #fff; font-size: 11px; font-weight: 700; }
-.tb-chart .k-panel { fill: var(--tb-surface); stroke: var(--tb-border); stroke-width: 1; }
+.tb-chart .k-panel { fill: var(--tb-surface); stroke: var(--tb-border); stroke-width: 1; filter: url(#k-card); }
+/* solid parts read as objects: soft contact shadow */
+.tb-chart .k-part,
+.tb-chart .k-part-h,
+.tb-chart .k-alu,
+.tb-chart .k-plastic,
+.tb-chart .k-sphere,
+.tb-chart .k-rubber,
+.tb-chart .k-copper { filter: url(#k-soft); }
+.tb-chart .k-rubber { fill: url(#k-rubber); stroke: var(--k-line); stroke-width: 1.2; }
+.tb-chart .k-copper { fill: url(#k-copper); stroke: #7a3f18; stroke-width: 1.2; }
+.tb-chart .k-glass { fill: url(#k-glass); stroke: var(--k-dim); stroke-width: 1.2; }
+.tb-chart .k-screen { fill: url(#k-screen); stroke: var(--k-line); stroke-width: 1.4; }
+.tb-chart .k-screen-t { fill: #e6edf6; font-size: 11px; }
+.tb-chart .k-yellow { fill: url(#k-yellow); stroke: #8a6a00; stroke-width: 1.2; }
+.tb-chart .k-hazard { fill: url(#k-hazard); stroke: #1f2328; stroke-width: 1.2; }
+.tb-chart .k-person { fill: url(#k-person); stroke: none; }
+.tb-chart .k-led-g { fill: url(#k-led-g); filter: url(#k-glow); }
+.tb-chart .k-led-r { fill: url(#k-led-r); filter: url(#k-glow); }
+.tb-chart .k-led-y { fill: url(#k-led-y); filter: url(#k-glow); }
+.tb-chart .k-led-off { fill: var(--k-steel-3); stroke: var(--k-line-2); stroke-width: 1; }
+.tb-chart .k-estop { fill: url(#k-estop); stroke: #5a0a0a; stroke-width: 1.4; filter: url(#k-soft); }
+.tb-chart .k-title { letter-spacing: 0.02em; }
 /* 3D figures (viewer3d.ts) */
 .tb-widget-badge.v3d {
   background: #7c3aed;

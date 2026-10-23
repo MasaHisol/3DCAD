@@ -221,4 +221,13 @@ export const TEXTBOOK_TITLES: Record<string, string> = {
   "design-calc-practice": "設計計算の進め方",
   "frame-design": "装置フレームの設計",
   "fmea-design": "設計 FMEA の実践",
+  "loto-maintenance-safety": "保守作業の安全",
+  "safety-compliance": "安全規格への適合の進め方",
+  "patent-basics": "特許の基礎",
+  "patent-claims": "特許明細書と請求項の読み方",
+  "patent-search-clearance": "特許調査と侵害回避設計",
+  "design-registration": "意匠登録の実務",
+  "operator-panel-design": "操作盤の設計",
+  "hmi-screen-design": "HMI 画面の設計",
+  "machine-feedback-states": "機械の状態を伝える",
 };

@@ -69,23 +69,47 @@ export const SAFETY2: TextChapter[] = [
 
 <h2>3. リスクの見積もり — 4 つの要素</h2>
 <p>ISO 12100 では、リスクを<b>危害のひどさ</b>と<b>発生確率</b>の組合せとし、発生確率をさらに 3 つに分けて考えます。</p>
-<svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="リスクの要素">
+<svg class="tb-chart" viewBox="0 0 520 252" role="img" aria-label="手送りプレスで見るリスクの 4 要素">
+<rect class="k-ground" x="10" y="230" width="300" height="10"/><line class="k-edge" x1="10" y1="230" x2="310" y2="230"/>
+<rect x="176" y="136" width="70" height="34" style="fill:var(--tb-bad)" opacity="0.16"/>
 <g class="k-shadow">
-<rect x="10" y="58" width="92" height="48" rx="8" style="fill:var(--tb-surface)"/><rect x="10" y="58" width="92" height="48" rx="8" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.16" stroke-width="1.4"/>
-<rect x="128" y="58" width="116" height="48" rx="8" style="fill:var(--tb-surface)"/><rect x="128" y="58" width="116" height="48" rx="8" style="fill:var(--tb-bad);stroke:var(--tb-bad)" fill-opacity="0.16" stroke-width="1.4"/>
-<rect x="270" y="10" width="240" height="150" rx="8" style="fill:var(--tb-surface);stroke:var(--k-line-2)" stroke-dasharray="5 3"/>
+<rect class="k-part" x="150" y="196" width="150" height="34" rx="3"/>
+<rect class="k-part" x="258" y="40" width="42" height="160" rx="4"/>
+<rect class="k-part" x="150" y="34" width="150" height="44" rx="7"/>
+<rect class="k-alu" x="180" y="78" width="62" height="48" rx="2"/>
+<rect class="k-part" x="186" y="126" width="50" height="10" rx="1"/>
+<rect class="k-part" x="176" y="176" width="70" height="20" rx="1"/>
+<rect class="k-alu" x="184" y="170" width="54" height="6"/>
+<rect class="k-yellow" x="128" y="218" width="30" height="12" rx="3"/>
 </g>
-<text class="k-title" x="56" y="87" text-anchor="middle">リスク</text>
-<text class="k-title" x="115" y="88" text-anchor="middle">=</text>
-<text class="lbl" x="186" y="79" text-anchor="middle">危害のひどさ</text><text class="k-bad-t" x="186" y="97" text-anchor="middle">S</text>
-<text class="k-title" x="257" y="88" text-anchor="middle">×</text>
-<text class="lbl" x="390" y="28" text-anchor="middle">発生確率</text>
-<rect x="282" y="36" width="218" height="34" rx="5" style="fill:var(--tb-surface)"/><rect x="282" y="36" width="218" height="34" rx="5" style="fill:var(--tb-warn);stroke:var(--tb-warn)" fill-opacity="0.16" stroke-width="1.4"/><rect x="282" y="76" width="218" height="34" rx="5" style="fill:var(--tb-surface)"/><rect x="282" y="76" width="218" height="34" rx="5" style="fill:var(--tb-warn);stroke:var(--tb-warn)" fill-opacity="0.16" stroke-width="1.4"/><rect x="282" y="116" width="218" height="34" rx="5" style="fill:var(--tb-surface)"/><rect x="282" y="116" width="218" height="34" rx="5" style="fill:var(--tb-warn);stroke:var(--tb-warn)" fill-opacity="0.16" stroke-width="1.4"/>
-<text class="tick" x="395" y="57" text-anchor="middle">危険源にさらされる頻度・時間 (F)</text>
-<text class="tick" x="395" y="97" text-anchor="middle">危険事象の発生確率 (O)</text>
-<text class="tick" x="395" y="137" text-anchor="middle">危害を回避・制限できる可能性 (P)</text>
+<rect class="k-hazard" x="150" y="196" width="150" height="7"/>
+<line class="k-force" x1="168" y1="86" x2="168" y2="124"/>
+<g transform="translate(108 230) scale(-1 1)">
+<path d="M-6,-118 Q-40,-104 -78,-72" fill="none" style="stroke:var(--k-person-2)" stroke-width="9"/>
+<path class="k-person" d="M-12,-128 Q0,-134 12,-128 Q16,-126 16,-118 L15,-72 L11,-70 L10,-2 L2,0 L0,-60 L-2,0 L-10,-2 L-11,-70 L-15,-72 L-16,-118 Q-16,-126 -12,-128 Z"/>
+<circle class="k-skin" cx="0" cy="-142" r="11"/>
+<circle class="k-skin" cx="-79" cy="-72" r="5"/>
+<rect x="-12" y="-4" width="11" height="5" rx="2" fill="#2a2f38"/><rect x="2" y="-4" width="13" height="5" rx="2" fill="#2a2f38"/>
+</g>
+<g class="k-shadow">
+<rect class="k-panel" x="322" y="14" width="192" height="46" rx="7"/><rect class="k-panel" x="322" y="68" width="192" height="46" rx="7"/>
+<rect class="k-panel" x="322" y="122" width="192" height="46" rx="7"/><rect class="k-panel" x="322" y="176" width="192" height="46" rx="7"/>
+</g>
+<circle class="k-badge" cx="340" cy="37" r="11" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="340" y="41" text-anchor="middle">S</text>
+<circle class="k-badge" cx="340" cy="91" r="11" style="fill:var(--tb-warn)"/><text class="k-badge-t" x="340" y="95" text-anchor="middle">F</text>
+<circle class="k-badge" cx="340" cy="145" r="11" style="fill:var(--tb-warn)"/><text class="k-badge-t" x="340" y="149" text-anchor="middle">O</text>
+<circle class="k-badge" cx="340" cy="199" r="11" style="fill:var(--tb-warn)"/><text class="k-badge-t" x="340" y="203" text-anchor="middle">P</text>
+<text class="lbl" x="358" y="33">危害のひどさ</text><text class="k-note" x="358" y="50">指の押しつぶし・切断 (重傷)</text>
+<text class="lbl" x="358" y="87">さらされる頻度</text><text class="k-note" x="358" y="104">1 サイクルごとに手を入れる</text>
+<text class="lbl" x="358" y="141">危険事象の発生確率</text><text class="k-note" x="358" y="158">ペダルの誤踏み・二度打ち</text>
+<text class="lbl" x="358" y="195">回避の可能性</text><text class="k-note" x="358" y="212">下降は速く、ほぼ回避不能</text>
+<path class="k-thin" d="M322,37 L262,37 L210,150"/><circle cx="210" cy="152" r="3" style="fill:var(--tb-bad)"/>
+<path class="k-thin" d="M322,91 L120,91 L112,96"/>
+<path class="k-thin" d="M322,145 L306,145 L306,212 L160,224"/>
+<path class="k-thin" d="M322,199 L312,199 L312,104 L244,104"/>
+<text class="k-title" x="14" y="24">リスク = S × (F・O・P)</text>
 </svg>
-<p class="tb-caption">図: リスクの要素。見積もり方法 (マトリクス、リスクグラフ、点数法) は規格で 1 つに決められておらず、社内で手法を定めて一貫して使う</p>
+<p class="tb-caption">図: 手送りプレスで見るリスクの要素。ひどさ (S) は危険源の性質で決まり、発生確率は F・O・P の 3 つに分けて考える。見積もり方法 (マトリクス、リスクグラフ、点数法) は規格で 1 つに決められておらず、社内で手法を定めて一貫して使う</p>
 <h3>点数法の例</h3>
 <p>社内で使われる点数法の一例です (点数の付け方は会社ごとに異なります)。</p>
 <table class="tb-table">
@@ -97,6 +121,41 @@ export const SAFETY2: TextChapter[] = [
 <p>例: 合計点で「〜5: 許容 / 6〜9: 低減を検討 / 10〜: 直ちに低減」と決めます。足し算か掛け算か、閾値をどこに置くかは、過去の事故と照らして社内で校正します。</p>
 <h3>リスクグラフ</h3>
 <p>分岐をたどってリスクの水準を決めるのがリスクグラフです。制御系の要求性能 (PL) を決める ISO 13849-1 のリスクグラフが代表例で、「制御システムの安全」の章で扱います。</p>
+
+<h2>見積もりの完全な例 — 手送りプレス</h2>
+<p>上の図の手送りプレス (作業者が 1 枚ずつ板を型の上に置き、足踏みペダルで打つ) を、点数法とマトリクスの両方で見積もってみます。</p>
+<table class="tb-table">
+  <tr><th>手順</th><th>内容</th></tr>
+  <tr><td>① 作業の特定</td><td>通常運転: 型への材料の出し入れ (1 日 数百回)。ほかに型交換、くず除去、清掃を別の行として扱う</td></tr>
+  <tr><td>② 危険事象</td><td>手が型の間にあるときにラムが下降する (ペダルの誤踏み、クラッチ・ブレーキの不具合による二度打ち)</td></tr>
+  <tr><td>③ 点数 (対策前)</td><td>ひどさ 4 (指の切断 = 後遺障害) + 頻度 6 (常時) + 回避 4 (困難) = <b>14 点 → 直ちに低減</b></td></tr>
+  <tr><td>④ 低減策</td><td>第 1 段階: 型の開口を指が入らない狭さにできないか、送り装置で手を入れずに済まないか検討 → 製品形状の都合で不可と記録。第 2 段階: 側面・後面を固定式ガード、前面をライトカーテン (PLr は「制御システムの安全」の章で決める)</td></tr>
+  <tr><td>⑤ 再見積もり</td><td>ひどさは 4 のまま。手が入ればラムが止まるので、危害に至る確率は「安全機能が故障したとき」だけになる → マトリクス上で右から左へ移る</td></tr>
+  <tr><td>⑥ 新しい危険源</td><td>ライトカーテンの外から中に体が入れないか (すり抜け)、ガードと機械の間の挟まれはないか — 対策が生んだ危険源も行を追加して評価する</td></tr>
+</table>
+<svg class="tb-chart" viewBox="0 0 520 226" role="img" aria-label="リスクマトリクスでの対策前後の比較">
+<text class="k-title" x="14" y="20">リスクマトリクス (例)</text>
+<rect x="130" y="30" width="70" height="36" style="fill:var(--tb-warn);stroke:var(--tb-surface)" fill-opacity="0.22" stroke-width="2"/><rect x="200" y="30" width="70" height="36" style="fill:var(--tb-warn);stroke:var(--tb-surface)" fill-opacity="0.22" stroke-width="2"/><rect x="270" y="30" width="70" height="36" style="fill:var(--tb-bad);stroke:var(--tb-surface)" fill-opacity="0.3" stroke-width="2"/><rect x="340" y="30" width="70" height="36" style="fill:var(--tb-bad);stroke:var(--tb-surface)" fill-opacity="0.3" stroke-width="2"/><rect x="130" y="66" width="70" height="36" style="fill:var(--tb-good);stroke:var(--tb-surface)" fill-opacity="0.22" stroke-width="2"/><rect x="200" y="66" width="70" height="36" style="fill:var(--tb-warn);stroke:var(--tb-surface)" fill-opacity="0.22" stroke-width="2"/><rect x="270" y="66" width="70" height="36" style="fill:var(--tb-warn);stroke:var(--tb-surface)" fill-opacity="0.22" stroke-width="2"/><rect x="340" y="66" width="70" height="36" style="fill:var(--tb-bad);stroke:var(--tb-surface)" fill-opacity="0.3" stroke-width="2"/><rect x="130" y="102" width="70" height="36" style="fill:var(--tb-good);stroke:var(--tb-surface)" fill-opacity="0.22" stroke-width="2"/><rect x="200" y="102" width="70" height="36" style="fill:var(--tb-good);stroke:var(--tb-surface)" fill-opacity="0.22" stroke-width="2"/><rect x="270" y="102" width="70" height="36" style="fill:var(--tb-warn);stroke:var(--tb-surface)" fill-opacity="0.22" stroke-width="2"/><rect x="340" y="102" width="70" height="36" style="fill:var(--tb-warn);stroke:var(--tb-surface)" fill-opacity="0.22" stroke-width="2"/><rect x="130" y="138" width="70" height="36" style="fill:var(--tb-good);stroke:var(--tb-surface)" fill-opacity="0.22" stroke-width="2"/><rect x="200" y="138" width="70" height="36" style="fill:var(--tb-good);stroke:var(--tb-surface)" fill-opacity="0.22" stroke-width="2"/><rect x="270" y="138" width="70" height="36" style="fill:var(--tb-good);stroke:var(--tb-surface)" fill-opacity="0.22" stroke-width="2"/><rect x="340" y="138" width="70" height="36" style="fill:var(--tb-warn);stroke:var(--tb-surface)" fill-opacity="0.22" stroke-width="2"/>
+<text class="tick" x="122" y="52" text-anchor="end">死亡</text><text class="tick" x="122" y="88" text-anchor="end">重傷</text><text class="tick" x="122" y="124" text-anchor="end">軽傷</text><text class="tick" x="122" y="160" text-anchor="end">軽微</text><text class="tick" x="165" y="190" text-anchor="middle">ほぼない</text><text class="tick" x="235" y="190" text-anchor="middle">まれ</text><text class="tick" x="305" y="190" text-anchor="middle">ときどき</text><text class="tick" x="375" y="190" text-anchor="middle">頻繁</text>
+<text class="lbl" x="60" y="110" text-anchor="middle">ひどさ</text>
+<text class="lbl" x="270" y="214" text-anchor="middle">危害の発生確率 (F・O・P を総合) →</text>
+<line class="k-move" x1="356" y1="84" x2="186" y2="84" stroke-width="2.6"/>
+<circle cx="375" cy="84" r="13" style="fill:var(--tb-bad);stroke:var(--tb-surface)" stroke-width="2"/><text class="k-badge-t" x="375" y="88" text-anchor="middle">前</text>
+<circle cx="165" cy="84" r="13" style="fill:var(--tb-good);stroke:var(--tb-surface)" stroke-width="2"/><text class="k-badge-t" x="165" y="88" text-anchor="middle">後</text>
+<text class="mark-t" x="270" y="76" text-anchor="middle">ガード + ライトカーテン</text>
+<rect x="426" y="40" width="14" height="14" rx="2" style="fill:var(--tb-good)" fill-opacity="0.5"/><text class="tick" x="446" y="52">許容</text>
+<rect x="426" y="64" width="14" height="14" rx="2" style="fill:var(--tb-warn)" fill-opacity="0.5"/><text class="tick" x="446" y="76">低減を検討</text>
+<rect x="426" y="88" width="14" height="14" rx="2" style="fill:var(--tb-bad)" fill-opacity="0.6"/><text class="tick" x="446" y="100">直ちに低減</text>
+<text class="k-note" x="426" y="130">ひどさの行は</text><text class="k-note" x="426" y="146">対策しても</text><text class="k-note" x="426" y="162">ふつう変わらない</text>
+</svg>
+<p class="tb-caption">図: 対策は主に「確率」を下げる。だから対策後も、その対策 (ガード・安全機能) 自体の信頼性が評価の前提になる</p>
+<h3>よくある間違い</h3>
+<ul>
+  <li><b>対策後にひどさを下げる</b>: ガードを付けても、指が挟まれたときのけがの大きさは変わりません。下げてよいのは、力や速度を制限して危害そのものを小さくしたとき (本質的安全設計) だけです</li>
+  <li><b>「教育する」「注意喚起」で確率を大きく下げる</b>: 使用上の情報の効果は限られます。点数を 1 段階以上下げる根拠にしないのが無難です</li>
+  <li><b>設計者 1 人で評価する</b>: 操作者・保全担当・生産技術を交え、実際の作業 (詰まりの取り方、清掃のしかた) を聞き取ります</li>
+  <li><b>閾値を後から動かす</b>: 「この点数なら許容」にするために基準を変えるのは本末転倒です。基準は評価の前に決めておきます</li>
+</ul>
 
 <h2>4. 評価と 3 ステップメソッド</h2>
 <p>評価では「同種の機械と比べて」「法令・規格を満たして」「最新技術 (state of the art) で可能な対策をとったか」を確認します。低減は必ず<b>本質的安全設計 → 安全防護・付加保護方策 → 使用上の情報</b>の順に検討し、前の段階で「できない」理由を記録します。</p>
@@ -121,6 +180,10 @@ ${NOTE}`,
       {
         q: "自動包装機の「機械の制限」を決める際に、使用上の制限として書き出すべきライフサイクル段階を 5 つ以上挙げてください。",
         a: "運搬、据付・試運転、通常運転、段取り替え (品種変更)、詰まりの除去、清掃、保全 (部品交換・点検)、故障診断、解体・廃棄。さらに予見可能な誤使用 (ガードを外して運転する、手でフィルムを押し込む等) も含めます。",
+      },
+      {
+        q: "手送りプレスに固定式ガードとライトカーテンを付けた後、担当者がリスクアセスメントシートの「ひどさ」を 4 (後遺障害) から 1 (軽傷) に書き換えて「許容」と判定しました。この判定の問題点を説明してください。",
+        a: "ガードやライトカーテンは、手が型の間に入る<b>確率</b>を下げる対策で、挟まれたときの<b>ひどさ</b>は変わりません。ひどさは 4 のまま、発生確率 (O・F) を下げて再見積もりするのが正しい手順です。また、許容と判定できるのは、ライトカーテンの安全機能が要求される PLr を満たし、すり抜けなど新しい危険源も評価した後です。",
       },
     ],
     quiz: [
@@ -205,6 +268,63 @@ ${NOTE}`,
 </svg>
 <p class="tb-caption">図: 開口 e から差し込んだ指・手・腕が届く深さより、危険区域を遠くに置く。開口が大きいほど深く届くので、安全距離は大きくなる</p>
 
+<h3>例題 — メッシュガードの目の大きさと距離</h3>
+<p>ISO 13857 (14 歳以上を対象とする上肢の表) から、規則的な開口の代表的な値を抜き出すと次のとおりです (開口 e は、スロットでは短い方の幅、正方形では辺、円形では直径)。</p>
+<table class="tb-table">
+  <tr><th>開口 e (mm)</th><th>届く部位</th><th>スロット</th><th>正方形</th><th>円形</th></tr>
+  <tr><td>4 &lt; e ≤ 6</td><td>指先</td><td>≥ 10</td><td>≥ 5</td><td>≥ 5</td></tr>
+  <tr><td>8 &lt; e ≤ 10</td><td>指 (付け根まで)</td><td>≥ 80</td><td>≥ 25</td><td>≥ 20</td></tr>
+  <tr><td>12 &lt; e ≤ 20</td><td>手のひら</td><td>≥ 120</td><td>≥ 120</td><td>≥ 120</td></tr>
+  <tr><td>40 &lt; e ≤ 120</td><td>腕 (肩まで)</td><td>≥ 850</td><td>≥ 850</td><td>≥ 850</td></tr>
+</table>
+<p><b>例</b>: 回転する歯車から 80 mm の位置に、目開き 20 mm 角の金網ガードを付ける計画があります。表から 12 &lt; e ≤ 20 の正方形は安全距離 120 mm 以上が必要なので、80 mm では<b>不足</b>です。対策は (a) ガードを歯車から 120 mm 以上離す、または (b) 目開きを 10 mm 角にして必要距離を 25 mm にする (80 mm ≥ 25 mm で OK)。目を細かくすると中が見えにくく、放熱も悪くなるので、パンチングメタルやポリカーボネートの窓と使い分けます。</p>
+<p>数値は版や対象者 (子どもが近づく場所など) で変わるため、必ず原文の表で確認してください。</p>
+
+<h2>危険区域の外で作業できるようにする</h2>
+<p>保全の手間が大きい設計は、ガードを開けたままの運転を招きます。給油・調整・点検を<b>ガードの外から</b>できれば、危険区域に入る理由そのものがなくなります。これも本質的安全設計の重要な手法です。</p>
+<svg class="tb-chart" viewBox="0 0 520 222" role="img" aria-label="危険区域の外から給油できる設計">
+<rect class="k-panel" x="8" y="8" width="244" height="206" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="206" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">中に手を入れて給油</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">外から集中給油</text>
+<g class="k-shadow"><rect class="k-part-h" x="120" y="118" width="110" height="12" rx="2"/>
+<circle class="k-part" cx="178" cy="124" r="24"/><circle cx="178" cy="124" r="17" fill="none" style="stroke:var(--k-line-2)" stroke-dasharray="3 3"/><circle class="k-sphere" cx="178" cy="124" r="6"/>
+<rect class="k-part" x="132" y="104" width="18" height="40" rx="3"/><rect class="k-part" x="206" y="104" width="18" height="40" rx="3"/>
+<rect class="k-part" x="116" y="182" width="124" height="10" rx="2"/></g>
+<path class="k-force" d="M162,96 A30,30 0 0 1 200,100" stroke-width="2"/>
+<rect x="112" y="50" width="128" height="140" rx="4" class="k-edge"/>
+<polygon class="k-glass" points="112,52 76,62 76,178 112,188"/>
+<path d="M14,168 Q60,150 120,96" fill="none" style="stroke:var(--k-person-2)" stroke-width="11"/>
+<g transform="rotate(-40 128 92)"><rect class="k-yellow" x="112" y="84" width="34" height="14" rx="3"/><rect class="k-part" x="146" y="88" width="16" height="5" rx="1"/></g>
+<circle class="k-skin" cx="120" cy="96" r="7"/>
+<text class="k-bad-t" x="130" y="204" text-anchor="middle">運転中に扉を開けて給油しがち</text>
+<g class="k-shadow"><rect class="k-part-h" x="380" y="118" width="110" height="12" rx="2"/>
+<circle class="k-part" cx="438" cy="124" r="24"/><circle cx="438" cy="124" r="17" fill="none" style="stroke:var(--k-line-2)" stroke-dasharray="3 3"/><circle class="k-sphere" cx="438" cy="124" r="6"/>
+<rect class="k-part" x="392" y="104" width="18" height="40" rx="3"/><rect class="k-part" x="466" y="104" width="18" height="40" rx="3"/>
+<rect class="k-part" x="376" y="182" width="124" height="10" rx="2"/></g>
+<path d="M401,104 L401,72 L366,72 M475,104 L475,64 L366,64" fill="none" style="stroke:#b8642d" stroke-width="3"/>
+<rect class="k-glass" x="372" y="50" width="128" height="140" rx="4"/>
+<g class="k-shadow"><rect class="k-alu" x="344" y="54" width="22" height="30" rx="3"/></g>
+<circle cx="340" cy="64" r="3.5" class="k-sphere"/><circle cx="340" cy="74" r="3.5" class="k-sphere"/>
+<path d="M276,170 Q300,140 318,88" fill="none" style="stroke:var(--k-person-2)" stroke-width="11"/>
+<g transform="rotate(-20 322 82)"><rect class="k-yellow" x="300" y="74" width="30" height="13" rx="3"/></g>
+<circle class="k-skin" cx="318" cy="86" r="7"/>
+<text class="k-note" x="436" y="44" text-anchor="middle">ガードは閉じたまま</text>
+<text class="k-note" x="330" y="104" text-anchor="middle">給油ブロック</text>
+<text class="k-good-t" x="390" y="204" text-anchor="middle">危険区域に入る理由をなくす</text>
+</svg>
+<p class="tb-caption">図: 軸受への給油配管をガードの外の給油ブロックに集めると、ガードを開ける頻度が下がり、ガードを固定式にできることもある</p>
+<ul>
+  <li>調整ねじ・目盛をガードの外に出す (延長軸、外部ノブ)</li>
+  <li>点検窓 (透明ガード) やのぞき窓から油面・ベルトの状態を見られるようにする</li>
+  <li>重い型・刃物の交換を、リフタやスライド式の引出しで危険区域外まで引き出してから行う</li>
+</ul>
+<h3>よくある間違い</h3>
+<ul>
+  <li>すき間を「なんとなく 50 mm」にする — 指 (25 mm) には十分でも、手 (100 mm) や腕 (120 mm) には中間のすき間になる</li>
+  <li>可動部の<b>途中の位置</b>を確認しない — 端点では広くても、ストロークの途中で狭くなるリンク機構は多い</li>
+  <li>速度だけ下げて力を忘れる — 低速でも大きな推力のシリンダは押しつぶしの危険がある</li>
+</ul>
+
 <h2>エネルギーを制限する</h2>
 <p>危害の大きさは、体に加わる<b>力・圧力・運動エネルギー</b>で決まります。例えば、運動エネルギー E = ½mv² は速度の 2 乗に比例するので、速度を半分にするとエネルギーは 1/4 になります。</p>
 <ul>
@@ -232,6 +352,10 @@ ${NOTE}`,
         q: "質量 20 kg のスライドが 0.5 m/s で動いています。速度を 0.25 m/s に下げると運動エネルギーはいくらからいくらになりますか。",
         a: "E = ½mv²。0.5 m/s: ½ × 20 × 0.5² = <b>2.5 J</b>。0.25 m/s: ½ × 20 × 0.25² = <b>0.625 J</b>。速度半分でエネルギーは 1/4 になります。",
       },
+      {
+        q: "回転部から 100 mm の位置にあるガードに、幅 10 mm の長いスロット (すき間) があります。本文の表で安全距離は足りていますか。正方形 10 mm 角の開口ならどうですか。",
+        a: "8 &lt; e ≤ 10 のスロットは <b>80 mm 以上</b>が必要 → 100 mm なので<b>足りています</b>。正方形 10 mm 角なら 25 mm 以上で、これも満たします。ただしスロット幅が 12 mm に広がると 100 mm 以上 (10 &lt; e ≤ 12) が必要になり余裕がなくなるため、変形や摩耗で開口が広がらないかも確認します。",
+      },
     ],
     quiz: [
       { q: "挟まれの危険が最も高いのは?", choices: ["指も入らない狭いすき間", "その部位の最小すき間以上の広いすき間", "指や手が入るが逃げられない中間のすき間"], answer: 2, explain: "部位が入り、しかも押しつぶされる中間のすき間が最も危険です。" },
@@ -258,6 +382,57 @@ ${NOTE}`,
 </table>
 <p>選び方の目安: 開ける頻度が低い (保全時だけ) なら固定式、頻繁 (毎日、段取りごと) ならインターロック付きにします。頻繁に開けるのに固定式にすると、外したまま運転される原因になります。</p>
 
+<svg class="tb-chart" viewBox="0 0 520 262" role="img" aria-label="ロボットセルの固定式ガード、インターロック扉、ライトカーテン、非常停止">
+<text class="k-title" x="14" y="18">ロボットセルの安全防護 (正面から見た図)</text>
+<rect class="k-ground" x="8" y="244" width="504" height="10"/><line class="k-edge" x1="8" y1="244" x2="512" y2="244"/>
+<g class="k-shadow">
+<rect class="k-part" x="56" y="208" width="48" height="36" rx="3"/>
+</g>
+<path d="M80,208 L72,142 L122,112" fill="none" style="stroke:var(--k-line)" stroke-width="17"/><path d="M80,208 L72,142 L122,112" fill="none" style="stroke:var(--k-accent-1)" stroke-width="13"/>
+<circle class="k-sphere" cx="80" cy="206" r="10"/><circle class="k-sphere" cx="72" cy="142" r="9"/><circle class="k-sphere" cx="122" cy="112" r="6"/>
+<path class="k-part" d="M126,106 L134,102 L134,108 L128,112 L134,116 L134,122 L126,118 Z" stroke-width="1.2"/>
+<rect class="k-glass" x="26" y="60" width="112" height="176"/>
+<g class="k-shadow">
+<rect class="k-part" x="26" y="232" width="112" height="12"/>
+<rect class="k-alu" x="148" y="60" width="78" height="180" rx="3"/>
+</g>
+<rect class="k-glass" x="157" y="72" width="60" height="116" rx="2"/>
+<rect class="k-part" x="208" y="150" width="7" height="32" rx="3"/>
+<rect class="k-glass" x="236" y="60" width="94" height="50"/>
+<g class="k-shadow">
+<rect class="k-part" x="236" y="192" width="150" height="12" rx="2"/>
+<rect class="k-part" x="244" y="204" width="8" height="40"/><rect class="k-part" x="370" y="204" width="8" height="40"/>
+<rect class="k-alu" x="276" y="178" width="40" height="14" rx="2"/>
+</g>
+<line x1="247" y1="118" x2="319" y2="118" style="stroke:var(--tb-bad)" stroke-width="1.2" opacity="0.6"/><line x1="247" y1="126" x2="319" y2="126" style="stroke:var(--tb-bad)" stroke-width="1.2" opacity="0.6"/><line x1="247" y1="134" x2="319" y2="134" style="stroke:var(--tb-bad)" stroke-width="1.2" opacity="0.6"/><line x1="247" y1="142" x2="319" y2="142" style="stroke:var(--tb-bad)" stroke-width="1.2" opacity="0.6"/><line x1="247" y1="150" x2="319" y2="150" style="stroke:var(--tb-bad)" stroke-width="1.2" opacity="0.6"/><line x1="247" y1="158" x2="319" y2="158" style="stroke:var(--tb-bad)" stroke-width="1.2" opacity="0.6"/><line x1="247" y1="166" x2="319" y2="166" style="stroke:var(--tb-bad)" stroke-width="1.2" opacity="0.6"/><line x1="247" y1="174" x2="319" y2="174" style="stroke:var(--tb-bad)" stroke-width="1.2" opacity="0.6"/><line x1="247" y1="182" x2="319" y2="182" style="stroke:var(--tb-bad)" stroke-width="1.2" opacity="0.6"/>
+<g class="k-shadow">
+<rect class="k-yellow" x="18" y="52" width="8" height="192"/><rect class="k-yellow" x="138" y="52" width="10" height="192"/>
+<rect class="k-yellow" x="226" y="52" width="10" height="192"/><rect class="k-yellow" x="330" y="52" width="8" height="140"/>
+<rect class="k-yellow" x="239" y="112" width="8" height="78" rx="2"/><rect class="k-yellow" x="319" y="112" width="8" height="78" rx="2"/>
+<rect class="k-yellow" x="214" y="84" width="22" height="26" rx="3"/>
+</g>
+<circle class="k-led-g" cx="243" cy="108" r="3"/>
+<rect class="k-part" x="331" y="40" width="5" height="12"/><circle class="k-led-off" cx="334" cy="26" r="6"/><circle class="k-led-g" cx="334" cy="38" r="6"/>
+<g class="k-shadow">
+<rect class="k-part" x="478" y="176" width="12" height="68"/><rect class="k-part" x="466" y="240" width="36" height="5" rx="2"/>
+<rect class="k-part" x="460" y="138" width="48" height="40" rx="5"/>
+</g>
+<circle class="k-yellow" cx="484" cy="158" r="14"/><circle class="k-estop" cx="484" cy="158" r="9"/>
+<g transform="translate(414 244)">
+<path d="M-6,-118 Q-36,-104 -66,-82" fill="none" style="stroke:var(--k-person-2)" stroke-width="9"/>
+<path class="k-person" d="M-12,-128 Q0,-134 12,-128 Q16,-126 16,-118 L15,-72 L11,-70 L10,-2 L2,0 L0,-60 L-2,0 L-10,-2 L-11,-70 L-15,-72 L-16,-118 Q-16,-126 -12,-128 Z"/>
+<circle class="k-skin" cx="0" cy="-142" r="11"/><circle class="k-skin" cx="-67" cy="-82" r="5"/>
+<rect x="-14" y="-4" width="12" height="5" rx="2" fill="#2a2f38"/><rect x="2" y="-4" width="11" height="5" rx="2" fill="#2a2f38"/>
+</g>
+<text class="k-note" x="82" y="46" text-anchor="middle">固定式ガード (透明)</text>
+<text class="k-note" x="187" y="46" text-anchor="middle">インターロック扉</text>
+<path class="k-thin" d="M225,84 L250,66"/><text class="k-note" x="252" y="64">スイッチ</text>
+<text class="k-note" x="283" y="128" text-anchor="middle" style="fill:var(--tb-bad)">光軸</text>
+<text class="k-note" x="300" y="226" text-anchor="middle">ワーク投入口</text>
+<text class="k-note" x="484" y="128" text-anchor="middle">非常停止</text>
+<text class="k-note" x="352" y="30">表示灯</text>
+</svg>
+<p class="tb-caption">図: 開ける必要のない面は固定式ガード (中が見える透明板)、人が入る扉はインターロック付き、ワークを出し入れする開口はライトカーテン。非常停止は操作位置から手の届く所に置く</p>
 <h2>インターロックの仕組み</h2>
 <div data-widget="anim-interlock"></div>
 <p>インターロックスイッチは、ガードの開閉を検出して安全回路 (セーフティリレー、安全 PLC) に伝えます。</p>
@@ -332,6 +507,52 @@ ${NOTE}`,
 <text class="tick" x="64" y="138" text-anchor="start">最小 100 mm</text>
 </svg>
 <p class="tb-caption">図: d = 14 mm (C = 0) のライトカーテンの最小安全距離。T = 0.25 s を超えると K = 1 600 で再計算するが、結果が 500 mm 未満の範囲 (0.25〜0.3125 s) は 500 mm となる</p>
+<svg class="tb-chart" viewBox="0 0 520 216" role="img" aria-label="ライトカーテンと危険区域の距離">
+<rect class="k-ground" x="8" y="196" width="504" height="10"/><line class="k-edge" x1="8" y1="196" x2="512" y2="196"/>
+<rect x="352" y="100" width="100" height="40" style="fill:var(--tb-bad)" opacity="0.15"/>
+<g class="k-shadow">
+<rect class="k-part" x="336" y="140" width="172" height="56" rx="3"/>
+<rect class="k-part" x="470" y="30" width="38" height="112" rx="3"/>
+<rect class="k-part" x="336" y="22" width="172" height="26" rx="5"/>
+<rect class="k-alu" x="364" y="48" width="78" height="44" rx="2"/>
+<rect class="k-part" x="372" y="92" width="62" height="8"/>
+<rect class="k-part" x="362" y="132" width="82" height="8"/>
+<rect class="k-part" x="148" y="152" width="8" height="44"/><rect class="k-part" x="138" y="192" width="28" height="4" rx="1"/>
+<rect class="k-yellow" x="144" y="60" width="16" height="94" rx="3"/>
+</g>
+<rect class="k-hazard" x="336" y="140" width="172" height="6"/>
+<line x1="152" y1="54" x2="152" y2="160" style="stroke:var(--tb-bad)" stroke-width="1.6" stroke-dasharray="5 3"/>
+<line class="k-force" x1="404" y1="54" x2="404" y2="88"/>
+<path d="M8,170 Q50,140 96,116" fill="none" style="stroke:var(--k-person-2)" stroke-width="12"/>
+<path class="k-skin" d="M94,110 Q110,104 122,110 Q126,114 120,118 L96,124 Z"/>
+<line class="k-move" x1="58" y1="92" x2="132" y2="92"/>
+<text class="lbl" x="20" y="84">K: 接近速度</text>
+<line class="k-ext" x1="152" y1="54" x2="152" y2="30"/><line class="k-ext" x1="352" y1="100" x2="352" y2="30"/>
+<line class="k-dimline" x1="152" y1="36" x2="352" y2="36"/><text class="k-dimtext" x="252" y="30" text-anchor="middle">S = K × T + C</text>
+<text class="k-note" x="152" y="174" text-anchor="middle">検出面</text>
+<text class="k-bad-t" x="402" y="122" text-anchor="middle">危険区域</text>
+<rect class="k-panel" x="176" y="112" width="148" height="66" rx="6"/>
+<text class="k-note" x="186" y="130">T = 装置の応答</text><text class="k-note" x="198" y="148">+ 制御回路の応答</text><text class="k-note" x="198" y="166">+ 機械の停止時間</text>
+</svg>
+<p class="tb-caption">図: 手が検出面を横切った瞬間から、機械が止まるまでの時間 T のあいだにも手は進む。その分 (K×T) と、検出される前に入り込む分 (C) だけ危険区域から離す</p>
+<h3>例題 — K = 1 600 での再計算まで</h3>
+<p>手送りプレスの前面に、検出能力 d = 14 mm のライトカーテンを垂直に置きます。カタログ値の応答時間 20 ms、安全リレーと制御回路 30 ms、実測した機械の停止時間 300 ms です。</p>
+<table class="tb-table">
+  <tr><th>手順</th><th>計算</th></tr>
+  <tr><td>① T を合計</td><td>T = 0.020 + 0.030 + 0.300 = 0.35 s</td></tr>
+  <tr><td>② C を求める</td><td>C = 8 × (14 − 14) = 0 mm</td></tr>
+  <tr><td>③ K = 2 000 で計算</td><td>S = 2 000 × 0.35 + 0 = 700 mm → 500 mm を超える</td></tr>
+  <tr><td>④ K = 1 600 で再計算</td><td>S = 1 600 × 0.35 + 0 = 560 mm → 500 mm 以上なのでこの値を使える</td></tr>
+  <tr><td>⑤ 結論</td><td>最小安全距離 <b>S = 560 mm</b>。停止時間の劣化を見込んで余裕を持たせ、定期的に停止時間を測る</td></tr>
+</table>
+<p>同じ機械に d = 30 mm (手の検出) のライトカーテンを使うと C = 8 × (30 − 14) = 128 mm。K = 2 000 で 828 mm、K = 1 600 で 688 mm となり、14 mm より 128 mm 遠くに置く必要があります。検出能力の細かいカーテンほど機械に近づけられます。</p>
+<h3>よくある間違い</h3>
+<ul>
+  <li><b>カタログの応答時間だけで計算する</b>: 機械の停止時間 (ブレーキ、惰性) が最大の項であることが多い。必ず実測し、最悪条件 (最大負荷・最高速度) で測る</li>
+  <li><b>上・下・横からの回り込み</b>: 光軸の上を越えて、下をくぐって、横のすき間から危険区域に届かないか。届くなら固定式ガードで塞ぐ</li>
+  <li><b>カーテンと機械の間に人が立てる</b>: S が大きいと、カーテンを越えた後に人が中に残れる。再起動防止 (リセットは外から、危険区域を見渡せる位置) や追加の検出が必要</li>
+  <li><b>ミューティングの誤用</b>: ワーク通過時に一時的に無効化する機能は、人とワークを確実に区別できる配置と条件でだけ使う</li>
+</ul>
 <p>T を小さくする (ブレーキの強化、応答の速い装置) と安全距離が縮まり、機械を小さくできます。<b>停止時間は実測</b>し、ブレーキの摩耗で長くならないか定期点検にも含めます。</p>
 ${NOTE}`,
     points: [
@@ -352,6 +573,10 @@ ${NOTE}`,
       {
         q: "d = 30 mm のライトカーテンで T = 0.1 s のとき、S を求めてください。",
         a: "C = 8 × (30 − 14) = 128 mm。S = 2 000 × 0.1 + 128 = <b>328 mm</b>。",
+      },
+      {
+        q: "体の検出用のライトカーテン (d &gt; 40 mm、複数光軸) を、停止時間を含めた T = 0.2 s の機械の手前に置きます。本文の式で S を求めてください。また、この配置で注意すべき点を 1 つ挙げてください。",
+        a: "S = 1 600 × 0.2 + 850 = <b>1 170 mm</b>。体の検出用は手の侵入を検出できないので、光軸の間から手を差し込んだり、最下光軸の下をくぐったりできないよう、光軸の高さの条件を原文で確認します。また 1 m 以上離れるため、カーテンの内側に人が残れないかも確認し、リセットは危険区域を見渡せる外側に置きます。",
       },
     ],
     quiz: [
@@ -427,20 +652,58 @@ ${NOTE}`,
   <tr><td>3</td><td>2 チャンネル (冗長) + 監視</td><td>失わない。故障の一部を検出</td></tr>
   <tr><td>4</td><td>2 チャンネル + 高い監視</td><td>失わない。故障を検出し、蓄積しても失わない</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 172" role="img" aria-label="カテゴリ 3 の構成">
-<text class="lbl" x="260" y="18" text-anchor="middle">カテゴリ 3 / 4 の構成 (2 チャンネル + 相互監視)</text>
-<g class="k-shadow"><rect x="30" y="35" width="100" height="40" rx="6" style="fill:var(--tb-surface)"/><rect x="30" y="35" width="100" height="40" rx="6" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.16" stroke-width="1.4"/><rect x="30" y="35" width="5" height="40" style="fill:var(--tb-accent)"/><text class="mark-t" x="82" y="60" text-anchor="middle">I1</text><rect x="210" y="35" width="100" height="40" rx="6" style="fill:var(--tb-surface)"/><rect x="210" y="35" width="100" height="40" rx="6" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.16" stroke-width="1.4"/><rect x="210" y="35" width="5" height="40" style="fill:var(--tb-accent)"/><text class="mark-t" x="262" y="60" text-anchor="middle">L1</text><rect x="390" y="35" width="100" height="40" rx="6" style="fill:var(--tb-surface)"/><rect x="390" y="35" width="100" height="40" rx="6" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.16" stroke-width="1.4"/><rect x="390" y="35" width="5" height="40" style="fill:var(--tb-accent)"/><text class="mark-t" x="442" y="60" text-anchor="middle">O1</text><rect x="30" y="112" width="100" height="40" rx="6" style="fill:var(--tb-surface)"/><rect x="30" y="112" width="100" height="40" rx="6" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.16" stroke-width="1.4"/><rect x="30" y="112" width="5" height="40" style="fill:var(--tb-accent)"/><text class="mark-t" x="82" y="137" text-anchor="middle">I2</text><rect x="210" y="112" width="100" height="40" rx="6" style="fill:var(--tb-surface)"/><rect x="210" y="112" width="100" height="40" rx="6" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.16" stroke-width="1.4"/><rect x="210" y="112" width="5" height="40" style="fill:var(--tb-accent)"/><text class="mark-t" x="262" y="137" text-anchor="middle">L2</text><rect x="390" y="112" width="100" height="40" rx="6" style="fill:var(--tb-surface)"/><rect x="390" y="112" width="100" height="40" rx="6" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.16" stroke-width="1.4"/><rect x="390" y="112" width="5" height="40" style="fill:var(--tb-accent)"/><text class="mark-t" x="442" y="137" text-anchor="middle">O2</text></g>
-<line x1="130" y1="55" x2="206" y2="55" style="stroke:var(--tb-accent)" stroke-width="2" marker-end="url(#k-arrow-blue)"/><line x1="310" y1="55" x2="386" y2="55" style="stroke:var(--tb-accent)" stroke-width="2" marker-end="url(#k-arrow-blue)"/>
-<line x1="130" y1="132" x2="206" y2="132" style="stroke:var(--tb-accent)" stroke-width="2" marker-end="url(#k-arrow-blue)"/><line x1="310" y1="132" x2="386" y2="132" style="stroke:var(--tb-accent)" stroke-width="2" marker-end="url(#k-arrow-blue)"/>
-<line x1="260" y1="78" x2="260" y2="109" style="stroke:var(--tb-warn)" stroke-width="2" stroke-dasharray="4 3" marker-start="url(#k-arrow)" marker-end="url(#k-arrow)"/>
-<text class="tick" x="268" y="98" text-anchor="start">相互比較</text>
-<path d="M440,75 L440,95 L326,95" fill="none" style="stroke:var(--tb-warn)" stroke-width="1.6" stroke-dasharray="4 3"/>
-<path d="M440,112 L440,95" fill="none" style="stroke:var(--tb-warn)" stroke-width="1.6" stroke-dasharray="4 3"/>
-<path d="M326,95 L314,95" fill="none" style="stroke:var(--tb-warn)" stroke-width="1.6" marker-end="url(#k-arrow)"/>
-<text class="tick" x="450" y="99" text-anchor="start">監視</text>
+<svg class="tb-chart" viewBox="0 0 520 236" role="img" aria-label="カテゴリ 3 の 2 チャンネル回路の例">
+<text class="k-title" x="14" y="18">カテゴリ 3 / 4 の例: 2 チャンネル + 相互監視 + フィードバック</text>
+<path d="M88,70 L150,70 L150,84 L190,84" fill="none" style="stroke:var(--tb-accent)" stroke-width="2.4"/>
+<path d="M88,150 L150,150 L150,136 L190,136" fill="none" style="stroke:var(--tb-warn)" stroke-width="2.4"/>
+<path d="M270,84 L310,70" fill="none" style="stroke:var(--tb-accent)" stroke-width="2.4"/>
+<path d="M270,136 L310,150" fill="none" style="stroke:var(--tb-warn)" stroke-width="2.4"/>
+<path d="M335,100 L335,112 L292,112 M335,180 L335,212 L232,212 L232,176" fill="none" style="stroke:var(--tb-good)" stroke-width="1.8" stroke-dasharray="5 3"/>
+<path d="M292,112 L292,212" fill="none" style="stroke:var(--tb-good)" stroke-width="1.8" stroke-dasharray="5 3"/>
+<line class="k-hidden" x1="360" y1="66" x2="432" y2="66"/><line class="k-hidden" x1="360" y1="146" x2="432" y2="146"/>
+<path d="M444,34 L444,56 M444,78 L444,136 M444,158 L444,176" fill="none" style="stroke:#b8642d" stroke-width="3.2"/>
+<line x1="444" y1="56" x2="452" y2="76" style="stroke:var(--k-line)" stroke-width="2.4"/><line x1="444" y1="136" x2="452" y2="156" style="stroke:var(--k-line)" stroke-width="2.4"/>
+<circle cx="444" cy="56" r="2.6" style="fill:var(--k-line)"/><circle cx="444" cy="78" r="2.6" style="fill:var(--k-line)"/><circle cx="444" cy="136" r="2.6" style="fill:var(--k-line)"/><circle cx="444" cy="158" r="2.6" style="fill:var(--k-line)"/>
+<g class="k-shadow">
+<rect class="k-alu" x="14" y="36" width="52" height="150" rx="3"/>
+<rect class="k-yellow" x="64" y="58" width="24" height="24" rx="3"/><rect class="k-yellow" x="64" y="138" width="24" height="24" rx="3"/>
+<rect class="k-plastic" x="190" y="50" width="82" height="126" rx="6"/>
+<rect class="k-alu" x="310" y="40" width="50" height="60" rx="4"/><rect class="k-alu" x="310" y="120" width="50" height="60" rx="4"/>
+<circle class="k-part" cx="444" cy="198" r="22"/>
+</g>
+<rect class="k-glass" x="22" y="46" width="36" height="100" rx="2"/>
+<rect class="k-screen" x="200" y="62" width="62" height="26" rx="3"/><text class="k-screen-t" x="231" y="80" text-anchor="middle">SAFE</text>
+<circle class="k-led-g" cx="210" cy="104" r="4.5"/><circle class="k-led-g" cx="226" cy="104" r="4.5"/><circle class="k-led-off" cx="242" cy="104" r="4.5"/>
+<text class="k-note" x="231" y="132" text-anchor="middle">相互比較</text>
+<path d="M216,140 L246,140" fill="none" style="stroke:var(--k-line-2)" stroke-width="1.4" marker-start="url(#k-arrow)" marker-end="url(#k-arrow)"/>
+<text class="lbl" x="335" y="76" text-anchor="middle">K1</text><text class="lbl" x="335" y="156" text-anchor="middle">K2</text>
+<text class="lbl" x="444" y="203" text-anchor="middle">M</text>
+<text class="k-note" x="76" y="52" text-anchor="middle">SW1</text><text class="k-note" x="76" y="178" text-anchor="middle">SW2</text>
+<text class="k-note" x="40" y="200" text-anchor="middle">扉</text>
+<text class="k-note" x="118" y="64" style="fill:var(--tb-accent)">ch1</text><text class="k-note" x="118" y="166" style="fill:var(--tb-warn)">ch2</text>
+<text class="k-note" x="231" y="192" text-anchor="middle">安全リレー</text>
+<text class="k-note" x="456" y="30">電源</text>
+<text class="k-note" x="300" y="228" style="fill:var(--tb-good)">ミラー接点で溶着を監視</text>
 </svg>
-<p class="tb-caption">図: 片方のチャンネルが故障しても、もう片方で止められる。コンタクタの接点溶着は補助接点 (ミラー接点) で監視し、次の起動を禁止する</p>
+<p class="tb-caption">図: 扉のスイッチ 2 個 (異なる動作原理にすると共通原因故障に強い) → 安全リレーで相互比較 → コンタクタ 2 個を直列に。片方が故障しても、もう片方で止められる。コンタクタの接点溶着は補助接点 (ミラー接点) で監視し、次の起動を禁止する</p>
 <p>PL と PFH<sub>D</sub> (1 時間あたりの危険側故障確率) の対応: a: 10<sup>−5</sup>〜10<sup>−4</sup>、b: 3×10<sup>−6</sup>〜10<sup>−5</sup>、c: 10<sup>−6</sup>〜3×10<sup>−6</sup>、d: 10<sup>−7</sup>〜10<sup>−6</sup>、e: 10<sup>−8</sup>〜10<sup>−7</sup>。達成 PL ≥ PLr を確認し、計算には SISTEMA などのツールがよく使われます。</p>
+
+<h3>例題 — 安全機能ごとに PLr を決める</h3>
+<p>ロボットセル (前節の図) の安全機能を 3 つ取り出し、リスクグラフで PLr を決めます。PLr は「機械ごと」ではなく「安全機能ごと」に決めるのがポイントです。</p>
+<table class="tb-table">
+  <tr><th>安全機能</th><th>S</th><th>F</th><th>P</th><th>PLr</th></tr>
+  <tr><td>扉を開けたらロボットを停止 (段取りで 1 日数十回開ける)</td><td>S2 (アームの衝突で重傷)</td><td>F2</td><td>P2 (高速)</td><td><b>e</b></td></tr>
+  <tr><td>同上、ただし扉が開いている間は監視付き低速 (250 mm/s 以下など) でしか動かない場合</td><td>S2</td><td>F2</td><td>P1 (低速で回避の余地あり)</td><td><b>d</b></td></tr>
+  <tr><td>投入口のコンベヤ (低速・小さな力) で指をはさむ</td><td>S1 (打撲程度)</td><td>F2</td><td>P1</td><td><b>b</b></td></tr>
+</table>
+<p>2 行目のように、速度を制限して回避の可能性を上げることで PLr を下げられることがあります。ただし低速の監視自体が安全機能になり、その PL も評価が必要です。</p>
+<h3>よくある間違い</h3>
+<ul>
+  <li>安全 PLC やセーフティリレーの「PL e 対応」を見て、回路全体が PL e だと思い込む — 入力・出力の構成と部品の MTTF<sub>D</sub> で決まる</li>
+  <li>2 チャンネルにしたが、2 本の配線を同じケーブルに通して一緒に断線・短絡する — 配線の分離や短絡検出 (テストパルス) で共通原因故障を防ぐ</li>
+  <li>コンタクタの溶着を監視していない — 1 個が溶着したまま運転を続け、2 個目の故障で安全機能を失う (故障の蓄積)</li>
+  <li>非常停止を「安全防護の代わり」にする — 人が危険に気付いて押すまでに危害が起きる</li>
+</ul>
 
 <h2>非常停止 (ISO 13850) と停止カテゴリ (IEC 60204-1)</h2>
 <table class="tb-table">
@@ -455,6 +718,26 @@ ${NOTE}`,
   <li>非常停止は<b>補助的な保護方策</b>であり、ガードや保護装置の代わりにはならない</li>
   <li>操作者の位置と、危険に気付く可能性のある場所から容易に届く位置に</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 206" role="img" aria-label="非常停止の押下、ラッチ、解除後のリセット">
+<rect class="k-panel" x="8" y="8" width="164" height="190" rx="8"/><rect class="k-panel" x="178" y="8" width="164" height="190" rx="8"/><rect class="k-panel" x="348" y="8" width="164" height="190" rx="8"/>
+<circle class="k-badge" cx="26" cy="27" r="10"/><text class="k-badge-t" x="26" y="31" text-anchor="middle">1</text><text class="k-title" x="42" y="32">運転中</text>
+<circle class="k-badge" cx="196" cy="27" r="10"/><text class="k-badge-t" x="196" y="31" text-anchor="middle">2</text><text class="k-title" x="212" y="32">押す → ラッチ</text>
+<circle class="k-badge" cx="366" cy="27" r="10"/><text class="k-badge-t" x="366" y="31" text-anchor="middle">3</text><text class="k-title" x="382" y="32">解除しても停止</text>
+<g class="k-shadow"><rect class="k-plastic" x="56" y="132" width="48" height="40" rx="3"/><rect class="k-yellow" x="36" y="120" width="88" height="12" rx="3"/></g>
+<rect class="k-part" x="73" y="100" width="14" height="20"/>
+<path class="k-estop" d="M48,104 Q80,64 112,104 Z"/><g class="k-shadow"><rect class="k-plastic" x="226" y="132" width="48" height="40" rx="3"/><rect class="k-yellow" x="206" y="120" width="88" height="12" rx="3"/></g>
+<rect class="k-part" x="243" y="112" width="14" height="8"/>
+<path class="k-estop" d="M218,116 Q250,76 282,116 Z"/><g class="k-shadow"><rect class="k-plastic" x="396" y="132" width="48" height="40" rx="3"/><rect class="k-yellow" x="376" y="120" width="88" height="12" rx="3"/></g>
+<rect class="k-part" x="413" y="100" width="14" height="20"/>
+<path class="k-estop" d="M388,104 Q420,64 452,104 Z"/>
+<circle class="k-led-g" cx="150" cy="58" r="7"/><circle class="k-led-r" cx="320" cy="58" r="7"/><circle class="k-led-y" cx="490" cy="58" r="7"/>
+<line class="k-force" x1="250" y1="44" x2="250" y2="70"/>
+<path class="k-move" d="M396,66 A30,14 0 0 1 456,62"/>
+<text class="k-note" x="90" y="188" text-anchor="middle">機械は運転・緑ランプ</text>
+<text class="k-note" x="260" y="188" text-anchor="middle">押し込まれた位置で保持</text>
+<text class="k-note" x="430" y="188" text-anchor="middle">リセット + 起動で再開</text>
+</svg>
+<p class="tb-caption">図: 非常停止の操作部は赤、背景は黄。押すと機械的にラッチし、回す・引くなどの意図的な操作でしか戻らない。戻しただけでは動かず、別のリセット・起動操作が必要</p>
 <p>重力でアームが落ちる機械では、カテゴリ 0 でブレーキだけに頼ると落下距離が大きくなることがあります。カテゴリ 1 で減速してからブレーキをかけるのか、機械式の落下防止を設けるのかを検討します。</p>
 ${NOTE}`,
     points: [
@@ -471,6 +754,10 @@ ${NOTE}`,
       {
         q: "ある安全機能の PFHD が 2.0 × 10⁻⁷ /h と計算されました。この値に対応する PL はどれですか。また PLr = e を満たしますか。",
         a: "10⁻⁷ 以上 10⁻⁶ 未満なので <b>PL d</b>。PL e は 10⁻⁸〜10⁻⁷ なので<b>満たしません</b> (カテゴリ・DC・MTTFD などの要件も別途必要)。",
+      },
+      {
+        q: "扉インターロックを 2 チャンネルで安全リレーに入れ、出力はコンタクタ 1 個だけでモーターを止めています。この構成の弱点と、カテゴリ 3 にするための改善を説明してください。",
+        a: "出力が 1 チャンネルなので、コンタクタの接点が溶着すると扉を開けてもモーターが止まりません (1 つの故障で安全機能を失う)。改善: コンタクタを 2 個直列にし (K1・K2)、それぞれのミラー接点を安全リレーのフィードバック回路に入れて、溶着していれば次の起動を禁止します。インバータ駆動なら、安全トルクオフ (STO) 入力を 2 チャンネルで使う方法もあります。",
       },
     ],
     quiz: [
@@ -510,6 +797,38 @@ ${NOTE}`,
   <li>制御回路の停止 (ソフトの停止、非常停止) は<b>遮断ではない</b> — 保全の隔離には使わない</li>
 </ul>
 
+<svg class="tb-chart" viewBox="0 0 520 236" role="img" aria-label="主電源断路器とエア元弁のロックアウト">
+<rect class="k-panel" x="8" y="8" width="250" height="220" rx="8"/><rect class="k-panel" x="262" y="8" width="250" height="220" rx="8"/>
+<text class="k-title" x="22" y="30">主電源断路器を切でロック</text><text class="k-title" x="276" y="30">エア元弁を閉・残圧排気でロック</text>
+<g class="k-shadow"><rect class="k-alu" x="30" y="42" width="130" height="176" rx="4"/></g>
+<rect class="k-yellow" x="58" y="70" width="74" height="74" rx="6"/>
+<text class="k-note" x="95" y="84" text-anchor="middle" style="fill:#1f2328">ON</text><text class="k-note" x="95" y="138" text-anchor="middle" style="fill:#1f2328">OFF</text>
+<circle class="k-part" cx="95" cy="107" r="16"/>
+<g class="k-shadow"><rect x="88" y="104" width="54" height="12" rx="4" fill="#d32f2f" style="stroke:#5a0a0a" stroke-width="1.2"/></g>
+<rect class="k-part" x="104" y="150" width="30" height="10" rx="2"/>
+<path d="M105,166 L105,156 A7,7 0 0 1 119,156 L119,166" fill="none" style="stroke:var(--k-line)" stroke-width="3.2"/>
+<rect x="101" y="166" width="22" height="20" rx="3" fill="#d32f2f" style="stroke:var(--k-line)" stroke-width="1.2"/><circle cx="112" cy="175" r="2.2" fill="#1f2328"/><path d="M125,166 L125,156 A7,7 0 0 1 139,156 L139,166" fill="none" style="stroke:var(--k-line)" stroke-width="3.2"/>
+<rect x="121" y="166" width="22" height="20" rx="3" fill="#1565c0" style="stroke:var(--k-line)" stroke-width="1.2"/><circle cx="132" cy="175" r="2.2" fill="#1f2328"/>
+<path d="M112,186 Q120,196 180,176" fill="none" style="stroke:var(--k-line-2)" stroke-width="1.2"/>
+<g class="k-shadow"><rect x="176" y="132" width="70" height="86" rx="4" fill="#ffffff" style="stroke:#d32f2f" stroke-width="2"/></g>
+<rect x="176" y="132" width="70" height="20" rx="3" fill="#d32f2f"/><text x="211" y="147" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="bold">操作禁止</text>
+<text x="211" y="170" text-anchor="middle" fill="#222" font-size="10">保全作業中</text><text x="211" y="186" text-anchor="middle" fill="#222" font-size="10">氏名・連絡先</text><text x="211" y="202" text-anchor="middle" fill="#222" font-size="10">日時</text>
+<circle cx="182" cy="176" r="3" fill="none" style="stroke:#222"/>
+<text class="k-note" x="190" y="66">2 人なら</text><text class="k-note" x="190" y="82">錠も 2 個</text>
+<path d="M276,110 L310,110 M402,110 L500,110" fill="none" style="stroke:var(--k-line)" stroke-width="7"/>
+<g class="k-shadow"><rect class="k-alu" x="310" y="92" width="92" height="40" rx="5"/><rect class="k-yellow" x="338" y="62" width="36" height="30" rx="4"/><rect class="k-part" x="350" y="132" width="12" height="18"/></g>
+<path d="M346,150 l-6,14 M356,150 l0,16 M366,150 l6,14" fill="none" style="stroke:var(--k-line-2)" stroke-width="1.6" stroke-dasharray="3 2"/>
+<path d="M349,70 L349,60 A7,7 0 0 1 363,60 L363,70" fill="none" style="stroke:var(--k-line)" stroke-width="3.2"/>
+<rect x="345" y="70" width="22" height="20" rx="3" fill="#d32f2f" style="stroke:var(--k-line)" stroke-width="1.2"/><circle cx="356" cy="79" r="2.2" fill="#1f2328"/>
+<circle class="k-part" cx="450" cy="80" r="22"/><circle cx="450" cy="80" r="17" style="fill:var(--tb-surface)"/>
+<line x1="450" y1="80" x2="438" y2="90" style="stroke:var(--tb-bad)" stroke-width="2"/><text x="450" y="74" text-anchor="middle" font-size="9" style="fill:var(--tb-text)">0 MPa</text>
+<rect class="k-part" x="446" y="102" width="8" height="8"/>
+<text class="k-note" x="280" y="96">供給</text><text class="k-note" x="470" y="130">機械側</text>
+<text class="k-note" x="356" y="186" text-anchor="middle">閉じると下流を排気</text>
+<text class="k-note" x="450" y="54" text-anchor="middle">圧力計で確認</text>
+<text class="k-good-t" x="386" y="214" text-anchor="middle">遮断 → ロック → ゼロ確認</text>
+</svg>
+<p class="tb-caption">図: 断路器のハンドルは切位置で南京錠を掛けられる構造にし、作業者一人ひとりが自分の錠と札を掛ける。エアは元弁を閉じると下流の残圧を排気する弁にし、圧力計で 0 を確かめられるようにする</p>
 <h2>空圧回路の落とし穴</h2>
 <svg class="tb-chart" viewBox="0 0 520 254" role="img" aria-label="垂直シリンダの落下">
 <rect class="k-panel" x="8" y="8" width="244" height="238" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="238" rx="8"/>
@@ -538,6 +857,20 @@ ${NOTE}`,
   <li><b>5 ポート弁の中立位置</b>: クローズドセンタ (保持)、エキゾーストセンタ (排気)、プレッシャセンタのどれが安全かは、負荷の向きで変わる</li>
 </ul>
 
+<h3>例題 — 残圧の力とエネルギー</h3>
+<p>内径 50 mm のシリンダに、元弁を閉じた後もゲージ圧 0.5 MPa が閉じ込められているとします。</p>
+<ul>
+  <li>ピストンを押す力: F = p × A = 0.5 N/mm² × π × 25² mm² ≈ <b>982 N</b> (約 100 kgf)。継手を緩めた瞬間にロッドが動けば、指を押しつぶすのに十分な力です</li>
+  <li>配管とシリンダ内の閉じ込め空気が 0.5 L あるとき、等温膨張で取り出せる仕事は W = p₁V ln(p₁/p₀) ≈ 0.601 MPa × 0.5 L × ln(0.601/0.101) ≈ <b>約 540 J</b> (絶対圧で計算)。高さ 1 m から 55 kg の物を落とすのと同程度で、ホースが外れて暴れる原因になります</li>
+</ul>
+<p>比べると、インバータのコンデンサ 1 000 µF が DC 560 V に充電されていれば E = ½CV² = ½ × 0.001 × 560² ≈ <b>157 J</b>。いずれも「電源を切った」だけでは消えないエネルギーです。</p>
+<h3>よくある間違い</h3>
+<ul>
+  <li>電磁弁を OFF にしただけで「エアを切った」と考える (弁の下流に圧が残る、手動操作ボタンで動く)</li>
+  <li>残圧排気弁の排気口をふさぐ・サイレンサが目詰まりして、排気に時間がかかる</li>
+  <li>サーボの垂直軸を保持ブレーキだけで支えて下に入る (ブレーキの摩耗・油の付着で滑る)</li>
+</ul>
+
 <h2>電気の安全 (概要)</h2>
 <ul>
   <li><b>直接接触の保護</b>: 充電部を外郭 (IP2X 以上など) で覆う、扉を開けると主電源が切れる構造</li>
@@ -560,6 +893,10 @@ ${NOTE}`,
       {
         q: "質量 50 kg の昇降部が高さ 1.2 m の位置にあります。落下した場合の位置エネルギーを求め、保全時の対策を挙げてください (g = 9.8 m/s²)。",
         a: "E = mgh = 50 × 9.8 × 1.2 ≈ <b>588 J</b>。保全時は下降端まで下げる、または安全ブロック・機械式ロックで保持してから動力を遮断・残圧を排気します。保持ブレーキだけに頼らないようにします。",
+      },
+      {
+        q: "内径 63 mm のシリンダにゲージ圧 0.5 MPa の残圧があります。ロッドを押し出す力を求めてください。",
+        a: "A = π × 31.5² ≈ 3 117 mm²。F = 0.5 × 3 117 ≈ <b>1 559 N</b> (約 160 kgf)。継手を外す前に残圧排気弁で排気し、圧力計で 0 を確認します。",
       },
     ],
     quiz: [
@@ -632,6 +969,36 @@ ${NOTE}`,
   <li>言語: 使用国の言語。図記号を主にして文字を補う</li>
 </ul>
 
+<svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="警告ラベルを貼る位置">
+<text class="k-title" x="14" y="20">ラベルは「危険に近づく前に」見える位置へ</text>
+<rect class="k-ground" x="8" y="222" width="504" height="10"/><line class="k-edge" x1="8" y1="222" x2="512" y2="222"/>
+<g class="k-shadow">
+<rect class="k-part" x="40" y="70" width="210" height="152" rx="5"/>
+<rect class="k-part" x="250" y="150" width="200" height="14" rx="3"/>
+<rect class="k-part" x="270" y="164" width="8" height="58"/><rect class="k-part" x="426" y="164" width="8" height="58"/>
+</g>
+<circle class="k-part-h" cx="262" cy="157" r="9"/><circle class="k-part-h" cx="440" cy="157" r="9"/>
+<rect class="k-glass" x="60" y="84" width="120" height="80" rx="3"/>
+<rect class="k-hazard" x="40" y="206" width="210" height="8"/>
+<rect class="k-alu" x="196" y="96" width="40" height="60" rx="3"/>
+<g class="k-shadow"><polygon points="216,110.6 229.5,134 202.5,134" fill="#fbc02d" stroke="#222" stroke-width="2" stroke-linejoin="round"/><rect x="214.65" y="118.556" width="2.7" height="8.892000000000001" fill="#222"/><circle cx="216" cy="130.256" r="1.62" fill="#222"/><polygon points="262,121.8 272.5,140 251.5,140" fill="#fbc02d" stroke="#222" stroke-width="2" stroke-linejoin="round"/><rect x="260.95" y="127.988" width="2.0999999999999996" height="6.9159999999999995" fill="#222"/><circle cx="262" cy="137.088" r="1.26" fill="#222"/><polygon points="120,34.599999999999994 133.5,58 106.5,58" fill="#fbc02d" stroke="#222" stroke-width="2" stroke-linejoin="round"/><rect x="118.65" y="42.556" width="2.7" height="8.892000000000001" fill="#222"/><circle cx="120" cy="54.256" r="1.62" fill="#222"/></g>
+<line class="k-thin" x1="216" y1="134" x2="300" y2="96"/><text class="k-note" x="302" y="90">点検カバーの上</text>
+<line class="k-thin" x1="262" y1="128" x2="320" y2="122"/><text class="k-note" x="322" y="126">巻込み点の近く</text>
+<line class="k-thin" x1="134" y1="48" x2="196" y2="44"/><text class="k-note" x="198" y="48">遠くから見える上部</text>
+<g transform="translate(480 222)">
+<path class="k-person" d="M-12,-128 Q0,-134 12,-128 Q16,-126 16,-118 L15,-72 L11,-70 L10,-2 L2,0 L0,-60 L-2,0 L-10,-2 L-11,-70 L-15,-72 L-16,-118 Q-16,-126 -12,-128 Z"/>
+<circle class="k-skin" cx="0" cy="-142" r="11"/>
+</g>
+<path d="M470,82 L250,130" fill="none" style="stroke:var(--tb-accent)" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text class="k-note" x="420" y="200" text-anchor="middle">視線</text>
+</svg>
+<p class="tb-caption">図: ラベルは危険源の近くで、作業者の視線に入る位置へ。カバーを外したときに見える内側にも貼る (三角の図記号は説明用の一般的な警告マーク)</p>
+<h3>よくある間違い</h3>
+<ul>
+  <li>「注意」「危険」のシグナルワードを、ひどさではなく目立たせたい度合いで選ぶ</li>
+  <li>取扱説明書の警告を巻頭にまとめるだけで、該当する手順の中に置かない</li>
+  <li>設計変更でリスクが変わったのに、ラベル・取説を更新しない</li>
+</ul>
 <h2>機械に付ける情報 — 表示灯・信号</h2>
 <p>IEC 60204-1 の表示灯の色: <b>赤</b> = 非常 (直ちに対処)、<b>黄</b> = 異常 (監視・介入)、<b>青</b> = 指示 (操作が必要)、<b>緑</b> = 正常、<b>白</b> = 中立。起動前の警報音・回転灯 (自動起動する機械) も使用上の情報です。</p>
 
@@ -705,6 +1072,23 @@ ${NOTE}`,
   <li><b>変更管理</b>: 改造時は影響分析と再検証。立上げ時の「一時的な」バイパスを残さない</li>
 </ul>
 
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="安全ソフトウェアの V 字モデル">
+<g class="k-shadow">
+<rect class="k-panel" x="14" y="20" width="140" height="34" rx="6"/><rect class="k-panel" x="54" y="76" width="140" height="34" rx="6"/><rect class="k-panel" x="94" y="132" width="140" height="34" rx="6"/>
+<rect class="k-panel" x="366" y="20" width="140" height="34" rx="6"/><rect class="k-panel" x="326" y="76" width="140" height="34" rx="6"/><rect class="k-panel" x="286" y="132" width="140" height="34" rx="6"/>
+<rect class="k-panel" x="200" y="168" width="120" height="34" rx="6" style="stroke:var(--tb-accent)"/>
+</g>
+<text class="lbl" x="84" y="42" text-anchor="middle">安全要求仕様</text><text class="lbl" x="124" y="98" text-anchor="middle">ソフト設計</text><text class="lbl" x="164" y="154" text-anchor="middle">モジュール設計</text>
+<text class="lbl" x="260" y="190" text-anchor="middle">コーディング</text>
+<text class="lbl" x="436" y="42" text-anchor="middle">妥当性確認</text><text class="lbl" x="396" y="98" text-anchor="middle">結合テスト</text><text class="lbl" x="356" y="154" text-anchor="middle">単体テスト</text>
+<line class="k-move" x1="84" y1="56" x2="110" y2="74"/><line class="k-move" x1="124" y1="112" x2="150" y2="130"/><line class="k-move" x1="170" y1="168" x2="198" y2="182"/>
+<line class="k-move" x1="322" y1="182" x2="346" y2="168"/><line class="k-move" x1="370" y1="130" x2="394" y2="112"/><line class="k-move" x1="410" y1="74" x2="434" y2="56"/>
+<line class="k-hidden" x1="156" y1="37" x2="364" y2="37"/><line class="k-hidden" x1="196" y1="93" x2="324" y2="93"/><line class="k-hidden" x1="236" y1="149" x2="284" y2="149"/>
+<text class="k-note" x="260" y="31" text-anchor="middle">何を確かめるかを先に決める</text>
+</svg>
+<p class="tb-caption">図: 左側の各段階で、右側で使う試験の内容 (合格基準) を決めておく。各段階の成果物とレビュー記録が、系統的故障を防いだ証拠になる</p>
+<h3>例題 — 安全 PLC プログラムの変更</h3>
+<p>立上げ後、「扉が開いていても低速なら手動送りできる」ようにプログラムを変更したい、という依頼が来たとします。手順は (1) リスクアセスメントの更新 (低速で回避できるか、PLr は d か e か) → (2) 安全要求仕様の改訂 (速度の上限、イネーブル装置が必須) → (3) 変更箇所と影響範囲のレビュー → (4) 低速監視が上限を超えたら停止することを含む試験 → (5) チェックサムと版の記録、です。「1 行変えるだけ」でも V 字を小さく 1 周させます。</p>
 <h2>協働ロボットの安全 (ISO 10218 / ISO/TS 15066)</h2>
 <p>産業用ロボットは柵で囲うのが基本ですが、協働運転では人とロボットが同じ空間で作業します。ISO 10218 (2011 年版) は協働運転の 4 つの方式を挙げています (2025 年の改訂で構成や用語が整理されているので、適用版を確認してください)。</p>
 <table class="tb-table">
@@ -781,6 +1165,26 @@ ${NOTE}`,
   <tr><td>エアを抜いたら上昇していた治具が落下</td><td>重力負荷の保持をエア圧だけに頼っていた</td><td>機械式ロック、安全ブロック、保全時は下降端で作業する手順</td></tr>
   <tr><td>ライトカーテンを通過して中に入り、外から別の人が起動</td><td>内部に人が残っていることを検出できなかった</td><td>リセットボタンを危険区域全体が見える外側に配置、起動前の警報、内部のセーフティマット</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="コンベヤの詰まり除去の改善">
+<rect class="k-panel" x="8" y="8" width="250" height="198" rx="8"/><rect class="k-panel" x="262" y="8" width="250" height="198" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">運転中に手で除去</text>
+<circle class="k-badge" cx="282" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="282" y="32" text-anchor="middle">✓</text><text class="k-title" x="300" y="32">カバー + 外から除去</text>
+<g class="k-shadow"><rect class="k-rubber" x="30" y="120" width="200" height="14" rx="7"/><circle class="k-part-h" cx="38" cy="127" r="12"/><circle class="k-part-h" cx="222" cy="127" r="12"/><rect class="k-part" x="40" y="140" width="8" height="50"/><rect class="k-part" x="212" y="140" width="8" height="50"/>
+<rect class="k-alu" x="120" y="96" width="44" height="24" rx="2"/><rect class="k-alu" x="160" y="90" width="34" height="30" rx="2" transform="rotate(12 177 105)"/></g>
+<path class="k-force" d="M190,148 A14,14 0 0 0 214,148" stroke-width="2"/>
+<path d="M16,70 Q80,70 196,112" fill="none" style="stroke:var(--k-person-2)" stroke-width="11"/><circle class="k-skin" cx="198" cy="114" r="7"/>
+<text class="k-bad-t" x="133" y="196" text-anchor="middle">止めると再起動が面倒</text>
+<g class="k-shadow"><rect class="k-rubber" x="284" y="120" width="200" height="14" rx="7"/><circle class="k-part-h" cx="292" cy="127" r="12"/><circle class="k-part-h" cx="476" cy="127" r="12"/><rect class="k-part" x="294" y="140" width="8" height="50"/><rect class="k-part" x="466" y="140" width="8" height="50"/>
+<rect class="k-alu" x="374" y="96" width="44" height="24" rx="2"/></g>
+<path class="k-glass" d="M440,112 L440,92 Q440,82 452,82 L494,82 L494,146 L462,146 L462,112 Z"/>
+<rect class="k-yellow" x="494" y="92" width="10" height="16" rx="2"/>
+<rect class="k-part" x="300" y="64" width="80" height="6" rx="2"/><path d="M380,62 L388,72 L380,72" fill="none" style="stroke:var(--k-line)" stroke-width="2"/>
+<g class="k-shadow"><rect class="k-part" x="422" y="44" width="40" height="28" rx="4"/></g>
+<circle class="k-accent" cx="434" cy="58" r="6"/><circle class="k-yellow" cx="451" cy="58" r="8"/><circle class="k-estop" cx="451" cy="58" r="5"/>
+<text class="k-note" x="340" y="58" text-anchor="middle">除去用フック</text>
+<text class="k-good-t" x="387" y="196" text-anchor="middle">逆転は押している間だけ</text>
+</svg>
+<p class="tb-caption">図: 巻込み点 (プーリの入り側) はインターロックカバーで覆い、詰まりは外からフックや寸動逆転 (ホールド・トゥ・ラン) で取れるようにする。「止める手間」を減らすと無効化の動機も減る</p>
 <p>共通点: <b>人がガードを無効化するのは、安全装置が作業を妨げるとき</b>です。作業のしやすさと安全を両立させるのが設計者の仕事です。</p>
 <svg class="tb-chart" viewBox="0 0 520 184" role="img" aria-label="無効化の動機">
 <rect x="60" y="20" width="430" height="65" style="fill:var(--tb-bad)" opacity="0.07"/>
@@ -845,6 +1249,10 @@ ${NOTE}`,
       {
         q: "「段取りのたびにガードを開けるとインターロックで止まり、再起動に 3 分かかる」という現場の不満があります。ガードが無効化されないための設計改善を 3 つ挙げてください。",
         a: "例: ① ガードを開けたときは停止カテゴリ 1 で止め、閉じたら短時間で再開できる (原点復帰などが不要な) 制御にする。② 段取り用の監視付き低速モードとイネーブル装置を用意する。③ 段取り作業そのものを危険区域の外からできるようにする (外部からの調整機構、工具レスの交換)。④ 透明な窓で中が見えるようにする。",
+      },
+      {
+        q: "既設の機械に、検出能力 14 mm のライトカーテンを危険区域から 450 mm の位置に付けたいと考えています。装置と制御の応答の合計が 25 ms のとき、機械の停止時間は最大何 ms まで許されますか。",
+        a: "S = 2 000 × T ≤ 450 mm → T ≤ 0.225 s (S が 500 mm 以下の範囲なので K = 2 000 のまま)。機械の停止時間は 225 − 25 = <b>200 ms 以下</b>。劣化の余裕を見て、点検で停止時間がこの値に近づいたらブレーキを整備する基準を決めます。",
       },
     ],
     quiz: [
