@@ -66,6 +66,61 @@ export const DRAFTING: TextChapter[] = [
   <li><b>かくれ線の省略</b>: 理解を妨げない範囲でかくれ線は省略してよく、むしろ多すぎる破線は誤読のもとです</li>
 </ul>
 <div class="tb-note">対称図示記号の形は「中心線の両端に短い平行 2 本線」です。JIS と ISO 128 でほぼ共通ですが、古い図面では記号なしで中心線を延長しているものもあります。</div>
+<h2>良い例・悪い例 — 正面図の向きと図の数</h2>
+<p>上面に V 溝が通ったブロックを考えます。溝の<b>断面形が見える向き</b>を正面図にすれば 1 図で溝の形が伝わりますが、溝の長手方向から見た向きを選ぶと、溝はかくれ線 1 本になり「V 溝か角溝か」が判別できません。</p>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="V 溝ブロックの正面図の向きの良い例と悪い例">
+  <rect class="k-panel" x="8" y="8" width="244" height="204" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="204" rx="8"/>
+  <text class="k-bad-t" x="20" y="30">✕ 悪い例</text><text class="k-good-t" x="280" y="30">○ 良い例</text>
+  <rect x="86" y="70" width="72" height="84" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <line class="k-hidden" x1="86" y1="100" x2="158" y2="100"/>
+  <line class="k-center" x1="122" y1="62" x2="122" y2="162"/>
+  <text class="k-note" x="130" y="182" text-anchor="middle">溝はかくれ線 1 本だけ</text>
+  <text class="k-note" x="130" y="198" text-anchor="middle">V 溝? 角溝? 判別できない</text>
+  <g transform="translate(260,0)">
+    <path d="M26,154 H218 V70 H152 L122,100 L92,70 H26 Z" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+    <line class="k-center" x1="122" y1="58" x2="122" y2="162"/>
+    <text class="k-note" x="122" y="182" text-anchor="middle">溝の形が外形線で一目でわかる</text>
+    <text class="k-note" x="122" y="198" text-anchor="middle">かくれ線なし。奥行きは側面図 1 つで</text>
+  </g>
+</svg>
+<p class="tb-caption">図: 同じ部品でも正面図の向きで情報量が変わる。外形線 (太い実線) で特徴が見える向きを選ぶ。</p>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="丸棒を 2 図で描く悪い例と φ を使って 1 図で描く良い例">
+  <rect class="k-panel" x="8" y="8" width="244" height="184" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="184" rx="8"/>
+  <text class="k-bad-t" x="20" y="30">✕ 悪い例</text><text class="k-good-t" x="280" y="30">○ 良い例</text>
+  <rect x="30" y="80" width="120" height="40" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <line class="k-center" x1="22" y1="100" x2="158" y2="100"/>
+  <circle cx="200" cy="100" r="20" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/>
+  <path class="k-center" d="M174,100 H226 M200,74 V126"/>
+  <text class="k-note" x="130" y="160" text-anchor="middle">円を見せるためだけの側面図</text>
+  <text class="k-note" x="130" y="176" text-anchor="middle">図が増え、寸法も分散する</text>
+  <g transform="translate(260,0)">
+    <rect x="40" y="80" width="120" height="40" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+    <line class="k-center" x1="32" y1="100" x2="168" y2="100"/>
+    <path class="k-ext" d="M164,80 H196 M164,120 H196 M40,124 V150 M160,124 V150"/>
+    <line class="k-dimline" x1="188" y1="80" x2="188" y2="120"/><text class="k-dimtext" x="194" y="104">φ20</text>
+    <line class="k-dimline" x1="40" y1="144" x2="160" y2="144"/><text class="k-dimtext" x="100" y="139" text-anchor="middle">60</text>
+    <text class="k-note" x="122" y="176" text-anchor="middle">φ で円形を示せば正面図 1 つで足りる</text>
+  </g>
+</svg>
+<h2>図を選ぶ手順</h2>
+<ol class="tb-flow">
+  <li><b>機能と加工を確認</b>: どの面が組み付く面か、旋盤加工かフライス加工か、板金か</li>
+  <li><b>正面図の候補を 2〜3 個</b>挙げ、特徴の見え方・かくれ線の数・用紙への収まりを比べる</li>
+  <li>選んだ正面図に対し、<b>「この図がないと形が決まらないか」</b>を問いながら 1 図ずつ追加する</li>
+  <li>斜面・局所形状は補助投影図・局部投影図・部分拡大図で、<b>図全体を増やさずに</b>補う</li>
+  <li>寸法を仮置きして、<b>すべての寸法が外形線の見える図に入るか</b>を確認する (かくれ線に寸法を入れない)</li>
+  <li>最後に、寸法も情報も載っていない図があれば<b>削除</b>する</li>
+</ol>
+<h2>よくある間違い</h2>
+<table class="tb-table">
+  <tr><th>間違い</th><th>なぜ悪いか</th><th>直し方</th></tr>
+  <tr><td>どんな部品でも必ず三面図を描く</td><td>情報のない図が増え、寸法が散らばって読みにくい</td><td>φ・□・t・断面図で図を減らす</td></tr>
+  <tr><td>側面図が正面図とほぼ同じ形</td><td>読む人が違いを探して時間を使う</td><td>違いがなければ削除。違う部分だけ局部投影図に</td></tr>
+  <tr><td>補助投影図を通常の投影位置 (正面図の上など) に置く</td><td>斜面が縮んで実形にならない</td><td>斜面に<b>垂直な方向</b>に対向させて置く。無理なら矢示法</td></tr>
+  <tr><td>部分拡大図に尺度や識別文字がない</td><td>どこを何倍で描いたかわからない</td><td>「A 部 5:1」のように記号と尺度を必ず添える</td></tr>
+  <tr><td>用紙に収まらないので図を勝手な位置に移動</td><td>第三角法の配置が崩れ、投影方向を誤読される</td><td>矢示法 (矢印 + 文字) で見る方向を明示する</td></tr>
+</table>
+<div class="tb-note"><b>実務のコツ</b>: 迷ったら、加工者が<b>段取りする姿勢</b> (旋盤なら軸を水平、マシニングならテーブルに置いた姿勢) で正面図を描くと、図面と現物を見比べやすくなります。</div>
 <div class="tb-tip"><b>3DCAD Studio では</b>: 図面環境で<b>基準ビュー</b>を置いてから<b>投影ビュー</b>で必要な方向だけを追加します。細部は<b>詳細ビュー</b>、長い部品は<b>破断ビュー</b>で中間を省略でき、寸法はモデルの実寸のまま表示されます。</div>`,
     points: ["正面図は特徴・加工姿勢・かくれ線の少なさで選ぶ", "図は必要最小限。φ・t・断面図で図の数を減らす", "斜面は補助投影図、局所は局部投影図、斜めのアームは回転投影図", "対称図示記号・繰返し省略・破断で図を簡潔にし、寸法は実長で書く"],
     exercises: [
@@ -73,11 +128,21 @@ export const DRAFTING: TextChapter[] = [
         q: "長さ 1200 mm、直径 φ40 の丸棒の両端に同じ面取り C1 がある部品を、A4 横の用紙に描きます。どのような図にすればよいですか?",
         a: "軸線を水平にした<b>正面図 1 つ</b>で十分です (φ40 で円形とわかる)。全長が用紙に収まらないので<b>中間を破断線で省略</b>し、寸法は実長の <b>1200</b> を記入します。両端の面取りは同じなので「C1」を 1 か所に書き、「両端」と注記するか両端に記入します。",
       },
+      {
+        q: "上面に V 溝 (溝幅 30 mm、深さ 15 mm) が長手方向に通った 100×50×40 mm のブロックがあります。正面図の向きと、必要な図の数を答えてください。",
+        a: "溝の<b>断面形 (V 字) が外形線として見える向き</b>、つまり溝の長手方向から見た図を正面図にします。正面図で幅・高さ・V 溝の幅と深さが決まり、残る奥行き (100 または 50 のうち溝方向の長さ) は<b>側面図または平面図 1 つ</b>で示せます。合計 <b>2 図</b>が目安です。溝が長手方向に一様なら、奥行き寸法を正面図の近くに注記できる場合もあります。",
+      },
+      {
+        q: "水平面から 30° 傾いた斜面に φ10 の穴があります。通常の平面図 (真上から見た図) に現れる楕円の短径はいくらですか? また実形を示すにはどうしますか?",
+        a: "斜面の傾き方向の長さは cos30° 倍に縮んで見えるので、短径 = 10 × cos30° = 10 × 0.866 = <b>約 8.66 mm</b>、長径は 10 mm のままです。楕円は実形ではないので、斜面に<b>垂直な方向から見た補助投影図</b>を描き、そこで φ10 と位置寸法を記入します。",
+      },
     ],
     quiz: [
       { q: "斜面上の穴の実形を示すのに適した図は?", choices: ["回転投影図", "補助投影図", "部分断面図"], answer: 1, explain: "斜面に垂直な方向から見た補助投影図で実形が描けます。" },
       { q: "破断して短く描いた軸の全長寸法は?", choices: ["図上の長さを書く", "実際の長さを書く", "省略する"], answer: 1, explain: "破断で図を縮めても、寸法は常に実際の長さを記入します。" },
       { q: "対称図示記号の形は?", choices: ["中心線の両端に短い平行 2 本線", "中心線の中央に × 印", "中心線を二点鎖線にする"], answer: 0, explain: "中心線の両端に短い平行細線を 2 本付けて、片側を省略したことを示します。" },
+      { q: "正面図を選ぶときの考え方として不適切なものは?", choices: ["特徴が外形線で最もよく見える向きにする", "かくれ線ができるだけ少ない向きにする", "どの部品も必ず三面図にそろえる"], answer: 2, explain: "図は必要最小限にします。φ や t の記号で 1〜2 図に減らせる部品は多くあります。" },
+      { q: "部分拡大図に必ず添えるものは?", choices: ["識別文字と尺度", "材料記号", "表面処理の指示"], answer: 0, explain: "「A 部 5:1」のように、元の位置を示す文字と拡大の尺度を添えます。" },
     ],
     lessons: ["6-1", "0-6"],
   },
@@ -138,6 +203,56 @@ export const DRAFTING: TextChapter[] = [
   <tr><td>部品の一部分</td><td>リブ、アーム、車のスポーク、歯車の歯</td></tr>
 </table>
 <p>例えばリブを縦に切ってハッチングすると、厚い壁に見えてしまいます。リブを切らずに描くことで「薄い補強板」であることが伝わります。</p>
+<h2>良い例・悪い例 — 切断しないもの</h2>
+<p>軸・ブシュ・ハウジングの組立断面で、軸まで切ってしまうと「中空のパイプ」に見え、同じ向きのハッチングでは部品の境目がわかりません。</p>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="軸とブシュの断面ハッチングの良い例と悪い例">
+  <rect class="k-panel" x="8" y="8" width="244" height="194" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="194" rx="8"/>
+  <text class="k-bad-t" x="20" y="30">✕ 悪い例</text><text class="k-good-t" x="280" y="30">○ 良い例</text>
+  <rect class="k-cut" x="60" y="50" width="130" height="30" style="stroke-width:2.2"/><rect class="k-cut" x="60" y="140" width="130" height="30" style="stroke-width:2.2"/>
+  <rect class="k-cut" x="60" y="80" width="130" height="15" style="stroke-width:2.2"/><rect class="k-cut" x="60" y="125" width="130" height="15" style="stroke-width:2.2"/>
+  <rect class="k-cut" x="30" y="95" width="190" height="30" style="stroke-width:2.2"/>
+  <line class="k-center" x1="22" y1="110" x2="228" y2="110"/>
+  <text class="k-note" x="130" y="186" text-anchor="middle">軸を切断 + ブシュとハウジングが同じ向き</text>
+  <g transform="translate(260,0)">
+    <rect class="k-cut" x="60" y="50" width="130" height="30" style="stroke-width:2.2"/><rect class="k-cut" x="60" y="140" width="130" height="30" style="stroke-width:2.2"/>
+    <rect class="k-cut2" x="60" y="80" width="130" height="15" style="stroke-width:2.2"/><rect class="k-cut2" x="60" y="125" width="130" height="15" style="stroke-width:2.2"/>
+    <rect x="30" y="95" width="190" height="30" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+    <line class="k-center" x1="22" y1="110" x2="228" y2="110"/>
+    <text class="k-note" x="122" y="186" text-anchor="middle">軸は切らない・隣接部品はハッチングの向きを変える</text>
+  </g>
+</svg>
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="リブを切断した悪い例と切断しない良い例">
+  <rect class="k-panel" x="8" y="8" width="244" height="184" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="184" rx="8"/>
+  <text class="k-bad-t" x="20" y="30">✕ 悪い例</text><text class="k-good-t" x="280" y="30">○ 良い例</text>
+  <path class="k-cut" d="M40,50 H60 V150 H220 V170 H40 Z" style="stroke-width:2.2"/>
+  <path class="k-cut" d="M60,80 V150 H170 Z" style="stroke-width:2.2"/>
+  <text class="k-note" x="130" y="192" text-anchor="middle" dy="-6">リブが厚い壁のように見える</text>
+  <g transform="translate(260,0)">
+    <path class="k-cut" d="M40,50 H60 V150 H220 V170 H40 Z" style="stroke-width:2.2"/>
+    <path d="M60,80 L170,150 H60 Z" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+    <text class="k-note" x="122" y="186" text-anchor="middle">リブは外形のまま。薄い補強板と伝わる</text>
+  </g>
+</svg>
+<h2>断面図を作る手順</h2>
+<ol class="tb-flow">
+  <li><b>何を見せたいか</b>を決める (段付き穴の深さ、肉厚、キー溝の形など)</li>
+  <li><b>切断位置</b>を決める。原則は対称面や穴の中心を通る面</li>
+  <li>見せたい範囲に応じて<b>断面の種類</b> (全断面・片側・部分・組合せ) を選ぶ</li>
+  <li>必要なら<b>切断線・矢印・記号 (A–A)</b> を記入する</li>
+  <li>切り口にハッチングを施し、<b>切り口の奥に見える稜線 (穴の縁・段の線) も外形線で描く</b></li>
+  <li>軸・ボルト・リブなど<b>切断しないもの</b>を外形に戻す</li>
+  <li>断面でわかるようになった<b>かくれ線を消す</b></li>
+</ol>
+<h2>よくある間違い</h2>
+<table class="tb-table">
+  <tr><th>間違い</th><th>直し方</th></tr>
+  <tr><td>切り口だけ描き、奥に見える穴の縁や段の線を描き忘れる</td><td>切断面より奥にある見える線は外形線で必ず描く</td></tr>
+  <tr><td>穴 (空間) の部分にもハッチングを入れる</td><td>ハッチングは材料のある切り口だけ</td></tr>
+  <tr><td>階段断面の断面図に、切断面の折れ目の線を描く</td><td>折れ目は断面図には描かない (切断線側で示す)</td></tr>
+  <tr><td>45° のハッチングが外形線と平行・直角になって紛らわしい</td><td>30° や 60° など角度を変える</td></tr>
+  <tr><td>断面図の中に、かくれ線を大量に残す</td><td>理解に必要なものだけ残す</td></tr>
+</table>
+<div class="tb-note"><b>実務のコツ</b>: 回転図示断面を図形の<b>中に重ねて</b>描くときは、断面の外形を<b>細い実線</b>で描きます。図形の外 (切断線の延長上など) に描くときは通常どおり太い実線です。</div>
 <div class="tb-tip"><b>3DCAD Studio では</b>: 図面環境の<b>断面ビュー</b>で切断線を引くと A–A 断面とハッチングが自動で作られます。キー溝など局所だけ見せたいときは<b>部分断面 (ブレークアウト) ビュー</b>を使います。</div>`,
     points: ["全断面・片側断面・部分断面・回転図示断面・組合せ断面・多数の断面を使い分ける", "切断線は細い一点鎖線 (端部・曲がり角を太く) + 矢印 + 記号", "ハッチングは 45° 細線、同一部品は同じ向き・間隔、隣接部品は変える", "軸・ピン・ボルト・キー・リブ・歯車の歯などは長手方向に切断しない"],
     exercises: [
@@ -145,11 +260,21 @@ export const DRAFTING: TextChapter[] = [
         q: "フランジ付きの円筒ハウジング (上下左右対称) で、外側のボルト穴配置と内側の段付き穴を 1 つの図で示したいとき、どの断面図が適していますか? また外形側のかくれ線はどうしますか?",
         a: "<b>片側断面図</b>が適しています。中心線の片側を外形、もう片側を断面として、外形と内部を同時に示します。内部は断面側で読めるので、外形側の<b>かくれ線は原則として描きません</b>。",
       },
+      {
+        q: "長方形の板に、φ8 の通し穴と φ12 の止まり穴が、互いに 20 mm ずれた平行な 2 列に並んでいます。両方の穴の深さを 1 つの断面図で示すにはどうしますか?",
+        a: "2 つの穴の中心を通る<b>平行な 2 平面をつないだ階段断面 (組合せ断面)</b> にします。切断線は細い一点鎖線で、<b>端部と折れ曲がり部を太く</b>し、両端に矢印と記号 (A–A) を付けます。断面図では折れ目の線は描かず、1 つの平面で切ったように描きます。",
+      },
+      {
+        q: "外形が 45° 傾いた部品の断面に 45° のハッチングを施すと、ハッチング線が外形線と平行になってしまいます。どうすればよいですか?",
+        a: "外形線と紛らわしくならないよう、ハッチングの角度を<b>30° や 60° などに変えます</b>。同じ部品のほかの断面も、同じ角度・間隔にそろえます。",
+      },
     ],
     quiz: [
       { q: "断面図で長手方向に切断しないものは?", choices: ["ハウジングの壁", "リブ", "パイプ"], answer: 1, explain: "リブ・アーム・歯車の歯・軸・ボルトなどは切断せずに描きます。" },
       { q: "隣り合う 2 部品の断面のハッチングは?", choices: ["同じ向き・間隔にする", "向きか間隔を変える", "片方だけハッチングする"], answer: 1, explain: "隣接部品は向きや間隔を変えて区別します。" },
       { q: "平行な 2 つの平面で切る組合せ断面を何という?", choices: ["階段断面", "回転図示断面", "部分断面"], answer: 0, explain: "平行な切断面を階段状につないだものを階段断面と呼びます。" },
+      { q: "断面図で、切断面より奥に見える穴の縁の線はどう描く?", choices: ["描かない", "外形線 (太い実線) で描く", "かくれ線で描く"], answer: 1, explain: "切り口の奥に見える稜線は外形線で描きます。描き忘れは典型的な間違いです。" },
+      { q: "回転図示断面を図形の中に重ねて描くときの断面の外形線は?", choices: ["細い実線", "太い実線", "細い破線"], answer: 0, explain: "図形内に重ねる場合は細い実線で描き、元の外形と区別します。" },
     ],
     lessons: ["6-1"],
   },
@@ -234,6 +359,53 @@ export const DRAFTING: TextChapter[] = [
   <tr><td>[50] (枠囲み)</td><td><b>理論的に正確な寸法 (TED)</b>: 位置度などの幾何公差の基準となる公差のない寸法。ばらつきは幾何公差で規制する</td></tr>
   <tr><td>50 (下線)</td><td>尺度どおりに描かれていない寸法 (非比例寸法)</td></tr>
 </table>
+<h2>良い例・悪い例 — 寸法の置き方</h2>
+<svg class="tb-chart" viewBox="0 0 520 226" role="img" aria-label="段付きブロックの寸法記入の悪い例と良い例">
+  <rect class="k-panel" x="8" y="8" width="244" height="210" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="210" rx="8"/>
+  <text class="k-bad-t" x="20" y="30">✕ 悪い例</text><text class="k-good-t" x="280" y="30">○ 良い例</text>
+  <path d="M40,170 H200 V140 H110 V110 H40 Z" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <path class="k-ext" d="M40,174 V210 M110,174 V196 M200,174 V210"/>
+  <line class="k-dimline" x1="40" y1="190" x2="110" y2="190"/><text class="k-dimtext" x="75" y="186" text-anchor="middle">35</text>
+  <line class="k-dimline" x1="110" y1="190" x2="200" y2="190"/><text class="k-dimtext" x="155" y="186" text-anchor="middle">45</text>
+  <line class="k-dimline" x1="40" y1="206" x2="200" y2="206"/><text class="k-dimtext" x="120" y="202" text-anchor="middle">80</text>
+  <line class="k-dimline" x1="70" y1="110" x2="70" y2="170"/><text class="k-dimtext" x="76" y="144">30</text>
+  <line class="k-dimline" x1="160" y1="140" x2="160" y2="170"/><text class="k-dimtext" x="166" y="160">15</text>
+  <circle class="k-badge" cx="222" cy="198" r="9" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="222" y="202" text-anchor="middle">1</text>
+  <circle class="k-badge" cx="98" cy="128" r="9" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="98" y="132" text-anchor="middle">2</text>
+  <text class="k-note" x="20" y="54">1: 35 + 45 = 80 の重複 (閉じた寸法)</text>
+  <text class="k-note" x="20" y="70">2: 寸法が図形の中に入っている</text>
+  <g transform="translate(260,0)">
+    <path d="M40,170 H200 V140 H110 V110 H40 Z" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+    <path class="k-ext" d="M40,174 V210 M110,114 V194 M200,174 V210"/>
+    <line class="k-dimline" x1="40" y1="188" x2="110" y2="188"/><text class="k-dimtext" x="75" y="184" text-anchor="middle">35</text>
+    <line class="k-dimline" x1="40" y1="206" x2="200" y2="206"/><text class="k-dimtext" x="120" y="202" text-anchor="middle">80</text>
+    <path class="k-ext" d="M36,110 H16 M36,170 H16 M204,140 H226 M204,170 H226"/>
+    <line class="k-dimline" x1="22" y1="110" x2="22" y2="170"/><text class="k-dimtext" x="26" y="104">30</text>
+    <line class="k-dimline" x1="218" y1="140" x2="218" y2="170"/><text class="k-dimtext" x="208" y="132">15</text>
+    <text class="k-note" x="20" y="54">左端を基準に 35 と 80。45 は書かない</text>
+    <text class="k-note" x="20" y="70">寸法は図の外、小さい寸法ほど内側</text>
+  </g>
+</svg>
+<p class="tb-caption">図: 3 つの寸法で閉じた鎖を作ると、どれを優先して加工・検査すればよいか決まらない。必要なら 1 つを参考寸法「(45)」にする。</p>
+<h2>寸法を記入する手順</h2>
+<ol class="tb-flow">
+  <li><b>基準 (加工基準・組立基準)</b> を決める。合わせ面・穴の中心・軸の端面など</li>
+  <li>相手部品と関係する<b>機能寸法</b>を、基準から<b>直接</b>記入し、必要な公差を付ける</li>
+  <li>加工に必要な残りの寸法 (段・溝・面取り) を、加工の順番で測りやすいように記入する</li>
+  <li><b>全体寸法</b> (全長・全幅・全高) を外側に記入する</li>
+  <li>重複・不足をチェックする。<b>すべての形状が一意に決まり、同じ寸法が 2 か所にない</b>こと</li>
+</ol>
+<h2>よくある間違い</h2>
+<table class="tb-table">
+  <tr><th>間違い</th><th>直し方</th></tr>
+  <tr><td>寸法が閉じた鎖になる (重複寸法)</td><td>重要度の低い 1 つを省くか参考寸法 ( ) にする</td></tr>
+  <tr><td>かくれ線に寸法を入れる</td><td>その形状が外形線で見える図 (断面図など) に入れる</td></tr>
+  <tr><td>寸法線どうし・寸法線と寸法補助線が交差する</td><td>小さい寸法を内側、大きい寸法を外側に並べる</td></tr>
+  <tr><td>外形線や中心線を寸法線の代わりに使う</td><td>寸法線は必ず専用の細い実線で引く (中心線は寸法補助線には使える)</td></tr>
+  <tr><td>測れない点 (丸み部の仮想交点など) から寸法を取り、補助線がない</td><td>仮想交点を細い実線で示すか、測れる面から寸法を取る</td></tr>
+  <tr><td>同じ形状の寸法が複数の図に散らばる</td><td>1 つの形状の寸法は、なるべく 1 つの図にまとめる</td></tr>
+</table>
+<div class="tb-note"><b>実務のコツ</b>: 寸法を記入し終えたら「<b>この図面だけで、ノギスを持った人が全部検査できるか</b>」を想像してみましょう。測る起点が見えない寸法や、計算しないと出ない寸法は書き直しのサインです。</div>
 <div class="tb-tip"><b>3DCAD Studio では</b>: <b>並列/直列/座標寸法スタイル</b>を切り替えられ、穴は<b>穴注記</b>でキリ・座ぐり・深さを一括記入、穴の多い板は<b>穴テーブル</b>で座標を表にできます。<b>自動寸法</b>で下書きしてから、機能に合わせて基準を整えましょう。</div>`,
     points: ["φ R SR □ C t ⌒ などの寸法補助記号で図を減らす", "直列寸法は公差が累積、並列・累進・座標寸法は累積しない", "穴は個数・径・加工法 (キリ・リーマ・座ぐり・深ざぐり・皿) を指示", "参考寸法 ( ) は検査外、理論的に正確な寸法 [ ] は幾何公差の基準"],
     exercises: [
@@ -245,11 +417,17 @@ export const DRAFTING: TextChapter[] = [
         q: "穴の間隔 30・35・35 mm を直列寸法で記入し、各寸法に ±0.1 の公差を付けました。両端の穴の距離 (100 mm) は最大でどれだけずれる可能性がありますか? 並列寸法ならどうなりますか?",
         a: "直列では公差が累積し、最大 ±0.1 × 3 = <b>±0.3 mm</b>。並列寸法で左端から 100 ± 0.1 と記入すれば <b>±0.1 mm</b> に収まります。両端の距離が機能上重要なら並列 (または累進) 寸法にします。",
       },
+      {
+        q: "全長 80 mm の段付きブロックに、左端から段まで 35 mm と全長 80 mm が記入されています。段から右端までの長さ 45 mm も参考として示したいとき、どう書きますか?",
+        a: "<b>(45)</b> と括弧付きの<b>参考寸法</b>にします。35 と 80 だけで形は決まっているので、45 を普通の寸法で書くと重複 (閉じた寸法) になり、どの寸法を優先して加工・検査するかがあいまいになります。",
+      },
     ],
     quiz: [
       { q: "「(50)」と括弧付きで書かれた寸法の意味は?", choices: ["理論的に正確な寸法", "参考寸法", "重要寸法"], answer: 1, explain: "括弧付きは参考寸法で、公差は適用せず検査対象にもなりません。" },
       { q: "公差が累積しやすい寸法記入のスタイルは?", choices: ["直列寸法", "並列寸法", "累進寸法"], answer: 0, explain: "直列寸法では各寸法の公差が足し合わさります。" },
       { q: "「C2」の意味は?", choices: ["半径 2 mm の丸み", "2 mm × 45° の面取り", "板厚 2 mm"], answer: 1, explain: "C は 45° 面取りで、C2 は面取り長さ 2 mm です。" },
+      { q: "寸法線の代わりに使ってよいものは?", choices: ["外形線", "中心線", "どちらも使ってはいけない"], answer: 2, explain: "寸法線は専用の細い実線で引きます。中心線は寸法補助線としては使えますが、寸法線の代用はできません。" },
+      { q: "並べて記入する平行な寸法の配置として正しいのは?", choices: ["小さい寸法を内側、大きい寸法を外側", "大きい寸法を内側", "交互に並べる"], answer: 0, explain: "小さい寸法を図形に近く、大きい寸法を外側に置くと寸法補助線が寸法線と交差しません。" },
     ],
     lessons: ["0-6", "6-1"],
   },
@@ -324,6 +502,48 @@ export const DRAFTING: TextChapter[] = [
   <tr><td>残しては<b>ならない</b></td><td>× 付きの記号</td></tr>
 </table>
 <div class="tb-note">センタ穴の図示記号の細かな形は JIS B 0041 (ISO 6411 対応) を参照してください。古い図面では「センタ穴 両端」などの文字指示も見られます。</div>
+<h2>良い例・悪い例 — おねじの描き方</h2>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="おねじの略画法の悪い例と良い例">
+  <rect class="k-panel" x="8" y="8" width="244" height="194" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="194" rx="8"/>
+  <text class="k-bad-t" x="20" y="30">✕ 悪い例</text><text class="k-good-t" x="280" y="30">○ 良い例</text>
+  <path d="M20,80 H154 L160,86 V134 L154,140 H20 Z" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <line class="k-edge" x1="20" y1="88" x2="160" y2="88" style="stroke-width:2.2"/><line class="k-edge" x1="20" y1="132" x2="160" y2="132" style="stroke-width:2.2"/>
+  <line class="k-center" x1="12" y1="110" x2="168" y2="110"/>
+  <circle cx="205" cy="110" r="30" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/><circle class="k-thin" cx="205" cy="110" r="22"/>
+  <path class="k-center" d="M171,110 H239 M205,76 V144"/>
+  <text class="k-note" x="20" y="168">谷径が太線、ねじ部の終わりが不明</text>
+  <text class="k-note" x="20" y="184">端面の谷径を全円で描いている</text>
+  <g transform="translate(260,0)">
+    <path d="M20,80 H154 L160,86 V134 L154,140 H20 Z" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+    <line class="k-thin" x1="80" y1="88" x2="160" y2="88"/><line class="k-thin" x1="80" y1="132" x2="160" y2="132"/>
+    <line class="k-edge" x1="80" y1="80" x2="80" y2="140" style="stroke-width:2.2"/>
+    <line class="k-center" x1="12" y1="110" x2="168" y2="110"/>
+    <circle cx="205" cy="110" r="30" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/>
+    <path class="k-thin" d="M227,110 A22,22 0 1 1 205,88"/>
+    <path class="k-center" d="M171,110 H239 M205,76 V144"/>
+    <text class="k-note" x="20" y="168">山 = 太線、谷 = 細線、終わり = 太線</text>
+    <text class="k-note" x="20" y="184">端面の谷径は 3/4 の細線円</text>
+  </g>
+</svg>
+<h2>めねじ (止まり穴) を描く手順</h2>
+<ol class="tb-flow">
+  <li>呼び径とピッチから<b>下穴径</b>を決める (並目の目安: M6→φ5、M8→φ6.8、M10→φ8.5、M12→φ10.2)</li>
+  <li><b>ねじ深さ</b> (有効に使う長さ) を決め、下穴は不完全ねじ部ぶん<b>深く</b>する</li>
+  <li>断面図で、下穴の壁 (谷ではなく<b>内径 = 山の頂</b>) を太線、谷径 (呼び径) を細線で描く</li>
+  <li>ねじ部の終わりを太線、下穴の先端をドリル先端角に合わせて <b>120° の円すい</b>で描く (実際の 118° を簡略化)</li>
+  <li>ハッチングは<b>下穴の壁 (太線) まで</b>施す</li>
+  <li>寸法は「M8 ↧12」「φ6.8 ↧16」のように、ねじ深さと下穴深さを区別して記入する</li>
+</ol>
+<h2>よくある間違い</h2>
+<table class="tb-table">
+  <tr><th>間違い</th><th>正しくは</th></tr>
+  <tr><td>おねじの谷径を太線で描く</td><td>おねじは外径 (山の頂) が太線、谷径が細線</td></tr>
+  <tr><td>めねじで呼び径を太線、内径を細線にする (おねじと同じ感覚)</td><td>めねじは<b>内径 (山の頂) が太線</b>、呼び径 (谷) が細線</td></tr>
+  <tr><td>めねじのハッチングを谷径の細線まで入れる</td><td>ハッチングは太線 (山の頂) まで</td></tr>
+  <tr><td>ねじ深さと下穴深さを同じにする</td><td>下穴は不完全ねじ部と切りくずの逃げの分だけ深くする</td></tr>
+  <tr><td>細目ねじなのにピッチを省略 (M10 と書く)</td><td>細目は M10×1.25 のようにピッチを必ず書く。省略すると並目と解釈される</td></tr>
+</table>
+<div class="tb-note"><b>実務のコツ</b>: 止まりのめねじは、通し穴よりタップ折れや切りくず詰まりが起きやすい加工です。可能なら<b>通し穴</b>にする、<b>ねじ深さを呼び径の 1.5〜2 倍程度</b>にとどめる (鋼の場合の目安) など、加工しやすさも図面で配慮しましょう。</div>
 <div class="tb-tip"><b>3DCAD Studio では</b>: <b>ねじフィーチャ</b>で作ったねじ穴・おねじは、図面上で JIS B 0002 の略画法 (谷径の細線・約 3/4 円) で自動的に描かれ、<b>穴注記</b>で M10×1.25-6H のような呼びを記入できます。</div>`,
     points: ["ねじは山の頂を太線、谷を細線、端面の谷径は約 3/4 円", "M10×1.25-6H: 細目ピッチは必須、大文字はめねじ・小文字はおねじ", "歯車: 歯先円 太線、ピッチ円 一点鎖線、歯底円 細線。詳細は要目表", "ばねは無荷重状態、軸受は簡略図示 + 呼び番号、センタ穴は残す/可/不可を指示"],
     exercises: [
@@ -331,11 +551,17 @@ export const DRAFTING: TextChapter[] = [
         q: "モジュール m = 2、歯数 z = 30 の標準平歯車の、ピッチ円直径・歯先円直径・歯底円直径を求め、それぞれの線の種類を答えてください。",
         a: "ピッチ円 d = 2 × 30 = <b>60 mm</b> (細い一点鎖線)。歯先円 da = 2 × (30 + 2) = <b>64 mm</b> (太い実線)。歯底円 df = 2 × (30 − 2.5) = <b>55 mm</b> (細い実線)。",
       },
+      {
+        q: "鋼製ブロックに M8 (並目、ピッチ 1.25) の止まりねじ穴を、ねじ深さ 12 mm で加工します。下穴径と下穴深さの目安、図面への記入例を答えてください。",
+        a: "下穴径は 8 − 1.25 = <b>φ6.8</b>。不完全ねじ部 (約 2〜3 ピッチ = 2.5〜3.75 mm) と余裕を見て、下穴深さは<b>約 16 mm</b> とします。記入例: <b>M8 ↧12 / 下穴 φ6.8 ↧16</b>。断面図では、下穴の壁 (φ6.8 相当) を太線、呼び径 (M8) を細線、ねじ部の終わりを太線で描き、穴の先端は 120° の円すいで描きます。",
+      },
     ],
     quiz: [
       { q: "おねじの谷径を表す線は?", choices: ["太い実線", "細い実線", "細い破線"], answer: 1, explain: "谷径は細い実線、山の頂 (外径) は太い実線です。" },
       { q: "「M12」と書かれたねじのピッチは?", choices: ["並目のピッチ (1.75 mm)", "細目のピッチ (1.25 mm)", "指定なし (任意)"], answer: 0, explain: "並目ねじはピッチを省略します。M12 並目のピッチは 1.75 mm です。" },
       { q: "歯車のピッチ円の線は?", choices: ["太い実線", "細い一点鎖線", "細い二点鎖線"], answer: 1, explain: "ピッチ円は細い一点鎖線で描きます。" },
+      { q: "おねじの不完全ねじ部との境界 (ねじ部の終わり) を表す線は?", choices: ["細い実線", "太い実線", "細い一点鎖線"], answer: 1, explain: "完全ねじ部の終わりは太い実線で示します。" },
+      { q: "M10 並目 (ピッチ 1.5) の下穴径の目安は?", choices: ["φ8.5", "φ9.0", "φ10.0"], answer: 0, explain: "下穴径の目安は呼び径 − ピッチ = 10 − 1.5 = 8.5 mm です。" },
     ],
     lessons: ["6-1", "3-2"],
   },
@@ -405,6 +631,60 @@ export const DRAFTING: TextChapter[] = [
   <li><b>現場溶接</b>: 矢と基線の交点に<b>旗</b> (工場ではなく据付現場で溶接)</li>
   <li>表面形状 (平ら・凸・へこみ) や仕上げ方法 (グラインダなど) も補助記号で指示できる</li>
 </ul>
+<h2>矢の側・反対側・両側を図で確かめる</h2>
+<p>同じ T 継手、同じ矢でも、記号を基線の<b>下</b>に書くか<b>上</b>に書くかで溶接する側が変わります。矢が指す側の面を「矢の側」と呼びます。</p>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="隅肉溶接記号の位置と溶接する側の対応">
+  <rect class="k-panel" x="8" y="8" width="160" height="204" rx="8"/><rect class="k-panel" x="180" y="8" width="160" height="204" rx="8"/><rect class="k-panel" x="352" y="8" width="160" height="204" rx="8"/>
+  <text class="k-title" x="20" y="30">基線の下 = 矢の側</text><text class="k-title" x="192" y="30">基線の上 = 反対側</text><text class="k-title" x="364" y="30">上下両方 = 両側</text>
+  <g transform="translate(8,0)">
+    <rect x="20" y="150" width="120" height="14" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="2.2"/>
+    <rect x="74" y="92" width="12" height="58" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="2.2"/>
+    <path class="k-accent" d="M74,150 H62 L74,138 Z"/>
+    <line class="k-edge" x1="8" y1="60" x2="62" y2="60"/>
+    <path class="k-edge" d="M62,60 L71,142" style="marker-end:url(#k-arrow)"/>
+    <path class="k-edge" d="M30,60 V72 L42,60"/><text class="k-dimtext" x="16" y="74">6</text>
+  </g>
+  <g transform="translate(180,0)">
+    <rect x="20" y="150" width="120" height="14" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="2.2"/>
+    <rect x="74" y="92" width="12" height="58" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="2.2"/>
+    <path class="k-accent" d="M86,150 H98 L86,138 Z"/>
+    <line class="k-edge" x1="8" y1="60" x2="62" y2="60"/>
+    <path class="k-edge" d="M62,60 L71,142" style="marker-end:url(#k-arrow)"/>
+    <path class="k-edge" d="M30,60 V48 L42,60"/><text class="k-dimtext" x="16" y="56">6</text>
+  </g>
+  <g transform="translate(352,0)">
+    <rect x="20" y="150" width="120" height="14" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="2.2"/>
+    <rect x="74" y="92" width="12" height="58" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="2.2"/>
+    <path class="k-accent" d="M74,150 H62 L74,138 Z"/>
+    <path class="k-accent" d="M86,150 H98 L86,138 Z"/>
+    <line class="k-edge" x1="8" y1="60" x2="62" y2="60"/>
+    <path class="k-edge" d="M62,60 L71,142" style="marker-end:url(#k-arrow)"/>
+    <path class="k-edge" d="M30,60 V72 L42,60"/><text class="k-dimtext" x="16" y="74">6</text>
+    <path class="k-edge" d="M30,60 V48 L42,60"/><text class="k-dimtext" x="16" y="56">6</text>
+  </g>
+  <text class="k-note" x="88" y="200" text-anchor="middle">矢の当たる左の隅を溶接</text>
+  <text class="k-note" x="260" y="200" text-anchor="middle">矢と反対の右の隅を溶接</text>
+  <text class="k-note" x="432" y="200" text-anchor="middle">左右両方の隅を溶接</text>
+</svg>
+<p class="tb-caption">図: 脚長 6 mm の隅肉溶接 (塗りつぶし部が溶接ビード)。記号の直角三角形は、垂直な辺を常に左に描く。</p>
+<h2>溶接記号を読む手順</h2>
+<ol class="tb-flow">
+  <li><b>矢</b>がどの継手のどちらの面を指しているかを確認する</li>
+  <li>記号が基線の<b>下 (矢の側)・上 (反対側)・両方</b>のどれかを見る</li>
+  <li><b>基本記号</b>で溶接の種類 (隅肉・V 形・レ形など) を読む</li>
+  <li>記号の<b>左</b>の数値 (脚長・開先深さ) と<b>右</b>の数値 (長さ・ピッチ) を読む</li>
+  <li><b>補助記号</b> (全周・現場溶接・仕上げ) と、尾に書かれた溶接方法などの指示を読む</li>
+</ol>
+<h2>よくある間違い</h2>
+<table class="tb-table">
+  <tr><th>間違い</th><th>防ぐには</th></tr>
+  <tr><td>破線の識別線を併用する ISO 2553 方式の図と JIS の図を混同して上下を逆に読む</td><td>図面がどの規格・方式で描かれているかを最初に確認する</td></tr>
+  <tr><td>両側溶接なのに片側にしか記号を書かない</td><td>両側は基線の上下に記号を対称に書く</td></tr>
+  <tr><td>脚長とのど厚を混同する</td><td>記号の左の数値は通常<b>脚長</b>。強度計算は<b>のど厚 ≒ 0.7 × 脚長</b>で行う</td></tr>
+  <tr><td>レ形開先で、開先をとらない側の部材を矢で指す</td><td>レ形・J 形では、矢は<b>開先をとる部材</b>を指す (必要なら矢を折る)</td></tr>
+  <tr><td>全周記号 (矢と基線の交点の丸) を見落とし、一部だけ溶接する</td><td>交点の丸と旗 (現場溶接) を必ず確認する</td></tr>
+</table>
+<div class="tb-note"><b>実務のコツ</b>: 溶接量は脚長の 2 乗に比例して増え、ひずみも大きくなります。必要以上の脚長 (「念のため 10 mm」など) は避け、強度計算で決めた値を書きましょう。</div>
 <div class="tb-tip"><b>3DCAD Studio では</b>: 図面環境の<b>溶接記号</b>で基線・矢・尾、基本記号、脚長・長さ、全周・現場溶接の補助記号を配置できます。上下の位置で意味が変わるので、配置後に矢の側を必ず確認しましょう。</div>`,
     points: ["溶接記号は矢・基線・尾で構成", "JIS では基線の下 = 矢の側、上 = 反対側", "隅肉は左に脚長 (のど厚は a)、右に長さ。のど厚 ≈ 0.7 × 脚長", "全周は円、現場溶接は旗。断続溶接の表記は JIS の版で異なる"],
     exercises: [
@@ -412,11 +692,17 @@ export const DRAFTING: TextChapter[] = [
         q: "脚長 8 mm の等脚隅肉溶接を長さ 100 mm 施工します。理論のど厚と、のど断面積 (強度計算に使う面積) を求めてください。",
         a: "のど厚 a = 8 × cos45° ≈ 8 × 0.707 ≈ <b>5.66 mm</b>。のど断面積 = 5.66 × 100 ≈ <b>566 mm²</b> です。",
       },
+      {
+        q: "T 継手を両側隅肉溶接 (脚長 6 mm、溶接長さ 200 mm) します。有効のど断面積はいくらですか? 許容せん断応力を 80 N/mm² とすると、許容できるせん断荷重はいくらですか? (端部の減少は無視)",
+        a: "のど厚 a = 0.7 × 6 = <b>4.2 mm</b>。両側なので有効のど断面積 A = 2 × 4.2 × 200 = <b>1680 mm²</b>。許容荷重 P = 80 × 1680 = 134400 N ≒ <b>134 kN</b>。図面では隅肉記号を基線の上下両方に書き、左に 6、右に 200 を記入します。",
+      },
     ],
     quiz: [
       { q: "JIS Z 3021 で、隅肉記号が基線の上側に書かれていたら?", choices: ["矢の側を溶接", "矢の反対側を溶接", "両側を溶接"], answer: 1, explain: "基線の上側は矢の反対側、下側は矢の側です。" },
       { q: "矢と基線の交点に旗が付いている意味は?", choices: ["全周溶接", "現場溶接", "仕上げ指示"], answer: 1, explain: "旗は現場溶接、円は全周溶接です。" },
       { q: "隅肉記号の左側に書く数値は?", choices: ["溶接長さ", "脚長", "ピッチ"], answer: 1, explain: "左に脚長 (またはのど厚)、右に長さを書きます。" },
+      { q: "レ形開先溶接の記号で、矢が指すべき部材は?", choices: ["開先をとる部材", "開先をとらない部材", "どちらでもよい"], answer: 0, explain: "レ形・J 形では、矢は開先加工する部材を指します (矢を折って示すこともある)。" },
+      { q: "隅肉溶接記号の直角三角形の描き方として正しいのは?", choices: ["垂直な辺を常に左にする", "矢の向きに合わせて左右を変える", "垂直な辺を常に右にする"], answer: 0, explain: "隅肉記号は垂直な辺を左側に描くのが決まりです。" },
     ],
     lessons: ["0-6"],
   },
@@ -490,6 +776,55 @@ export const DRAFTING: TextChapter[] = [
   <tr><td>三次元測定機 (CMM)</td><td>位置度・輪郭度などほぼすべて</td><td>点群からデータム系を数学的に構築し、公差域と比較。プログラムで繰返し測定</td></tr>
   <tr><td>機能ゲージ</td><td>Ⓜ 付きの位置度</td><td>MMC の仮想サイズのピンを並べたゲージに入れば合格</td></tr>
 </table>
+<h2>良い例・悪い例 — 穴位置の指示</h2>
+<svg class="tb-chart" viewBox="0 0 520 226" role="img" aria-label="座標公差による穴位置指示と位置度による指示の比較">
+  <rect class="k-panel" x="8" y="8" width="244" height="210" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="210" rx="8"/>
+  <text class="k-bad-t" x="20" y="30">✕ 悪い例</text><text class="k-good-t" x="280" y="30">○ 良い例</text>
+  <rect x="40" y="60" width="160" height="100" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+  <circle cx="100" cy="110" r="12" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/><path class="k-center" d="M84,110 H116 M100,94 V126"/>
+  <path class="k-ext" d="M40,164 V190 M100,126 V190 M36,160 H14 M84,110 H14"/>
+  <line class="k-dimline" x1="40" y1="184" x2="100" y2="184"/><text class="k-dimtext" x="70" y="179" text-anchor="middle">30±0.1</text>
+  <line class="k-dimline" x1="20" y1="110" x2="20" y2="160"/><text class="k-dimtext" x="24" y="104">25±0.1</text>
+  <text class="k-note" x="20" y="44">基準面があいまい・公差域が正方形</text>
+  <text class="k-note" x="110" y="204" text-anchor="middle">対角方向は ±0.14 まで許され、方向で不公平</text>
+  <g transform="translate(260,0)">
+    <rect x="40" y="60" width="160" height="100" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+    <circle cx="100" cy="110" r="12" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/><path class="k-center" d="M84,110 H116 M100,94 V126"/>
+    <path class="k-ext" d="M40,164 V190 M100,126 V190 M36,160 H8 M84,110 H8"/>
+    <line class="k-dimline" x1="40" y1="184" x2="100" y2="184"/><rect x="61" y="168" width="18" height="14" fill="none" style="stroke:var(--k-dim)"/><text class="k-dimtext" x="70" y="179" text-anchor="middle">30</text>
+    <line class="k-dimline" x1="14" y1="110" x2="14" y2="160"/><rect x="17" y="128" width="18" height="14" fill="none" style="stroke:var(--k-dim)"/><text class="k-dimtext" x="26" y="139" text-anchor="middle">25</text>
+    <rect x="120" y="22" width="108" height="16" fill="none" style="stroke:var(--k-line)" stroke-width="1.2"/>
+    <path d="M138,22 V38 M178,22 V38 M196,22 V38 M212,22 V38" style="stroke:var(--k-line)" stroke-width="1.2"/>
+    <circle cx="129" cy="30" r="4.5" fill="none" style="stroke:var(--k-line)" stroke-width="1.2"/><path d="M122,30 H136 M129,23 V37" style="stroke:var(--k-line)" stroke-width="1.2"/>
+    <text class="lbl" x="158" y="34" text-anchor="middle">φ0.2</text><text class="lbl" x="187" y="34" text-anchor="middle">A</text><text class="lbl" x="204" y="34" text-anchor="middle">B</text><text class="lbl" x="220" y="34" text-anchor="middle">C</text>
+    <path class="k-ext" d="M126,38 L109,101" style="marker-end:url(#k-dim)"/>
+    <path d="M40,82 L40,94 L32,88 Z" style="fill:var(--k-line)"/><line class="k-ext" x1="32" y1="88" x2="26" y2="88" style="stroke:var(--k-line)"/>
+    <rect x="12" y="80" width="14" height="16" fill="none" style="stroke:var(--k-line)" stroke-width="1.2"/><text class="lbl" x="19" y="92" text-anchor="middle">B</text>
+    <path d="M154,160 L166,160 L160,168 Z" style="fill:var(--k-line)"/><line class="k-ext" x1="160" y1="168" x2="160" y2="174" style="stroke:var(--k-line)"/>
+    <rect x="153" y="174" width="14" height="16" fill="none" style="stroke:var(--k-line)" stroke-width="1.2"/><text class="lbl" x="160" y="186" text-anchor="middle">C</text>
+    <text class="k-note" x="40" y="54">A = 裏面 (取付面)</text>
+    <text class="k-note" x="122" y="204" text-anchor="middle">枠付き寸法 + 位置度で φ0.2 の円筒公差域</text>
+  </g>
+</svg>
+<p class="tb-caption">図: 右は理論的に正確な寸法 (枠付き) で理想位置を決め、データム A→B→C の順に部品を固定して位置度 φ0.2 で検査する。</p>
+<h2>幾何公差を付ける手順</h2>
+<ol class="tb-flow">
+  <li>部品が相手部品と<b>どの面で位置決めされるか</b>を調べ、その順にデータム A・B・C を決める</li>
+  <li>データムになる面に<b>データム三角記号</b>を付ける (第 1 次データムには平面度など形状公差も検討)</li>
+  <li>機能上の要求 (はまる・平行に動く・直角に立つ) ごとに、<b>公差特性</b>を 1 つ選ぶ</li>
+  <li>位置を規制する形体には、<b>理論的に正確な寸法 (枠付き)</b> で理想位置を示す</li>
+  <li>公差値を<b>組立条件の計算</b> (例: 浮動締結の式) から決め、必要なら Ⓜ を付ける</li>
+  <li>測定方法 (定盤・三次元測定機・機能ゲージ) で検査できるかを確認する</li>
+</ol>
+<h2>よくある間違い</h2>
+<table class="tb-table">
+  <tr><th>間違い</th><th>何が起きるか / 正しくは</th></tr>
+  <tr><td>データム三角記号を寸法線の延長上に付けたのに、面を意図していた</td><td>寸法線の延長上は<b>軸線・中心平面</b>がデータムになる。面を指すなら寸法線から明確にずらす</td></tr>
+  <tr><td>公差記入枠の矢を寸法線とずらして穴の外形に当てた</td><td>面 (外形) の規制になる。軸線を規制するなら矢を寸法線の延長上に</td></tr>
+  <tr><td>位置度を付けたのに、位置寸法を ± 付きのまま残す</td><td>位置寸法は枠付き (TED) にし、公差は位置度だけで与える</td></tr>
+  <tr><td>データムの順番を考えずに A・B・C を付ける</td><td>測定時の固定順が変わり、合否が変わる。組立の順に合わせる</td></tr>
+  <tr><td>すべての面に厳しい幾何公差を付ける</td><td>測定工数とコストが増える。機能に必要な所だけに</td></tr>
+</table>
 <div class="tb-tip"><b>3DCAD Studio では</b>: 図面環境の<b>データム</b>で A・B・C を指定し、<b>幾何公差</b>で記号・公差値・Ⓜ・データム参照を入力します。位置度の基準寸法は理論的に正確な寸法 (枠囲み) にしましょう。</div>`,
     points: ["データム三平面体系: 第 1 次 3 点、第 2 次 2 点、第 3 次 1 点で 6 自由度を拘束", "公差値に φ → 円筒の公差域、なし → 平行 2 平面", "Ⓜ: 穴が MMC (最小径) から大きくなった分だけ位置度にボーナス", "浮動締結の穴の位置度 T = H − F (穴最小径 − ボルト最大径)"],
     exercises: [
@@ -501,11 +836,17 @@ export const DRAFTING: TextChapter[] = [
         q: "位置度 φ0.4 (円形公差域) と、X・Y それぞれ ±0.2 (正方形公差域) では、どちらの公差域が広いですか? また、正方形の対角線と同じ直径の円の面積は正方形の何倍ですか?",
         a: "±0.2 の正方形は 1 辺 0.4 で面積 0.16 mm²、φ0.4 の円は π × 0.2² ≈ <b>0.126 mm²</b> で、正方形の方が広い (ただし角の方向には中心から最大 0.283 ずれる)。正方形の対角線 0.566 を直径とする円は π × 0.283² ≈ 0.251 mm² で、<b>約 1.57 倍</b>です。組立機能 (どの方向にも同じすき間) に合うのは円形公差域です。",
       },
+      {
+        q: "穴 φ10 <sup>+0.2</sup><sub>0</sub> に「位置度 φ0.2 Ⓜ A B C」が指示されています。仕上がった穴径が φ10.15 のとき、許される位置度はいくらですか? 穴径が φ10.20 (最大) ならどうですか?",
+        a: "穴の最大実体寸法 (MMC) は最小径の φ10.00。Ⓜ が付いているので、MMC から離れた分がボーナス公差になります。φ10.15 のとき: 0.2 + (10.15 − 10.00) = <b>φ0.35</b>。φ10.20 のとき: 0.2 + 0.20 = <b>φ0.40</b>。穴が大きいほどボルトとのすき間が増えるので、位置ずれを多く許しても組立は保証されます。",
+      },
     ],
     quiz: [
       { q: "穴の最大実体状態 (MMC) は?", choices: ["穴径が最大のとき", "穴径が最小のとき", "穴が理想位置にあるとき"], answer: 1, explain: "材料が最も多い = 穴が最も小さい状態が穴の MMC です。" },
       { q: "第 1 次データム面は何点で接触して支える?", choices: ["1 点", "2 点", "3 点"], answer: 2, explain: "第 1 次は 3 点、第 2 次は 2 点、第 3 次は 1 点です。" },
       { q: "穴最小径 φ6.6、ボルト最大径 φ6.0 の浮動締結で、各穴の位置度は?", choices: ["φ0.3", "φ0.6", "φ1.2"], answer: 1, explain: "T = H − F = 6.6 − 6.0 = φ0.6 です。" },
+      { q: "データム三角記号を寸法線の延長上に付けた場合、データムになるのは?", choices: ["その形体の表面", "その形体の軸線または中心平面", "図面全体の外形"], answer: 1, explain: "寸法線の延長上に置くと中心 (軸線・中心平面) がデータムになります。面を指すときは寸法線からずらします。" },
+      { q: "位置度で穴位置を規制するとき、位置を表す寸法の書き方は?", choices: ["± 公差付きで書く", "枠で囲んだ理論的に正確な寸法で書く", "括弧付きの参考寸法で書く"], answer: 1, explain: "理想位置は枠付きの寸法 (TED) で示し、ばらつきは位置度の公差だけで与えます。" },
     ],
     lessons: ["6-1", "0-6"],
   },
@@ -568,6 +909,95 @@ export const DRAFTING: TextChapter[] = [
   <line class="k-hidden" x1="370" y1="40" x2="410" y2="40"/><text class="k-note" x="418" y="44">かくれ線</text>
   <line class="k-center" x1="370" y1="62" x2="410" y2="62"/><text class="k-note" x="418" y="66">中心線</text>
 </svg>
+<h2>総合演習 — 部品図を 1 枚読み切る</h2>
+<p>実際の部品図は、形・寸法・公差・表面性状・注記・表題欄が 1 枚に重なっています。次の「取付板」の部品図を、上の読図の手順どおりに読んでみましょう。</p>
+<svg class="tb-chart" viewBox="0 0 520 452" role="img" aria-label="取付板の部品図 (A–A 断面図、正面図、寸法、公差、表面性状、表題欄)">
+  <g transform="translate(20,0)">
+    <text class="k-title" x="140" y="96" text-anchor="middle">A–A</text>
+    <path class="k-cut" d="M60,130 H73.4 V141 H69 V154 H60 Z" style="stroke-width:2.2"/>
+    <path class="k-cut" d="M86.6,130 H120 V154 H91 V141 H86.6 Z" style="stroke-width:2.2"/>
+    <path class="k-cut" d="M160,130 H193.4 V141 H189 V154 H160 Z" style="stroke-width:2.2"/>
+    <path class="k-cut" d="M206.6,130 H220 V154 H211 V141 H206.6 Z" style="stroke-width:2.2"/>
+    <path class="k-center" d="M80,122 V162 M140,122 V162 M200,122 V162"/>
+    <path class="k-edge" d="M90,120 L96,130 L108,108 H136 M90,120 H101.5" style="stroke-width:1.2"/><text class="lbl" x="110" y="119">Ra 3.2</text>
+    <path d="M208,130 L220,130 L214,122 Z" style="fill:var(--k-line)"/><line x1="214" y1="122" x2="214" y2="112" style="stroke:var(--k-line)" stroke-width="1"/>
+    <rect x="206" y="96" width="16" height="16" style="fill:none;stroke:var(--k-line)" stroke-width="1.2"/><text class="lbl" x="214" y="108" text-anchor="middle">A</text>
+    <rect x="0" y="92" width="48" height="16" style="fill:none;stroke:var(--k-line)" stroke-width="1.2"/><line x1="20" y1="92" x2="20" y2="108" style="stroke:var(--k-line)" stroke-width="1.2"/>
+    <path d="M4,104 L8,96 H17 L13,104 Z" style="fill:none;stroke:var(--k-line)" stroke-width="1.2"/><text class="lbl" x="34" y="104" text-anchor="middle">0.02</text>
+    <path class="k-ext" d="M24,108 L64,130" style="marker-end:url(#k-dim)"/>
+    <path class="k-ext" d="M224,130 H244 M224,154 H244"/><line class="k-dimline" x1="238" y1="130" x2="238" y2="154"/><text class="k-dimtext" x="244" y="146">12</text>
+    <path class="k-ext" d="M104,190 L91,154" style="marker-end:url(#k-dim)"/><path class="k-ext" d="M104,190 H214"/>
+    <text class="k-dimtext" x="106" y="186">2×φ6.6 ⌴φ11 ↧6.5</text>
+    <rect x="60" y="220" width="160" height="100" style="stroke-width:2.2;fill:var(--tb-surface)" class="k-edge"/>
+    <circle cx="140" cy="270" r="20" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/>
+    <circle cx="80" cy="270" r="6.6" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/><circle cx="80" cy="270" r="11" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/>
+    <circle cx="200" cy="270" r="6.6" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/><circle cx="200" cy="270" r="11" fill="none" style="stroke:var(--k-line)" stroke-width="2.2"/>
+    <path class="k-center" d="M52,270 H228 M80,252 V288 M200,252 V288 M140,244 V296"/>
+    <path d="M44,270 H54 M226,270 H236" style="stroke:var(--k-line)" stroke-width="2.4"/>
+    <path class="k-edge" d="M49,250 V266" style="marker-end:url(#k-arrow)"/><path class="k-edge" d="M231,250 V266" style="marker-end:url(#k-arrow)"/>
+    <text class="k-title" x="38" y="258" text-anchor="middle">A</text><text class="k-title" x="242" y="258" text-anchor="middle">A</text>
+    <path class="k-ext" d="M224,220 H264 M224,320 H264 M232,270 H246"/>
+    <line class="k-dimline" x1="242" y1="270" x2="242" y2="320"/><text class="k-dimtext" x="236" y="300" text-anchor="end">25</text>
+    <line class="k-dimline" x1="258" y1="220" x2="258" y2="320"/><text class="k-dimtext" x="264" y="274">50</text>
+    <path class="k-ext" d="M80,324 V346 M200,324 V346 M60,324 V366 M220,324 V366"/>
+    <line class="k-dimline" x1="80" y1="342" x2="200" y2="342"/><text class="k-dimtext" x="140" y="337" text-anchor="middle">60±0.1</text>
+    <line class="k-dimline" x1="60" y1="362" x2="220" y2="362"/><text class="k-dimtext" x="140" y="357" text-anchor="middle">80</text>
+    <path class="k-ext" d="M270,196 L154.1,255.9" style="marker-end:url(#k-dim)"/><path class="k-ext" d="M270,196 H366"/>
+    <text class="k-dimtext" x="274" y="192">φ20H7</text>
+    <path class="k-edge" d="M320,186 L326,196 L338,174 H366 M320,186 H331.5" style="stroke-width:1.2"/><text class="lbl" x="340" y="185">Ra 1.6</text>
+    <rect x="272" y="200" width="74" height="16" style="fill:none;stroke:var(--k-line)" stroke-width="1.2"/><path d="M290,200 V216 M330,200 V216" style="fill:none;stroke:var(--k-line)" stroke-width="1.2"/>
+    <path d="M276,212 H286 M281,212 V203" style="fill:none;stroke:var(--k-line)" stroke-width="1.2"/><text class="lbl" x="310" y="212" text-anchor="middle">φ0.02</text><text class="lbl" x="338" y="212" text-anchor="middle">A</text>
+  </g>
+  <path class="k-edge" d="M316,286 L322,296 L334,274 H362 M316,286 H327.5" style="stroke-width:1.2"/><text class="lbl" x="336" y="285">Ra 6.3</text>
+  <text class="lbl" x="366" y="292">(</text><path class="k-edge" d="M372,280 L375,286 L382,272 M372,280 H378" style="stroke-width:1.1"/><text class="lbl" x="386" y="292">)</text>
+  <text class="k-note" x="398" y="292">指示以外の面</text>
+  <text class="k-title" x="306" y="320">注記</text>
+  <text class="lbl" x="306" y="338">1. 指示なき角は C0.5</text>
+  <text class="lbl" x="306" y="354">2. 全面バリ取りのこと</text>
+  <text class="lbl" x="306" y="370">3. 寸法単位は mm</text>
+  <rect x="8" y="384" width="504" height="60" style="fill:none;stroke:var(--k-line)" stroke-width="1.2"/><path d="M8,404 H512 M8,424 H512 M64,384 V444 M180,384 V444 M226,384 V444 M330,384 V444 M376,384 V444" style="fill:none;stroke:var(--k-line)" stroke-width="1.2"/><text class="k-note" x="13" y="398">品名</text><text class="lbl" x="69" y="398">取付板</text><text class="k-note" x="185" y="398">図番</text><text class="lbl" x="231" y="398">TB-0412</text><text class="k-note" x="335" y="398">尺度</text><text class="lbl" x="381" y="398">1:1</text><text class="k-note" x="13" y="418">材料</text><text class="lbl" x="69" y="418">S45C</text><text class="k-note" x="185" y="418">数量</text><text class="lbl" x="231" y="418">2</text><text class="k-note" x="335" y="418">投影法</text><text class="lbl" x="381" y="418">第三角法</text><text class="k-note" x="13" y="438">普通公差</text><text class="lbl" x="69" y="438">JIS B 0405-m</text><text class="k-note" x="185" y="438">設計</text><text class="lbl" x="231" y="438">山田</text><text class="k-note" x="335" y="438">日付</text><text class="lbl" x="381" y="438">2026-10-01</text>
+</svg>
+<p class="tb-caption">図: 取付板の部品図 (第三角法)。上が A–A 断面図、下が正面図。φ20H7 の穴にピン状の軸がはまり、2 本の M6 六角穴付きボルトで相手部品の面 A に固定される想定。</p>
+<h3>ステップ 1 — 表題欄と注記</h3>
+<ul>
+  <li>品名「取付板」、図番 TB-0412、材料 <b>S45C</b> (機械構造用炭素鋼)、数量 2、尺度 1:1</li>
+  <li>投影法は<b>第三角法</b> → 正面図の上にある図は「上から見た図」の位置。ここでは A–A 断面図が置かれている</li>
+  <li>普通公差 <b>JIS B 0405-m</b> → 公差を書いていない長さ寸法はこの等級で許容差が決まる</li>
+  <li>注記: 指示なき角は C0.5、バリ取り、単位 mm</li>
+</ul>
+<h3>ステップ 2 — 図の対応と形</h3>
+<ul>
+  <li>正面図の切断線 A–A は水平の中心線上にあり、両端の矢は<b>下向き</b> → 上半分を取り除き、上から見下ろした断面が A–A 断面図</li>
+  <li>正面図: 80×50 の長方形の板。中央に大きな円 1 つ、左右に<b>二重円</b>の穴が 2 つ</li>
+  <li>A–A 断面図: 板厚方向の断面。中央の穴は板を貫通 (通し穴)。左右の穴は下側 (正面図を見ている側) が広い → <b>座ぐり穴</b>。二重円の外側の円は座ぐり径とわかる</li>
+  <li>→ 立体: <b>80×50×12 の板の中央に貫通穴、両側に表から座ぐった取付穴が 2 つ</b></li>
+</ul>
+<h3>ステップ 3 — 寸法</h3>
+<table class="tb-table">
+  <tr><th>寸法</th><th>意味</th><th>許容範囲</th></tr>
+  <tr><td>80 / 50</td><td>外形の幅 / 高さ (普通公差 m: 30 を超え 120 以下は ±0.3)</td><td>79.7〜80.3 / 49.7〜50.3</td></tr>
+  <tr><td>12</td><td>板厚 (普通公差 m: 6 を超え 30 以下は ±0.2)</td><td>11.8〜12.2</td></tr>
+  <tr><td>25</td><td>下端から穴列の中心まで (±0.2)。穴はすべて同じ水平中心線上</td><td>24.8〜25.2</td></tr>
+  <tr><td>60±0.1</td><td>取付穴 2 つの中心距離。相手のねじ穴と合わせるので個別に公差</td><td>59.9〜60.1</td></tr>
+  <tr><td>φ20H7</td><td>中央の穴。はめあい記号 H7 (18 を超え 30 以下: 0〜+0.021)</td><td>φ20.000〜φ20.021</td></tr>
+  <tr><td>2×φ6.6 ⌴φ11 ↧6.5</td><td>M6 ボルト用のきり穴 φ6.6 を 2 か所、φ11 で深さ 6.5 の座ぐり</td><td>普通公差 (座ぐり深さ 6.5 は ±0.2)</td></tr>
+</table>
+<p>中央の穴は左右対称の位置にありますが、左端からの位置寸法は書かれていません。中心線が外形の対称軸に一致するように描かれ、取付穴の 60 も対称に配置されているので、「全体の中央」と読みます。疑わしいときは設計者に確認するのが原則です。</p>
+<h3>ステップ 4 — 幾何公差と表面性状 (重要な面を見つける)</h3>
+<ul>
+  <li><b>データム A</b> = A–A 断面図の上側の面 = 座ぐりと反対側の<b>裏面 (取付面)</b>。平面度 0.02 で平らさも規制</li>
+  <li>φ20H7 の穴に<b>直角度 φ0.02 (データム A)</b> → 穴の軸線は、取付面に垂直な直径 0.02 mm の円筒内に入ること。軸が傾かずに立つための要求</li>
+  <li>表面性状: φ20H7 の穴は <b>Ra 1.6</b> (はめあい面、リーマ・中ぐり仕上げ相当)、取付面は <b>Ra 3.2</b> (フライス仕上げ相当)、それ以外は一括指示 <b>Ra 6.3</b></li>
+  <li>→ この部品の機能上の急所は「<b>取付面 A</b>」と「<b>φ20H7 の穴</b>」。加工・検査はこの 2 つを中心に組み立てる</li>
+</ul>
+<h3>ステップ 5 — 加工・検査を想像する</h3>
+<ol>
+  <li>素材を外形 80×50、板厚 12 にフライス加工。<b>取付面 A を先に仕上げ</b>、これを基準に段取りする</li>
+  <li>A 面を下にしてテーブルに置き、取付穴 φ6.6・座ぐり φ11 と、中央穴の下穴をあける</li>
+  <li>中央穴を<b>リーマまたは中ぐり</b>で φ20H7・Ra 1.6 に仕上げる (直角度は同じ段取りで加工すると得やすい)</li>
+  <li>検査: 栓ゲージで φ20H7 (通り側 φ20.000 が入り、止まり側 φ20.021 が入らない)、定盤とダイヤルゲージで平面度、A 面を定盤に置いて穴に入れたピンの倒れで直角度、ノギスで 60±0.1</li>
+</ol>
+<div class="tb-note"><b>読図のコツ</b>: 公差・幾何公差・細かい Ra が集中している所が、その部品の<b>「機能の急所」</b>です。逆に、普通公差だけの寸法は多少ずれても機能に影響しない寸法、と設計者が判断したことを意味します。</div>
 <div class="tb-tip"><b>3DCAD Studio では</b>: 練習として、自分で立体をモデリングし、図面環境で<b>基準ビュー</b>と<b>投影ビュー</b>を配置して三面図と比べてみましょう。完成した図面は<b>表題欄・改訂表</b>を入れて <b>PDF/DXF/SVG 出力</b>できます。</div>`,
     points: ["表題欄 → 投影法 → 図の配置 → 形 → 寸法 → 公差・表面性状 → 注記の順に読む", "最初に投影法記号を確認する (第三角法 / 第一角法)", "寸法は書かれた数値だけを読み、図から測らない", "改訂欄・参考寸法・溶接記号の上下など読み違いやすい点を意識する"],
     exercises: [
@@ -579,11 +1009,21 @@ export const DRAFTING: TextChapter[] = [
         q: "練習問題 2 の三面図はどのような立体ですか?",
         a: "<b>上下に貫通する丸穴のある直方体</b>です。平面図の円が穴 (中心線付き)、正面図と右側面図の上から下まで通るかくれ線が穴の側面を表し、穴が底まで貫通していることがわかります。止まり穴なら破線は途中で止まり、底に横の破線が現れます。",
       },
+      {
+        q: "総合演習の取付板で、φ20H7 の穴の許容範囲と、それを検査する栓ゲージの通り側・止まり側の寸法を答えてください。",
+        a: "H7 は 18 を超え 30 以下の範囲で下の許容差 0、上の許容差 +0.021 mm なので、<b>φ20.000〜φ20.021</b>。栓ゲージは<b>通り側 φ20.000</b> (最小寸法) が入り、<b>止まり側 φ20.021</b> (最大寸法) が入らなければ合格です。",
+      },
+      {
+        q: "総合演習の取付板で、外形 80・板厚 12・座ぐり深さ 6.5 の許容範囲を、普通公差 JIS B 0405-m から求めてください。",
+        a: "m 級の許容差: 6 を超え 30 以下 → ±0.2、30 を超え 120 以下 → ±0.3。よって外形 80 は <b>79.7〜80.3</b>、板厚 12 は <b>11.8〜12.2</b>、座ぐり深さ 6.5 は <b>6.3〜6.7</b> です。",
+      },
     ],
     quiz: [
       { q: "読図で最初に確認すべきものは?", choices: ["細部の寸法", "表題欄と投影法", "表面性状"], answer: 1, explain: "表題欄 (材料・尺度・普通公差など) と投影法を確認してから図を読みます。" },
       { q: "第三角法で平面図が置かれる位置は?", choices: ["正面図の上", "正面図の下", "正面図の右"], answer: 0, explain: "第三角法では平面図は正面図の上、右側面図は右に置きます。" },
       { q: "貫通穴を正面から見たときのかくれ線は?", choices: ["上面から底面まで通る", "途中で止まる", "描かれない"], answer: 0, explain: "貫通穴の側面は上から下まで通る破線になります。" },
+      { q: "総合演習の図面で「⊥ φ0.02 A」が規制しているものは?", choices: ["φ20 穴の直径のばらつき", "φ20 穴の軸線の、取付面 A に対する直角度", "取付面 A の平面度"], answer: 1, explain: "直角度の記入枠が φ20H7 の寸法に付いているので、穴の軸線がデータム A に垂直な φ0.02 の円筒内にあることを求めています。" },
+      { q: "切断線の両端の矢が下を向いている A–A 断面図は、どの方向から見た断面?", choices: ["下から見上げた断面", "上から見下ろした断面", "右から見た断面"], answer: 1, explain: "矢は見る方向を示します。下向きの矢 = 上から見下ろした断面で、第三角法では正面図の上に置かれます。" },
     ],
     lessons: ["6-1", "0-6"],
   },

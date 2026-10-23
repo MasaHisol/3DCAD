@@ -212,4 +212,13 @@ export const TEXTBOOK_TITLES: Record<string, string> = {
   "servo-sizing": "サーボモーター選定の計算",
   "pneumatic-sizing": "空気圧機器の選定",
   "plc-sequence": "シーケンス制御と PLC の基礎",
+  "surface-texture": "表面性状の図示",
+  "general-tolerance": "普通公差と寸法の決め方",
+  "sketch-drawing": "フリーハンドスケッチと実測図",
+  "design-brief": "デザインブリーフと企画",
+  "industrial-design-cad": "意匠 CAD モデリングの実践",
+  "packaging-ux": "パッケージと開封体験",
+  "design-calc-practice": "設計計算の進め方",
+  "frame-design": "装置フレームの設計",
+  "fmea-design": "設計 FMEA の実践",
 };
