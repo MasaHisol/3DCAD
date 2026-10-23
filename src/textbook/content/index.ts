@@ -37,6 +37,9 @@ import { KNOWHOW4 } from "./knowhow4";
 import { SAFETY3 } from "./safety3";
 import { IP } from "./ip";
 import { HMI } from "./hmi";
+import { EQUIPMENT } from "./equipment";
+import { EQUIPMENT2 } from "./equipment2";
+import { EQUIPMENT3 } from "./equipment3";
 
 export const PARTS: Part[] = [
   { id: "cad2d", title: "第 1 部 2D CAD 初級〜上級", desc: "座標と入力、作図・編集、拘束と寸法、線種と画層、図面の作図手順、幾何作図、接線、標準化、レイアウト設計、データ交換、図面管理", color: "#0891b2" },
@@ -50,11 +53,12 @@ export const PARTS: Part[] = [
   { id: "design", title: "第 9 部 デザイン・意匠", desc: "形と比率、CMF、ユーザ中心設計、サステナブル、デザインの進め方、スケッチ、造形と面、色彩、デザイン言語、意匠権、デザインレビュー、デザインブリーフ、意匠 CAD モデリング、パッケージと開封体験、意匠登録の実務", color: "#9333ea" },
   { id: "ux", title: "第 10 部 人間工学・UX", desc: "人の感覚と情報処理、人体寸法、操作具、ターゲットの大きさ (フィッツの法則)、表示とサイン、UI/UX の原則、ヒューマンエラー、フィードバック、操作パネルの UX、ユニバーサル・インクルーシブデザイン、作業負担、UX リサーチと指標、操作盤の設計、HMI 画面の設計、機械の状態表示", color: "#db2777" },
   { id: "service", title: "第 11 部 配線・メンテナンスを考えた設計", desc: "配線設計、ケーブルベア、制御盤の配置、コネクタ、保全性、点検・給油、防塵防水 (IP)、保守のための情報", color: "#65a30d" },
+  { id: "equipment", title: "第 12 部 装置設計 (産業・R&D・量産)", desc: "装置設計の全体像、仕様書、工程とサイクルタイム、コストと日程、購入品選定、R&D 装置、調整機構、計測設計、特殊環境、量産装置と稼働率、自動搬送、チョコ停対策、立上げと受入、装置データの活用", color: "#c2410c" },
 ];
 
 /** Reading order. The review chapter closes the know-how part. */
 const knowhow = [...KNOWHOW3.filter((c) => c.id === "design-thinking-eng"), ...KNOWHOW.filter((c) => c.id !== "review"), ...KNOWHOW_MORE, ...QUALITY, ...KNOWHOW2, ...SAFETY2, ...SAFETY3, ...PROCESS.filter((c) => c.part !== "basics"), ...KNOWHOW3.filter((c) => c.id !== "design-thinking-eng"), ...KNOWHOW4, ...IP.filter((c) => c.part === "knowhow"), ...KNOWHOW.filter((c) => c.id === "review")];
-export const CHAPTERS: TextChapter[] = [...CAD2D, ...CAD2D_ADV, ...CAD3D, ...BASICS, ...PROCESS.filter((c) => c.part === "basics"), ...DRAFTING, ...DRAFTING2, ...DRAFTING3, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...MECHANICS3, ...STIFFNESS, ...ELEMENTS, ...ELEMENTS2, ...MECHATRONICS, ...MECHATRONICS2, ...MECHATRONICS3, ...knowhow, ...DESIGN2.filter((c) => c.id === "design-process"), ...DESIGN3.filter((c) => c.id === "form-language"), ...DESIGN, ...DESIGN3.filter((c) => c.id !== "form-language"), ...DESIGN_MORE, ...DESIGN2.filter((c) => c.id !== "design-process"), ...IDESIGN, ...DESIGN4, ...IP.filter((c) => c.part === "design"), ...UX2.filter((c) => c.id === "human-senses"), ...UX, ...OPUX, ...HMI, ...UX2.filter((c) => c.id !== "human-senses"), ...SERVICE, ...CASES, ...DRILLS];
+export const CHAPTERS: TextChapter[] = [...CAD2D, ...CAD2D_ADV, ...CAD3D, ...BASICS, ...PROCESS.filter((c) => c.part === "basics"), ...DRAFTING, ...DRAFTING2, ...DRAFTING3, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...MECHANICS3, ...STIFFNESS, ...ELEMENTS, ...ELEMENTS2, ...MECHATRONICS, ...MECHATRONICS2, ...MECHATRONICS3, ...knowhow, ...DESIGN2.filter((c) => c.id === "design-process"), ...DESIGN3.filter((c) => c.id === "form-language"), ...DESIGN, ...DESIGN3.filter((c) => c.id !== "form-language"), ...DESIGN_MORE, ...DESIGN2.filter((c) => c.id !== "design-process"), ...IDESIGN, ...DESIGN4, ...IP.filter((c) => c.part === "design"), ...UX2.filter((c) => c.id === "human-senses"), ...UX, ...OPUX, ...HMI, ...UX2.filter((c) => c.id !== "human-senses"), ...SERVICE, ...EQUIPMENT, ...EQUIPMENT2, ...EQUIPMENT3, ...CASES, ...DRILLS];
 
 const EXTRA: GlossaryEntry[] = [
   { term: "応力", en: "Stress", desc: "単位面積あたりの内力。σ = F / A (MPa = N/mm²)。" },
