@@ -144,7 +144,8 @@ export const SERVICE: TextChapter[] = [
 <p class="tb-note">充填率の定義 (断面積比か、幅方向の占有比か) や推奨値はメーカーにより異なります。ケーブル間・壁とのすき間 (例: 外径の 10 % 程度) の指定もカタログで確認してください。</p>
 <h2>固定端の位置と必要長さ</h2>
 <p>移動端は固定端を中心に前後に動き、曲げ部は移動端の半分の距離だけ動きます。そのため<b>固定端をストロークの中央に置く</b>と、キャリアが最も短くなります。</p>
-<div class="tb-formula">必要長さ L ≈ S / 2 + π R (+ 取付金具まわりの余裕)</div>
+<div class="tb-math">L \\approx \\dfrac{S}{2} + \\pi R</div>
+<p>L は必要長さです (これに取付金具まわりの余裕を加える)。</p>
 <p>理由: 移動端が最も遠くまで行った位置では、固定端から曲げ部までの下側の直線部 + 半円の曲げ部 (πR) + 上側の直線部が必要になります。固定端が中央なら、上下の直線部の合計がちょうど S/2 になります。</p>
 <table class="tb-table">
   <tr><th>条件</th><th>計算</th><th>結果</th></tr>
@@ -253,7 +254,8 @@ export const SERVICE: TextChapter[] = [
 </ul>
 <h2>盤内温度と換気・クーラー</h2>
 <p>電子機器の多くは周囲温度の上限 (例: 40〜55 ℃。機器ごとに異なる) があります。盤の表面からの自然放熱は、概算で次のように見積もれます。</p>
-<div class="tb-formula">Q自然 ≈ k × A × ΔT　　(k: 熱通過率 目安 約 5〜6 W/(m²·K) 鋼板盤, A: 放熱に有効な表面積, ΔT: 盤内外の温度差)</div>
+<div class="tb-math">Q_{\\text{自然}} \\approx k \\times A \\times \\Delta T</div>
+<p>(k: 熱通過率 目安 約 5〜6 W/(m²·K) 鋼板盤, A: 放熱に有効な表面積, ΔT: 盤内外の温度差)</p>
 <table class="tb-table">
   <tr><th>発熱と放熱の関係</th><th>対策</th></tr>
   <tr><td>発熱 ≦ 自然放熱</td><td>密閉のまま可</td></tr>
@@ -380,7 +382,8 @@ export const SERVICE: TextChapter[] = [
     lead: "機械は必ず故障し、消耗します。止まったときに短時間で直せるかどうかは、設計段階でほぼ決まります。MTTR を短くするためのアクセス性・モジュール化・位置決めの工夫と、チェックリストを学びます。",
     body: `
 <h2>MTBF・MTTR・稼働率</h2>
-<div class="tb-formula">稼働率 A = MTBF / (MTBF + MTTR)　　MTBF: 平均故障間隔、MTTR: 平均修復時間</div>
+<div class="tb-math">A = \\dfrac{\\mathrm{MTBF}}{\\mathrm{MTBF} + \\mathrm{MTTR}}</div>
+<p>A: 稼働率、MTBF: 平均故障間隔、MTTR: 平均修復時間</p>
 <p>故障しにくくする (MTBF を延ばす) のが信頼性設計、<b>早く直せるようにする (MTTR を縮める)</b> のが保全性設計です。MTTR には故障箇所の特定・部品の入手・分解・交換・調整・確認のすべてが含まれます。</p>
 <table class="tb-table">
   <tr><th>MTTR の内訳</th><th>設計でできること</th></tr>

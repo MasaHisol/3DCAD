@@ -46,7 +46,8 @@ export const MECHATRONICS3: TextChapter[] = [
 <text class="lbl" x="500" y="248" text-anchor="end">時間 t</text>
 </svg>
 <p class="tb-caption">図: 加速中は加速トルク Ta と摩擦トルク Tf の和、減速中は負 (モーターがブレーキになり回生が生じる)</p>
-<div class="tb-formula">角加速度 α = 2π N / (60 ta)<br>加速トルク Ta = (JM + JL) α　　摩擦トルク Tf = μ m g P / (2π η)<br>実効トルク Trms = √( (T1² ta + T2² tc + T3² td) / t サイクル )　(停止中 T = 0 の場合)<br>回生エネルギー (1 回の減速) ≈ ½ (JM + JL) ω² − Tf ω td / 2</div>
+<div class="tb-math">\\begin{aligned} \\alpha &= \\dfrac{2\\pi N}{60\\,t_a} \\\\ T_a &= (J_M+J_L)\\,\\alpha \\\\ T_f &= \\dfrac{\\mu m g P}{2\\pi\\eta} \\\\ T_{\\text{rms}} &= \\sqrt{\\dfrac{T_1^2 t_a + T_2^2 t_c + T_3^2 t_d}{t_{\\text{サイクル}}}} \\\\ E_{\\text{回生}} &\\approx \\tfrac{1}{2}(J_M+J_L)\\,\\omega^2 - \\dfrac{T_f\\,\\omega\\, t_d}{2} \\end{aligned}</div>
+<p>T<sub>rms</sub> は停止中 T = 0 の場合。E<sub>回生</sub> は 1 回の減速での回生エネルギー。</p>
 <h2>計算例: ボールねじ駆動の水平軸</h2>
 <p>可動質量 m = 30 kg、リード P = 10 mm、ねじ軸 D = 20 mm × L = 600 mm (鋼)、カップリング 1.0 × 10⁻⁵ kg·m²、μ = 0.05、η = 0.9。最高速度 500 mm/s、移動量 300 mm、ta = td = 0.1 s、往復とも移動後 0.5 s 停止。候補として、定格トルク 0.64 N·m、瞬時最大 1.91 N·m、JM = 0.22 × 10⁻⁴ kg·m²、定格 3 000 min⁻¹ のモーター (仮の値。実際はカタログ値を使う) を検討します。</p>
 <table class="tb-table">
@@ -124,7 +125,8 @@ export const MECHATRONICS3: TextChapter[] = [
   <li><b>空気消費量を求める</b>: 1 分あたりの消費量からコンプレッサ・FRL ユニットの容量を決める</li>
 </ol>
 <h2>内径と負荷率</h2>
-<div class="tb-formula">必要内径 D = √( 4F / (π p η) )　　(F [N]、p [MPa]、D [mm])</div>
+<div class="tb-math">D = \\sqrt{\\dfrac{4F}{\\pi\\,p\\,\\eta}}</div>
+<p>必要内径。F [N]、p [MPa]、D [mm]</p>
 <table class="tb-table">
   <tr><th>使い方</th><th>負荷率 η の目安</th></tr>
   <tr><td>押付け・クランプ (静的)</td><td>0.7 程度</td></tr>
@@ -133,7 +135,8 @@ export const MECHATRONICS3: TextChapter[] = [
 </table>
 <p>負荷率を小さくとるのは、加速する力や配管の圧力損失、バルブの切換え直後の圧力不足を見込むためです。<b>計算例</b>: クランプ力 500 N、p = 0.5 MPa、η = 0.7 → D = √(4 × 500 / (π × 0.5 × 0.7)) = 42.6 mm → <b>内径 50 mm</b> (理論 982 N)。</p>
 <h2>運動エネルギーとクッション</h2>
-<div class="tb-formula">E = ½ m v²　(m: ワーク + ピストン・ロッドなど可動部の質量 [kg]、v: 衝突速度 [m/s])</div>
+<div class="tb-math">E = \\tfrac{1}{2} m v^2</div>
+<p>m: ワーク + ピストン・ロッドなど可動部の質量 [kg]、v: 衝突速度 [m/s]</p>
 <p>E がシリンダの<b>許容運動エネルギー</b> (エアクッション、ゴムクッションごとにカタログに記載) を超える場合は、速度を下げる、内径を大きくする、外部ショックアブソーバを付けるのいずれかで対処します。衝突速度は平均速度 (ストローク ÷ 時間) より大きくなるので注意します。速度を 2 倍にすると E は 4 倍です。</p>
 <h2>空気圧回路と記号</h2>
 <svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="FRL ユニットから 5 ポート弁、速度制御弁を経てシリンダへ至る空気圧回路の簡略図">
@@ -162,7 +165,8 @@ export const MECHATRONICS3: TextChapter[] = [
   <tr><td>速度制御弁</td><td>絞り + チェック弁</td><td>可変絞りの記号と逆止弁を並列</td></tr>
 </table>
 <h2>バルブの流量と空気消費量</h2>
-<div class="tb-formula">必要流量 (大気圧換算) Q ≈ A × v × (p + 0.1013) / 0.1013　[mm³/s → ×60/10⁶ で L/min (ANR)]<br>空気消費量 = (A押し + A引き) × S × (p + 0.1013)/0.1013 × 毎分サイクル数 + 配管容積分</div>
+<div class="tb-math">\\begin{aligned} Q &\\approx A\\times v\\times\\dfrac{p+0.1013}{0.1013} \\\\ &\\text{空気消費量} \\\\ &= (A_{\\text{押し}}+A_{\\text{引き}})\\times S \\\\ &\\quad \\times\\dfrac{p+0.1013}{0.1013} \\\\ &\\quad \\times\\text{毎分サイクル数} + \\text{配管容積分} \\end{aligned}</div>
+<p>Q: 必要流量 (大気圧換算)。単位は mm³/s → ×60/10⁶ で L/min (ANR)</p>
 <p>内径 32 mm (A = 804 mm²)、速度 300 mm/s、0.5 MPa では Q ≈ 804 × 300 × 5.94 × 60 / 10⁶ ≈ <b>86 L/min (ANR)</b> が動作中に必要です。この流量を流せる有効断面積・音速コンダクタンスのバルブをメーカーの選定表で選びます。配管が細く長いと圧力が落ちて速度が出ません。</p>
 <h2>よくある失敗</h2>
 <ul>

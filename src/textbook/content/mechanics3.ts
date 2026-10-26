@@ -11,11 +11,11 @@ export const MECHANICS3: TextChapter[] = [
     body: `
 <h2>平均応力と応力振幅</h2>
 <p>繰返し応力の最大値 σmax と最小値 σmin から、<b>平均応力</b>と<b>応力振幅</b>を定義します。</p>
-<div class="tb-formula">σm = (σmax + σmin)/2　　σa = (σmax − σmin)/2　　応力比 R = σmin/σmax</div>
+<div class="tb-math">\\sigma_m = \\dfrac{\\sigma_{\\max} + \\sigma_{\\min}}{2} \\qquad \\sigma_a = \\dfrac{\\sigma_{\\max} - \\sigma_{\\min}}{2} \\qquad \\text{応力比}\\ R = \\dfrac{\\sigma_{\\min}}{\\sigma_{\\max}}</div>
 <p>材料試験で得られる疲労限度 σw は、ふつう両振り (σm = 0) の値です。ボルトの初期張力やばねの初期たわみのように<b>引張の平均応力</b>が加わると、耐えられる振幅は小さくなります。圧縮の平均応力は逆に有利に働きます (ショットピーニングが効く理由)。</p>
 <h2>修正グッドマン線図</h2>
 <p>横軸に σm、縦軸に σa をとり、(0, σw) と (σB, 0) を直線で結びます。応力の点がこの線の内側にあれば疲労破壊しないと判定します。</p>
-<div class="tb-formula">σa/σw + σm/σB = 1/S　　(S: 疲労安全率)</div>
+<div class="tb-math">\\dfrac{\\sigma_a}{\\sigma_w} + \\dfrac{\\sigma_m}{\\sigma_B} = \\dfrac{1}{S} \\qquad (S:\\ \\text{疲労安全率})</div>
 <svg class="tb-chart" viewBox="0 0 520 260" role="img" aria-label="修正グッドマン線図">
 <path d="M60,60 L460,220 L60,220 Z" style="fill:var(--tb-good);fill-opacity:0.09"/>
 <line class="grid" x1="60" y1="130" x2="480" y2="130"/>
@@ -48,7 +48,7 @@ export const MECHANICS3: TextChapter[] = [
 <div data-widget="goodman"></div>
 <h2>実部品の疲労限度を補正する</h2>
 <p>試験片の疲労限度 σw0 は、磨いた小径の平滑材の値です。実部品では次の係数で補正します。</p>
-<div class="tb-formula">σw = σw0 × ζ1 (表面係数) × ζ2 (寸法係数) / β (切欠き係数)</div>
+<div class="tb-math">\\sigma_w = \\dfrac{\\sigma_{w0} \\times \\zeta_1 \\times \\zeta_2}{\\beta}</div><p>ζ1: 表面係数、ζ2: 寸法係数、β: 切欠き係数</p>
 <table class="tb-table">
   <tr><th>係数</th><th>要因</th><th>目安</th></tr>
   <tr><td>表面係数 ζ1</td><td>研削・切削・黒皮。粗いほど低い。高強度鋼ほど影響大</td><td>研削 0.9 前後、切削 0.7〜0.9、黒皮 0.4〜0.7</td></tr>
@@ -58,7 +58,7 @@ export const MECHANICS3: TextChapter[] = [
 <p class="tb-note">係数の値は材料・資料によって幅があります。設計では使用する規格・便覧の値を使ってください。</p>
 <h2>累積損傷 (マイナー則)</h2>
 <p>振幅が変わる荷重では、各振幅 σi の繰返し数 ni と、その振幅での寿命 Ni の比を足し合わせます。</p>
-<div class="tb-formula">D = Σ ni / Ni　　D = 1 で破壊と推定</div>
+<div class="tb-math">D = \\sum \\dfrac{n_i}{N_i} \\qquad D = 1\\ \\text{で破壊と推定}</div>
 <p>実際には順序効果などでばらつくため、D ≤ 0.3〜0.5 程度を許容値にすることが多いです。疲労限度以下の振幅も、大振幅で損傷が進むと効いてくる点に注意します (修正マイナー則)。</p>
 <div class="tb-tip">3DCAD Studio の応力解析では、静解析の結果から疲労安全率を表示できます。応力集中部 (フィレットや穴) のメッシュを細かくして評価してください。</div>
 `,
@@ -101,7 +101,7 @@ export const MECHANICS3: TextChapter[] = [
 </table>
 <h2>のど厚とせん断応力</h2>
 <p>等脚の隅肉では、脚長 s の直角二等辺三角形の高さが理論<b>のど厚</b>です。</p>
-<div class="tb-formula">a = s × cos45° ≒ 0.7 s　　τ = F / (a · Σl)</div>
+<div class="tb-math">a = s \\times \\cos 45^\\circ \\fallingdotseq 0.7\\,s \\qquad \\tau = \\dfrac{F}{a \\cdot \\Sigma l}</div>
 <p>Σl は有効溶接長の合計です。始端・終端はクレーターなどで欠陥が出やすいため、実長から脚長分程度を差し引くことがあります。</p>
 <svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="隅肉溶接ののど厚">
 <g class="k-shadow"><rect class="k-cut" x="60" y="150" width="400" height="26"/><rect class="k-cut2" x="240" y="40" width="25" height="110"/><path d="M240,150 L180,150 L240,90 Z" style="fill:var(--tb-warn);fill-opacity:0.55;stroke:var(--k-line)" stroke-width="1.6"/><path d="M265,150 L325,150 L265,90 Z" style="fill:var(--tb-warn);fill-opacity:0.55;stroke:var(--k-line)" stroke-width="1.6"/></g>
@@ -127,7 +127,7 @@ export const MECHANICS3: TextChapter[] = [
 <div data-widget="weld"></div>
 <h2>曲げを受ける隅肉の概算</h2>
 <p>板の両側を高さ h の隅肉 2 本で留め、距離 e の位置に力 F が加わる片持ちを考えます。のど断面を厚さ a の長方形とみなすと、</p>
-<div class="tb-formula">Z = 2 × a h² / 6　　σb = F e / Z　　τ = F / (2 a h)　　合成 ≒ √(σb² + τ²)</div>
+<div class="tb-math">Z = 2 \\times \\dfrac{a h^2}{6} \\qquad \\sigma_b = \\dfrac{F e}{Z} \\qquad \\tau = \\dfrac{F}{2 a h} \\qquad \\text{合成} \\fallingdotseq \\sqrt{\\sigma_b^2 + \\tau^2}</div>
 <p>合成のしかたや許容値の比較方法は基準によって異なります。ここでは概算として、曲げが支配的であることを確かめる程度に使います。</p>
 <h2>許容応力の考え方</h2>
 <p>許容応力は母材の強さ、溶接材料、施工・検査の等級、荷重の種類 (静的・繰返し) によって決まります。建築・クレーン・圧力容器などでは<b>それぞれの基準・規格で値と計算方法が定められている</b>ので、必ずそれに従います。一般機械の目安として、軟鋼の隅肉の静的許容せん断応力を 60〜90 MPa 程度にとる例があります。</p>
@@ -203,11 +203,11 @@ export const MECHANICS3: TextChapter[] = [
 <text class="lbl" x="56" y="18">力</text>
 </svg>
 <p>初期締付力 Ff の状態で軸方向の外力 F を加えると、ボルトはさらに伸び、部材の圧縮は減ります。外力のうちボルトに加わる割合が<b>内力係数 φ</b>です。</p>
-<div class="tb-formula">φ = kb / (kb + kc)<br>ボルト荷重 Fb = Ff + φF　　部材の残留締付力 Fc = Ff − (1 − φ)F<br>分離限界 F_sep = Ff / (1 − φ)</div>
+<div class="tb-math">\\begin{aligned} \\phi &= \\dfrac{k_b}{k_b + k_c} \\\\ \\text{ボルト荷重}\\ F_b &= F_f + \\phi F \\\\ \\text{部材の残留締付力}\\ F_c &= F_f - (1 - \\phi)F \\\\ \\text{分離限界}\\ F_{sep} &= \\dfrac{F_f}{1 - \\phi} \\end{aligned}</div>
 <p>φ が小さいほど (ボルトが柔らかく部材が硬いほど) ボルトの変動荷重は小さくなり、疲労に有利です。長く細いボルトや伸びボルトが使われる理由です。実際には荷重の作用位置による補正 (荷重導入係数) もあります。</p>
 <h2>すべり継手 (摩擦接合)</h2>
 <p>板どうしの摩擦で横方向の力を伝え、ボルト軸には力を受けさせない方式です。</p>
-<div class="tb-formula">伝達力 F = μ · m · n · Ff　(μ: 摩擦係数, m: 摩擦面の数, n: ボルト本数)</div>
+<div class="tb-math">\\text{伝達力}\\ F = \\mu \\cdot m \\cdot n \\cdot F_f</div><p>μ: 摩擦係数、m: 摩擦面の数、n: ボルト本数</p>
 <table class="tb-table">
   <tr><th>接触面の状態</th><th>摩擦係数 μ の目安</th></tr>
   <tr><td>機械加工面・油分あり</td><td>0.1〜0.15</td></tr>
@@ -217,7 +217,7 @@ export const MECHANICS3: TextChapter[] = [
 <p>すべり始めると穴とボルトのすきま分だけ位置がずれるため、位置決めが必要な部分ではノックピンを併用します。</p>
 <h2>せん断継手</h2>
 <p>リーマボルトやピンで穴と軸をはめあわせ、軸のせん断で力を受けます。</p>
-<div class="tb-formula">τ = F / (n · m · πd²/4)　(m: せん断面の数)</div>
+<div class="tb-math">\\tau = \\dfrac{F}{n \\cdot m \\cdot \\pi d^2/4} \\qquad (m:\\ \\text{せん断面の数})</div>
 <p>あわせて板の穴の面圧 (支圧) と、穴の縁までの距離 (縁端距離) も確認します。一般のボルト穴はすきまがあるため、せん断継手としては精度が出ません。</p>
 <div class="tb-tip">標準部品からボルトを配置し、応力解析でブラケットの変形を確認できます。締付力を荷重として与えた静解析で、部材の接触面の圧力分布の目安をつかめます。</div>
 `,
@@ -256,7 +256,7 @@ export const MECHATRONICS2: TextChapter[] = [
     lead: "モーターやセンサを載せる装置では、機械設計者も電線の太さや電源の容量を考える場面があります。オームの法則から電線の選び方、電圧降下、保護と接地まで、装置設計で必要な電気の基礎をまとめます。",
     body: `
 <h2>オームの法則と電力</h2>
-<div class="tb-formula">V = I × R　　P = V × I = I²R = V²/R</div>
+<div class="tb-math">V = I \\times R \\qquad P = V \\times I = I^2 R = \\dfrac{V^2}{R}</div>
 <p>電圧 V [V] は電気を押す力、電流 I [A] は流れの量、抵抗 R [Ω] は流れにくさです。電力 P [W] は単位時間のエネルギーで、抵抗で消費された電力は熱になります。24 V で 2 A 流れる負荷は 12 Ω、48 W です。</p>
 <h2>直流と交流</h2>
 <table class="tb-table">
@@ -280,7 +280,7 @@ export const MECHATRONICS2: TextChapter[] = [
 <p class="tb-note">AWG と sq は規格が異なり、断面積は完全には一致しません (対応は概略です)。許容電流は電線の種類、周囲温度、束ねる本数、ダクト内かどうかで大きく下がります。実際の選定は電線メーカーの資料と適用規格に従ってください。</p>
 <h2>電圧降下</h2>
 <p>電線にも抵抗があり、長い配線では負荷に届く電圧が下がります。電流は行きと帰りの 2 本を流れるので、片道長さ L の 2 倍で計算します。</p>
-<div class="tb-formula">R = ρ L / A　(銅 ρ ≒ 0.0172 Ω·mm²/m)<br>ΔV = 2 · I · R1 · L　(R1: 1 m あたりの抵抗 = ρ/A)</div>
+<div class="tb-math">\\begin{aligned} R &= \\dfrac{\\rho L}{A} \\qquad (\\text{銅}\\ \\rho \\fallingdotseq 0.0172\\,\\mathrm{\\Omega\\cdot mm^2/m}) \\\\ \\Delta V &= 2 \\cdot I \\cdot R_1 \\cdot L \\qquad (R_1 = \\rho/A:\\ 1\\,\\mathrm{m}\\ \\text{あたりの抵抗}) \\end{aligned}</div>
 <p>DC 24 V の制御回路では、電圧降下を数 % 以内に抑えるのが目安です。センサやバルブの動作電圧範囲を下回らないよう、長い配線は太くするか、電源を近くに置きます。</p>
 <div data-widget="wire"></div>
 <h2>ヒューズとブレーカー</h2>
@@ -326,7 +326,7 @@ export const MECHATRONICS2: TextChapter[] = [
 </table>
 <h2>順運動学 (2 リンク平面アーム)</h2>
 <p>リンク長 L1, L2、第 1 関節角 θ1 (x 軸から)、第 2 関節角 θ2 (第 1 リンクから) のとき、先端位置は</p>
-<div class="tb-formula">x = L1 cos θ1 + L2 cos(θ1 + θ2)<br>y = L1 sin θ1 + L2 sin(θ1 + θ2)</div>
+<div class="tb-math">\\begin{aligned} x &= L_1 \\cos\\theta_1 + L_2 \\cos(\\theta_1 + \\theta_2) \\\\ y &= L_1 \\sin\\theta_1 + L_2 \\sin(\\theta_1 + \\theta_2) \\end{aligned}</div>
 <svg class="tb-chart" viewBox="0 0 520 275" role="img" aria-label="2 リンク平面アーム">
 <path d="M290,240 A210,210 0 0 0 80,30 L80,190 A50,50 0 0 1 130,240 Z" style="fill:var(--tb-accent);fill-opacity:0.08"/>
 <line class="axis" x1="60" y1="240" x2="490" y2="240"/>
@@ -353,13 +353,13 @@ export const MECHATRONICS2: TextChapter[] = [
 </svg>
 <h2>逆運動学 — 肘上と肘下</h2>
 <p>目標 (x, y) から関節角を求めます。余弦定理から</p>
-<div class="tb-formula">cos θ2 = (x² + y² − L1² − L2²) / (2 L1 L2)<br>θ2 = ± arccos(…)<br>θ1 = atan2(y, x) − atan2(L2 sin θ2, L1 + L2 cos θ2)</div>
+<div class="tb-math">\\begin{aligned} \\cos\\theta_2 &= \\dfrac{x^2 + y^2 - L_1^2 - L_2^2}{2 L_1 L_2} \\\\ \\theta_2 &= \\pm \\arccos(\\cdots) \\\\ \\theta_1 &= \\operatorname{atan2}(y, x) - \\operatorname{atan2}(L_2 \\sin\\theta_2,\\ L_1 + L_2 \\cos\\theta_2) \\end{aligned}</div>
 <p>θ2 の符号で 2 つの解 (<b>肘上 / 肘下</b>) があります。どちらを選ぶかは障害物や関節の可動範囲で決めます。|cos θ2| > 1 なら届かない位置です。6 軸ロボットでは解が最大 8 通りあり、数値計算で求めることもあります。</p>
 <h2>作業領域</h2>
 <p>2 リンクアームの先端が届く範囲は、半径 |L1 − L2| から L1 + L2 までの円環です (関節の可動範囲で欠ける)。L1 = L2 にすると根元まで届きます。外周付近では腕が伸びきって動きが不自由になるため、作業点は領域の中ほどに置きます。</p>
 <h2>ヤコビアンと特異点</h2>
 <p>関節速度と先端速度の関係を表す行列が<b>ヤコビアン J</b> です。</p>
-<div class="tb-formula">[ẋ, ẏ]ᵀ = J [θ̇1, θ̇2]ᵀ<br>J = [ −L1 sinθ1 − L2 sin(θ1+θ2)　−L2 sin(θ1+θ2) ; L1 cosθ1 + L2 cos(θ1+θ2)　L2 cos(θ1+θ2) ]<br>det J = L1 L2 sin θ2</div>
+<div class="tb-math">\\begin{bmatrix} \\dot x \\\\ \\dot y \\end{bmatrix} = J \\begin{bmatrix} \\dot\\theta_1 \\\\ \\dot\\theta_2 \\end{bmatrix}</div><div class="tb-math">J = \\begin{bmatrix} -L_1 \\sin\\theta_1 - L_2 \\sin(\\theta_1+\\theta_2) & -L_2 \\sin(\\theta_1+\\theta_2) \\\\ L_1 \\cos\\theta_1 + L_2 \\cos(\\theta_1+\\theta_2) & L_2 \\cos(\\theta_1+\\theta_2) \\end{bmatrix}</div><div class="tb-math">\\det J = L_1 L_2 \\sin\\theta_2</div>
 <p>det J = 0 となる姿勢 (θ2 = 0°: 腕が伸びきる、θ2 = 180°: 折りたたむ) が<b>特異点</b>です。特異点ではある方向に先端を動かせず、その近くでは小さな先端速度に大きな関節速度が必要になります。軌道計画では特異点を避けます。ヤコビアンの転置は、先端の力と関節トルクの関係 (τ = Jᵀ F) も与えます。</p>
 <div class="tb-tip">3DCAD Studio のアセンブリで回転拘束を駆動し、モーション解析で先端の軌跡を確認すると、計算した作業領域や干渉を目で検証できます。</div>
 `,
@@ -413,7 +413,7 @@ export const MECHATRONICS2: TextChapter[] = [
 <text class="tick" x="196" y="268" style="fill:var(--tb-good)">S 字: なめらか (ジャーク有限)</text>
 <text class="lbl" x="485" y="296" text-anchor="end">時間</text>
 </svg>
-<div class="tb-formula">台形の移動時間 T = S / vmax + ta　(加速時間 ta = vmax / a、加減速が等しい場合)</div>
+<div class="tb-math">\\text{台形の移動時間}\\ T = \\dfrac{S}{v_{\\max}} + t_a \\qquad t_a = \\dfrac{v_{\\max}}{a}</div><p>(t<sub>a</sub>: 加速時間、加減速が等しい場合)</p>
 <table class="tb-table">
   <tr><th></th><th>台形</th><th>S 字</th></tr>
   <tr><td>ジャーク</td><td>加速の始まりと終わりで無限大 (理論上)</td><td>有限</td></tr>
@@ -423,7 +423,7 @@ export const MECHATRONICS2: TextChapter[] = [
 <h2>残留振動と固有振動数</h2>
 <p>機械をばね-質量系とみると、加速度は構造を揺らす力 (m·a) になります。加速度が急に変わると、固有振動数 fn で揺れ始め、停止後も<b>残留振動</b>として残ります。</p>
 <p>一定加速度を時間 ta だけ加えると、加速の始まりで生じた揺れと、加速の終わりで生じた逆向きの揺れが重なります。ta が<b>固有周期 Tn = 1/fn の整数倍</b>なら、2 つの揺れが同じ位相で打ち消し合い、残留振動は理論上ゼロになります。残留振幅は |sin(π fn ta) / (π fn ta)| に比例し、ta = k·Tn で 0 になります。</p>
-<div class="tb-formula">残留振動が小さい加速時間: ta = k / fn　(k = 1, 2, 3 …)</div>
+<div class="tb-math">\\text{残留振動が小さい加速時間:}\\ t_a = \\dfrac{k}{f_n} \\quad (k = 1, 2, 3, \\dots)</div>
 <p>例えば fn = 10 Hz の機構なら ta = 0.1 s、0.2 s が有利です。ただし固有振動数は負荷や姿勢で変わるため、この方法だけに頼らず、構造の剛性を上げて fn を高くすることが基本です。S 字加減速やフィルタ (入力整形) も同じ原理で振動を抑えます。</p>
 <h2>整定時間とサイクルタイム</h2>
 <p><b>整定時間</b>は、指令が終わってから位置偏差や振動が許容幅に収まるまでの時間です。実際のサイクルタイムは「移動時間 + 整定時間 + 作業時間」で、加速度を上げて移動時間を縮めても整定時間が延びれば逆効果です。</p>

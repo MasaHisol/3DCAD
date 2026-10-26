@@ -60,7 +60,7 @@ export const KNOWHOW4: TextChapter[] = [
 </svg>
 <p class="tb-caption">図: 質量 20 kg のモーターを、固定端から 150 mm の位置で支えるブラケット。板は薄い向きに曲げられる</p>
 <p><b>前提条件</b>: 質量 20 kg、起動・停止の動的係数 2 (仮定)、材料 SS400 (降伏点 245 MPa、板厚 16 mm 以下)、E = 206 GPa、目標安全率 (降伏基準) 3 以上、先端たわみ 0.5 mm 以下。</p>
-<div class="tb-formula">F = 20 × 9.81 × 2 ≈ 392 N　　M = F × L = 392.4 × 150 ≈ 58 900 N·mm</div>
+<div class="tb-math">\\begin{aligned} F &= 20\\times 9.81\\times 2 \\approx 392\\ \\mathrm{N} \\\\ M &= F\\times L = 392.4\\times 150 \\\\ &\\approx 58\\,900\\ \\mathrm{N\\cdot mm} \\end{aligned}</div>
 <table class="tb-table">
   <tr><th>板厚 t</th><th>Z = bt²/6</th><th>σ = M/Z</th><th>安全率 245/σ</th><th>I = bt³/12</th><th>δ = FL³/3EI</th><th>判定</th></tr>
   <tr><td>8 mm</td><td>640 mm³</td><td>92 MPa</td><td>2.7</td><td>2 560 mm⁴</td><td>0.84 mm</td><td>NG (両方)</td></tr>
@@ -146,7 +146,8 @@ export const KNOWHOW4: TextChapter[] = [
 </ul>
 <h2>たわみの見積もり</h2>
 <p>フレームの梁は、まず<b>両端支持はり</b>と<b>両端固定はり</b>で挟み込んで見積もります。実際の接合部は完全固定ではないので、ばらつきの範囲として扱います。</p>
-<div class="tb-formula">中央集中荷重: 両端支持 δ = FL³ / 48EI　　両端固定 δ = FL³ / 192EI (支持の 1/4)</div>
+<div class="tb-math">\\begin{gathered} \\text{両端支持: } \\delta = \\dfrac{FL^3}{48EI} \\\\ \\text{両端固定: } \\delta = \\dfrac{FL^3}{192EI} \\end{gathered}</div>
+<p>中央集中荷重の場合。両端固定のたわみは両端支持の 1/4。</p>
 <p>鋼の角パイプ □40 × 40 × 2 (I = (40⁴ − 36⁴) / 12 ≈ 73 400 mm⁴)、スパン 800 mm、中央に 500 N のとき:</p>
 <table class="tb-table">
   <tr><th>材料・支持</th><th>たわみ</th></tr>
@@ -217,7 +218,8 @@ export const KNOWHOW4: TextChapter[] = [
 </table>
 <p>点数基準は会社や規格 (AIAG-VDA FMEA ハンドブックなど) で定めたものを使い、チーム内でそろえることが大切です。<b>D は「低いほど見つけやすい」</b>ので、検証を強化すると D が下がります。</p>
 <h2>RPN と処置優先度 (AP)</h2>
-<div class="tb-formula">RPN = S × O × D　(1〜1000)</div>
+<div class="tb-math">RPN = S\\times O\\times D</div>
+<p>1〜1000</p>
 <p>RPN は手軽ですが、S = 9 × O = 2 × D = 2 = 36 と、S = 3 × O = 6 × D = 2 = 36 が同じ値になってしまいます。そこで現在の AIAG-VDA 方式では、S を最も重視して S・O・D の組合せから<b>処置優先度 AP (高・中・低)</b> を表で決めます。
 どちらの方式でも、<b>S が 9〜10 (安全・法規) の項目は RPN が小さくても必ず検討</b>します。</p>
 <h2>ワークシートの例: ベルトコンベヤの駆動部</h2>

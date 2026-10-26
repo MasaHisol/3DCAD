@@ -13,7 +13,7 @@ export const MECHANICS2: TextChapter[] = [
 <p>薄い板や部品の表面では、面に垂直な応力がほぼゼロになり、<b>σx, σy, τxy</b> の 3 成分で応力状態を表せます (<b>平面応力</b>)。同じ点でも、座標軸を回すと応力成分の値が変わります。</p>
 <h2>主応力と主方向</h2>
 <p>せん断応力がゼロになる向きでの垂直応力を<b>主応力</b>といいます。</p>
-<div class="tb-formula">σ1,2 = (σx + σy)/2 ± √( ((σx − σy)/2)² + τxy² )<br>主方向: tan 2θ = 2τxy / (σx − σy)<br>最大せん断応力: τmax = √( ((σx − σy)/2)² + τxy² ) = (σ1 − σ2)/2</div>
+<div class="tb-math">\\begin{aligned} \\sigma_{1,2} &= \\dfrac{\\sigma_x + \\sigma_y}{2} \\pm \\sqrt{\\left(\\dfrac{\\sigma_x - \\sigma_y}{2}\\right)^2 + \\tau_{xy}^2} \\\\ \\text{主方向:}\\ \\tan 2\\theta &= \\dfrac{2\\tau_{xy}}{\\sigma_x - \\sigma_y} \\\\ \\text{最大せん断応力:}\\ \\tau_{\\max} &= \\sqrt{\\left(\\dfrac{\\sigma_x - \\sigma_y}{2}\\right)^2 + \\tau_{xy}^2} = \\dfrac{\\sigma_1 - \\sigma_2}{2} \\end{aligned}</div>
 <h2>モールの応力円</h2>
 <p>横軸に σ、縦軸に τ をとると、点 (σx, τxy) と (σy, −τxy) を結ぶ線分を直径とする円が描けます。円が横軸と交わる点が主応力、円の半径が最大せん断応力 (面内) です。円上で角度 2θ 回ることが、実際の要素を θ 回すことに対応します。</p>
 <svg class="tb-chart" viewBox="0 0 520 250" role="img" aria-label="モールの応力円">
@@ -60,7 +60,7 @@ export const MECHANICS2: TextChapter[] = [
 <p>トレスカで使う σ3 は 3 番目の主応力です。平面応力では面外の主応力 0 も含めて、最大と最小の差をとります。</p>
 <h2>曲げとねじりを受ける丸軸</h2>
 <p>直径 d の軸に曲げモーメント M とトルク T が加わると、表面で次の応力が生じます。</p>
-<div class="tb-formula">σ = 32M / (πd³)　　τ = 16T / (πd³)<br>ミーゼス: σeq = √(σ² + 3τ²)　　トレスカ: σeq = √(σ² + 4τ²)<br>相当ねじりモーメント Te = √(M² + T²)　　相当曲げモーメント Me = (M + √(M² + T²)) / 2</div>
+<div class="tb-math">\\begin{aligned} &\\sigma = \\dfrac{32M}{\\pi d^3} \\qquad \\tau = \\dfrac{16T}{\\pi d^3} \\\\ &\\text{ミーゼス:}\\ \\sigma_{eq} = \\sqrt{\\sigma^2 + 3\\tau^2} \\qquad \\text{トレスカ:}\\ \\sigma_{eq} = \\sqrt{\\sigma^2 + 4\\tau^2} \\\\ &\\text{相当ねじりモーメント}\\ T_e = \\sqrt{M^2 + T^2} \\\\ &\\text{相当曲げモーメント}\\ M_e = \\dfrac{M + \\sqrt{M^2 + T^2}}{2} \\end{aligned}</div>
 <p>Te はトレスカ (最大せん断応力説) による τmax = 16Te/(πd³)、Me は最大主応力説による σ1 = 32Me/(πd³) に対応し、軸径の手計算で使われます。</p>
 <div class="tb-tip"><b>3DCAD Studio</b>: 応力解析の結果はミーゼス応力と主応力を切り替えて表示できます。延性材料はミーゼス、鋳物など脆性材料は最大主応力で見るのが基本です。</div>`,
     points: ["主応力はせん断応力ゼロの向きの垂直応力", "モールの円: 中心 (σx+σy)/2、半径 τmax", "延性材料はミーゼス (またはトレスカ) 相当応力で判定", "曲げ+ねじり軸は σ = 32M/πd³, τ = 16T/πd³ を合成"],
@@ -91,7 +91,7 @@ export const MECHANICS2: TextChapter[] = [
     body: `
 <h2>薄肉円筒の応力</h2>
 <p>内径 D、板厚 t の円筒に内圧 p がかかると、周方向 (フープ) と軸方向に引張応力が生じます。半分に切った自由体図で力のつり合いを考えると導けます。</p>
-<div class="tb-formula">周方向応力 σθ = pD / (2t)　　軸方向応力 σz = pD / (4t)　　球: σ = pD / (4t)</div>
+<div class="tb-math">\\text{周方向応力}\\ \\sigma_\\theta = \\dfrac{pD}{2t} \\qquad \\text{軸方向応力}\\ \\sigma_z = \\dfrac{pD}{4t} \\qquad \\text{球:}\\ \\sigma = \\dfrac{pD}{4t}</div>
 <p>周方向は軸方向の 2 倍です。そのため円筒容器は<b>軸方向に沿って割れる</b> (縦割れ) ことが多く、同じ容量・圧力なら球は円筒の半分の板厚で済みます。</p>
 <svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="円筒の周方向応力">
 <g class="k-shadow"><path class="k-part" d="M60,60 L300,60 A16,40 0 0 1 300,140 L60,140 A16,40 0 0 1 60,60 Z"/></g>
@@ -119,7 +119,7 @@ export const MECHANICS2: TextChapter[] = [
 <h2>薄肉とみなせる条件</h2>
 <p>板厚方向の応力分布を一様とみなすため、目安として <b>t/D &lt; 1/10 程度</b>で使います。厚肉になると内面の応力が大きくなるので、厚肉円筒の式 (ラメの式) や解析で確認します。</p>
 <h2>必要板厚とふたの力</h2>
-<div class="tb-formula">必要板厚 t = pD / (2σa)　(σa = 降伏点 / 安全率)<br>ふたにかかる力 F = p × πD²/4</div>
+<div class="tb-math">\\begin{aligned} \\text{必要板厚}\\ t &= \\dfrac{pD}{2\\sigma_a} \\qquad (\\sigma_a = \\text{降伏点} / \\text{安全率}) \\\\ \\text{ふたにかかる力}\\ F &= p \\times \\dfrac{\\pi D^2}{4} \\end{aligned}</div>
 <p>直径 500 mm のふたに 1 MPa かかると F = 196 350 N (約 20 トン重) にもなります。ボルトはこの力に初期締付力の余裕を加えて選びます。</p>
 <div data-widget="pressure"></div>
 <table class="tb-table">
@@ -224,12 +224,12 @@ export const MECHANICS2: TextChapter[] = [
     body: `
 <h2>ひずみエネルギー</h2>
 <p>弾性体を変形させた仕事は、ひずみエネルギーとして蓄えられます。軸力 F を受ける棒 (長さ L、断面積 A) では次の式です。</p>
-<div class="tb-formula">U = F × δ / 2 = F²L / (2AE)</div>
+<div class="tb-math">U = \\dfrac{F \\times \\delta}{2} = \\dfrac{F^2 L}{2AE}</div>
 <h2>急に加わる荷重</h2>
 <p>荷重 W を高さゼロから急に (手を離して) 載せると、最大変形は静的たわみの <b>2 倍</b>になり、応力も 2 倍になります。</p>
 <h2>落下物による衝撃</h2>
 <p>重さ W が高さ h から落ちて弾性体に当たるとき、位置エネルギーとひずみエネルギーのつり合い W(h + δ) = kδ²/2 から次が得られます。</p>
-<div class="tb-formula">衝撃係数 n = 1 + √(1 + 2h / δst)<br>最大たわみ δ = n × δst　　最大荷重 F = n × W　(δst = W/k: 静的たわみ)</div>
+<div class="tb-math">\\begin{aligned} &\\text{衝撃係数}\\ n = 1 + \\sqrt{1 + \\dfrac{2h}{\\delta_{st}}} \\\\ &\\text{最大たわみ}\\ \\delta = n \\times \\delta_{st} \\qquad \\text{最大荷重}\\ F = n \\times W \\end{aligned}</div><p>(δ<sub>st</sub> = W/k: 静的たわみ)</p>
 <p>h = 0 で n = 2 になります。<b>δst が大きい (柔らかい) ほど n は小さく</b>なります。</p>
 <svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="衝撃係数とh/δst">
 <line class="grid" x1="50" y1="114" x2="500" y2="114"/>
@@ -296,7 +296,7 @@ export const MECHANICS2: TextChapter[] = [
     body: `
 <h2>ヘルツの接触応力</h2>
 <p>球や円筒が接触すると、弾性変形で小さな接触面ができ、その中央で圧力が最大になります。これを<b>ヘルツの接触応力</b>といいます。荷重に比例せず、<b>荷重の 1/3 乗</b>で増えるのが特徴です。</p>
-<div class="tb-formula">球 (半径 R) と平面:　a = ( 3FR / (4E*) )^(1/3)　　pmax = 3F / (2πa²)<br>等価ヤング率 1/E* = (1 − ν1²)/E1 + (1 − ν2²)/E2</div>
+<p>球 (半径 R) と平面:</p><div class="tb-math">\\begin{aligned} a &= \\left(\\dfrac{3FR}{4E^*}\\right)^{1/3} \\qquad p_{\\max} = \\dfrac{3F}{2\\pi a^2} \\\\ \\dfrac{1}{E^*} &= \\dfrac{1 - \\nu_1^2}{E_1} + \\dfrac{1 - \\nu_2^2}{E_2} \\quad (\\text{等価ヤング率}) \\end{aligned}</div>
 <p>最大せん断応力は表面ではなく、表面から少し内部 (球と平面では約 0.5a の深さ) に生じます。転がり軸受や歯車のはく離 (ピッチング) が内部から始まるのはこのためです。</p>
 <div class="tb-note">ヘルツの式は弾性・摩擦なし・接触面が小さいなどの前提があります。軸受や歯車の面圧・寿命の詳細は、専門書と JIS・ISO などの規格、メーカーのカタログの計算方法を参照してください。</div>
 <h2>摩擦係数の目安</h2>
@@ -342,7 +342,7 @@ export const MECHANICS2: TextChapter[] = [
     body: `
 <h2>要素と節点</h2>
 <p>FEM は形状を小さな<b>要素</b>に分け、要素の角などの<b>節点</b>の変位を未知数として解きます。各要素の「力と変位の関係」(<b>要素剛性マトリクス</b>) を組み立てて全体の連立方程式にします。</p>
-<div class="tb-formula">[K]{u} = {F}　　([K]: 全体剛性マトリクス、{u}: 節点変位、{F}: 節点力)</div>
+<div class="tb-math">[K]\\{u\\} = \\{F\\}</div><p>[K]: 全体剛性マトリクス、{u}: 節点変位、{F}: 節点力</p>
 <h2>ばね要素 2 つの手計算</h2>
 <svg class="tb-chart" viewBox="0 0 520 140" role="img" aria-label="ばね要素 2 つのモデル">
 <rect class="k-ground" x="26" y="30" width="14" height="70"/><line class="k-edge" x1="40" y1="30" x2="40" y2="100"/>
@@ -426,7 +426,7 @@ export const MECHANICS2: TextChapter[] = [
   <tr><td>マイクロ</td><td>μ</td><td>10⁻⁶</td><td>ひずみ με、粗さ μm</td></tr>
 </table>
 <h2>機械設計でよく使う換算</h2>
-<div class="tb-formula">1 MPa = 1 N/mm² = 10⁶ Pa　　1 GPa = 1000 MPa<br>1 N·m = 1000 N·mm　　1 J = 1 N·m = 1000 N·mm<br>1 kgf = 9.81 N (9.80665 N)　　1 kgf/mm² ≈ 9.81 MPa</div>
+<div class="tb-math">\\begin{aligned} &1\\,\\mathrm{MPa} = 1\\,\\mathrm{N/mm^2} = 10^6\\,\\mathrm{Pa} \\qquad 1\\,\\mathrm{GPa} = 1000\\,\\mathrm{MPa} \\\\ &1\\,\\mathrm{N\\cdot m} = 1000\\,\\mathrm{N\\cdot mm} \\qquad 1\\,\\mathrm{J} = 1\\,\\mathrm{N\\cdot m} = 1000\\,\\mathrm{N\\cdot mm} \\\\ &1\\,\\mathrm{kgf} = 9.81\\,\\mathrm{N}\\ (9.80665\\,\\mathrm{N}) \\qquad 1\\,\\mathrm{kgf/mm^2} \\approx 9.81\\,\\mathrm{MPa} \\end{aligned}</div>
 <p><b>mm・N・MPa</b> で統一すると、応力 = N/mm² = MPa がそのまま出てきて間違いが減ります。この場合、密度は t/mm³ (鋼 7.85 × 10⁻⁹) を使う必要があり、質量の計算で混乱しやすいので注意します。</p>
 <h2>kg と N、kgf の違い</h2>
 <p>kg は質量、N は力です。質量 m [kg] の重さは <b>m × 9.81 N</b>。古い図面や資料にある kgf (重量キログラム) は力の単位で、1 kgf = 9.81 N です。「荷重 100 kg」とあれば 981 N に換算します。</p>

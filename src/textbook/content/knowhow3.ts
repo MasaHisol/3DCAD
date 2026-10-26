@@ -154,7 +154,8 @@ export const KNOWHOW3: TextChapter[] = [
 <text class="lbl" x="400" y="24" text-anchor="middle">θ まで傾くと重心が支点の真上に来る</text>
 </svg>
 <p class="tb-caption">図: 転倒角 θ。重心 G の高さ h と、重心から支点までの水平距離 b/2 で決まる。右は θ まで傾けた状態 (ここが倒れる境目)</p>
-<div class="tb-formula">転倒角 θ = tan⁻¹ ( (b/2) / h )　　横から押して倒れる力 F = W × (b/2) / h_F</div>
+<div class="tb-math">\\begin{gathered} \\theta = \\tan^{-1}\\dfrac{b/2}{h} \\\\ F = \\dfrac{W\\times b/2}{h_F} \\end{gathered}</div>
+<p>θ: 転倒角、F: 横から押して倒れる力</p>
 <p>例: 質量 200 kg、重心高さ h = 800 mm、重心から底面の縁までの水平距離 b/2 = 300 mm なら θ = tan⁻¹(300/800) ≈ <b>20.6°</b>。重心の高さで横に F をかけると、F = 1,962 × 300 / 800 ≈ <b>736 N</b> で倒れ始めます。重い部品を下に置いて重心を下げる、脚の間隔を広げる、床に固定する (アンカー) で対策します。</p>
 <div class="tb-note">移動中の台車は加速・減速・段差・傾斜で横力を受けます。必要な転倒角は製品の規格で決まっていることが多いので確認してください (例: 機器の傾斜安定性試験の角度)。</div>
 <h2>配線・配管ルート</h2>
@@ -199,7 +200,7 @@ export const KNOWHOW3: TextChapter[] = [
     lead: "製品コストの大半は設計の段階で決まると言われます。VE (価値工学) は「必要な機能を、最も安く実現する」ための考え方です。品質を落とさずにコストを下げる設計の見直し方を学びます。",
     body: `
 <h2>価値 = 機能 / コスト</h2>
-<div class="tb-formula">V (価値) = F (機能) / C (コスト)</div>
+<div class="tb-math">V\\,(\\text{価値}) = \\dfrac{F\\,(\\text{機能})}{C\\,(\\text{コスト})}</div>
 <p>VE では部品を「物」ではなく「機能」として見て、その機能にいくら払っているかを考えます。価値を上げる方向は 4 つあります。</p>
 <svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="価値を上げる方向">
 <path d="M80,190 L80,20 L300,20 L300,110 Z" style="fill:var(--tb-good);fill-opacity:0.06"/>

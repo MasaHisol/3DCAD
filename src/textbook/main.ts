@@ -3,6 +3,7 @@ import { CHAPTERS, PARTS, TEXT_GLOSSARY } from "./content";
 import type { TextChapter } from "./types";
 import { mountWidgets } from "./widgets";
 import { installFigKit } from "./figkit";
+import { renderMath } from "./math";
 import { ROADMAP } from "../learn/roadmap";
 
 // ------------------------------------------------------------ progress ---
@@ -200,6 +201,7 @@ function chapter(c: TextChapter) {
 }
 
 function wireChapter(c: TextChapter, main: HTMLElement) {
+  renderMath(main);
   mountWidgets(main);
   const answered = new Map<number, boolean>();
   for (const box of main.querySelectorAll<HTMLElement>(".tb-q")) {

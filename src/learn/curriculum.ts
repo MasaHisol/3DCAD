@@ -4,6 +4,7 @@ import type { ExtrudeFeature, FilletFeature, FlangeFeature, HoleFeature, LoftFea
 import { sampleDocument } from "../samples";
 import { annos, constraintCount, count, dims, drawing, editing, features, has, hasDim, near, sketches, tolDims, userParams, usesUserParam, val, views } from "./checks";
 import { CURRICULUM2, EXERCISES2 } from "./curriculum2";
+import { CURRICULUM3 } from "./curriculum3";
 import { blockStarter, pinAssemblyStarter, plateStarter } from "./starters";
 import type { Chapter, Exercise, LearnState } from "./types";
 export { GLOSSARY } from "./glossary";
@@ -1840,7 +1841,7 @@ export const EXERCISES: Exercise[] = [
 ];
 
 /** Every lesson in curriculum order. */
-CURRICULUM.push(...CURRICULUM2);
+CURRICULUM.push(...CURRICULUM2, ...CURRICULUM3);
 EXERCISES.push(...EXERCISES2);
 
 export const ALL_LESSONS = CURRICULUM.flatMap((c) => c.lessons);

@@ -12,7 +12,7 @@ export const STIFFNESS: TextChapter[] = [
     body: `
 <h2>強度と剛性は別物</h2>
 <p><b>強度</b>は「どこまでの力で壊れない(降伏しない)か」、<b>剛性</b>は「力に対してどれだけ変形しにくいか」です。剛性は荷重とたわみの比、すなわち<b>ばね定数</b>で表します。</p>
-<div class="tb-formula">k = F / δ　[N/mm, N/µm]　　ねじり剛性 kθ = T / θ　[N·m/rad]</div>
+<div class="tb-math">k = \\dfrac{F}{\\delta}\\ \\ [\\mathrm{N/mm},\\ \\mathrm{N/\\mu m}] \\qquad \\text{ねじり剛性}\\ k_\\theta = \\dfrac{T}{\\theta}\\ \\ [\\mathrm{N\\cdot m/rad}]</div>
 <table class="tb-table">
   <tr><th></th><th>強度</th><th>剛性</th></tr>
   <tr><td>評価量</td><td>応力 σ と許容応力</td><td>たわみ δ・傾き θ・固有振動数</td></tr>
@@ -23,7 +23,7 @@ export const STIFFNESS: TextChapter[] = [
 <div class="tb-tip"><b>落とし穴</b>: 「たわむから高強度鋼に替える」は効きません。SS400 も SCM440 も E はほぼ同じなので、たわみは変わりません。剛性を上げるのは<b>形状と長さ</b>です。</div>
 <h2>ばねモデルと直列・並列</h2>
 <p>部材・接合部・軸受など、力が通る要素をすべてばねに置き換えると、機械全体の剛性が計算できます。</p>
-<div class="tb-formula">直列: 1/k = 1/k₁ + 1/k₂ + …　　並列: k = k₁ + k₂ + …</div>
+<div class="tb-math">\\text{直列:}\\ \\dfrac{1}{k} = \\dfrac{1}{k_1} + \\dfrac{1}{k_2} + \\cdots \\qquad \\text{並列:}\\ k = k_1 + k_2 + \\cdots</div>
 <div data-widget="anim-stiffness-series"></div>
 <ul>
   <li><b>直列</b>では全体の剛性は<b>最も弱い要素</b>より必ず小さくなります。1 つだけ柔らかい要素があると、ほかをいくら硬くしても効きません。</li>
@@ -100,7 +100,7 @@ export const STIFFNESS: TextChapter[] = [
     lead: "同じ重さでも形しだいで剛性は何倍にも変わります。断面二次モーメントの使い方、閉断面と開断面のねじり剛性の大差、リブの効かせ方、比剛性 E/ρ による材料選びまで、軽くて硬い構造の作り方を学びます。",
     body: `
 <h2>曲げ剛性 EI — 高さの 3 乗が効く</h2>
-<div class="tb-formula">長方形 I = b h³ / 12　　同じ断面積なら「高く・外側へ」</div>
+<div class="tb-math">\\text{長方形}\\ I = \\dfrac{b h^3}{12}</div><p>同じ断面積なら「高く・外側へ」</p>
 <p>20 × 60 mm の平角棒は、立てて使うと寝かせたときの (60/20)² = <b>9 倍</b>の曲げ剛性になります。材料を中立軸から遠ざける I 形・箱形・パイプが軽量高剛性の基本形です。</p>
 <div data-widget="section"></div>
 <table class="tb-table">
@@ -111,7 +111,7 @@ export const STIFFNESS: TextChapter[] = [
 </table>
 <p>ただし薄くしすぎると<b>局部座屈</b>や局部変形 (断面のつぶれ) が起きます。肉厚の目安は幅の 1/30〜1/50 程度以上です。</p>
 <h2>ねじり剛性 — 閉断面と開断面は桁違い</h2>
-<div class="tb-formula">閉断面 (ブレットの式): J = 4A₀² t / s　　開断面: J = Σ b t³ / 3</div>
+<div class="tb-math">\\text{閉断面 (ブレットの式):}\\ J = \\dfrac{4A_0^2 t}{s} \\qquad \\text{開断面:}\\ J = \\sum \\dfrac{b t^3}{3}</div>
 <p>A₀ は肉厚中心線で囲まれた面積、s は中心線の周長です。開断面 (チャンネル、L 形、スリット入りパイプ) は t³ にしか比例しないため、ねじりに極端に弱くなります。</p>
 <svg class="tb-chart" viewBox="0 0 520 250" role="img" aria-label="閉断面と開断面">
 <rect class="k-panel" x="8" y="8" width="244" height="214" rx="8"/>
@@ -194,7 +194,7 @@ export const STIFFNESS: TextChapter[] = [
   <li><b>すべり・離間</b>: 締付力を超える力でずれる、モーメントで口開きする。こうなると剛性が急落し、非線形になる。</li>
 </ul>
 <h2>ボルト締結部の剛性</h2>
-<div class="tb-formula">ボルト kb = E Ab / lk　　被締結部 kc = E Ac / lk　(Ac: 等価円筒の面積)</div>
+<div class="tb-math">\\text{ボルト}\\ k_b = \\dfrac{E A_b}{l_k} \\qquad \\text{被締結部}\\ k_c = \\dfrac{E A_c}{l_k}</div><p>A<sub>c</sub>: 等価円筒の面積</p>
 <p>被締結部は座面から円すい状に広がる領域で圧縮力を受け、一般に kc はボルトの 3〜10 倍硬くなります。外力 W のうちボルトに加わるのは内力係数 φ = kb/(kb+kc) 倍だけです (詳しくは「ボルト締結」の章)。</p>
 <svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="ボルト締結部の圧縮円すい">
 <g class="k-shadow"><rect class="k-cut" x="140" y="60" width="240" height="45"/><rect class="k-cut2" x="140" y="105" width="240" height="45"/></g>
@@ -314,7 +314,7 @@ export const STIFFNESS: TextChapter[] = [
   <li>自動調心軸受: 数度まで許容 (たわみの大きい長軸に)</li>
 </ul>
 <h2>熱変形</h2>
-<div class="tb-formula">伸び ΔL = α L ΔT　　温度差 ΔT_h による反り (両端支持) δ = α ΔT_h L² / (8h)</div>
+<div class="tb-math">\\text{伸び}\\ \\Delta L = \\alpha L \\Delta T \\qquad \\text{反り (両端支持)}\\ \\delta = \\dfrac{\\alpha\\, \\Delta T_h L^2}{8h}</div><p>ΔT<sub>h</sub>: 上下面の温度差</p>
 <p>鋼 α ≈ 11.5 × 10⁻⁶ /K では、1 m が 1 K で <b>11.5 µm</b> 伸びます。精密機械では荷重によるたわみより熱変形のほうが大きいことがよくあります。</p>
 <ul>
   <li>上下面の温度差 (モーター・照明・日射) が反りを生む。熱源を対称に配置する。</li>
@@ -358,14 +358,14 @@ export const STIFFNESS: TextChapter[] = [
 <div data-widget="anim-modeshape"></div>
 <h3>2 自由度系の例</h3>
 <p>固定端 — ばね k — 質量 m — ばね k — 質量 m のくし形系では、</p>
-<div class="tb-formula">ω² = (3 ∓ √5)/2 × k/m　→　ω₁ = 0.618 √(k/m)、ω₂ = 1.618 √(k/m)</div>
+<div class="tb-math">\\omega^2 = \\dfrac{3 \\mp \\sqrt{5}}{2} \\cdot \\dfrac{k}{m} \\quad\\Rightarrow\\quad \\omega_1 = 0.618\\sqrt{k/m},\\ \\ \\omega_2 = 1.618\\sqrt{k/m}</div>
 <ul>
   <li>1 次モード: 2 つの質量が<b>同じ向き</b>に動く (振幅比 1 : 1.618)</li>
   <li>2 次モード: 2 つの質量が<b>逆向き</b>に動く (振幅比 1 : −0.618)</li>
   <li>任意の振動は、これらモードの重ね合わせで表せる (<b>モード重ね合わせ法</b>)</li>
 </ul>
 <h2>はりの固有振動数</h2>
-<div class="tb-formula">fᵢ = (λᵢ² / 2π L²) √(EI / ρA)</div>
+<div class="tb-math">f_i = \\dfrac{\\lambda_i^2}{2\\pi L^2} \\sqrt{\\dfrac{EI}{\\rho A}}</div>
 <table class="tb-table">
   <tr><th>支持条件</th><th>λ₁</th><th>λ₂</th><th>λ₃</th><th>f₂/f₁</th></tr>
   <tr><td>片持ち</td><td>1.875</td><td>4.694</td><td>7.855</td><td>6.27</td></tr>
@@ -382,7 +382,7 @@ export const STIFFNESS: TextChapter[] = [
 </ul>
 <h2>回転軸の危険速度</h2>
 <p>回転軸の質量中心がわずかに偏心していると、回転数が曲げの固有振動数に一致したとき振れ回りが急増します。この回転数を<b>危険速度</b>と呼びます。</p>
-<div class="tb-formula">Nc = (60 / 2π) √(g / δst) ≈ 946 / √δst(mm)　[min⁻¹]</div>
+<div class="tb-math">N_c = \\dfrac{60}{2\\pi} \\sqrt{\\dfrac{g}{\\delta_{st}}} \\approx \\dfrac{946}{\\sqrt{\\delta_{st}\\,(\\mathrm{mm})}}\\ \\ [\\mathrm{min^{-1}}]</div>
 <ul>
   <li>常用回転数は危険速度の <b>0.7 倍以下</b> (剛性軸) か、<b>1.3〜1.4 倍以上</b> (たわみ軸、速やかに通過させる) にする</li>
   <li>不つり合いを減らす (バランシング) と共振時の振幅も小さくなる</li>
@@ -455,7 +455,7 @@ export const STIFFNESS: TextChapter[] = [
   <tr><td>制振</td><td>振動エネルギーを熱に変える</td><td>制振鋼板、粘弾性材、摩擦、動吸振器</td></tr>
 </table>
 <h2>伝達率</h2>
-<div class="tb-formula">T = √(1 + (2ζr)²) / √((1 − r²)² + (2ζr)²)　　r = f / fn</div>
+<div class="tb-math">T = \\dfrac{\\sqrt{1 + (2\\zeta r)^2}}{\\sqrt{(1 - r^2)^2 + (2\\zeta r)^2}} \\qquad r = \\dfrac{f}{f_n}</div>
 <div data-widget="anim-isolation"></div>
 <ul>
   <li>r &lt; √2: T &gt; 1 (増幅)。r = 1 で共振 (T ≈ 1/(2ζ))</li>
@@ -464,7 +464,7 @@ export const STIFFNESS: TextChapter[] = [
 </ul>
 <div data-widget="vibration"></div>
 <h3>防振材の選び方</h3>
-<div class="tb-formula">fn ≈ 15.8 / √δst(mm)　　δst = g / (2π fn)²</div>
+<div class="tb-math">f_n \\approx \\dfrac{15.8}{\\sqrt{\\delta_{st}\\,(\\mathrm{mm})}} \\qquad \\delta_{st} = \\dfrac{g}{(2\\pi f_n)^2}</div>
 <ol>
   <li>加振周波数 f (最低回転数) を求める</li>
   <li>目標の振動数比 r = 2.5〜4 から fn = f / r を決める</li>

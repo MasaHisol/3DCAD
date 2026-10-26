@@ -51,7 +51,8 @@ export const UX2: TextChapter[] = [
 <p class="tb-caption">図: 視野の中心と周辺 (角度は概念的)。周辺に置く表示は点滅や動きで注意を引く。</p>
 <h2>反応時間とヒックの法則</h2>
 <p>合図が出てから動き始めるまでの<b>単純反応時間</b>は、条件によりますがおよそ 0.15〜0.3 秒程度です (目安)。選択肢が増えると、どれを選ぶか判断する時間が加わります。これを表すのが<b>ヒック (ヒック・ハイマン) の法則</b>です。</p>
-<div class="tb-formula">RT = a + b × log₂(n + 1)　　n: 等確率の選択肢の数、a・b: 人と課題で決まる係数</div>
+<div class="tb-math">\\mathrm{RT} = a + b \\log_2(n + 1)</div>
+<p>n: 等確率の選択肢の数、a・b: 人と課題で決まる係数</p>
 <p>選択肢の数が 2 倍になっても時間は 2 倍にはならず、<b>対数的</b>にゆっくり増えます。例えば a = 0.2 s、b = 0.15 s/bit と仮定すると:</p>
 <table class="tb-table">
   <tr><th>選択肢 n</th><th>log₂(n+1)</th><th>RT (計算例)</th></tr>
@@ -100,7 +101,8 @@ export const UX2: TextChapter[] = [
     body: `
 <h2>フィッツの法則</h2>
 <p>ポール・フィッツ (1954) は、目標へ手を素早く正確に動かす時間 MT が、距離 D と目標の幅 W で決まることを示しました。広く使われる形 (シャノン形) は次のとおりです。</p>
-<div class="tb-formula">MT = a + b × log₂(D/W + 1)　　ID = log₂(D/W + 1) [bit] を難易度指数と呼ぶ</div>
+<div class="tb-math">\\begin{gathered} \\mathrm{MT} = a + b \\log_2\\!\\left(\\dfrac{D}{W} + 1\\right) \\\\ \\mathrm{ID} = \\log_2\\!\\left(\\dfrac{D}{W} + 1\\right)\\ [\\mathrm{bit}] \\end{gathered}</div>
+<p>ID を難易度指数と呼びます。</p>
 <svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="フィッツの法則の距離と幅">
 
 <circle cx="60" cy="75" r="5" style="fill:var(--tb-text-3)"/><text class="tick" x="60" y="100" text-anchor="middle">開始点</text>
@@ -679,7 +681,8 @@ export const UX2: TextChapter[] = [
 <h2>SUS と NPS の計算</h2>
 <p>SUS は「UX リサーチと評価手法」の章のとおり、奇数項目 (回答 − 1)、偶数項目 (5 − 回答) の合計 × 2.5 で参加者ごとに計算し、平均します。</p>
 <p><b>NPS (ネット・プロモーター・スコア)</b> は「この製品を友人や同僚に薦める可能性は? (0〜10)」の 1 問で測ります。</p>
-<div class="tb-formula">NPS = 推奨者 (9〜10) の割合 % − 批判者 (0〜6) の割合 %　　(7〜8 は中立者で計算に入れない)　範囲 −100〜+100</div>
+<div class="tb-math">\\begin{aligned} \\mathrm{NPS} = {} & \\text{推奨者 (9〜10) の割合 \\%} \\\\ & - \\text{批判者 (0〜6) の割合 \\%} \\end{aligned}</div>
+<p>(7〜8 は中立者で計算に入れない)　範囲 −100〜+100</p>
 <svg class="tb-chart" role="img" viewBox="0 0 520 140" aria-label="NPS の区分">
   <rect style="fill:var(--tb-bad)" x="30" y="40" width="270" height="30" opacity="0.5"/><rect style="fill:var(--tb-text-3)" x="300" y="40" width="90" height="30" opacity="0.4"/><rect style="fill:var(--tb-good)" x="390" y="40" width="100" height="30" opacity="0.6"/>
   <text class="mark-t" x="165" y="60" text-anchor="middle">批判者 0〜6</text><text class="mark-t" x="345" y="60" text-anchor="middle">中立 7〜8</text><text class="mark-t" x="440" y="60" text-anchor="middle">推奨者 9〜10</text>
@@ -688,7 +691,7 @@ export const UX2: TextChapter[] = [
 <p class="tb-caption">図: NPS の区分。中立者は計算に入らないので、同じ NPS でも分布は様々になりうる。</p>
 <h2>少人数テストの限界と有意差の考え方</h2>
 <p>5 人中 4 人が成功すれば成功率は 80 % ですが、これは「本当の成功率」の推定値にすぎません。少人数では<b>信頼区間</b> (本当の値がありそうな範囲) が非常に広くなります。少人数の成功率には、<b>調整ワルド法</b> (成功数に 1.92、人数に 3.84 を加えてから計算する簡便法、95 % の場合) がよく使われます。</p>
-<div class="tb-formula">p̂ = (x + 1.92) / (n + 3.84)　　95 % 区間 ≈ p̂ ± 1.96 × √( p̂(1 − p̂) / (n + 3.84) )</div>
+<div class="tb-math">\\begin{aligned} \\hat{p} &= \\dfrac{x + 1.92}{n + 3.84} \\\\ \\text{95\\% 区間} &\\approx \\hat{p} \\pm 1.96 \\sqrt{\\dfrac{\\hat{p}(1 - \\hat{p})}{n + 3.84}} \\end{aligned}</div>
 <pre class="tb-pre">5 人中 4 人成功:   p̂ = 5.92 / 8.84 = 0.670
                   幅 = 1.96 × √(0.670 × 0.330 / 8.84) ≈ 0.31
                   95 % 区間 ≈ 36 % 〜 98 %

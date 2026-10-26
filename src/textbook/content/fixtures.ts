@@ -47,7 +47,8 @@ export const FIXTURES: TextChapter[] = [
 </svg>
 <p class="tb-caption">図: ひし形ピンはランド (幅 b) の部分だけが穴に当たる。ピンを結ぶ方向 (青) には逃げがあるので、穴ピッチの誤差があってもはまる</p>
 <p>ランド幅 b が広すぎると、ピッチ誤差 e だけずれたときにランドの角が穴に当たってはまりません。穴の半径 R、ピンの半径 r とすると、はまる条件は幾何学から</p>
-<div class="tb-formula">b ≤ (R² − r² − e²) ÷ e ≈ D · c ÷ (2e)　　(D: 穴径、c = D − d: 直径すき間の最小値)</div>
+<div class="tb-math">b \\le \\dfrac{R^2 - r^2 - e^2}{e} \\approx \\dfrac{D \\cdot c}{2e}</div>
+<p>(D: 穴径、c = D − d: 直径すき間の最小値)</p>
 <p>となります。すき間 c を大きくすれば b を広くとれますが、そのぶん回転方向のがたが増えます。</p>
 <h3>計算例 — ひし形ピンのランド幅と位置決め誤差</h3>
 <div class="tb-tip">
@@ -61,7 +62,8 @@ b ≤ (5.000² − 4.990² − 0.05²) ÷ 0.05 = (0.0999 − 0.0025) ÷ 0.05 = <
 </div>
 <h2>クランプ力は加工力から決める</h2>
 <p>加工力 F<sub>p</sub> の向きが<b>受け (位置決め点) に向かう</b>なら、力は受けが直接受け止めるので、クランプは振動で浮かない程度で足ります。受けから<b>離れる向き</b>や受けと平行な向きの力は、クランプの押付け力による<b>摩擦</b>で支えるしかありません。</p>
-<div class="tb-formula">必要クランプ力 F<sub>c</sub> ≥ S · F<sub>p</sub> ÷ (μ₁ + μ₂)　　(μ₁: ワーク–受け、μ₂: ワーク–クランプの摩擦係数、S: 安全率 2〜3)</div>
+<div class="tb-math">F_c \\ge \\dfrac{S \\cdot F_p}{\\mu_1 + \\mu_2}</div>
+<p>(F<sub>c</sub>: 必要クランプ力、μ₁: ワーク–受け、μ₂: ワーク–クランプの摩擦係数、S: 安全率 2〜3)</p>
 <svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="加工力を受けで受ける場合と摩擦で受ける場合">
 <rect class="k-panel" x="8" y="8" width="248" height="194" rx="8"/>
 <rect class="k-panel" x="264" y="8" width="248" height="194" rx="8"/>
@@ -189,7 +191,8 @@ b ≤ (5.000² − 4.990² − 0.05²) ÷ 0.05 = (0.0999 − 0.0025) ÷ 0.05 = <
 </table>
 <h2>真空チャック</h2>
 <p>真空チャックは、ワークの裏側の圧力を下げ、表と裏の<b>圧力差 Δp</b> でワークを押し付けます。吸着力は</p>
-<div class="tb-formula">F = Δp × A　　(A: 減圧されている面積。溝やポーラス面で囲まれた範囲)</div>
+<div class="tb-math">F = \\Delta p \\times A</div>
+<p>(A: 減圧されている面積。溝やポーラス面で囲まれた範囲)</p>
 <p>大気圧は約 101 kPa なので、Δp は最大でも約 100 kPa です。実際の真空源 (エジェクタや真空ポンプ) では −60〜−90 kPa (ゲージ圧) 程度で使います。吸着力は減圧の「強さ」より<b>面積</b>で稼ぐ、と覚えておきます。</p>
 <svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="真空チャックの断面。大気圧がウェーハを押し付ける">
 <text class="k-title" x="260" y="18" text-anchor="middle">真空チャックの断面</text>
@@ -544,7 +547,7 @@ F = 60,000 Pa × 0.0284 m² ≈ <b>1,700 N</b><br>
 <li><b>繰返し性 (EV)</b>: 同じ人が同じ部品を何度も測ったばらつき (主に測定器・治具)</li>
 <li><b>再現性 (AV)</b>: 測る人が変わったときの平均の差 (主に置き方・読み方)</li>
 </ul>
-<div class="tb-formula">GRR = √(EV² + AV²)　　TV = √(GRR² + PV²)　　%GRR = 100 × GRR ÷ TV</div>
+<div class="tb-math">\\begin{gathered} \\mathrm{GRR} = \\sqrt{\\mathrm{EV}^2 + \\mathrm{AV}^2} \\\\ \\mathrm{TV} = \\sqrt{\\mathrm{GRR}^2 + \\mathrm{PV}^2} \\\\ \\%\\mathrm{GRR} = \\dfrac{100\\,\\mathrm{GRR}}{\\mathrm{TV}} \\end{gathered}</div>
 <p>PV は部品間のばらつき、TV は全体のばらつきです (いずれも標準偏差)。一般的な目安は、<b>%GRR が 10% 未満なら良好、10〜30% は用途やコストによっては条件付きで受け入れ、30% を超えると受け入れられない</b>、です。全体のばらつきの代わりに公差幅に対する割合 (6 × GRR ÷ 公差) で評価することもあります。</p>
 <h3>計算例 — %GRR</h3>
 <div class="tb-tip">
@@ -659,7 +662,7 @@ TV = √(0.005² + 0.020²) = 0.0206 mm<br>
 </ul>
 <h3>計算例 — しめしろから圧入力を見積もる</h3>
 <p>同じ材料の中実軸 (直径 d) と、外径 D の穴部品 (ハブ) を圧入するとき、厚肉円筒の式を簡単にすると、接触面圧 p と圧入力 F は</p>
-<div class="tb-formula">p ≈ (E · δ ÷ 2d) × (1 − (d/D)²)　　F ≈ μ · p · π · d · L</div>
+<div class="tb-math">\\begin{gathered} p \\approx \\dfrac{E\\,\\delta}{2d}\\left(1 - \\left(\\dfrac{d}{D}\\right)^{2}\\right) \\\\ F \\approx \\mu \\cdot p \\cdot \\pi \\cdot d \\cdot L \\end{gathered}</div>
 <p>(δ: 直径のしめしろ、L: はめあい長さ、μ: 圧入時の摩擦係数)。</p>
 <div class="tb-tip">
 <p>鋼 (E = 206 GPa) の軸 d = 20 mm を、外径 D = 40 mm の鋼のハブに、しめしろ δ = 0.020 mm、長さ L = 20 mm で圧入します。μ = 0.15 とします。</p>

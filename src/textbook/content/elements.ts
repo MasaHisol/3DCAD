@@ -34,7 +34,8 @@ export const ELEMENTS: TextChapter[] = [
 <div data-widget="3d-bearing"></div>
 <p class="tb-caption">3D 図: 深溝玉軸受を分解すると、外輪・内輪・玉・保持器の 4 部品からなることがわかります。</p>
 <h2>寿命の計算</h2>
-<div class="tb-formula">L10 = (C / P)ᵖ × 10⁶ 回転　　(玉軸受 p = 3、ころ軸受 p = 10/3)<br>寿命時間 L10h = L10 / (60 n)</div>
+<div class="tb-math">\\begin{aligned} L_{10} &= \\left(\\dfrac{C}{P}\\right)^{p}\\times 10^{6}\\ \\text{回転} \\\\ L_{10h} &= \\dfrac{L_{10}}{60\\,n} \\end{aligned}</div>
+<p>玉軸受 <span class="tb-m">p = 3</span>、ころ軸受 <span class="tb-m">p = 10/3</span>。寿命時間は <span class="tb-m">L_{10h}</span>。</p>
 <p>C は<b>基本動定格荷重</b> (カタログ値)、P は<b>動等価荷重</b>です。L10 は、同じ条件で使った軸受の 90 % が転がり疲れで壊れずに回れる回転数です。
 <b>荷重を半分にすると寿命は 8 倍</b>になります。荷重の変動や衝撃は荷重係数 fw (1.0〜1.5 程度) を掛けて見込みます。</p>
 <div data-widget="bearing"></div>
@@ -71,7 +72,8 @@ export const ELEMENTS: TextChapter[] = [
 <div class="tb-tip"><b>3DCAD Studio</b>: 「標準部品」に深溝玉軸受 (60xx / 62xx) があります。アセンブリで軸と挿入拘束で組み、軸受の肩寸法と干渉を確認しましょう。</div>
 <h2>選定の手順</h2>
 <div class="tb-flow">① 荷重 (ラジアル Fr・アキシアル Fa) と回転数を求める → ② 動等価荷重 P = X·Fr + Y·Fa → ③ 必要寿命から必要な基本動定格荷重 C を出す → ④ カタログから C を満たす形番を選ぶ → ⑤ 軸径・ハウジング・はめあい・潤滑を確認</div>
-<div class="tb-formula">必要 C = fw · P · (L10 / 10⁶)^(1/3)　　L10 = 60 · n · L10h　(玉軸受。ころ軸受は指数 10/3)</div>
+<div class="tb-math">\\begin{gathered} C_{\\text{必要}} = f_w \\cdot P \\cdot \\left(\\dfrac{L_{10}}{10^{6}}\\right)^{1/3} \\\\ L_{10} = 60\\cdot n\\cdot L_{10h} \\end{gathered}</div>
+<p>玉軸受の場合。ころ軸受は指数 10/3。</p>
 <p>fw は<b>荷重係数</b>で、衝撃の少ない運転で 1.0〜1.2、衝撃を伴う機械で 1.5 以上を目安に見込みます。X・Y はアキシアル荷重の比率で変わるので、必ず使う軸受のカタログの表から読みます。</p>
 <p><b>計算例</b>: Fr = 2 kN (アキシアルなし)、n = 1500 min⁻¹、必要寿命 2 万時間、fw = 1.2 とします。L10 = 60 × 1500 × 20 000 = 1.8 × 10⁹ 回転。(1800)^(1/3) ≈ 12.2 なので、必要 C = 1.2 × 2 × 12.2 ≈ <b>29.2 kN</b>。この C 以上の軸受をメーカーカタログで探します。</p>
 <table class="tb-table">
@@ -129,7 +131,8 @@ export const ELEMENTS: TextChapter[] = [
     lead: "歯車は、回転数とトルクを正確な比で変えて伝えます。モジュール・歯数・中心距離の関係と、歯車の種類の選び方を学びます。",
     body: `
 <h2>歯車の大きさ — モジュール</h2>
-<div class="tb-formula">ピッチ円直径 d = m × z　　歯先円直径 da = m (z + 2)　　中心距離 a = m (z₁ + z₂) / 2</div>
+<div class="tb-math">\\begin{gathered} d = m z \\\\ d_a = m\\,(z+2) \\\\ a = \\dfrac{m\\,(z_1+z_2)}{2} \\end{gathered}</div>
+<p>d: ピッチ円直径、d<sub>a</sub>: 歯先円直径、a: 中心距離</p>
 <p><b>モジュール m</b> は歯の大きさで、かみ合う歯車は必ず同じモジュールです (JIS の標準値: 0.5, 0.8, 1, 1.25, 1.5, 2, 2.5, 3, 4 …)。
 圧力角は 20° が標準です。</p>
 <svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="歯車のかみ合いとピッチ円">
@@ -156,7 +159,8 @@ export const ELEMENTS: TextChapter[] = [
 </svg>
 <p class="tb-caption">図: 2 つの歯車はピッチ円 (一点鎖線) が接するようにかみ合う。中心距離はピッチ円半径の和</p>
 <h2>速比とトルク</h2>
-<div class="tb-formula">速比 i = z₂ / z₁ = n₁ / n₂　　出力トルク T₂ = T₁ × i × 効率</div>
+<div class="tb-math">\\begin{gathered} i = \\dfrac{z_2}{z_1} = \\dfrac{n_1}{n_2} \\\\ T_2 = T_1 \\times i \\times \\eta \\end{gathered}</div>
+<p>i: 速比、T<sub>2</sub>: 出力トルク、η: 効率</p>
 <p>小歯車 (ピニオン) で大歯車を回すと、回転は遅くなり、トルクは大きくなります (減速)。動力 (トルク × 回転数) は効率の分だけ減ってそのまま伝わります。</p>
 <div data-widget="gear"></div>
 <div data-widget="3d-gears"></div>
@@ -209,7 +213,8 @@ export const ELEMENTS: TextChapter[] = [
 </ul>
 <h2>歯の強さの見積り (ルイスの式)</h2>
 <p>歯を片持ちはりとみなし、歯元の曲げ応力を概算します。正式な強度計算は JIS や ISO の規格式で行いますが、寸法の当たりを付けるには十分です。</p>
-<div class="tb-formula">接線力 Ft = 2T / d　　歯元曲げ応力 σ ≈ Ft / (b · m · Y)</div>
+<div class="tb-math">\\begin{gathered} F_t = \\dfrac{2T}{d} \\\\ \\sigma \\approx \\dfrac{F_t}{b\\cdot m\\cdot Y} \\end{gathered}</div>
+<p>F<sub>t</sub>: 接線力、σ: 歯元曲げ応力</p>
 <p>b は歯幅 (一般に m の 8〜12 倍程度)、Y は歯形係数で歯数とともに大きくなります (圧力角 20° の標準歯車で、歯数 20 前後なら 0.3 程度)。</p>
 <p><b>計算例</b>: m = 2、z = 20 (d = 40 mm) のピニオンで T = 25 N·m、歯幅 20 mm、Y = 0.32 とすると、Ft = 2 × 25 000 / 40 = 1 250 N、σ ≈ 1 250 / (20 × 2 × 0.32) ≈ <b>98 MPa</b>。これに速度による動的係数や寿命係数を掛けて、材料・熱処理の許容値と比べます。</p>
 <table class="tb-table">
@@ -252,7 +257,7 @@ export const ELEMENTS: TextChapter[] = [
     lead: "ばねは、部品を押し付ける、衝撃を吸収する、元に戻す、力を測るなど、多くの機構で使われます。コイルばねのばね定数と応力の計算を学びます。",
     body: `
 <h2>ばね定数とつなぎ方</h2>
-<div class="tb-formula">P = k × δ　　直列: 1/k = 1/k₁ + 1/k₂　　並列: k = k₁ + k₂</div>
+<div class="tb-math">\\begin{gathered} P = k\\,\\delta \\\\ \\text{直列: } \\dfrac{1}{k} = \\dfrac{1}{k_1}+\\dfrac{1}{k_2} \\\\ \\text{並列: } k = k_1 + k_2 \\end{gathered}</div>
 <p>直列につなぐと柔らかく (k が小さく)、並列につなぐと硬く (k が大きく) なります。</p>
 <svg class="tb-chart" viewBox="0 0 520 180" role="img" aria-label="ばねの直列と並列">
 <rect class="k-panel" x="8" y="8" width="244" height="164" rx="8"/>
@@ -281,7 +286,7 @@ export const ELEMENTS: TextChapter[] = [
 </svg>
 <p class="tb-caption">図: ばねのつなぎ方。直列は同じ力で両方が伸び、並列は同じ伸びで力を分け合う</p>
 <h2>圧縮コイルばね</h2>
-<div class="tb-formula">k = G d⁴ / (8 D³ n)　　τ = κ · 8 P D / (π d³)</div>
+<div class="tb-math">\\begin{gathered} k = \\dfrac{G d^{4}}{8 D^{3} n} \\\\ \\tau = \\kappa\\cdot\\dfrac{8 P D}{\\pi d^{3}} \\end{gathered}</div>
 <p>d: 線径、D: コイル平均径、n: 有効巻数、G: 横弾性係数 (ばね鋼 78.5 GPa)。κ は曲がった線の内側で応力が大きくなることを補正する<b>応力修正係数</b> (ワールの式)。</p>
 <svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="圧縮コイルばねの各部">
 <line class="" x1="85.7" y1="64" x2="101.4" y2="136" style="stroke:var(--k-line-2)" stroke-width="5"/>
@@ -398,7 +403,8 @@ export const ELEMENTS: TextChapter[] = [
     body: `
 <h2>平行キー</h2>
 <p>軸とボスの両方にキー溝を彫り、キーを入れてトルクを伝えます。キーの寸法 b × h は<b>軸径から決まります</b> (JIS B 1301)。</p>
-<div class="tb-formula">接線力 F = 2T / d　　せん断応力 τ = F / (b·l)　　面圧 p = F / ((h − t₁)·l)</div>
+<div class="tb-math">\\begin{gathered} F = \\dfrac{2T}{d} \\\\ \\tau = \\dfrac{F}{b\\,l} \\\\ p = \\dfrac{F}{(h-t_1)\\,l} \\end{gathered}</div>
+<p>F: 接線力、τ: せん断応力、p: 面圧</p>
 <p>多くの場合、せん断より<b>側面の面圧</b>で長さが決まります。必要なら長さを伸ばすか、キーを 2 本 (180° 対向) にします。</p>
 <svg class="tb-chart" viewBox="0 0 520 230" role="img" aria-label="平行キーの断面">
 <rect class="k-panel" x="8" y="8" width="244" height="214" rx="8"/>
@@ -459,7 +465,8 @@ export const ELEMENTS: TextChapter[] = [
 </ul>
 <h2>キー長さの決め方 (計算例)</h2>
 <p>面圧の式を長さについて解きます。キーの高さ h、軸側の溝深さ t₁ とすると、ボス側に当たる高さは h − t₁ です。</p>
-<div class="tb-formula">F = 2T / d　　必要長さ L ≥ F / ((h − t₁) · p許容)</div>
+<div class="tb-math">\\begin{gathered} F = \\dfrac{2T}{d} \\\\ L \\ge \\dfrac{F}{(h-t_1)\\cdot p_{\\text{許容}}} \\end{gathered}</div>
+<p>L: 必要長さ</p>
 <p><b>計算例</b>: φ30 の軸で T = 120 N·m、キー 8 × 7 (t₁ = 4)、許容面圧 100 MPa とします。F = 2 × 120 000 / 30 = 8 000 N、L ≥ 8 000 / (3 × 100) ≈ 26.7 mm → 規格の長さから <b>28 mm</b> を選びます。このときせん断応力は τ = 8 000 / (8 × 28) ≈ <b>36 MPa</b> で余裕があり、普通は面圧で長さが決まります。</p>
 <table class="tb-table">
   <tr><th>ボスの材料・使い方</th><th>許容面圧の目安</th></tr>
@@ -508,7 +515,8 @@ export const ELEMENTS: TextChapter[] = [
   <tr><td>ローラーチェーン</td><td>大きな力・高温に強い。潤滑が必要、騒音</td><td>自転車・コンベヤ・低速大トルク</td></tr>
 </table>
 <h2>ベルトの長さと巻き掛け角</h2>
-<div class="tb-formula">L = 2C + π(D₁ + D₂)/2 + (D₂ − D₁)² / (4C)　　巻き掛け角 θ = 180° − 2 sin⁻¹((D₂ − D₁) / 2C)</div>
+<div class="tb-math">\\begin{aligned} L &= 2C + \\dfrac{\\pi(D_1+D_2)}{2} + \\dfrac{(D_2-D_1)^2}{4C} \\\\ \\theta &= 180^\\circ - 2\\sin^{-1}\\dfrac{D_2-D_1}{2C} \\end{aligned}</div>
+<p>θ: 巻き掛け角</p>
 <p>小さいプーリの<b>巻き掛け角</b>が小さいと滑りやすくなります (120° 以上、できれば 150° 以上)。軸間距離は小さいプーリ径の数倍程度に。
 ベルトの張りを調整できるよう、<b>モーター台を長穴でスライド</b>させるかテンショナを設けます。</p>
 <svg class="tb-chart" viewBox="0 0 520 236" role="img" aria-label="ベルト伝動の各部">
@@ -540,7 +548,8 @@ export const ELEMENTS: TextChapter[] = [
 <p class="tb-caption">図: ベルト伝動。小プーリの巻き掛け角 θ が小さいと滑りやすい。駆動プーリに引き込まれる側が張り側</p>
 <div data-widget="belt"></div>
 <h2>ねじ送り — 回転を直線に</h2>
-<div class="tb-formula">送り速度 v = リード × 回転数　　推力 F = 2π η T / リード</div>
+<div class="tb-math">\\begin{gathered} v = \\text{リード}\\times\\text{回転数} \\\\ F = \\dfrac{2\\pi\\,\\eta\\,T}{\\text{リード}} \\end{gathered}</div>
+<p>v: 送り速度、F: 推力</p>
 <ul>
   <li><b>台形ねじ</b>: 安価。効率 30〜50 % で、止めると逆に回りにくい (保持に便利)</li>
   <li><b>ボールねじ</b>: 効率 90 % 以上で精密・高速。逆に回されやすいので、上下軸ではブレーキが必要</li>
@@ -572,7 +581,8 @@ export const ELEMENTS: TextChapter[] = [
 <p class="tb-caption">図: ボールねじ送り。モーターの回転をナットの直線運動に変える。1 回転でリード分だけ進む</p>
 <h2>張り側と緩み側 — 有効張力</h2>
 <p>ベルトは引張りでしか力を伝えられません。駆動プーリの前後で張り側張力 T₁ と緩み側張力 T₂ の差が<b>有効張力</b> Te になり、これがトルクを伝えます。平ベルト・V ベルトでは摩擦で伝えるので、T₁/T₂ は巻き掛け角と摩擦係数で上限が決まります (オイラーの式 T₁/T₂ ≤ e^(μθ))。</p>
-<div class="tb-formula">Te = T₁ − T₂ = 2T / d　　軸荷重 ≈ T₁ + T₂ (初張力の約 2 倍)</div>
+<div class="tb-math">\\begin{gathered} T_e = T_1 - T_2 = \\dfrac{2T}{d} \\\\ \\text{軸荷重} \\approx T_1 + T_2 \\end{gathered}</div>
+<p>軸荷重は初張力の約 2 倍。</p>
 <svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="ベルトの張り側と緩み側">
 <g class="k-shadow"><circle class="k-part" cx="130" cy="100" r="44"/><circle class="k-part" cx="390" cy="100" r="64"/></g>
 <line x1="130" y1="56" x2="390" y2="36" style="stroke:var(--tb-bad)" stroke-width="3.4"/>
@@ -622,7 +632,8 @@ export const ELEMENTS: TextChapter[] = [
     lead: "モーターの一方向の回転を、往復・揺動・間欠など必要な動きに変えるのが機構です。リンク機構の自由度とグラスホフの条件、カムの使いどころを学びます。",
     body: `
 <h2>機構の自由度</h2>
-<div class="tb-formula">F = 3 (n − 1) − 2 j₁ − j₂　　(平面機構のグリューブラーの式)</div>
+<div class="tb-math">F = 3\\,(n-1) - 2 j_1 - j_2</div>
+<p>平面機構のグリューブラーの式。</p>
 <p>n: リンクの数 (固定リンクを含む)、j₁: 1 自由度の対偶 (ピン・すべり)、j₂: 2 自由度の対偶 (カムと接触点など)。
 F = 1 なら入力 1 つで動きが決まる<b>限定連鎖</b>、F = 0 なら動かない構造です。</p>
 <h2>四節リンク機構</h2>
@@ -696,7 +707,7 @@ F = 1 なら入力 1 つで動きが決まる<b>限定連鎖</b>、F = 0 なら�
 <div class="tb-tip"><b>3DCAD Studio</b>: アセンブリでリンクをピン (挿入・軸合わせ拘束) でつなぎ、「拘束を駆動」で角度を変えると機構の動きと干渉を確認できます。「モーション解析」で変位・速度・加速度のグラフも出せます。</div>
 <h2>スライダクランクの動きの大きさ</h2>
 <p>クランク半径 r、連結棒長さ l のスライダクランクでは、ストロークは 2r です。等速回転 (角速度 ω) のときスライダの加速度はおおむね次の式で、上死点付近が最大になります。</p>
-<div class="tb-formula">a ≈ r ω² (cos θ + (r/l) cos 2θ)　　最大 ≈ r ω² (1 + r/l)</div>
+<div class="tb-math">\\begin{gathered} a \\approx r\\omega^2\\left(\\cos\\theta + \\dfrac{r}{l}\\cos 2\\theta\\right) \\\\ a_{\\max} \\approx r\\omega^2\\left(1+\\dfrac{r}{l}\\right) \\end{gathered}</div>
 <p><b>計算例</b>: r = 30 mm、l = 120 mm、600 min⁻¹ (ω ≈ 62.8 rad/s)。r ω² ≈ 118 m/s²、最大加速度 ≈ 118 × 1.25 ≈ <b>148 m/s²</b> (約 15 G)。スライダ側の質量が 0.5 kg でも約 74 N の慣性力が往復するので、ピン・軸受の強度とフレームの振動に注意します。</p>
 <h2>よくある失敗</h2>
 <ul>
