@@ -8,6 +8,7 @@ import { ANIM6 } from "./anim6";
 import { ANIM7 } from "./anim7";
 import { VIEW3D } from "./viewer3d";
 import { fmt, lineChart } from "./chart";
+import { renderMath } from "./math";
 import {
   charHeight,
   filletWeld,
@@ -93,8 +94,23 @@ function form(fields: Field[], onChange: () => void) {
       s.value = f.value;
       inp = s;
     }
-    inp.addEventListener("input", onChange);
-    inp.addEventListener("change", onChange);
+    const fire = () => {
+      // invalid numbers are flagged and the last valid result stays on screen
+      if (f.type === "num") {
+        const i = inp as HTMLInputElement;
+        const v = Number(i.value);
+        const bad = i.value.trim() === "" || !Number.isFinite(v) || (f.min !== undefined && v < f.min);
+        i.setAttribute("aria-invalid", String(bad));
+        row.classList.toggle("invalid", bad);
+        row.title = bad ? (f.min !== undefined ? `${f.min} 以上の数値を入力してください` : "数値を入力してください") : "";
+        if (bad) return;
+      }
+      onChange();
+    };
+    inp.addEventListener("input", fire);
+    inp.addEventListener("change", fire);
+    inp.setAttribute("aria-label", f.label + (f.type === "num" && f.unit ? ` [${f.unit}]` : ""));
+    if (f.type === "num") (inp as HTMLInputElement).inputMode = "decimal";
     row.appendChild(inp);
     if (f.type === "num" && f.unit) {
       const u = document.createElement("small");
@@ -119,17 +135,85 @@ function shell(host: HTMLElement, title: string) {
   host.innerHTML = "";
   const head = document.createElement("div");
   head.className = "tb-widget-head";
-  head.innerHTML = `<span class="tb-widget-badge">計算ツール</span>${title}`;
+  head.innerHTML = `<span class="tb-widget-badge">計算ツール</span><span class="tb-widget-title">${title}</span>`;
+  const tools = document.createElement("span");
+  tools.className = "tb-transport";
+  const copy = document.createElement("button");
+  copy.type = "button";
+  copy.className = "tb-tr-btn tb-copy";
+  copy.textContent = "結果をコピー";
+  copy.title = "入力値と結果をテキストでコピー";
+  tools.appendChild(copy);
+  const mount = (host as HTMLElement & { __tbMount?: () => void }).__tbMount;
+  if (mount) {
+    const reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "tb-tr-btn";
+    reset.textContent = "↺";
+    reset.title = "初期値に戻す";
+    reset.setAttribute("aria-label", "初期値に戻す");
+    reset.addEventListener("click", () => mount());
+    tools.appendChild(reset);
+  }
+  head.appendChild(tools);
   const body = document.createElement("div");
   body.className = "tb-widget-body";
   const out = document.createElement("div");
   out.className = "tb-widget-out";
+  out.setAttribute("aria-live", "polite");
   host.append(head, body, out);
+  copy.addEventListener("click", () => {
+    const lines = [title, ""];
+    for (const r of body.querySelectorAll<HTMLElement>(".tb-field:not(.hidden)")) {
+      const i = r.querySelector<HTMLInputElement | HTMLSelectElement>("input, select");
+      if (!i) continue;
+      const v = i instanceof HTMLSelectElement ? i.selectedOptions[0]?.textContent ?? i.value : i.value;
+      lines.push(`${r.querySelector("span")?.textContent ?? ""}: ${v} ${r.querySelector("small")?.textContent ?? ""}`.trim());
+    }
+    lines.push("");
+    for (const tr of out.querySelectorAll<HTMLTableRowElement>(".tb-res tr")) {
+      const th = tr.querySelector("th")?.querySelector(".tb-res-n")?.textContent ?? tr.querySelector("th")?.textContent ?? "";
+      const f = tr.querySelector<HTMLElement>(".tb-res-f")?.dataset.f;
+      lines.push(`${th}${f ? ` (${f})` : ""}\t${tr.querySelector("td")?.textContent ?? ""}`);
+    }
+    const text = lines.join("\n");
+    const done = (ok: boolean) => {
+      copy.textContent = ok ? "コピーしました ✓" : "コピーできませんでした";
+      setTimeout(() => (copy.textContent = "結果をコピー"), 1600);
+    };
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(() => done(true), () => done(false));
+    else done(false);
+  });
+  // TeX written as <span class="tb-m">…</span> in results is typeset; results flash briefly when they change
+  if (typeof MutationObserver === "function") {
+    let t = 0;
+    new MutationObserver(() => {
+      if (out.querySelector(".tb-m:not([data-tex])")) renderMath(out);
+      out.classList.remove("tb-flash");
+      clearTimeout(t);
+      t = window.setTimeout(() => out.classList.add("tb-flash"), 0);
+    }).observe(out, { childList: true });
+  }
   return { body, out };
 }
 
+/** "せん断応力 τ = F / (a·l·n)" → name + formula (the formula is set as math). */
+function splitFormula(label: string): [string, string] {
+  const i = label.indexOf(" = ");
+  if (i < 0) return [label, ""];
+  const sp = label.lastIndexOf(" ", i - 1);
+  if (sp <= 0 || label[sp + 1] === "(") return [label, ""];
+  return [label.slice(0, sp), label.slice(sp + 1)];
+}
+
 const table = (rows: [string, string, string?][]) =>
-  `<table class="tb-res">${rows.map(([k, v, cls]) => `<tr${cls ? ` class="${cls}"` : ""}><th>${k}</th><td>${v}</td></tr>`).join("")}</table>`;
+  `<table class="tb-res">${rows
+    .map(([k, v, cls]) => {
+      const [n, f] = splitFormula(k);
+      const th = f ? `<span class="tb-res-n">${n}</span><span class="tb-res-f" data-f="${f.replace(/<[^>]+>/g, "").replace(/"/g, "&quot;")}">${f}</span>` : k;
+      return `<tr${cls ? ` class="${cls}"` : ""}><th>${th}</th><td>${v}</td></tr>`;
+    })
+    .join("")}</table>`;
 
 const safeClass = (n: number) => (n < 1 ? "bad" : n < 2 ? "warn" : "good");
 const err = (e: unknown) => `<p class="tb-err">${(e as Error).message}</p>`;
@@ -1223,7 +1307,20 @@ const MORE3: Record<string, (host: HTMLElement) => void> = {
         ["のど厚 a = 0.7 × 脚長", `${fmt(w.throat)} mm`],
         ["せん断応力 τ = F / (a·l·n)", `${fmt(w.tau)} MPa`],
         ["許容応力に対する余裕", fmt(w.S, 3), safeClass(w.S)],
-      ]) + `<p class="tb-note">許容応力は、母材・溶接材料・荷重の種類 (静的 / 繰返し) と適用する基準で決まります。疲労を受ける溶接は大幅に低くとります。</p>`;
+      ]) +
+        (() => {
+          // τ against leg length: where the allowable line is crossed
+          const n = Math.max(1, Math.round(f.num("n")));
+          const legs = Array.from({ length: 50 }, (_, i) => 2 + (i * 18) / 49);
+          return lineChart(
+            [
+              { x: legs, y: legs.map((h) => filletWeld(h, f.num("l"), f.num("F"), n, f.num("ta")).tau), color: "#2563eb", label: "τ", fill: true },
+              { x: legs, y: legs.map(() => f.num("ta")), color: "#dc2626", label: "許容", dash: true },
+            ],
+            { xLabel: "脚長 [mm]", yLabel: "せん断応力 [MPa]", height: 150, marks: [{ x: f.num("leg"), y: w.tau, text: "現在" }] },
+          );
+        })() +
+        `<p class="tb-note">許容応力は、母材・溶接材料・荷重の種類 (静的 / 繰返し) と適用する基準で決まります。疲労を受ける溶接は大幅に低くとります。</p>`;
     }
     update();
   },
@@ -1247,7 +1344,19 @@ const MORE3: Record<string, (host: HTMLElement) => void> = {
         ["電圧降下 ΔV = I·R", `${fmt(d.dV)} V`],
         ["電源電圧に対する割合", `${fmt(d.ratio * 100)} %`, d.ratio <= 0.05 ? "good" : "warn"],
         ["電線での損失 (発熱)", `${fmt(d.loss)} W`],
-      ]) + `<p class="tb-note">電線は許容電流 (周囲温度・束ねる本数で低下) と電圧降下の両方で選びます。DC 24 V の制御回路では電圧降下を数 % 以内に抑えるのが目安です。</p>`;
+      ]) +
+        (() => {
+          const Ls = Array.from({ length: 40 }, (_, i) => (i * Math.max(20, f.num("L") * 2)) / 39);
+          const sizes = ["0.5", "0.75", "1.25", "2"];
+          const cols = ["#dc2626", "#d97706", "#2563eb", "#0f766e"];
+          return lineChart(
+            [
+              ...sizes.map((a, k) => ({ x: Ls, y: Ls.map((L) => wireDrop(f.num("I"), L, Number(a), f.num("V")).ratio * 100), color: cols[k], label: `${a} mm²` })),
+              { x: Ls, y: Ls.map(() => 5), color: "#6b7280", dash: true },
+            ],
+            { xLabel: "片道の長さ [m]", yLabel: "電圧降下 [%]", height: 160, marks: [{ x: f.num("L"), y: d.ratio * 100, text: `${f.str("A")} mm²` }] },
+          );
+        })() + `<p class="tb-note">電線は許容電流 (周囲温度・束ねる本数で低下) と電圧降下の両方で選びます。DC 24 V の制御回路では電圧降下を数 % 以内に抑えるのが目安です。</p>`;
     }
     update();
   },
@@ -1300,6 +1409,10 @@ const MORE3: Record<string, (host: HTMLElement) => void> = {
       const a = f.num("a");
       const rows = [300, 500, 700, 1000, 2000, 5000].map((d) => [`${d / 1000} m`, `${fmt(charHeight(d, a))} mm`] as [string, string]);
       out.innerHTML =
+        lineChart(
+          [{ x: Array.from({ length: 40 }, (_, i) => 200 + i * 125), y: Array.from({ length: 40 }, (_, i) => charHeight(200 + i * 125, a)), color: "#2563eb", label: `視角 ${fmt(a)}′`, fill: true }],
+          { xLabel: "見る距離 [mm]", yLabel: "文字高さ [mm]", height: 140, marks: [{ x: f.num("d"), y: charHeight(f.num("d"), a), text: "現在" }] },
+        ) +
         table([[`距離 ${fmt(f.num("d"))} mm で必要な文字高さ`, `${fmt(charHeight(f.num("d"), a))} mm (≈ ${fmt(charHeight(f.num("d"), a) / 0.3528 / 0.7)} pt 相当)`, "good"], ...rows]) +
         `<p class="tb-note">視角 16〜24 分が読みやすさの目安 (最小 10〜12 分程度)。暗い場所、高齢者、重要な表示はさらに大きく、コントラストを高くします。pt 換算は文字の高さ ≈ 0.7 em とした概算です。</p>`;
     }
@@ -1327,7 +1440,10 @@ Object.assign(WIDGETS, MORE, MORE2, MORE3, ANIM, ANIM2, ANIM3, ANIM4, ANIM5, ANI
 export function mountWidgets(root: HTMLElement) {
   for (const el of root.querySelectorAll<HTMLElement>("[data-widget]")) {
     const w = WIDGETS[el.dataset.widget!];
-    if (w) w(el);
+    if (!w) continue;
+    // lets a widget offer "reset" (re-mount with its initial state)
+    (el as HTMLElement & { __tbMount?: () => void }).__tbMount = () => w(el);
+    w(el);
   }
 }
 

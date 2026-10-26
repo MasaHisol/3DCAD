@@ -1,62 +1,7 @@
 // Animated and hands-on figures for the industrial-design chapters (<div data-widget="anim-...">).
 // Same conventions as anim.ts: plain SVG, static first frame, stops when off the page.
 
-const NS = "http://www.w3.org/2000/svg";
-
-function frame(host: HTMLElement, title: string, h = 220) {
-  host.classList.add("tb-widget", "tb-anim");
-  host.innerHTML = "";
-  const head = document.createElement("div");
-  head.className = "tb-widget-head";
-  head.innerHTML = `<span class="tb-widget-badge anim">動く図</span>${title}`;
-  const ctl = document.createElement("div");
-  ctl.className = "tb-anim-ctl";
-  const svg = document.createElementNS(NS, "svg");
-  svg.setAttribute("viewBox", `0 0 520 ${h}`);
-  svg.setAttribute("class", "tb-chart");
-  const out = document.createElement("div");
-  out.className = "tb-widget-out";
-  host.append(head, ctl, svg, out);
-  return { ctl, svg, out };
-}
-
-function button(ctl: HTMLElement, label: string, on: () => void, cls = "") {
-  const b = document.createElement("button");
-  b.className = "tb-btn" + (cls ? ` ${cls}` : "");
-  b.textContent = label;
-  b.addEventListener("click", on);
-  ctl.appendChild(b);
-  return b;
-}
-
-function slider(ctl: HTMLElement, label: string, min: number, max: number, value: number, step: number, on: (v: number) => void) {
-  const l = document.createElement("label");
-  l.className = "tb-anim-slider";
-  const span = document.createElement("span");
-  const i = document.createElement("input");
-  i.type = "range";
-  Object.assign(i, { min: String(min), max: String(max), step: String(step), value: String(value) });
-  const show = () => (span.textContent = `${label} ${i.value}`);
-  i.addEventListener("input", () => (show(), on(Number(i.value))));
-  show();
-  l.append(span, i);
-  ctl.appendChild(l);
-  return i;
-}
-
-function loop(host: HTMLElement, step: (t: number, dt: number) => void, playing: () => boolean = () => true) {
-  let last = performance.now();
-  const tick = (now: number) => {
-    if (!host.isConnected) return;
-    const dt = Math.min(0.1, (now - last) / 1000);
-    last = now;
-    if (playing()) step(now / 1000, dt);
-    requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
-}
-
-const reduced = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+import { frame, button, slider, loop, reduced } from "./animkit";
 
 const f1 = (v: number) => v.toFixed(1);
 const n1 = (v: number) => Math.round(v * 10) / 10;

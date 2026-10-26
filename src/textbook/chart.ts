@@ -57,12 +57,30 @@ export function lineChart(series: Series[], o: ChartOpts = {}): string {
   const syRaw = (y: number) => m.t + ((y1 - y) / (y1 - y0)) * (H - m.t - m.b);
   const sy = o.invertY ? (y: number) => H - m.b - (syRaw(y) - m.t) : syRaw;
   const out: string[] = [];
-  out.push(`<svg class="tb-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.yLabel ?? "グラフ"}">`);
+  // data for the hover read-out (pixel + value pairs, thinned to ≤ 160 points per series)
+  const hover = {
+    l: m.l,
+    r: W - m.r,
+    t: m.t,
+    b: H - m.b,
+    xl: o.xLabel ?? "x",
+    s: series.map((s) => {
+      const k = Math.max(1, Math.ceil(s.x.length / 160));
+      const pts: number[][] = [];
+      for (let i = 0; i < s.x.length; i += k) pts.push([+sx(s.x[i]).toFixed(1), +sy(s.y[i]).toFixed(1), s.x[i], s.y[i]]);
+      return { c: s.color ?? "var(--tb-accent)", n: s.label ?? o.yLabel ?? "", p: pts };
+    }),
+  };
+  installHover();
+  out.push(
+    `<svg class="tb-chart tb-hoverable" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.yLabel ?? "グラフ"}${o.xLabel ? ` – ${o.xLabel}` : ""}" data-hover='${JSON.stringify(hover).replace(/'/g, "&#39;")}'>`,
+  );
   // grid + ticks
   const xs_ = niceStep(x1 - x0);
   for (let v = Math.ceil(x0 / xs_) * xs_; v <= x1 + 1e-9; v += xs_) {
     out.push(`<line class="grid" x1="${sx(v)}" x2="${sx(v)}" y1="${m.t}" y2="${H - m.b}"/>`);
-    out.push(`<text class="tick" x="${sx(v)}" y="${H - m.b + 14}" text-anchor="middle">${fmt(v)}</text>`);
+    const X = sx(v);
+    out.push(`<text class="tick" x="${X}" y="${H - m.b + 14}" text-anchor="${X > W - m.r - 24 ? "end" : "middle"}">${fmt(v)}</text>`);
   }
   const ys_ = niceStep(y1 - y0, 4);
   for (let v = Math.ceil(y0 / ys_) * ys_; v <= y1 + 1e-9; v += ys_) {
@@ -76,8 +94,8 @@ export function lineChart(series: Series[], o: ChartOpts = {}): string {
   for (const s of series) {
     const c = s.color ?? "var(--tb-accent)";
     const pts = s.x.map((x, i) => `${sx(x).toFixed(1)},${sy(s.y[i]).toFixed(1)}`);
-    if (s.fill) out.push(`<polygon points="${sx(s.x[0])},${sy(0)} ${pts.join(" ")} ${sx(s.x[s.x.length - 1])},${sy(0)}" fill="${c}" opacity="0.14"/>`);
-    out.push(`<polyline points="${pts.join(" ")}" fill="none" stroke="${c}" stroke-width="2"${s.dash ? ' stroke-dasharray="5 4"' : ""}/>`);
+    if (s.fill) out.push(`<polygon class="area" points="${sx(s.x[0])},${sy(0)} ${pts.join(" ")} ${sx(s.x[s.x.length - 1])},${sy(0)}" fill="${c}" opacity="0.14"/>`);
+    out.push(`<polyline class="line" points="${pts.join(" ")}" fill="none" stroke="${c}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"${s.dash ? ' stroke-dasharray="5 4"' : ""}/>`);
   }
   for (const k of o.marks ?? []) {
     const X = sx(k.x), Y = sy(k.y);
@@ -96,4 +114,74 @@ export function lineChart(series: Series[], o: ChartOpts = {}): string {
   }
   out.push("</svg>");
   return out.join("");
+}
+
+// ------------------------------------------------------------ hover read-out
+let hoverInstalled = false;
+interface HoverData {
+  l: number;
+  r: number;
+  t: number;
+  b: number;
+  xl: string;
+  s: { c: string; n: string; p: number[][] }[];
+}
+
+/** One delegated listener for every chart: crosshair + values under the pointer. */
+function installHover() {
+  if (hoverInstalled || typeof document === "undefined") return;
+  hoverInstalled = true;
+  let cur: SVGSVGElement | null = null;
+  const clear = () => {
+    cur?.querySelector(".tb-hover-g")?.remove();
+    cur = null;
+  };
+  const NS = "http://www.w3.org/2000/svg";
+  document.addEventListener("pointermove", (e) => {
+    const svg = (e.target as Element | null)?.closest?.("svg.tb-hoverable") as SVGSVGElement | null;
+    if (svg !== cur) clear();
+    if (!svg) return;
+    let d: HoverData;
+    try {
+      d = JSON.parse(svg.dataset.hover ?? "");
+    } catch {
+      return;
+    }
+    const mtx = svg.getScreenCTM();
+    if (!mtx) return;
+    const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(mtx.inverse());
+    if (pt.x < d.l || pt.x > d.r || pt.y < d.t - 10 || pt.y > d.b + 10) return clear();
+    cur = svg;
+    let g = svg.querySelector<SVGGElement>(".tb-hover-g");
+    if (!g) {
+      g = document.createElementNS(NS, "g") as SVGGElement;
+      g.setAttribute("class", "tb-hover-g");
+      g.setAttribute("pointer-events", "none");
+      svg.appendChild(g);
+    }
+    let html = "";
+    const rows: [string, string, string][] = [];
+    let X = pt.x;
+    let xv = NaN;
+    for (const s of d.s) {
+      if (!s.p.length) continue;
+      let best = s.p[0];
+      for (const q of s.p) if (Math.abs(q[0] - pt.x) < Math.abs(best[0] - pt.x)) best = q;
+      if (Number.isNaN(xv)) (xv = best[2]), (X = best[0]);
+      html += `<circle cx="${best[0]}" cy="${best[1]}" r="4" fill="${s.c}" stroke="var(--tb-surface)" stroke-width="1.5"/>`;
+      rows.push([s.c, s.n, fmt(best[3])]);
+    }
+    const lines = [`${d.xl.replace(/ *\[.*$/, "")} = ${fmt(xv)}`, ...rows.map((r) => (r[1] ? `${r[1].replace(/ *\[.*$/, "")}: ${r[2]}` : r[2]))];
+    const bw = Math.max(...lines.map((t) => t.length)) * 7 + 18;
+    const bh = lines.length * 15 + 8;
+    const bx = X + 10 + bw > d.r ? X - 10 - bw : X + 10;
+    const by = d.t + 2;
+    html =
+      `<line x1="${X}" x2="${X}" y1="${d.t}" y2="${d.b}" class="tb-hover-x"/>` +
+      html +
+      `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="5" class="tb-hover-box"/>` +
+      lines.map((t, i) => `<text x="${bx + 8}" y="${by + 16 + i * 15}" class="tb-hover-t"${i > 0 ? ` style="fill:${rows[i - 1][0]}"` : ""}>${t}</text>`).join("");
+    g.innerHTML = html;
+  });
+  document.addEventListener("pointerleave", clear);
 }
