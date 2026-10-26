@@ -284,93 +284,169 @@ export const KNOWHOW3: TextChapter[] = [
     id: "jigs-fixtures",
     part: "knowhow",
     title: "【中級】治具と組立を助ける設計",
-    minutes: 20,
+    minutes: 25,
     level: 2,
-    lead: "治具 (ジグ) は、加工や組立で部品を正しい位置に置き、動かないように押さえる道具です。治具の基本である位置決めの原則を知ると、治具そのものの設計だけでなく、組み立てやすい部品の設計にも役立ちます。",
+    lead: "治具 (ジグ) は、加工・組立・検査で部品を正しい位置に置き、動かないように押さえる道具です。治具の基本である「3-2-1 の位置決め」と「基準へ押し付けるクランプ」を知ると、治具そのものの設計だけでなく、治具がなくても組める部品の設計にも役立ちます。この章は治具設計の入口で、詳しい内容は第 12 部の治具の章へつながります。",
     body: `
+<h2>治具は何をする道具か</h2>
+<p>治具の仕事は 3 つに分けられます。<b>位置決め</b> (部品を毎回同じ位置・姿勢に置く)、<b>保持</b> (加工力・組立力がかかっても動かない)、<b>案内</b> (工具や相手部品を正しい方向に導く) です。どれも「誰が何回やっても同じ結果になる」ための仕組みで、治具の良し悪しは<b>再現性</b>で評価されます。</p>
 <h2>位置決めの原則 (3-2-1)</h2>
-<p>空間に置かれた物体には 6 つの自由度 (X・Y・Z 方向の移動と、各軸まわりの回転) があります。これを<b>必要最小限の 6 点</b>で押さえるのが 3-2-1 の原則です。</p>
-<svg class="tb-chart" viewBox="0 0 520 226" role="img" aria-label="3-2-1 の位置決め">
+<p>空間に置かれた物体には 6 つの自由度 (X・Y・Z 方向の移動と、各軸まわりの回転) があります。これを<b>必要最小限の 6 点</b>で押さえるのが 3-2-1 の原則です。底面 (最も広い面) を 3 点で受けて Z 移動と 2 つの傾きを止め、長い側面を 2 点で受けて Y 移動と Z 軸まわりの回転を止め、端面を 1 点で受けて X 移動を止めます。</p>
+<svg class="tb-chart" viewBox="0 0 520 270" role="img" aria-label="3-2-1 の位置決めピンとクランプの向き (平面図と正面図)">
+<text class="k-title" x="260" y="18" text-anchor="middle">位置決め 6 点とクランプの向き</text>
+<rect class="k-panel" x="8" y="30" width="290" height="232" rx="8"/>
+<rect class="k-panel" x="306" y="30" width="206" height="232" rx="8"/>
+<text class="tick" x="20" y="48">上から見た図</text>
+<text class="tick" x="318" y="48">正面から見た図</text>
+<g class="k-shadow"><rect class="k-part" x="60" y="86" width="190" height="100" rx="3"/></g>
+<circle class="k-hidden" cx="88" cy="166" r="9" style="fill:none"/>
+<circle class="k-hidden" cx="222" cy="166" r="9" style="fill:none"/>
+<circle class="k-hidden" cx="155" cy="104" r="9" style="fill:none"/>
+<circle class="k-sphere" cx="95" cy="76" r="9"/>
+<circle class="k-sphere" cx="215" cy="76" r="9"/>
+<circle class="k-sphere" cx="50" cy="136" r="9"/>
+<circle class="k-badge" cx="95" cy="58" r="8"/><text class="k-badge-t" x="95" y="62" text-anchor="middle">4</text>
+<circle class="k-badge" cx="215" cy="58" r="8"/><text class="k-badge-t" x="215" y="62" text-anchor="middle">5</text>
+<circle class="k-badge" cx="30" cy="114" r="8"/><text class="k-badge-t" x="30" y="118" text-anchor="middle">6</text>
+<text class="tick" x="155" y="62" text-anchor="middle">側面 2 点</text>
+<text class="tick" x="26" y="162" text-anchor="middle">端面</text>
+<text class="tick" x="26" y="176" text-anchor="middle">1 点</text>
+<text class="tick" x="155" y="140" text-anchor="middle">底面 3 点 (破線、下側)</text>
+<line class="k-force" x1="155" y1="234" x2="155" y2="192"/>
+<line class="k-force" x1="290" y1="136" x2="256" y2="136"/>
+<text class="k-bad-t" x="165" y="228">クランプ</text>
+<text class="k-bad-t" x="286" y="160" text-anchor="end">クランプ</text>
+<rect class="k-ground" x="318" y="214" width="182" height="10"/>
 <g class="k-shadow">
-<polygon points="100,90 160,50 320,50 260,90" style="fill:var(--k-steel-1);stroke:var(--k-line)" stroke-width="1.6"/>
-<polygon points="260,90 320,50 320,130 260,170" style="fill:var(--k-steel-3);stroke:var(--k-line)" stroke-width="1.6"/>
-<rect class="k-part" x="100" y="90" width="160" height="80"/>
+<rect class="k-alu" x="318" y="196" width="182" height="18" rx="2"/>
+<rect class="k-part" x="336" y="182" width="20" height="14"/>
+<rect class="k-part" x="460" y="182" width="20" height="14"/>
+<rect class="k-part" x="326" y="132" width="168" height="50" rx="2"/>
+<rect class="k-rubber" x="337" y="118" width="18" height="10" rx="2"/>
+<rect class="k-rubber" x="461" y="118" width="18" height="10" rx="2"/>
 </g>
-<path class="k-accent" d="M130,172 L123,190 L137,190 Z"/><path class="k-accent" d="M230,172 L223,190 L237,190 Z"/><path class="k-accent" d="M295,154 L288,172 L302,172 Z"/>
-<circle class="k-sphere" cx="140" cy="130" r="7" style="stroke:var(--tb-good);stroke-width:2"/><circle class="k-sphere" cx="220" cy="130" r="7" style="stroke:var(--tb-good);stroke-width:2"/>
-<circle class="k-sphere" cx="290" cy="110" r="7" style="stroke:var(--tb-warn);stroke-width:2"/>
-<line class="k-force" x1="200" y1="22" x2="200" y2="62"/><line class="k-force" x1="62" y1="130" x2="96" y2="130"/>
-<line class="k-move" x1="40" y1="206" x2="80" y2="206" style="stroke:var(--k-line-2);marker-end:url(#k-arrow)"/><line class="k-move" x1="40" y1="206" x2="40" y2="170" style="stroke:var(--k-line-2);marker-end:url(#k-arrow)"/><line class="k-move" x1="40" y1="206" x2="64" y2="190" style="stroke:var(--k-line-2);marker-end:url(#k-arrow)"/>
-<text class="tick" x="86" y="210">X</text><text class="tick" x="44" y="168">Z</text><text class="tick" x="68" y="188">Y</text>
-<text class="lbl" x="344" y="56" style="fill:var(--tb-accent)">▲ 底面 3 点</text><text class="tick" x="358" y="72">Z 移動と 2 つの傾きを止める</text>
-<text class="lbl" x="344" y="98" style="fill:var(--tb-good)">● 側面 2 点</text><text class="tick" x="358" y="114">Y 移動と Z 軸回転</text>
-<text class="lbl" x="344" y="140" style="fill:var(--tb-warn)">● 端面 1 点</text><text class="tick" x="358" y="156">X 移動</text>
-<text class="lbl" x="344" y="184">3 + 2 + 1 = 6 自由度</text>
-<text class="tick" x="214" y="18">押さえ (クランプ)</text>
-<text class="tick" x="260" y="214" text-anchor="middle">押さえ (クランプ) は基準点に押し付ける向きに</text>
+<line class="k-force" x1="346" y1="78" x2="346" y2="114"/>
+<line class="k-force" x1="470" y1="78" x2="470" y2="114"/>
+<text class="tick" x="409" y="76" text-anchor="middle">受けの真上を押す</text>
+<text class="tick" x="409" y="244" text-anchor="middle">受け (底面 3 点のうち 2 点が見える)</text>
+<line class="k-thin" x1="409" y1="234" x2="352" y2="194"/>
 </svg>
-<p class="tb-caption">図: 3-2-1 の原則。広い面に 3 点、長い側面に 2 点、端面に 1 点。点はできるだけ離して置くと姿勢が安定する</p>
+<p class="tb-caption">図: 3-2-1 の位置決め。底面 3 点 (破線) はできるだけ広い三角形に、側面 2 点はできるだけ離す。クランプ (赤) は位置決め点に押し付ける向きで、受けの真上を押す</p>
 <ul>
-  <li><b>点を多くしすぎない</b>: 4 点で底面を受けると、部品のそりで 1 点が浮き、がたつく (過拘束)</li>
-  <li>3 点はできるだけ<b>広い三角形</b>に、2 点はできるだけ離す</li>
-  <li>位置決めする面は図面の<b>データム (基準面)</b> と一致させる。加工・組立・測定の基準をそろえると誤差が小さい</li>
+  <li><b>点を多くしすぎない</b>: 4 点で底面を受けると、部品のそりで 1 点が浮き、がたつく (<b>過拘束</b>)。平らに仕上げた面なら面で受けてもよいが、そのときは面の平面度を管理する</li>
+  <li>3 点はできるだけ<b>広い三角形</b>に、2 点はできるだけ離す。点の間隔が狭いと、受けの小さな誤差が大きな傾きになる</li>
+  <li>位置決めする面は図面の<b>データム (基準面)</b> と一致させる。加工・組立・測定の基準をそろえると誤差が積み上がらない</li>
+  <li>受け (位置決め点) は焼入れ鋼や交換式のボタンにして、摩耗したら交換できるようにする</li>
 </ul>
-<h2>ピンと穴、丸ピンと長穴</h2>
+<h2>ピンと穴 — 丸ピンとひし形ピン</h2>
 <p>板状の部品は、底面で 3 自由度を止めたあと、<b>2 本のピン</b>で残り 3 自由度 (X・Y・回転) を決めるのが定番です。</p>
-<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="丸穴と長穴による位置決め">
+<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="丸ピンとひし形ピンによる位置決め">
 <g class="k-shadow"><rect class="k-alu" x="60" y="40" width="400" height="110" rx="6"/></g>
-<circle cx="120" cy="95" r="12" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.6"/><circle class="k-sphere" cx="120" cy="95" r="9"/>
-<rect x="378" y="83" width="48" height="24" rx="12" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.6"/>
-<circle class="k-sphere" cy="95" r="9"><animate attributeName="cx" values="402;396;408;402" dur="3s" repeatCount="indefinite"/></circle>
-<line class="k-center" x1="104" y1="95" x2="440" y2="95"/>
-<line class="k-ext" x1="120" y1="80" x2="120" y2="60"/><line class="k-ext" x1="402" y1="80" x2="402" y2="60"/>
-<line class="k-dimline" x1="120" y1="66" x2="402" y2="66"/><text class="k-dimtext" x="261" y="61" text-anchor="middle">ピン間距離 L</text>
-<text class="lbl" x="76" y="132">丸穴: X・Y を決める</text>
-<text class="lbl" x="444" y="132" text-anchor="end">長穴: 回転だけ止める</text>
-<text class="tick" x="260" y="180" text-anchor="middle">長穴は 2 本のピンを結ぶ線の方向に長くする (ピン間距離の誤差を逃がす)</text>
+<circle cx="120" cy="95" r="16" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.6"/><circle class="k-sphere" cx="120" cy="95" r="13"/>
+<circle cx="402" cy="95" r="16" style="fill:var(--tb-surface);stroke:var(--k-line)" stroke-width="1.6"/>
+<path class="k-part" d="M397,82.5 A13,13 0 0 1 407,82.5 L413,95 L407,107.5 A13,13 0 0 1 397,107.5 L391,95 Z"/>
+<line class="k-center" x1="96" y1="95" x2="430" y2="95"/>
+<line class="k-ext" x1="120" y1="78" x2="120" y2="58"/><line class="k-ext" x1="402" y1="78" x2="402" y2="58"/>
+<line class="k-dimline" x1="120" y1="64" x2="402" y2="64"/><text class="k-dimtext" x="261" y="59" text-anchor="middle">ピン間距離 L</text>
+<text class="lbl" x="76" y="134">丸ピン: X・Y を決める</text>
+<text class="lbl" x="444" y="134" text-anchor="end">ひし形ピン: 回転だけ止める</text>
+<text class="tick" x="260" y="180" text-anchor="middle">ひし形ピンはピンを結ぶ線の方向を削り、ピッチ誤差を逃がす</text>
 </svg>
-<p class="tb-caption">図: 1 本目は丸穴で位置を、2 本目は長穴 (またはひし形ピン) で回転だけを決める。両方を丸穴にするとピン間距離の誤差で入らなくなる</p>
+<p class="tb-caption">図: 1 本目は丸ピンで位置を、2 本目はひし形ピン (削りピン) または長穴で回転だけを決める。両方を丸ピン + 丸穴にすると、穴ピッチとピンピッチの誤差で入らなくなる</p>
 <ul>
-  <li>2 本とも丸穴だと、穴ピッチとピンピッチの誤差を吸収できず<b>はまらない</b> (過拘束)</li>
-  <li>2 本目は<b>長穴</b>か<b>ひし形ピン</b> (削りピン) にする</li>
-  <li>位置決めピンとすき間ばめの組合せ例: 穴 H7 / ピン g6 または h6。すき間の半分程度が位置ずれになる</li>
-  <li>ピンの先端には面取り・テーパを付け、入れやすくする。ピンの長さは 2 本で変えると 1 本ずつ入れられる</li>
+  <li>2 本とも丸ピン + 丸穴だと、穴ピッチとピンピッチの誤差を吸収できず<b>はまらない</b> (過拘束)</li>
+  <li>2 本目は<b>ひし形ピン</b> (削りピン) か、部品側を<b>長穴</b>にする。長穴・削りの向きは 2 本のピンを結ぶ線の方向</li>
+  <li>位置決めピンとすき間ばめの組合せ例: 穴 H7 / ピン g6 または h6。<b>すき間の半分</b>が片側への位置ずれの最大値になる</li>
+  <li>ピンの先端には面取り・テーパを付け、2 本の長さを変えて 1 本ずつ入るようにする</li>
 </ul>
 <h2>クランプ (押さえ)</h2>
+<svg class="tb-chart" viewBox="0 0 520 190" role="img" aria-label="受けのない所を押すと部品がたわむ悪い例と、受けの真上を押す良い例">
+<rect class="k-panel" x="8" y="8" width="248" height="174" rx="8"/>
+<rect class="k-panel" x="264" y="8" width="248" height="174" rx="8"/>
+<text class="k-bad-t" x="132" y="30" text-anchor="middle">悪い例: 受けのない所を押す</text>
+<text class="k-good-t" x="388" y="30" text-anchor="middle">良い例: 受けの真上を押す</text>
+<rect class="k-ground" x="24" y="140" width="216" height="10"/>
+<rect class="k-ground" x="280" y="140" width="216" height="10"/>
+<g class="k-shadow">
+<rect class="k-part" x="38" y="118" width="22" height="22"/><rect class="k-part" x="204" y="118" width="22" height="22"/>
+<path class="k-alu" d="M30,104 Q132,128 234,104 L234,118 Q132,142 30,118 Z"/>
+<rect class="k-part" x="294" y="118" width="22" height="22"/><rect class="k-part" x="460" y="118" width="22" height="22"/>
+<rect class="k-alu" x="286" y="104" width="204" height="14"/>
+</g>
+<line class="k-force" x1="132" y1="56" x2="132" y2="108"/>
+<line class="k-force" x1="305" y1="56" x2="305" y2="100"/>
+<line class="k-force" x1="471" y1="56" x2="471" y2="100"/>
+<text class="tick" x="132" y="166" text-anchor="middle">たわんだまま加工 → 外すと戻って形が狂う</text>
+<text class="tick" x="388" y="166" text-anchor="middle">力は受けへまっすぐ流れ、変形しない</text>
+</svg>
+<p class="tb-caption">図: クランプ力の通り道。押す点と受ける点を一直線に並べると、クランプしても部品が曲がらない</p>
 <ul>
   <li><b>基準点に押し付ける向き</b>に押さえる。基準から離す向きに押すと位置がずれる</li>
-  <li>押さえる位置は受け (支持点) の真上。受けのない所を押すと部品がたわむ</li>
-  <li>加工力・組立力の向きは<b>受け側</b>で受け、クランプには大きな力を持たせない</li>
+  <li>押さえる位置は受け (支持点) の真上。受けのない所を押すと部品がたわみ、加工後に戻って形が狂う</li>
+  <li>加工力・組立力は<b>受け (位置決め) 側</b>で受け止める向きに段取りし、クランプの摩擦だけに頼らない</li>
+  <li>クランプの順序を決める: 先に側面・端面を軽く押し当ててから底面を本締めする</li>
   <li>トグルクランプ・ねじクランプ・空圧クランプなど標準品を使い、作業者が片手で操作できるように</li>
 </ul>
+<h3>計算例 — 2 本ピンの位置ずれと傾き</h3>
+<div class="tb-tip">
+<p>穴 φ8 H7 (0 / +0.015) に、丸ピン φ8 g6 (−0.005 / −0.014) とひし形ピンを使い、ピン間距離 L = 120 mm で位置決めします。ひし形ピンも幅方向 (回転を止める方向) は同じすき間とします。</p>
+<p>最大すき間 c = 8.015 − 7.986 = <b>0.029 mm</b> → 片側への位置ずれは最大 c/2 = <b>0.0145 mm</b><br>
+最大の傾き: 2 本のピンが逆向きにずれたとき θ ≈ (0.0145 + 0.0145) ÷ 120 = <b>0.00024 rad</b> (約 0.014°)<br>
+丸ピンから 200 mm 離れた加工点では 0.00024 × 200 ≈ <b>0.05 mm</b> ずれる</p>
+<p>加工点が遠いほど傾きの影響が大きくなるので、ピン間距離はできるだけ長くとり、精度が必要な加工点の近くに丸ピンを置きます。</p>
+</div>
 <h2>治具の基本形</h2>
 <table class="tb-table">
   <tr><th>種類</th><th>用途</th><th>設計のポイント</th></tr>
   <tr><td>加工治具 (フィクスチャ)</td><td>マシニングでの固定</td><td>段取り回数を減らす、切りくずが溜まらない、工具と干渉しない</td></tr>
   <tr><td>穴あけ治具 (ドリルジグ)</td><td>ブッシュでドリルを案内</td><td>ブッシュ位置の精度、切りくずの逃げ</td></tr>
   <tr><td>溶接治具</td><td>部材を所定の位置で保持</td><td>熱ひずみの逃げ、溶接トーチが届く、取り外せる</td></tr>
-  <tr><td>組立治具</td><td>部品の仮置き・位置合わせ</td><td>入れる順に置ける、誤った向きでは置けない (ポカヨケ)</td></tr>
+  <tr><td>組立治具</td><td>部品の仮置き・位置合わせ・圧入</td><td>入れる順に置ける、誤った向きでは置けない (ポカヨケ)</td></tr>
   <tr><td>検査治具 (ゲージ)</td><td>合否を素早く判定</td><td>通り・止まりで判定、測定の基準を図面のデータムに一致</td></tr>
+  <tr><td>試料ホルダ・チャック</td><td>ウェーハや試料の保持</td><td>真空・静電気で吸着、接触面積と汚染を最小に</td></tr>
 </table>
 <h2>組立の基準面を部品に持たせる</h2>
-<p>治具がなくても正しく組めるように、部品自体に<b>位置決め形状</b>を設けるのが理想です。段 (インロー)、位置決めピン、突き当て面、ノックピン穴などを図面のデータムと一致させておくと、組立の再現性が上がり、調整作業が要らなくなります。</p>
-<div class="tb-tip"><b>3DCAD Studio</b>: <b>アセンブリ</b>の<b>自由度</b>表示で、拘束によって何自由度が止まっているかを確認できます。位置決めピンを<b>標準部品</b>から配置し、<b>干渉解析</b>で長穴の向きと余裕をチェックしましょう。</div>`,
+<p>治具がなくても正しく組めるように、部品自体に<b>位置決め形状</b>を設けるのが理想です。段 (インロー)、位置決めピン、突き当て面、ノックピン穴などを図面のデータムと一致させておくと、組立の再現性が上がり、調整作業が要らなくなります。治具は「部品だけでは決められない位置」を補う道具と考えます。</p>
+<h3>よくある失敗</h3>
+<ul>
+  <li>底面を 4 点以上で受けて部品がガタつく、または 2 本とも丸ピンにして入らない (過拘束)</li>
+  <li>クランプを位置決め点から離す向きに付け、締めるたびに位置が変わる</li>
+  <li>受けのない所をクランプし、加工後に部品が戻って平面度・穴位置が狂う</li>
+  <li>治具の基準を図面のデータムと違う面にして、治具では合格なのに検査で不合格になる</li>
+  <li>切りくず・ほこりが受けの上に溜まり、少しずつ位置がずれる (受けの上面を小さく・逃げ溝を付ける)</li>
+</ul>
+<h2>さらに詳しく (第 12 部 装置設計)</h2>
+<ul>
+  <li><b>精密治具の設計 — 位置決め・クランプ・再現性</b>: ひし形ピンの幅の計算、クランプ力と摩擦の安全率、再現性と正確さ</li>
+  <li><b>ウェーハ・試料ホルダの設計 — 真空チャック・静電チャック・エッジクランプ</b>: 吸着力の計算、溝パターン、分析装置の試料ホルダ</li>
+  <li><b>治具の材料と表面処理 — ステンレス・アルミ・樹脂・セラミック・ESD</b>: 材料の選び方、硬質アルマイト、静電気対策の樹脂</li>
+  <li><b>検査治具・ゲージの設計 — 合否判定と測定の信頼性</b>: 限界ゲージ、機能ゲージ、GR&amp;R</li>
+  <li><b>組立・調整治具の設計 — 圧入・接着・ねじ締め・光軸調整</b>: 圧入力の見積り、荷重監視、光学部品の位置合わせ</li>
+</ul>
+<p>組立性そのものの考え方は「組立性の設計 (DFA) とポカヨケ」の章を参照してください。</p>
+<div class="tb-tip"><b>3DCAD Studio</b>: <b>アセンブリ</b>の<b>自由度</b>表示で、拘束によって何自由度が止まっているかを確認できます。位置決めピンを<b>標準部品</b>から配置し、<b>干渉解析</b>でひし形ピンの向きと余裕をチェックしましょう。</div>`,
     points: [
-      "3-2-1 の原則: 底面 3 点・側面 2 点・端面 1 点で 6 自由度を止める",
-      "2 本ピンは丸穴 + 長穴 (またはひし形ピン) で過拘束を避ける",
-      "クランプは基準点に押し付ける向きに、受けの真上で",
+      "治具の仕事は位置決め・保持・案内。良し悪しは再現性で評価する",
+      "3-2-1 の原則: 底面 3 点・側面 2 点・端面 1 点で 6 自由度を止める。点は広く離す",
+      "2 本ピンは丸ピン + ひし形ピン (または長穴) で過拘束を避ける。位置ずれは最大すき間の半分",
+      "クランプは基準点に押し付ける向きに、受けの真上で。加工力は受け側で受ける",
       "位置決め面を図面のデータムと一致させ、部品自体に基準を持たせる",
     ],
     exercises: [
       {
-        q: "穴 φ6 H7 (+0.012 / 0) に位置決めピン φ6 g6 (−0.004 / −0.012) を使います。ピン間距離 100 mm の丸穴 + 長穴 (長穴の幅方向も同じはめあい) で位置決めするとき、(1) 最大すき間、(2) 回転方向の最大の傾き (概算) を求めてください。",
-        a: "(1) 最大すき間 = 穴の最大 − ピンの最小 = 6.012 − 5.988 = <b>0.024 mm</b><br>(2) 各ピンは中心から最大 ±0.012 mm ずれる。両端が逆向きにずれたとき傾きは (0.012 + 0.012) / 100 = 0.00024 rad ≈ <b>0.014°</b>。部品の端 (例えば 200 mm 先) では 0.00024 × 200 ≈ 0.05 mm のずれになります。",
+        q: "穴 φ6 H7 (+0.012 / 0) に位置決めピン φ6 g6 (−0.004 / −0.012) を使います。ピン間距離 100 mm の丸ピン + ひし形ピン (幅方向も同じはめあい) で位置決めするとき、(1) 最大すき間、(2) 回転方向の最大の傾き (概算) と、200 mm 先での位置ずれを求めてください。",
+        a: "(1) 最大すき間 = 穴の最大 − ピンの最小 = 6.012 − 5.988 = <b>0.024 mm</b><br>(2) 各ピンは中心から最大 ±0.012 mm ずれる。両端が逆向きにずれたとき傾きは (0.012 + 0.012) / 100 = <b>0.00024 rad ≈ 0.014°</b>。200 mm 先では 0.00024 × 200 ≈ <b>0.05 mm</b> のずれになります。",
+      },
+      {
+        q: "長さ 300 mm の平板を、底面 4 点の受けで支え、上から 4 か所をクランプする治具があります。加工後に外すと平面度が悪化しました。原因と改善案を 3-2-1 の原則とクランプの原則から説明してください。",
+        a: "原因: 4 点受けは過拘束で、板のそりによりどれか 1 点が浮きます。浮いた点の上を押すと板がたわんだまま加工され、外すと弾性で戻って平面度が悪化します。<br>改善: (1) 受けを 3 点にして広い三角形に配置する (板が長い場合は、高さを合わせてから固定する<b>補助受け</b>を追加する)、(2) クランプは受けの真上だけを押す、(3) クランプ力を必要最小限にし、押す順序を決める。",
       },
     ],
     quiz: [
       { q: "3-2-1 の原則で止める自由度の数は?", choices: ["3", "5", "6"], answer: 2, explain: "3 + 2 + 1 = 6 点で、移動 3・回転 3 の 6 自由度を止めます。" },
-      { q: "2 本の位置決めピンを両方とも丸穴にすると何が起きやすい?", choices: ["回転が止まらない", "ピッチ誤差を吸収できず入らない", "位置精度が上がる"], answer: 1, explain: "過拘束になります。2 本目は長穴やひし形ピンにします。" },
-      { q: "クランプで押す向きとして正しいのは?", choices: ["基準点に押し付ける向き", "基準点から離す向き", "どちらでもよい"], answer: 0, explain: "基準に押し付けて初めて位置が決まります。" },
+      { q: "2 本の位置決めピンを両方とも丸ピン + 丸穴にすると何が起きやすい?", choices: ["回転が止まらない", "ピッチ誤差を吸収できず入らない", "位置精度が上がる"], answer: 1, explain: "過拘束になります。2 本目はひし形ピンか長穴にします。" },
+      { q: "クランプで押す向きと位置として正しいのは?", choices: ["基準点に押し付ける向きで、受けの真上", "基準点から離す向きで、受けの間", "どちらでもよい"], answer: 0, explain: "基準に押し付けて初めて位置が決まり、受けの真上を押すと部品がたわみません。" },
+      { q: "すき間 0.03 mm のピンと穴で位置決めしたとき、片側への位置ずれの最大値は?", choices: ["0.015 mm", "0.03 mm", "0.06 mm"], answer: 0, explain: "ピンは穴の中で片側に寄るので、最大でもすき間の半分です。" },
     ],
     lessons: ["7-1", "7-2", "4-1"],
   },
