@@ -358,81 +358,141 @@ export const DESIGN2: TextChapter[] = [
     id: "design-rights",
     part: "design",
     title: "【上級】意匠権と知的財産",
-    minutes: 22,
+    minutes: 25,
     level: 3,
-    lead: "苦労して生み出したデザインも、守る手段がなければすぐに模倣されます。逆に、他社の権利を知らずに侵害してしまうこともあります。日本の意匠法の基本、ほかの知的財産権との違い、調査の方法を学びます。",
+    lead: "苦労して生み出したデザインも、守る手段がなければすぐに模倣されます。逆に、他社の権利を知らずに侵害してしまうこともあります。意匠法の基本と、特許・実用新案・商標・著作権・ノウハウ秘匿との違いを概観し、1 つの製品をどの権利で守るかを考えます。詳しい実務は続く章で扱います。",
     body: `
-<div class="tb-note">この章は日本の制度の基本をまとめた学習用の解説で、法的助言ではありません。法令や運用は改正されることがあるため、実務では必ず特許庁などの公式情報を確認し、具体的な案件は<b>弁理士</b>などの専門家に相談してください。</div>
+<div class="tb-note">この章は日本の制度の基本をまとめた学習用の解説で、法的助言ではありません。法令や運用は改正されることがあるため、実務では必ず特許庁などの公式情報を確認し、具体的な案件は<b>弁理士</b>などの専門家に相談してください。最新の制度は特許庁の情報や弁理士に確認しましょう。</div>
+<h2>この章の位置づけ — 知的財産の地図</h2>
+<p>知的財産権は「何を守るか」で使い分けます。この章は全体の概観で、詳細は次の章で学びます。</p>
+<ul>
+  <li><a href="#/c/patent-basics">特許の基礎</a> — 発明 (技術的アイデア) の守り方</li>
+  <li><a href="#/c/patent-claims">特許明細書と請求項の読み方</a> — 権利範囲のつかみ方</li>
+  <li><a href="#/c/patent-search-clearance">特許調査と侵害回避設計</a> — J-PlatPat と設計の工夫</li>
+  <li><a href="#/c/design-registration">意匠登録の実務</a> — 図面・部分意匠・関連意匠</li>
+</ul>
+<svg class="tb-chart" viewBox="0 0 520 250" role="img" aria-label="1 つの製品を複数の知的財産権で守る例">
+<text class="k-title" x="260" y="20" text-anchor="middle">1 つの製品を複数の権利で重ねて守る (電動ドライバーの例)</text>
+<rect class="k-ground" x="150" y="214" width="220" height="10"/>
+<path class="k-plastic" d="M170,70 Q170,52 188,52 L312,52 Q330,52 330,70 L330,96 Q330,112 312,112 L188,112 Q170,112 170,96 Z"/>
+<path class="k-part" d="M330,62 L358,70 L358,94 L330,102 Z"/>
+<rect class="k-part-h" x="358" y="78" width="40" height="8" rx="2"/>
+<path class="k-rubber" d="M212,112 C206,140 202,166 204,190 L256,190 C252,166 256,140 264,112 Z"/>
+<path class="k-accent" d="M266,118 Q278,126 270,142 L262,140 Z"/>
+<rect class="k-part" x="190" y="190" width="92" height="24" rx="6"/>
+<rect class="k-glass" x="190" y="60" width="44" height="16" rx="4"/>
+<text class="lbl" x="212" y="72" text-anchor="middle" style="font-size:9px">LOGO</text>
+<circle cx="280" cy="82" r="13" class="k-hidden"/><circle cx="280" cy="82" r="5" class="k-hidden"/>
+<line class="k-thin" x1="212" y1="60" x2="120" y2="44"/><text class="lbl" x="14" y="48">ロゴ → 商標権</text>
+<line class="k-thin" x1="230" y1="160" x2="120" y2="150"/><text class="lbl" x="14" y="146">グリップの形</text><text class="lbl" x="14" y="162">→ 意匠権 (部分意匠)</text>
+<line class="k-thin" x1="280" y1="82" x2="400" y2="44"/><text class="lbl" x="404" y="40">内部の減速機構</text><text class="lbl" x="404" y="56">→ 特許権</text>
+<line class="k-thin" x1="300" y1="100" x2="400" y2="126"/><text class="lbl" x="404" y="122">全体の外観</text><text class="lbl" x="404" y="138">→ 意匠権</text>
+<line class="k-thin" x1="282" y1="204" x2="400" y2="190"/><text class="lbl" x="404" y="186">製造条件・配合</text><text class="lbl" x="404" y="202">→ ノウハウ秘匿</text>
+<text class="k-note" x="260" y="242" text-anchor="middle">形は意匠、仕組みは特許 (小さな構造の工夫は実用新案も)、名前やマークは商標</text>
+</svg>
+<p class="tb-caption">図: 権利の重ね合わせ。どの権利を取るか、あえて秘匿するかを製品ごとに決める</p>
 <h2>意匠法で守られるもの</h2>
-<p><b>意匠</b>とは、物品 (またはその部分) の形状・模様・色彩などで、視覚を通じて美感を起こさせるものです。2020 年 4 月施行の改正で、物品に記録・表示されない<b>画像</b>や、<b>建築物</b>、<b>内装</b>も保護の対象に加わりました。</p>
+<p><b>意匠</b>とは、物品 (物品の部分を含む) の形状・模様・色彩などで、視覚を通じて美感を起こさせるものです。2020 年 4 月施行の改正で、物品に記録・表示されない<b>画像</b> (操作画像・表示画像) や、<b>建築物</b>、<b>内装</b>も保護の対象に加わりました。意匠権者は、登録意匠と<b>同一または類似</b>の意匠を業として実施する権利を専有します。特許と違い、似ている範囲まで権利が及ぶのが大きな特徴です。</p>
 <table class="tb-table">
   <tr><th>主な登録要件</th><th>内容</th></tr>
-  <tr><td>工業上利用できる</td><td>量産できる (一品物の美術品は対象外)</td></tr>
+  <tr><td>工業上利用できる</td><td>同じものを量産できる (一品物の美術品などは対象外)</td></tr>
   <tr><td>新規性</td><td>出願前に公知の意匠と同一・類似でない</td></tr>
   <tr><td>創作非容易性</td><td>公知の形状などから容易に創作できたものでない</td></tr>
   <tr><td>先願</td><td>同一・類似の意匠について最も先に出願した者が登録を受けられる</td></tr>
-  <tr><td>不登録事由に当たらない</td><td>機能を確保するために不可欠な形状のみからなる意匠などは登録できない</td></tr>
+  <tr><td>不登録事由に当たらない</td><td>公序良俗に反するもの、他人の業務に係る物品などと混同を生ずるもの、機能を確保するために不可欠な形状のみからなるもの等は登録できない</td></tr>
 </table>
-<div class="tb-note">自分で展示会や Web に公開しても新規性は失われます。一定の期間内 (現行は公開から 1 年以内) に手続をすれば例外の適用を受けられる制度 (新規性喪失の例外) がありますが、要件があるため、<b>公開前に出願</b>するのが原則です。</div>
-<h2>出願から登録まで</h2>
-<ol class="tb-flow">
-  <li><b>先行意匠の調査</b> (J-PlatPat など)</li>
-  <li><b>出願</b>: 願書と図面 (正面・背面・左右側面・平面・底面の六面図など、または写真・3D の図) を特許庁へ</li>
-  <li><b>審査</b>: 審査官が登録要件を審査 (意匠は実体審査あり。審査請求は不要)</li>
-  <li><b>登録査定 → 登録料の納付 → 設定登録</b>で権利が発生し、意匠公報に掲載</li>
-</ol>
-<p>存続期間は、2020 年 4 月 1 日以降の出願について<b>出願日から最長 25 年</b>です (それ以前の出願は、登録日から 20 年)。権利を維持するには登録料を毎年納付します。また、出願人の請求により登録後最長 3 年間、意匠を秘密にできる<b>秘密意匠</b>の制度もあります。</p>
-<svg class="tb-chart" viewBox="0 0 520 120" role="img" aria-label="意匠登録の流れ">
-<g class="k-shadow"><rect class="k-panel" x="8" y="30" width="92" height="50" rx="8"/></g><circle class="k-badge" cx="54" cy="30" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="54" y="34" text-anchor="middle">1</text><text class="lbl" x="54" y="62" text-anchor="middle">調査</text><line x1="102" y1="55" x2="118" y2="55" style="stroke:var(--k-line)" stroke-width="1.6" marker-end="url(#k-arrow)"/><g class="k-shadow"><rect class="k-panel" x="112" y="30" width="92" height="50" rx="8"/></g><circle class="k-badge" cx="158" cy="30" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="158" y="34" text-anchor="middle">2</text><text class="lbl" x="158" y="62" text-anchor="middle">出願</text><line x1="206" y1="55" x2="222" y2="55" style="stroke:var(--k-line)" stroke-width="1.6" marker-end="url(#k-arrow)"/><g class="k-shadow"><rect class="k-panel" x="216" y="30" width="92" height="50" rx="8"/></g><circle class="k-badge" cx="262" cy="30" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="262" y="34" text-anchor="middle">3</text><text class="lbl" x="262" y="62" text-anchor="middle">実体審査</text><line x1="310" y1="55" x2="326" y2="55" style="stroke:var(--k-line)" stroke-width="1.6" marker-end="url(#k-arrow)"/><g class="k-shadow"><rect class="k-panel" x="320" y="30" width="92" height="50" rx="8"/></g><circle class="k-badge" cx="366" cy="30" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="366" y="34" text-anchor="middle">4</text><text class="lbl" x="366" y="62" text-anchor="middle">登録査定</text><line x1="414" y1="55" x2="430" y2="55" style="stroke:var(--k-line)" stroke-width="1.6" marker-end="url(#k-arrow)"/><g class="k-shadow"><rect class="k-panel" x="424" y="30" width="92" height="50" rx="8" style="stroke:var(--tb-accent)" stroke-width="2"/></g><circle class="k-badge" cx="470" cy="30" r="10" style="fill:var(--tb-accent)"/><text class="k-badge-t" x="470" y="34" text-anchor="middle">5</text><text class="lbl" x="470" y="62" text-anchor="middle" style="fill:var(--tb-accent)">登録料→登録</text><text class="lbl" x="260" y="108" text-anchor="middle">登録で権利発生 (出願日から最長 25 年)</text>
+<div class="tb-note">自分で展示会や Web に公開しても新規性は失われます。公開から 1 年以内に所定の手続をすれば例外の適用を受けられる制度 (新規性喪失の例外) がありますが、要件があり、その間に他人が先に出願・公開するリスクも残るため、<b>公開前に出願</b>するのが原則です。</div>
+<h2>出願から権利消滅までのタイムライン</h2>
+<p>意匠は<b>審査請求が不要</b>で、出願すれば実体審査が行われます。登録査定後に登録料を納付すると<b>設定登録</b>で権利が発生し、意匠公報に掲載されます。存続期間は、2020 年 4 月 1 日以降の出願について<b>出願日から最長 25 年</b>です (それ以前の出願は登録日から 20 年)。維持には毎年の登録料が必要です。</p>
+<svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="意匠権と特許権のタイムライン比較">
+<text class="k-title" x="260" y="20" text-anchor="middle">出願日を起点にしたタイムライン (目安)</text>
+<line class="k-edge" x1="40" y1="170" x2="500" y2="170"/>
+<g class="tick"><text x="40" y="186" text-anchor="middle">0</text><text x="132" y="186" text-anchor="middle">5</text><text x="224" y="186" text-anchor="middle">10</text><text x="316" y="186" text-anchor="middle">15</text><text x="408" y="186" text-anchor="middle">20</text><text x="500" y="186" text-anchor="middle">25 年</text></g>
+<g class="k-thin"><line x1="40" y1="164" x2="40" y2="176"/><line x1="132" y1="164" x2="132" y2="176"/><line x1="224" y1="164" x2="224" y2="176"/><line x1="316" y1="164" x2="316" y2="176"/><line x1="408" y1="164" x2="408" y2="176"/><line x1="500" y1="164" x2="500" y2="176"/></g>
+<text class="lbl" x="40" y="48">意匠権</text>
+<rect x="40" y="54" width="22" height="18" rx="3" style="fill:var(--k-line-2)" fill-opacity="0.35"/>
+<rect x="62" y="54" width="438" height="18" rx="3" style="fill:var(--tb-accent)" fill-opacity="0.75"/>
+<text class="k-badge-t" x="280" y="67" text-anchor="middle">権利期間 (設定登録 〜 出願から 25 年)</text>
+<text class="k-note" x="40" y="88">審査 (登録前) / 秘密意匠は登録から最長 3 年公表を遅らせられる</text>
+<text class="lbl" x="40" y="114">特許権</text>
+<rect x="40" y="120" width="28" height="18" rx="3" style="fill:var(--k-line-2)" fill-opacity="0.35"/>
+<line x1="68" y1="116" x2="68" y2="142" style="stroke:var(--tb-bad)" stroke-width="2"/>
+<rect x="95" y="120" width="313" height="18" rx="3" style="fill:var(--tb-good)" fill-opacity="0.75"/>
+<text class="k-badge-t" x="252" y="133" text-anchor="middle">権利期間 (設定登録 〜 出願から 20 年)</text>
+<text class="k-note" x="72" y="154">1 年 6 月で出願公開・審査請求は出願から 3 年以内</text>
 </svg>
-<p class="tb-caption">図: 意匠登録までの主な流れ。意匠は審査請求なしで実体審査が行われる</p>
+<p class="tb-caption">図: 期間の起点はどちらも出願日。登録までの審査期間の長さは案件により異なる (図は一例)</p>
 <h2>さまざまな意匠の制度</h2>
 <table class="tb-table">
   <tr><th>制度</th><th>内容</th><th>使いどころ</th></tr>
   <tr><td>部分意匠</td><td>物品の一部分 (グリップ形状など) について登録</td><td>特徴的な部分だけを模倣されるのを防ぐ</td></tr>
-  <tr><td>関連意匠</td><td>自分の本意匠に類似する意匠も登録できる。2020 年改正で、本意匠の出願日から 10 年以内まで出願可能に</td><td>バリエーションや、デザイン言語を継承した後継機を守る</td></tr>
+  <tr><td>関連意匠</td><td>自分の本意匠に類似する意匠も登録できる。2020 年改正で本意匠の出願日から 10 年以内まで出願可能に</td><td>バリエーションや、デザイン言語を継承した後継機を守る</td></tr>
+  <tr><td>秘密意匠</td><td>登録の日から最長 3 年間、意匠の内容を秘密にできる</td><td>発売前に権利化だけ済ませたい</td></tr>
   <tr><td>画像意匠</td><td>操作画面や、機器の機能を発揮した結果として表示される画像</td><td>GUI、投影画像</td></tr>
   <tr><td>建築物・内装</td><td>建物の外観や、店舗などの内装</td><td>店舗デザインのブランド保護</td></tr>
   <tr><td>組物の意匠</td><td>セットで使う物品の全体 (食器セットなど)</td><td>シリーズ全体の統一感を保護</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 188" role="img" aria-label="部分意匠の図面表現">
-<path d="M60,48 L60,140 Q60,156 76,156 L114,156 Q130,156 130,140 L130,48" fill="none" style="stroke:var(--k-line-2)" stroke-width="1.5" stroke-dasharray="5 4"/><ellipse cx="95" cy="48" rx="35" ry="8" fill="none" style="stroke:var(--k-line-2)" stroke-width="1.5" stroke-dasharray="5 4"/><path d="M130,64 C182,60 182,136 130,132 L130,118 C162,120 162,76 130,78 Z" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.18" stroke-width="2.6"/><text class="lbl" x="105" y="178" text-anchor="middle">マグカップの取っ手</text><line x1="240" y1="60" x2="290" y2="60" style="stroke:var(--tb-accent)" stroke-width="3"/><text class="lbl" x="300" y="64">実線: 登録を受けたい部分</text><line x1="240" y1="100" x2="290" y2="100" style="stroke:var(--k-line-2)" stroke-width="1.5" stroke-dasharray="5 4"/><text class="lbl" x="300" y="104">破線: その他の部分</text><text class="tick" x="240" y="140">特徴的な部分だけの模倣も防げる</text>
+<svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="全体意匠と部分意匠の図面表現の比較">
+<g class="k-shadow"><rect class="k-panel" x="8" y="28" width="248" height="196" rx="8"/><rect class="k-panel" x="264" y="28" width="248" height="196" rx="8"/></g>
+<text class="k-title" x="132" y="50" text-anchor="middle">全体意匠: すべて実線</text>
+<text class="k-title" x="388" y="50" text-anchor="middle">部分意匠: グリップのみ実線</text>
+<g>
+<path class="k-edge" d="M40,80 Q40,66 54,66 L156,66 Q170,66 170,80 L170,100 Q170,114 156,114 L54,114 Q40,114 40,100 Z"/>
+<path class="k-edge" d="M170,74 L194,80 L194,100 L170,106 Z"/><rect class="k-edge" x="194" y="86" width="34" height="8" rx="2"/>
+<path class="k-edge" d="M78,114 C72,140 68,166 70,188 L120,188 C116,166 120,140 128,114"/>
+<path class="k-edge" d="M130,118 Q140,126 133,140 L126,138"/>
+<rect class="k-edge" x="58" y="188" width="88" height="22" rx="6"/>
+</g>
+<g transform="translate(256,0)">
+<path class="k-hidden" d="M40,80 Q40,66 54,66 L156,66 Q170,66 170,80 L170,100 Q170,114 156,114 L54,114 Q40,114 40,100 Z"/>
+<path class="k-hidden" d="M170,74 L194,80 L194,100 L170,106 Z"/><rect class="k-hidden" x="194" y="86" width="34" height="8" rx="2"/>
+<path d="M78,114 C72,140 68,166 70,188 L120,188 C116,166 120,140 128,114 Z" style="fill:var(--tb-accent);stroke:var(--tb-accent)" fill-opacity="0.2" stroke-width="2.6"/>
+<path class="k-hidden" d="M130,118 Q140,126 133,140 L126,138"/>
+<rect class="k-hidden" x="58" y="188" width="88" height="22" rx="6"/>
+<line class="k-thin" x1="124" y1="150" x2="168" y2="150"/><text class="lbl" x="172" y="146">登録を受け</text><text class="lbl" x="172" y="162">ようとする部分</text>
+</g>
 </svg>
-<p class="tb-caption">図: 部分意匠では、権利を求める部分を実線、それ以外を破線などで描き分ける (表し方の一例)</p>
+<p class="tb-caption">図: 同じ製品でも、全体意匠は全体の形、部分意匠は実線部分 (破線はその他の部分) の形で権利範囲が決まる。描き方の一例で、詳細は「意匠登録の実務」の章を参照</p>
 <h2>ほかの知的財産権との違い</h2>
 <table class="tb-table">
   <tr><th>権利</th><th>保護対象</th><th>審査</th><th>存続期間 (原則)</th></tr>
-  <tr><td>意匠権</td><td>物品・画像・建築物・内装のデザイン</td><td>実体審査あり</td><td>出願日から最長 25 年</td></tr>
-  <tr><td>特許権</td><td>技術的なアイデア (発明)</td><td>審査請求により実体審査</td><td>出願日から 20 年 (一部延長制度あり)</td></tr>
-  <tr><td>実用新案権</td><td>物品の形状・構造・組合せに関する考案 (小発明)</td><td>実体審査なし (基礎的要件のみ)</td><td>出願日から 10 年</td></tr>
+  <tr><td>意匠権</td><td>物品・画像・建築物・内装のデザイン</td><td>実体審査あり (審査請求不要)</td><td>出願日から最長 25 年</td></tr>
+  <tr><td>特許権</td><td>技術的なアイデア (発明)</td><td>審査請求により実体審査</td><td>出願日から 20 年 (医薬品などに延長制度あり)</td></tr>
+  <tr><td>実用新案権</td><td>物品の形状・構造・組合せに関する考案</td><td>実体審査なし (基礎的要件のみ)</td><td>出願日から 10 年</td></tr>
   <tr><td>商標権</td><td>商品・サービスに使うマーク (文字・図形・立体形状など)</td><td>実体審査あり</td><td>登録日から 10 年、更新可能</td></tr>
   <tr><td>著作権</td><td>思想・感情の創作的表現</td><td>登録不要 (創作で発生)</td><td>原則として著作者の死後 70 年</td></tr>
+  <tr><td>営業秘密 (ノウハウ)</td><td>秘密として管理された有用な非公知の情報</td><td>登録なし (不正競争防止法で保護)</td><td>秘密が保たれる限り</td></tr>
 </table>
-<p>1 つの製品を複数の権利で重ねて守ることもあります (形は意匠、内部機構は特許、ロゴは商標)。量産される工業製品の形は、著作権では保護されにくいとされるため、意匠登録が重要になります。</p>
+<p>量産される工業製品の形は、著作権では保護されにくいとされるため、意匠登録が重要になります。また、不正競争防止法には他人の商品の形態をそっくりまねた商品の販売を一定期間 (日本で最初に販売された日から 3 年) 規制する規定もありますが、範囲は限られます。デザインを確実に守るなら意匠登録が基本です。</p>
 <h2>他社意匠の調査 — J-PlatPat</h2>
-<p><b>J-PlatPat</b> (特許情報プラットフォーム) は、特許庁の公報を無料で検索できるサービスです。意匠は<b>日本意匠分類</b>や物品名、意匠に係る物品の説明などで検索し、図面を見て類似性を確認します。</p>
+<p><b>J-PlatPat</b> (特許情報プラットフォーム) は、特許庁の公報を無料で検索できるサービスです。意匠は<b>日本意匠分類</b>や物品名などで検索し、図面を見て類似性を確認します。</p>
 <ul>
   <li>開発の<b>初期</b> (コンセプト段階) と、<b>形が固まった段階</b>の両方で調査する</li>
-  <li>類否 (似ているかどうか) の判断は、物品の同一・類似と、形状などの全体的な印象で行われ、専門的な判断が必要</li>
+  <li>類否 (似ているかどうか) は、物品の同一・類似と、需要者から見た形状などの全体的な印象で判断され、専門的な判断が必要</li>
   <li>類似が疑われる意匠を見つけたら、自己判断で進めず弁理士に相談する</li>
   <li>海外で販売する場合は、その国・地域ごとに権利が必要 (権利は国ごと)</li>
 </ul>
 <div class="tb-tip"><b>3DCAD Studio</b>: 出願図面の検討には、正面・側面などの視点から高解像度画像の保存が便利です (正式な図面の要件は特許庁の案内に従ってください)。</div>`,
-    points: ["意匠は物品などの形状・模様・色彩で美感を起こさせるもの。2020 年改正で画像・建築物・内装も対象", "主な登録要件は工業上利用可能性・新規性・創作非容易性。公開前に出願が原則", "存続期間は 2020 年 4 月以降の出願で出願日から最長 25 年。部分意匠・関連意匠で戦略的に守る", "J-PlatPat で他社意匠を調査し、判断は弁理士に相談。法令は改正されるので公式情報を確認"],
+    points: ["意匠は物品などの形状・模様・色彩で美感を起こさせるもの。2020 年改正で画像・建築物・内装も対象。権利は類似範囲まで及ぶ", "主な登録要件は工業上利用可能性・新規性・創作非容易性・先願。公開前に出願が原則", "存続期間は 2020 年 4 月以降の出願で出願日から最長 25 年。部分意匠・関連意匠・秘密意匠で戦略的に守る", "形は意匠、仕組みは特許・実用新案、マークは商標、製法はノウハウ秘匿と使い分け・重ね合わせる", "J-PlatPat で他社権利を調査し、判断は弁理士に相談。法令は改正されるので公式情報を確認"],
     exercises: [
       {
-        q: "2024 年 6 月 1 日に出願し、2025 年 3 月 1 日に設定登録された意匠権は、最長でいつまで存続しますか? (年金をすべて納付したとする)",
-        a: "2020 年 4 月以降の出願なので、<b>出願日から 25 年</b>。2024 年 6 月 1 日から 25 年 → <b>2049 年 6 月 1 日</b>まで (満了日の扱いの細部は公式情報で確認)。登録日ではなく出願日が起点である点に注意します。",
+        q: "2024 年 6 月 1 日に出願し、2025 年 3 月 1 日に設定登録された意匠権は、最長でいつまで存続しますか? (登録料をすべて納付したとする)",
+        a: "2020 年 4 月以降の出願なので、<b>出願日から 25 年</b>。2024 年 6 月 1 日から 25 年 → <b>2049 年 6 月 1 日</b>ごろまで (満了日の扱いの細部は公式情報で確認)。登録日ではなく出願日が起点である点に注意します。",
       },
       {
         q: "新しい電動ドライバーで、グリップ部の形だけが特に独創的です。全体意匠と部分意匠のどちらで出願を検討すべきですか?",
         a: "<b>部分意匠</b>の出願を検討します。全体意匠だけだと、他社がグリップの形だけをまねて他の部分を変えた場合に、全体として類似しないと判断されるおそれがあります。必要に応じて全体意匠と組み合わせ、弁理士と出願戦略を相談します。",
       },
+      {
+        q: "新型の卓上クランプについて、(a) 特徴的な外観、(b) レバーの倍力機構、(c) 樹脂部品の成形条件、(d) 製品名のロゴ、をそれぞれどの手段で守るのが基本か整理しなさい。",
+        a: "(a) <b>意匠権</b> (特徴部分があれば部分意匠も)。(b) <b>特許権</b> (簡単な構造なら実用新案も選択肢)。(c) 製品を見ても分からない製法は、出願すると公開されるため<b>ノウハウとして秘匿</b> (営業秘密として管理) が有力。(d) <b>商標権</b>。どれを選ぶかは事業戦略と費用で決め、弁理士と相談します。",
+      },
     ],
     quiz: [
       { q: "日本の意匠権の存続期間 (2020 年 4 月以降の出願) は?", choices: ["登録日から 20 年", "出願日から最長 25 年", "出願日から 10 年"], answer: 1, explain: "2019 年改正法 (2020 年 4 月施行) により、出願日から最長 25 年になりました。" },
-      { q: "実体審査を行わずに登録されるのは?", choices: ["意匠権", "商標権", "実用新案権"], answer: 2, explain: "実用新案は方式と基礎的要件のみで登録されます。" },
+      { q: "実体審査を行わずに登録されるのは?", choices: ["意匠権", "商標権", "実用新案権"], answer: 2, explain: "実用新案は方式と基礎的要件のみの審査で登録されます。" },
       { q: "製品の特徴的な一部分だけの模倣を防ぎたいときに有効な制度は?", choices: ["部分意匠", "秘密意匠", "組物の意匠"], answer: 0, explain: "部分意匠は物品の一部分の形状などを保護します。" },
+      { q: "意匠権の効力が及ぶ範囲として正しいのは?", choices: ["登録意匠と同一の意匠のみ", "登録意匠と同一または類似の意匠", "同じ機能を持つすべての製品"], answer: 1, explain: "意匠権は登録意匠に類似する意匠にも及びます。機能そのものは意匠ではなく特許の守備範囲です。" },
     ],
   },
   {

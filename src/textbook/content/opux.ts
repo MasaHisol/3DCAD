@@ -487,18 +487,23 @@ export const OPUX: TextChapter[] = [
   <tr><td>3 詳細</td><td>個々の機器</td><td>シリンダの前進端・後退端センサ、軸の位置</td></tr>
   <tr><td>4 診断</td><td>保全・調整</td><td>I/O モニタ、パラメータ、トレンド</td></tr>
 </table>
-<svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="状態表示の比較">
-<g class="k-shadow"><rect class="k-part" x="20" y="14" width="230" height="122" rx="6"/><rect class="k-part" x="115" y="136" width="40" height="10"/></g><rect x="30" y="22" width="210" height="106" rx="2" style="fill:var(--tb-surface);stroke:var(--k-line)"/><g class="k-shadow"><rect class="k-part" x="270" y="14" width="230" height="122" rx="6"/><rect class="k-part" x="365" y="136" width="40" height="10"/></g><rect x="280" y="22" width="210" height="106" rx="2" style="fill:var(--tb-surface);stroke:var(--k-line)"/>
-<rect x="37" y="34" width="60" height="30" rx="3" style="fill:var(--tb-good)"/><rect x="105" y="34" width="60" height="30" rx="3" style="fill:var(--tb-accent)"/><rect x="173" y="34" width="60" height="30" rx="3" style="fill:var(--tb-warn)"/>
-<rect x="37" y="80" width="60" height="30" rx="3" style="fill:var(--tb-bad)"/><rect x="105" y="80" width="60" height="30" rx="3" style="fill:var(--tb-good)"/><rect x="173" y="80" width="60" height="30" rx="3" style="fill:var(--tb-accent)"/>
-<rect x="287" y="34" width="60" height="30" rx="3" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)"/><rect x="355" y="34" width="60" height="30" rx="3" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)"/><rect x="423" y="34" width="60" height="30" rx="3" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)"/>
-<g class="k-glow"><rect x="287" y="80" width="60" height="30" rx="3" style="fill:var(--tb-bad)"/></g><rect x="355" y="80" width="60" height="30" rx="3" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)"/><rect x="423" y="80" width="60" height="30" rx="3" style="fill:var(--tb-surface-2);stroke:var(--k-line-2)"/>
-<text class="lbl" x="317" y="99" text-anchor="middle" fill="#fff" style="fill:#fff">! 停止</text>
-<text class="mark-t" x="135" y="176" text-anchor="middle">× 色だらけで異常が埋もれる</text>
-<text class="mark-t" x="385" y="176" text-anchor="middle">○ 平常は無彩色、異常だけ色</text>
+<svg class="tb-chart" viewBox="0 0 520 262" role="img" aria-label="アラーム一覧画面">
+<g class="k-shadow"><rect class="k-part" x="20" y="8" width="480" height="246" rx="10"/></g>
+<rect class="k-screen" x="32" y="20" width="456" height="210" rx="3"/>
+<rect x="32" y="20" width="456" height="24" fill="#2d3440"/>
+<text class="k-screen-t" x="42" y="36" font-weight="700">アラーム一覧</text><text class="k-screen-t" x="200" y="36">未確認 1 / 発生中 2</text><text class="k-screen-t" x="478" y="36" text-anchor="end">14:32</text>
+<rect x="38" y="52" width="444" height="28" rx="3" fill="#3a2226" stroke="#e53935" stroke-width="1.4"/>
+<rect x="42" y="57" width="34" height="20" rx="3" fill="#c62828"/><text x="59" y="71" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">高</text><text class="k-screen-t" x="84" y="71">14:31:05</text><text x="146" y="71" class="k-screen-t">工程3 エア圧低下 0.32 MPa (下限 0.45)</text><text x="478" y="71" text-anchor="end" fill="#ff8a80" font-size="11">未確認・最初</text>
+<text x="146" y="100" fill="#8a94a3" font-size="10">└ 結果アラーム 3 件 (クランプ閉確認なし ほか) を抑制中</text>
+<rect x="42" y="114" width="34" height="20" rx="3" fill="#b8860b"/><text x="59" y="128" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">中</text><text class="k-screen-t" x="84" y="128">14:31:06</text><text x="146" y="128" class="k-screen-t">工程3 クランプ2 閉確認なし (SQ32)</text><text x="478" y="128" text-anchor="end" fill="#c5ccd6" font-size="11">確認済</text>
+<rect x="42" y="142" width="34" height="20" rx="3" fill="#1e63c6"/><text x="59" y="156" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">低</text><text class="k-screen-t" x="84" y="156">14:10:40</text><text x="146" y="156" class="k-screen-t">工程1 フィルタ交換時期 (残り 3 日)</text><text x="478" y="156" text-anchor="end" fill="#c5ccd6" font-size="11">確認済</text>
+<line x1="42" y1="170" x2="478" y2="170" stroke="#5a6270"/>
+<text class="k-screen-t" x="46" y="190">対処: ① 元圧バルブ ② フィルタ詰まり ③ 配管の漏れ を確認</text>
+<g fill="#2d3440" stroke="#8a94a3"><rect x="42" y="200" width="100" height="24" rx="3"/><rect x="152" y="200" width="100" height="24" rx="3"/><rect x="262" y="200" width="100" height="24" rx="3"/><rect x="372" y="200" width="106" height="24" rx="3"/></g>
+<text class="k-screen-t" x="92" y="216" text-anchor="middle">確認</text><text class="k-screen-t" x="202" y="216" text-anchor="middle">対処手順</text><text class="k-screen-t" x="312" y="216" text-anchor="middle">位置図</text><text class="k-screen-t" x="425" y="216" text-anchor="middle">履歴</text>
 </svg>
-<p class="tb-caption">図: 平常状態を灰色系で描き、異常だけを色 (と記号・文字) で示すと、注意がすぐ異常に向かう。</p>
-<p>色は<b>意味を固定</b>して使います。表示灯の色の意味は IEC 60073 や IEC 60204-1 (JIS B 9960-1) で定められています (次章)。画面でも同じ意味に合わせ、赤 = 危険・異常、黄 = 注意、緑 = 正常・安全、青 = 指示・要対応とし、装飾目的の色は使いません。色覚の多様性に配慮し、<b>色だけで区別しない</b> (記号・文字・形・位置を併用) ことも必須です。</p>
+<p class="tb-caption">図: タッチパネルのアラーム一覧。最初に出た原因アラーム (ファーストアウト) を先頭に枠で強調し、結果アラームはまとめて抑制。優先度は色と文字の両方で示し、選んだ行の対処をその場に出す。</p>
+<p>概要画面では平常状態を灰色系で描き、異常だけを色 (と記号・文字) で示します (「HMI 画面の設計」の章を参照)。色は<b>意味を固定</b>して使います。表示灯の色の意味は IEC 60073 や IEC 60204-1 (JIS B 9960-1) で定められています (次章)。画面でも同じ意味に合わせ、赤 = 危険・異常、黄 = 注意、緑 = 正常・安全、青 = 指示・要対応とし、装飾目的の色は使いません。色覚の多様性に配慮し、<b>色だけで区別しない</b> (記号・文字・形・位置を併用) ことも必須です。</p>
 <div class="tb-note">画面遷移、タッチボタンの大きさ、物理スイッチとの役割分担などの一般論は「機械の操作パネルと組込み画面の UX」の章を参照してください。この章ではアラームと状態表示を深掘りしました。</div>`,
     points: [
       "アラームは作業者の対応が必要なものだけ。情報やイベントはログへ",

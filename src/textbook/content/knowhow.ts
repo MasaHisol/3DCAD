@@ -87,6 +87,43 @@ export const KNOWHOW: TextChapter[] = [
   <tr><td>形状</td><td>3D 曲面、深い溝、小さい内 R</td><td>平面・円筒の組み合わせ、大きめの R</td></tr>
   <tr><td>工具</td><td>穴径・R の種類が多い</td><td>穴径・R・ねじの種類をそろえる (工具交換が減る)</td></tr>
 </table>
+<svg class="tb-chart" viewBox="0 0 520 236" role="img" aria-label="止まりねじ穴の下穴深さ">
+<rect class="k-panel" x="8" y="8" width="244" height="220" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="220" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">ねじが穴底まで</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">下穴をねじより深く</text>
+<g class="k-shadow"><rect class="k-cut" x="40" y="60" width="180" height="140"/><rect class="k-cut" x="300" y="60" width="180" height="140"/></g>
+<rect x="110" y="60" width="40" height="90" style="fill:var(--tb-surface-2);stroke:var(--k-line)" stroke-width="1.4"/>
+<polyline class="k-edge" points="110,60 116,66 110,72 116,78 110,84 116,90 110,96 116,102 110,108 116,114 110,120 116,126 110,132 116,138 110,144 116,150"/><polyline class="k-edge" points="150,60 144,66 150,72 144,78 150,84 144,90 150,96 144,102 150,108 144,114 150,120 144,126 150,132 144,138 150,144 144,150"/>
+<path d="M118,144 L142,144 L130,156 Z" style="fill:var(--tb-bad)"/><text class="k-bad-t" x="130" y="176" text-anchor="middle">タップが底付き・折損</text>
+<text class="k-note" x="130" y="220" text-anchor="middle">完全ねじを穴底まで指示 → 加工不能</text>
+<path d="M370,60 L410,60 L410,165 L390,177 L370,165 Z" style="fill:var(--tb-surface-2);stroke:var(--k-line)" stroke-width="1.4"/>
+<polyline class="k-edge" points="370,60 376,66 370,72 376,78 370,84 376,90 370,96 376,102 370,108 376,114 370,120 376,126"/><polyline class="k-edge" points="410,60 404,66 410,72 404,78 410,84 404,90 410,96 404,102 410,108 404,114 410,120 404,126"/>
+<line class="k-ext" x1="412" y1="128" x2="470" y2="128"/><line class="k-ext" x1="412" y1="165" x2="470" y2="165"/><line class="k-ext" x1="368" y1="60" x2="320" y2="60"/><line class="k-ext" x1="368" y1="128" x2="320" y2="128"/>
+<line class="k-dimline" x1="326" y1="60" x2="326" y2="128"/><text class="k-dimtext" x="330" y="98">12</text>
+<line class="k-ext" x1="412" y1="60" x2="470" y2="60"/><line class="k-dimline" x1="462" y1="60" x2="462" y2="165"/><text class="k-dimtext" x="458" y="116" text-anchor="end">15</text>
+<text class="k-good-t" x="390" y="220" text-anchor="middle">M6 ねじ深さ 12 / 下穴 φ5 深さ 15</text>
+</svg>
+<p class="tb-caption">図: 止まりねじ穴の断面。タップの先端は食いつき部 (不完全ねじ) なので、下穴はねじ深さより 3 ピッチ程度深くとる。ドリル先端の 118° の円すいはさらにその下にできる</p>
+<h2>加工の目安値</h2>
+<table class="tb-table">
+  <tr><th>項目</th><th>目安</th><th>理由</th></tr>
+  <tr><td>ポケットの入隅 R</td><td>工具半径 + 0.5〜1 mm</td><td>工具が角で止まらず、送りを落とさずに回り込める</td></tr>
+  <tr><td>ポケット深さ</td><td>工具径の 3〜4 倍以内</td><td>突き出しが長いと工具がたわみ、びびる</td></tr>
+  <tr><td>止まり穴の深さ</td><td>穴径の 3〜5 倍以内</td><td>切りくずが詰まり、ドリルが折れやすい</td></tr>
+  <tr><td>下穴深さ (止まりタップ)</td><td>ねじ深さ + 3 ピッチ程度</td><td>食いつき部の不完全ねじと切りくずの逃げ</td></tr>
+  <tr><td>薄い壁</td><td>深さに対して厚さを確保 (アルミで 1 mm 以下は要相談)</td><td>加工中にたわみ、寸法・面が出ない</td></tr>
+</table>
+<h2>計算例: 加工時間をざっくり見積もる</h2>
+<p>アルミのブロックに 60 × 40 × 深さ 20 mm のポケットを荒加工します。除去体積は 60 × 40 × 20 = 48 000 mm³ = 48 cm³。
+仮に除去能率 (1 分あたり削れる体積) を 20 cm³/min とすると、荒加工は 48 / 20 = <b>2.4 分</b>。ここに仕上げ・工具交換・段取りが加わります。
+入隅を R2 にすると φ4 の細い工具で角を仕上げる工程が増え、時間は大きく延びます。</p>
+<h2>よくある失敗</h2>
+<ul>
+  <li>入隅 R を指示せず「直角」— 加工者が独断で R を付けるか、放電加工で高額になる</li>
+  <li>止まり穴のねじを穴底まで指示 — タップ折損の原因</li>
+  <li>測定できない寸法 (仮想交点や R の中心から) を指示 — 検査ができない</li>
+  <li>6 面すべてに加工を配置 — 段取りが 6 回になる</li>
+</ul>
 <div class="tb-tip"><b>3DCAD Studio</b>: 「検査 → CAM」でポケット・輪郭・穴あけの工具経路と加工時間の目安を出せます。入隅 R が工具径より小さいとポケットの角が削り残されることを、工具経路で確かめてみましょう。</div>`,
     points: ["入隅には工具半径以上の R — 必ず指示する", "穴・溝の深さは径の 3〜5 倍以内が目安", "段取り回数を減らし、基準面から寸法を入れる", "公差・粗さは必要な所だけ。穴径・R の種類をそろえる"],
     exercises: [
@@ -94,10 +131,19 @@ export const KNOWHOW: TextChapter[] = [
         q: "深さ 30 mm のポケットの内角を R2 と指示しました。何が問題で、どう直すべきですか?",
         a: "R2 には φ4 以下のエンドミルが必要ですが、深さ 30 mm は工具径の 7.5 倍でびびり・折損のおそれがあり、加工が非常に遅く高価になります。機能上問題なければ <b>R6 程度 (φ12 の工具、深さは径の 2.5 倍)</b> に大きくするか、ポケットを浅くします。",
       },
+      {
+        q: "M6 (ピッチ 1.0 mm) のねじを深さ 12 mm で止まり穴に切ります。下穴径・下穴深さと、ドリル先端 (118°) の円すい部の長さを求めなさい。",
+        a: "下穴径はおよそ D − P = 6 − 1 = <b>φ5.0</b>。下穴深さ = 12 + 3 × 1.0 = <b>15 mm</b> (円筒部)。円すい部の長さ = (5/2) / tan 59° ≈ 2.5 / 1.664 ≈ <b>1.5 mm</b> で、穴底の頂点は 16.5 mm の位置になります。裏側の壁はこれより厚くします。",
+      },
+      {
+        q: "60 × 40 × 20 mm のポケットを除去能率 20 cm³/min で荒加工します。荒加工時間は? 深さを 10 mm にできれば何分短くなりますか?",
+        a: "体積 48 cm³ → 48 / 20 = <b>2.4 分</b>。深さ 10 mm なら 24 cm³ → 1.2 分で、<b>1.2 分短縮</b>。深さが浅いと短い工具が使え、除去能率そのものも上げやすくなります。",
+      },
     ],
     quiz: [
       { q: "エンドミルで加工したポケットの内側の角はどうなる?", choices: ["鋭い角になる", "工具半径以上の R が残る", "面取りになる"], answer: 1, explain: "回転する工具は丸いため、内角には工具半径の R が残ります。" },
       { q: "加工コストを下げる設計は?", choices: ["穴径の種類をそろえる", "全寸法に厳しい公差を入れる", "斜めの穴を増やす"], answer: 0, explain: "穴径・ねじ・R の種類をそろえると工具交換が減り、加工時間が短くなります。" },
+      { q: "止まりねじ穴の下穴深さの目安は?", choices: ["ねじ深さと同じ", "ねじ深さ + 3 ピッチ程度", "ねじ深さの半分"], answer: 1, explain: "タップ先端の不完全ねじと切りくずの逃げのため、下穴はねじより深くします。" },
     ],
     lessons: ["3-2", "3-4"],
   },
@@ -175,6 +221,43 @@ export const KNOWHOW: TextChapter[] = [
   <li>溶接の<b>トーチが届く</b>か、ビードを置く余地があるかを確認</li>
   <li>隅肉溶接の強さの目安: のど厚 a = 脚長 × 0.7、せん断応力 τ = F / (a × 溶接長さ)</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="フランジ高さと V 溝">
+<rect class="k-panel" x="8" y="8" width="244" height="204" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="204" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">フランジが短い</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">両肩に掛かる</text>
+<g class="k-shadow"><path class="k-part" d="M40,150 L100,150 L130,180 L160,150 L220,150 L220,190 L40,190 Z"/></g>
+<path class="k-part" d="M118,60 L142,60 L142,120 L130,140 L118,120 Z"/>
+<line class="k-move" x1="130" y1="46" x2="130" y2="58"/>
+<rect class="k-alu" x="30" y="142" width="120" height="6"/><path d="M150,148 L156,162" style="stroke:var(--tb-bad)" stroke-width="2"/>
+<text class="k-bad-t" x="130" y="208" text-anchor="middle">板端が V 溝に落ちる</text>
+<g class="k-shadow"><path class="k-part" d="M300,150 L360,150 L390,180 L420,150 L480,150 L480,190 L300,190 Z"/></g>
+<path class="k-part" d="M378,60 L402,60 L402,120 L390,140 L378,120 Z"/>
+<line class="k-move" x1="390" y1="46" x2="390" y2="58"/>
+<rect class="k-alu" x="290" y="142" width="175" height="6"/>
+<line class="k-ext" x1="420" y1="138" x2="420" y2="100"/><line class="k-ext" x1="360" y1="138" x2="360" y2="100"/><line class="k-dimline" x1="360" y1="106" x2="420" y2="106"/><text class="k-dimtext" x="430" y="102">V 幅</text>
+<text class="k-good-t" x="390" y="208" text-anchor="middle">フランジ ≥ V 幅の半分 + α</text>
+</svg>
+<p class="tb-caption">図: プレスブレーキの曲げ。下型の V 溝の幅は板厚の 6〜8 倍程度が一般的で、フランジが V 幅の半分より短いと板端が肩に掛からず曲げられない。これが「フランジ高さ ≥ 板厚の 3〜4 倍」の理由</p>
+<h2>板厚ごとの目安値</h2>
+<table class="tb-table">
+  <tr><th>板厚 t</th><th>内側 R (≈ t)</th><th>最小フランジ (3〜4t)</th><th>穴〜曲げ線 (2t + R)</th></tr>
+  <tr><td>1.0 mm</td><td>1.0 mm</td><td>3〜4 mm</td><td>3.0 mm</td></tr>
+  <tr><td>1.6 mm</td><td>1.6 mm</td><td>4.8〜6.4 mm</td><td>4.8 mm</td></tr>
+  <tr><td>2.0 mm</td><td>2.0 mm</td><td>6〜8 mm</td><td>6.0 mm</td></tr>
+  <tr><td>3.2 mm</td><td>3.2 mm</td><td>9.6〜12.8 mm</td><td>9.6 mm</td></tr>
+</table>
+<p>数値は一般的な目安です。実際の最小値は材料 (SPCC・SUS・アルミ) と加工先の金型で変わるので、量産前に加工先の標準を確認します。</p>
+<h2>計算例: L 曲げの展開長さ</h2>
+<p>外形寸法 50 × 30 mm、板厚 t = 2、内側 R = 2、K = 0.4 の 90° 曲げ。直線部は外形から (R + t) を引きます。</p>
+<div class="tb-formula">直線部 = (50 − 4) + (30 − 4) = 72 mm　　BA = (π/2)(2 + 0.4 × 2) ≈ 4.40 mm　　展開長 ≈ 76.40 mm</div>
+<p>外形寸法の合計 80 mm から引く量 (<b>曲げ控除</b> BD = 2(R + t) − BA ≈ 3.60 mm) で表すこともできます。CAD の板金機能はこの計算を K 係数や曲げ表で自動で行います。</p>
+<h2>よくある失敗</h2>
+<ul>
+  <li>曲げの近くに穴・切り欠き → 穴がつぶれる、曲げ線がずれる</li>
+  <li>短すぎるフランジ・Z 曲げの段差が小さすぎ → 金型が入らない</li>
+  <li>両側から曲げで囲う箱で、最後の曲げで金型と既存フランジが干渉する</li>
+  <li>溶接ナットやタップの位置が曲げ R に掛かる</li>
+</ul>
 <div class="tb-tip"><b>3DCAD Studio</b>: 「板金」タブの面・フランジで板金部品を作り、「展開パターン」で展開寸法と DXF を出力できます。フレーム ジェネレータと溶接で溶接構造も作れます。</div>`,
     points: ["曲げ半径 ≥ 板厚、フランジ高さ ≥ 板厚の 3〜4 倍", "穴は曲げ線から 2t + R 以上離す、穴径 ≥ 板厚", "展開長さは K 係数 (中立面) で計算", "溶接は熱ひずみ・疲労・作業性に注意"],
     exercises: [
@@ -182,10 +265,20 @@ export const KNOWHOW: TextChapter[] = [
         q: "板厚 2 mm、内側曲げ半径 2 mm、K = 0.4 で 90° 曲げるときの曲げ代 BA を求めてください。",
         a: "BA = (π/2) × (2 + 0.4 × 2) = 1.571 × 2.8 ≈ <b>4.40 mm</b>。",
       },
+      {
+        q: "外形 50 × 30 mm の L 字 (t = 2 mm、内側 R = 2 mm、K = 0.4、90°) の展開長さを求めなさい。",
+        a: "直線部 = (50 − 4) + (30 − 4) = 72 mm。BA = (π/2)(2 + 0.8) ≈ 4.40 mm。展開長 ≈ <b>76.40 mm</b>。外形和 80 mm から曲げ控除 3.60 mm を引いても同じです。",
+      },
+      {
+        q: "板厚 1.6 mm、内側 R = 1.6 mm の板金で、曲げ線の近くに φ4 の穴をあけます。穴の縁は曲げ線から何 mm 以上離すべきですか? また最小フランジ高さの目安は?",
+        a: "穴の縁〜曲げ線 ≥ 2t + R = 3.2 + 1.6 = <b>4.8 mm</b>。フランジ高さは 3〜4t = <b>4.8〜6.4 mm</b> 以上。φ4 の穴を収めるならフランジはさらに高く (4.8 + 4 + 縁の余裕) 必要です。",
+      },
     ],
     quiz: [
       { q: "板厚 1.6 mm の板金にあける穴の最小径の目安は?", choices: ["0.5 mm", "1.6 mm 程度", "10 mm"], answer: 1, explain: "パンチで抜ける穴径は板厚程度以上が目安です。" },
       { q: "穴を曲げ線のすぐ近くに置くと何が起こる?", choices: ["穴が変形する", "曲げ角度が大きくなる", "何も起こらない"], answer: 0, explain: "曲げの変形が穴に及び、楕円に変形します。2t + R 以上離します。" },
+      { q: "フランジが短すぎると曲げられない主な理由は?", choices: ["板が割れるから", "板端が下型の V 溝の肩に掛からないから", "展開長さが計算できないから"], answer: 1, explain: "曲げには V 溝の両肩で板を支える必要があり、フランジは V 幅の半分以上必要です。" },
+      { q: "外形 50 × 30 mm、曲げ控除 3.6 mm の L 曲げの展開長さは?", choices: ["80 mm", "76.4 mm", "83.6 mm"], answer: 1, explain: "80 − 3.6 = 76.4 mm。曲げると中立面より外は伸びるので、外形和より短くなります。" },
     ],
   },
   {
@@ -264,6 +357,39 @@ export const KNOWHOW: TextChapter[] = [
 </ul>
 <div data-widget="3d-snapfit"></div>
 <p class="tb-caption">3D 図: ふたを押し込むとフックが根元からたわみ、かえしを越えると元に戻ります。根元のひずみが許容値を超えないよう L と t を決めます。</p>
+<svg class="tb-chart" viewBox="0 0 520 230" role="img" aria-label="抜き勾配の有無">
+<rect class="k-panel" x="8" y="8" width="244" height="214" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="214" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">勾配なし</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">抜き勾配あり</text>
+<g class="k-shadow"><path class="k-plastic" d="M70,190 L70,80 L190,80 L190,190 L176,190 L176,94 L84,94 L84,190 Z"/><rect class="k-part" x="84" y="94" width="92" height="96"/></g>
+<line class="k-move" x1="130" y1="74" x2="130" y2="50"/>
+<path d="M78,110 L72,118 M78,130 L72,138 M78,150 L72,158 M182,110 L188,118 M182,130 L188,138 M182,150 L188,158" style="stroke:var(--tb-bad)" stroke-width="2"/>
+<text class="k-bad-t" x="130" y="212" text-anchor="middle">こすれ傷・離型不良</text>
+<g class="k-shadow"><path class="k-plastic" d="M326,190 L334,80 L446,80 L454,190 L440,190 L433,94 L347,94 L340,190 Z"/><path class="k-part" d="M347,94 L433,94 L440,190 L340,190 Z"/></g>
+<line class="k-move" x1="390" y1="74" x2="390" y2="50"/>
+<line class="k-center" x1="454" y1="190" x2="454" y2="74"/><text class="k-dimtext" x="458" y="100">1°</text>
+<text class="k-good-t" x="390" y="212" text-anchor="middle">少し動けば型から離れる</text>
+</svg>
+<p class="tb-caption">図: 型 (コア) に張り付いた成形品の断面。壁が型開き方向と平行だと、取り出す間ずっとこすれる。わずかな勾配で、動いた瞬間にすき間ができる (勾配は誇張して描いている)</p>
+<h2>肉厚別の目安値</h2>
+<table class="tb-table">
+  <tr><th>基本肉厚 t</th><th>リブ厚 (0.5〜0.6t)</th><th>リブ高さ (≤ 3t)</th><th>入隅 R (≥ 0.5t)</th><th>リブ間隔 (≥ 2t)</th></tr>
+  <tr><td>1.5 mm</td><td>0.75〜0.9 mm</td><td>4.5 mm</td><td>0.75 mm</td><td>3 mm</td></tr>
+  <tr><td>2.0 mm</td><td>1.0〜1.2 mm</td><td>6.0 mm</td><td>1.0 mm</td><td>4 mm</td></tr>
+  <tr><td>2.5 mm</td><td>1.25〜1.5 mm</td><td>7.5 mm</td><td>1.25 mm</td><td>5 mm</td></tr>
+  <tr><td>3.0 mm</td><td>1.5〜1.8 mm</td><td>9.0 mm</td><td>1.5 mm</td><td>6 mm</td></tr>
+</table>
+<p>樹脂の種類 (流れやすさ・収縮率) で最適値は変わります。表は設計の出発点として使い、成形メーカーと確認します。</p>
+<h2>計算例: 勾配による寸法差</h2>
+<p>深さ 30 mm の側壁に抜き勾配 1° を付けると、片側で 30 × tan 1° ≈ <b>0.52 mm</b> 根元と先端の寸法が違います (両側で約 1.05 mm)。
+0.5° なら片側 0.26 mm。はめあいや外観の合わせがある面では、どちらの端の寸法を基準にするか図面に明記します。</p>
+<h2>よくある失敗</h2>
+<ul>
+  <li>切削部品の形をそのまま成形品に — 厚肉でひけ・そり、勾配なし</li>
+  <li>リブを肉厚と同じ厚さ — 表面にひけ</li>
+  <li>収縮を見込まない寸法 — 型寸法は製品寸法 × (1 + 収縮率) 程度で作られる</li>
+  <li>ゲート位置を考えずに薄肉部の先に厚肉部 — ショートショット (充填不足)</li>
+</ul>
 <div class="tb-tip"><b>3DCAD Studio</b>: シェル (一定肉厚)・勾配 (抜き勾配)・リブ・フィレットのフィーチャで、成形品らしいモデルを作れます。断面図で肉厚が均一か確かめましょう。</div>`,
     points: ["肉厚を均一に (1.5〜3 mm)、厚い所は肉抜き + リブ", "型開き方向の面に抜き勾配 0.5〜2°", "リブ厚は肉厚の 50〜60 %、ボスは中空に", "アンダーカットは金型コストを上げる"],
     exercises: [
@@ -271,10 +397,19 @@ export const KNOWHOW: TextChapter[] = [
         q: "肉厚 2.5 mm のケースにリブを付けます。リブの厚さと高さの目安は?",
         a: "厚さは 2.5 × 0.5〜0.6 = <b>1.25〜1.5 mm</b>、高さは 2.5 × 3 = <b>7.5 mm 以内</b>が目安です。根元に R、先端側に抜き勾配を付けます。",
       },
+      {
+        q: "深さ 30 mm のケース側壁に抜き勾配 1° を付けます。片側で根元と先端の寸法はどれだけ違いますか? 0.5° ではどうですか?",
+        a: "1°: 30 × tan 1° ≈ <b>0.52 mm</b>。0.5°: 30 × tan 0.5° ≈ <b>0.26 mm</b>。両側ではそれぞれ約 1.05 mm、0.52 mm 幅が変わります。",
+      },
+      {
+        q: "収縮率を 0.6 % と仮定すると、製品寸法 100.0 mm の部分の型寸法はおよそいくつにしますか?",
+        a: "型寸法 ≈ 100 × (1 + 0.006) = <b>100.6 mm</b> (厳密に 100 / (1 − 0.006) とすると 100.60 mm)。実際の収縮率は材料・肉厚・流れ方向で変わるため、成形メーカーと決めます。",
+      },
     ],
     quiz: [
       { q: "成形品の表面にひけが出る主な原因は?", choices: ["肉厚が部分的に厚い", "抜き勾配が大きい", "材料が透明"], answer: 0, explain: "厚い部分は冷却・収縮が遅れ、表面がへこみます。" },
       { q: "アンダーカットがあると何が起こる?", choices: ["金型にスライド機構が必要で高価になる", "製品が軽くなる", "抜き勾配が不要になる"], answer: 0, explain: "型開き方向に抜けない形は、スライドや傾斜ピンなど追加の機構が必要です。" },
+      { q: "基本肉厚 2 mm の成形品で、リブ高さの目安の上限は?", choices: ["2 mm", "6 mm", "20 mm"], answer: 1, explain: "リブ高さは肉厚の 3 倍程度まで。高すぎると充填不足や倒れの原因になります。" },
     ],
     lessons: ["3-4"],
   },
@@ -335,6 +470,40 @@ export const KNOWHOW: TextChapter[] = [
 <text class="k-note" x="260" y="232" text-anchor="middle">細線 = 層の境目。矢印 = 荷重</text>
 </svg>
 <p class="tb-caption">図: 同じ棒でも造形の向きで強さが変わる。曲げで生じる引張が層の境目を引きはがす向き (左) を避け、層に沿う向き (右) にする</p>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="横穴の形とオーバーハング">
+<rect class="k-panel" x="8" y="8" width="244" height="204" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="204" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">丸い横穴</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">ティアドロップ形</text>
+<g class="k-shadow"><rect class="k-plastic" x="50" y="60" width="160" height="130" rx="3"/><rect class="k-plastic" x="310" y="60" width="160" height="130" rx="3"/></g>
+<circle cx="130" cy="130" r="32" style="fill:var(--tb-surface)" class="k-edge"/>
+<path d="M108,108 Q114,114 112,104 M120,100 Q124,108 126,99 M134,99 Q137,108 141,100 M146,104 Q148,112 152,108" style="fill:none;stroke:var(--tb-bad)" stroke-width="2"/>
+<text class="k-bad-t" x="130" y="182" text-anchor="middle">上側が垂れる</text>
+<path d="M367.4,107.4 L390,84.7 L412.6,107.4 A32,32 0 1 1 367.4,107.4 Z" style="fill:var(--tb-surface)" class="k-edge"/>
+<line class="k-center" x1="390" y1="70" x2="390" y2="170"/><text class="k-dimtext" x="414" y="92">45°</text>
+<text class="k-good-t" x="390" y="182" text-anchor="middle">上を 45° でとがらせる</text>
+<text class="k-note" x="260" y="208" text-anchor="middle">造形方向 ↑ (層は下から積まれる)</text>
+</svg>
+<p class="tb-caption">図: 水平な丸穴の天井はオーバーハングになり垂れる。上部を 45° の三角にしたティアドロップ形なら、サポートなしできれいに積める</p>
+<h2>FDM の設計目安 (0.4 mm ノズルの例)</h2>
+<table class="tb-table">
+  <tr><th>項目</th><th>目安</th></tr>
+  <tr><td>オーバーハング</td><td>垂直から 45° 程度まで</td></tr>
+  <tr><td>ブリッジ</td><td>5〜10 mm 程度まで</td></tr>
+  <tr><td>最小肉厚</td><td>0.8 mm (2 線)、強度部は 1.2〜2 mm</td></tr>
+  <tr><td>はめあいのすき間</td><td>片側 0.2〜0.3 mm (機種で調整)</td></tr>
+  <tr><td>層の厚さ</td><td>0.1〜0.3 mm (薄いほどきれいで遅い)</td></tr>
+  <tr><td>文字・刻印</td><td>線幅 0.8 mm 以上、上向き面に</td></tr>
+</table>
+<h2>計算例: 層数と造形時間の感覚</h2>
+<p>高さ 40 mm の部品を層厚 0.2 mm で積むと 40 / 0.2 = <b>200 層</b>、0.1 mm なら 400 層。層数が 2 倍なら造形時間もおおむね 2 倍です。
+同じ部品を寝かせて高さ 15 mm にできれば 75 層で済みます。造形方向は<b>強度・サポート量・時間・表面</b>のバランスで決めます。</p>
+<h2>よくある失敗</h2>
+<ul>
+  <li>はめあいを CAD 寸法どおりに設計 → 入らない (穴は小さく、軸は太く出る)</li>
+  <li>細いピン・ツメを積層方向に立てる → 層間で折れる</li>
+  <li>大きな平面の角が直角 → そり・はがれ</li>
+  <li>サポートの中に機能面 → 跡が残って精度が出ない</li>
+</ul>
 <div class="tb-tip"><b>3DCAD Studio</b>: 「検査 → 3D プリント」でオーバーハング (赤) と薄肉 (橙) を色分けし、造形方向ごとのサポート量を比べられます。STL / 3MF で書き出してスライサへ。</div>`,
     points: ["オーバーハングは 45° まで — 面取りにすればサポート不要", "最小肉厚はノズル径の 2 倍以上", "穴は小さく出る — はめあいは補正する", "積層方向に弱い — 荷重の向きで造形方向を決める"],
     exercises: [
@@ -342,10 +511,19 @@ export const KNOWHOW: TextChapter[] = [
         q: "下向きの水平な張り出し (幅 15 mm) をサポートなしで造形したい。形をどう変えますか?",
         a: "張り出しの下に <b>45° の面取り (または 45° 以下の傾斜)</b> を付けて、下から少しずつ積み上がる形にします。外観上問題なければ、造形方向を変えて張り出しを上向きにする方法もあります。",
       },
+      {
+        q: "φ8 の軸を差し込む穴を FDM で造形します。片側すき間 0.25 mm を見込むと、CAD 上の穴径はいくつにしますか?",
+        a: "8 + 2 × 0.25 = <b>φ8.5</b>。さらに、穴が横向きならティアドロップ形にし、精度が必要ならドリル・リーマで仕上げます。",
+      },
+      {
+        q: "高さ 40 mm の部品を層厚 0.2 mm と 0.1 mm で積むとき、それぞれの層数は? 寝かせて高さ 15 mm にした場合 (0.2 mm) は?",
+        a: "40 / 0.2 = <b>200 層</b>、40 / 0.1 = <b>400 層</b>。寝かせると 15 / 0.2 = <b>75 層</b>。ただし寝かせると荷重の向きと層の関係が変わるので、強度も確認します。",
+      },
     ],
     quiz: [
       { q: "FDM でサポートなしに造形しやすい傾きの限界は、水平からおよそ何度?", choices: ["10°", "45°", "80°"], answer: 1, explain: "一般に 45° (垂直から 45°) まではサポートなしで造形できます。" },
       { q: "FDM 部品が最も弱い方向は?", choices: ["積層方向 (層の境目をはがす方向)", "層に沿った方向", "どの方向も同じ"], answer: 0, explain: "層間の接着が弱いため、積層方向に引っ張る力に弱くなります。" },
+      { q: "水平な丸い横穴の天井をサポートなしできれいに造形する形は?", choices: ["ティアドロップ (上を 45° でとがらせる)", "穴を小さくする", "層を厚くする"], answer: 0, explain: "天井を 45° の斜面にすれば、各層が下の層に支えられます。" },
     ],
     lessons: ["7-2"],
   },
@@ -446,6 +624,35 @@ export const KNOWHOW: TextChapter[] = [
 <text class="k-good-t" x="390" y="204" text-anchor="middle">間違えると入らない</text>
 </svg>
 <p class="tb-caption">図: 上から見た取付面と位置決めピン。ピンを対称に置くと裏返し・逆向きでも入るが、位置をずらせば正しい向きでしか組めない</p>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="組付け方向の数">
+<rect class="k-panel" x="8" y="8" width="244" height="204" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="204" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">3 方向から締結</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">上 1 方向から組む</text>
+<g class="k-shadow"><rect class="k-alu" x="70" y="90" width="120" height="80" rx="3"/><rect class="k-alu" x="330" y="90" width="120" height="80" rx="3"/></g>
+<line class="k-force" x1="130" y1="50" x2="130" y2="86"/><line class="k-force" x1="40" y1="130" x2="66" y2="130"/><line class="k-force" x1="130" y1="206" x2="130" y2="174" />
+<text class="k-bad-t" x="200" y="70">裏返し・持ち替え</text>
+<line x1="360" y1="48" x2="360" y2="86" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green)" stroke-width="2.4"/>
+<line x1="390" y1="48" x2="390" y2="86" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green)" stroke-width="2.4"/>
+<line x1="420" y1="48" x2="420" y2="86" style="stroke:var(--tb-good);marker-end:url(#k-arrow-green)" stroke-width="2.4"/>
+<text class="k-good-t" x="390" y="196" text-anchor="middle">重力を味方に積み重ねる</text>
+</svg>
+<p class="tb-caption">図: 組付け方向が増えるほど、ワークの裏返し・持ち替え・治具の付け替えが増える。上から積み重ねる (トップダウン組立) 構造にする</p>
+<h2>組立効率を数値で見る</h2>
+<p>DFA の代表的な手法 (Boothroyd–Dewhurst 法) では、理論上の最少部品数 N<sub>min</sub> (上の 3 つの質問で残る部品数) と、実際の組立時間 T から<b>組立効率</b>を求めます。1 部品あたりの理想時間を約 3 秒とします。</p>
+<div class="tb-formula">組立効率 E = 3 × N<sub>min</sub> / T　(T: 全部品の組立時間 [s])</div>
+<table class="tb-table">
+  <tr><th></th><th>部品点数</th><th>ねじ</th><th>組立時間 T</th><th>N<sub>min</sub></th><th>効率 E</th></tr>
+  <tr><td>改善前</td><td>12</td><td>6 本</td><td>85 s</td><td>4</td><td>14 %</td></tr>
+  <tr><td>改善後</td><td>5</td><td>1 本</td><td>30 s</td><td>4</td><td>40 %</td></tr>
+</table>
+<p>改善前: E = 3 × 4 / 85 ≈ 0.14。ねじとブラケットを統合して改善後: E = 3 × 4 / 30 = 0.40。部品点数が減ると、組立時間だけでなく部品表の行・発注・検査もまとめて減ります。</p>
+<h2>よくある失敗</h2>
+<ul>
+  <li>長さだけ違うねじが混在 — 取り違え・締め忘れ</li>
+  <li>組立順の後ろで、先に付けた部品が工具の邪魔になる</li>
+  <li>柔らかい部品 (ケーブル・ホース) の取り回しを考えていない</li>
+  <li>位置決めを「現物合わせ」に任せる — ばらつきと調整時間</li>
+</ul>
 <div class="tb-tip"><b>3DCAD Studio</b>: アセンブリの部品表で部品点数・ねじの種類を確認し、干渉解析で組立時のぶつかりを確かめましょう。分解表示は組立手順書の作成にも使えます。</div>`,
     points: ["部品点数を減らす (動く・材料が違う・分解が必要 以外は統合候補)", "一方向から組める構造、面取りでガイド", "位置決めは形で — 調整作業をなくす", "ポカヨケ: 間違った組み方ができない形にする"],
     exercises: [
@@ -453,10 +660,19 @@ export const KNOWHOW: TextChapter[] = [
         q: "4 本のねじで留めているカバー (板金) を、組立工数を減らすために設計変更する案を 2 つ挙げてください。",
         a: "例: ① 一辺をツメ (引っ掛け) にして差し込み、反対側だけ 1〜2 本のねじで留める。② 樹脂化してスナップフィットにし、ねじをなくす。③ ねじを残す場合も、種類をそろえ、仮置きできるガイドピンを付ける。",
       },
+      {
+        q: "ある製品は部品 12 点、組立時間 85 秒で、理論最少部品数は 4 点です。組立効率は? 部品を 5 点・30 秒にすると?",
+        a: "改善前 E = 3 × 4 / 85 ≈ <b>14 %</b>。改善後 E = 3 × 4 / 30 = <b>40 %</b>。組立時間は 55 秒 (約 65 %) 短縮です。",
+      },
+      {
+        q: "ねじ 6 本 (締付け 1 本 8 秒) を、ツメ 2 か所 + ねじ 1 本に変えます。ツメ 1 か所の組付けを 3 秒とすると、締結にかかる時間は何秒短くなりますか?",
+        a: "改善前 6 × 8 = 48 秒。改善後 2 × 3 + 1 × 8 = 14 秒。<b>34 秒短縮</b>。ねじ・座金の部品点数も減ります。",
+      },
     ],
     quiz: [
       { q: "隣の部品と一体化できる可能性が高いのは?", choices: ["相手に対して回転する部品", "同じ材料で、動かず、分解も不要な部品", "絶縁が必要な部品"], answer: 1, explain: "動かず・同じ材料で・分解不要なら、一体化の候補です。" },
       { q: "ポカヨケの例として適切なのは?", choices: ["組立手順書を厚くする", "逆向きでは入らないようにピン位置をずらす", "作業者に注意を促す"], answer: 1, explain: "ポカヨケは注意に頼らず、物理的に間違えられない形にすることです。" },
+      { q: "組立時間を短くする構造として適切なのは?", choices: ["上から一方向に積み重ねて組める", "上下左右から順にねじ止めする", "組立後に現物合わせで調整する"], answer: 0, explain: "組付け方向を 1 つにまとめると裏返しや持ち替えがなくなります。" },
     ],
     lessons: ["5-1"],
   },
@@ -504,6 +720,47 @@ export const KNOWHOW: TextChapter[] = [
   <li>材料・iProperties (品番・名称・設計者) を入れる — 部品表と図面に反映される</li>
   <li>サイズ違いはファミリー表、規則はルールで管理する</li>
 </ul>
+<svg class="tb-chart" viewBox="0 0 520 230" role="img" aria-label="フィーチャツリーの比較">
+<rect class="k-panel" x="8" y="8" width="244" height="214" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="214" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">名前なし・参照が乱れる</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">名前付き・順序どおり</text>
+<rect x="30" y="46" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="40" y="60">押し出し1</text>
+<rect x="290" y="46" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="300" y="60">ベース (板厚=t)</text>
+<rect x="30" y="68" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="40" y="82">フィレット1</text>
+<rect x="290" y="68" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="300" y="82">取付面の段</text>
+<rect x="30" y="90" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="40" y="104" style="fill:var(--tb-bad)">スケッチ5 (フィレット面に配置)</text>
+<rect x="290" y="90" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="300" y="104">取付穴 M5</text>
+<rect x="30" y="112" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="40" y="126">押し出し3</text>
+<rect x="290" y="112" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="300" y="126">取付穴パターン</text>
+<rect x="30" y="134" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="40" y="148">穴2</text>
+<rect x="290" y="134" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="300" y="148">肉抜き</text>
+<rect x="30" y="156" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="40" y="170" style="fill:var(--tb-bad)">パターン1 (無効)</text>
+<rect x="290" y="156" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="300" y="170">フィレット R3</text>
+<rect x="30" y="178" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="40" y="192">面取り4</text>
+<rect x="290" y="178" width="200" height="19" rx="3" class="k-panel"/><text class="lbl" x="300" y="192">面取り C0.5</text>
+<text class="k-bad-t" x="130" y="218" text-anchor="middle">変更すると参照が切れる</text><text class="k-good-t" x="390" y="218" text-anchor="middle">誰が開いても意図が読める</text>
+</svg>
+<p class="tb-caption">図: 同じ部品のフィーチャツリー。左はフィレット面にスケッチを置いており、R を変えると以降のフィーチャが壊れる。右は機能名で並び、仕上げが最後にある</p>
+<h2>計算例: 式で設計意図を残す</h2>
+<p>幅 W の板に、両端から 15 mm の位置を起点として n 個の穴を等間隔に並べるとします。ピッチを式にしておけば、W や n を変えても自動で並び直します。</p>
+<div class="tb-formula">ピッチ p = (W − 2 × 15) / (n − 1)　　W = 120、n = 4 → p = 90 / 3 = 30 mm</div>
+<p>W = 150 に変えれば p = 40 mm。数値で 30 と入れていたら、穴が端に寄ったまま残ります。</p>
+<h2>モデルの点検チェックリスト</h2>
+<table class="tb-table">
+  <tr><th>項目</th><th>確認</th></tr>
+  <tr><td>スケッチ</td><td>すべて完全拘束か。原点・基準平面に関係付いているか</td></tr>
+  <tr><td>参照</td><td>フィレット・面取りの面や稜線を後のフィーチャが参照していないか</td></tr>
+  <tr><td>パラメータ</td><td>主要寸法に名前があるか (t, W, pitch)。式で関係付けたか</td></tr>
+  <tr><td>ツリー</td><td>エラー・警告・抑制フィーチャが残っていないか</td></tr>
+  <tr><td>プロパティ</td><td>材料・品番・名称・設計者・質量が入っているか</td></tr>
+  <tr><td>変更テスト</td><td>主要寸法を ±20 % 振っても再構築できるか</td></tr>
+</table>
+<h2>よくある失敗</h2>
+<ul>
+  <li>他人のモデルの寸法を変えたら、穴が飛ぶ・フィーチャが赤くなる (参照の連鎖)</li>
+  <li>アセンブリで部品同士を関連付けすぎ — 1 部品の変更が全体に波及して重くなる</li>
+  <li>インポートしたモデル (STEP) に履歴があると思い込む — 形状だけで意図は失われている</li>
+</ul>
 <div class="tb-tip"><b>3DCAD Studio の学習センター</b> (第 1〜4 章) で、これらの作法を実際に体験できます。</div>`,
     points: ["原点・基準平面を基準に、スケッチは完全拘束", "関係は式で — 設計意図を残す", "ベース → 加工 → パターン → 仕上げ の順", "名前・材料・iProperties を入れて再利用しやすく"],
     exercises: [
@@ -511,10 +768,19 @@ export const KNOWHOW: TextChapter[] = [
         q: "幅 W の板の中央に穴を置くモデルで、幅を変えると穴が中央からずれてしまいました。原因と対策は?",
         a: "穴の位置寸法が数値 (例: 40) で入っているためです。位置を <b>W / 2</b> の式にするか、板を原点に対して対称に描いて穴を原点に一致させます (どちらも設計意図「穴は中央」を表す)。",
       },
+      {
+        q: "幅 W の板に、端から 15 mm を起点として 4 個の穴を等間隔に並べます。W = 120 と 150 のときのピッチを求め、ピッチの式を書きなさい。",
+        a: "p = (W − 30) / (n − 1)。W = 120 → 90 / 3 = <b>30 mm</b>、W = 150 → 120 / 3 = <b>40 mm</b>。",
+      },
+      {
+        q: "R3 のフィレット面にスケッチを置いて穴をあけたモデルで、R を 5 に変えたら穴が消えました。原因と直し方は?",
+        a: "フィレットの再計算で面の ID が変わり、スケッチの配置面 (参照) が失われたためです。穴のスケッチを<b>基準平面や主要な平面</b>に置き直し、フィレットは<b>ツリーの最後</b>に移します。",
+      },
     ],
     quiz: [
       { q: "フィレットを作る順序として一般的に良いのは?", choices: ["最初", "主要な形と加工の後 (最後のほう)", "スケッチの前"], answer: 1, explain: "仕上げのフィーチャは最後にまとめると、参照が壊れにくく変更に強いモデルになります。" },
       { q: "スケッチを完全拘束にする主な理由は?", choices: ["ファイルが小さくなる", "寸法変更時に形が予想どおりに変わる", "表示が速くなる"], answer: 1, explain: "自由度が残っていると、寸法を変えたときに想定外の動き方をします。" },
+      { q: "主要寸法を変えてもモデルが壊れないか確かめる良い方法は?", choices: ["寸法を ±20 % 程度振って再構築してみる", "表示色を変える", "ファイルを別名保存する"], answer: 0, explain: "変更テストで参照切れや拘束不足が見つかります。" },
     ],
     lessons: ["1-2", "2-2", "4-1"],
   },
@@ -569,6 +835,37 @@ export const KNOWHOW: TextChapter[] = [
 <text class="tick" x="260" y="146" text-anchor="middle">各 1〜10 点で評価。RPN の大きい項目、または S が大きい項目から対策する</text>
 </svg>
 <p class="tb-caption">図: FMEA では重大度・発生度・検出度を掛けた RPN で優先順位を付ける (点数の付け方は会社・規格で異なる)</p>
+<svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="レンチの回る空間">
+<rect class="k-panel" x="8" y="8" width="244" height="204" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="204" rx="8"/>
+<circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">壁にレンチが当たる</text>
+<circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">工具の回転域を確保</text>
+<g class="k-shadow"><rect class="k-part" x="30" y="170" width="200" height="16"/><rect class="k-part" x="60" y="60" width="16" height="110"/></g>
+<polygon class="k-part-h" points="80,150 104,150 104,170 80,170"/>
+<circle cx="92" cy="160" r="46" class="k-hidden"/>
+<line x1="92" y1="150" x2="136" y2="120" style="stroke:var(--tb-accent)" stroke-width="6" stroke-linecap="round"/>
+<path d="M76,118 L76,150" style="stroke:var(--tb-bad)" stroke-width="4"/><text class="k-bad-t" x="130" y="206" text-anchor="middle">回転域が壁と重なる</text>
+<g class="k-shadow"><rect class="k-part" x="290" y="170" width="200" height="16"/><rect class="k-part" x="320" y="60" width="16" height="110"/></g>
+<polygon class="k-part-h" points="378,150 402,150 402,170 378,170"/>
+<circle cx="390" cy="160" r="46" class="k-hidden"/>
+<line x1="390" y1="150" x2="434" y2="120" style="stroke:var(--tb-accent)" stroke-width="6" stroke-linecap="round"/>
+<text class="k-good-t" x="390" y="206" text-anchor="middle">回転域 + 手のすき間</text>
+</svg>
+<p class="tb-caption">図: 断面で見たボルトと壁。CAD では締結部品が「置けて」も、レンチやドライバーが回る空間 (破線の円) と手が入るすき間がなければ組めない</p>
+<h2>計算例: 公差の積み上げ</h2>
+<p>ハウジングの内のり 65.5 ± 0.1 mm に、20 ± 0.1、30 ± 0.1、15 ± 0.05 の 3 部品を並べます。すき間の基準値は 65.5 − 65 = 0.5 mm。</p>
+<table class="tb-table">
+  <tr><th>方法</th><th>すき間のばらつき</th><th>すき間の範囲</th><th>考え方</th></tr>
+  <tr><td>最悪値 (ワーストケース)</td><td>± (0.1 + 0.1 + 0.1 + 0.05) = ± 0.35</td><td>0.15〜0.85 mm</td><td>全部品が同時に最悪側。必ず組める</td></tr>
+  <tr><td>二乗和平方根 (RSS)</td><td>± √(0.1² + 0.1² + 0.1² + 0.05²) ≈ ± 0.18</td><td>約 0.32〜0.68 mm</td><td>ばらつきが独立で量産のとき。まれに外れる</td></tr>
+</table>
+<p>すき間が負になれば組めません。重要な部品は最悪値で、量産品で部品数が多いときは RSS も併用して判断します。</p>
+<h2>レビューの進め方</h2>
+<ol class="tb-flow">
+  <li><b>準備</b> — 資料 (3D・図面・計算書・仕様) を事前に配り、チェックリストで自己点検</li>
+  <li><b>説明</b> — 設計者が仕様と設計の根拠 (前提条件・計算) を説明</li>
+  <li><b>指摘</b> — 他部署 (製造・品証・サービス) の視点で質問。人ではなく設計を評価する</li>
+  <li><b>記録と追跡</b> — 指摘・担当・期限を表にし、次のレビューで完了を確認</li>
+</ol>
 `,
     points: ["誤りは後で見つかるほど修正コストが大きい — 早めにレビュー", "機能・強度・製造・組立・安全・環境・図面をチェック", "熱膨張・工具の入る空間・公差積み上げ・電食は定番の失敗", "FMEA で故障を事前に想像して対策する"],
     exercises: [
@@ -576,10 +873,19 @@ export const KNOWHOW: TextChapter[] = [
         q: "長さ 1000 mm のアルミ板 (α = 23 × 10⁻⁶ /K) と鋼の台 (α = 12 × 10⁻⁶ /K) を両端でボルト固定しました。温度が 40 °C 上がると、自由な場合に比べて長さの差は何 mm 生じようとしますか?",
         a: "差 = (23 − 12) × 10⁻⁶ × 40 × 1000 = <b>0.44 mm</b>。これが拘束されると反り・応力・ボルトの緩みの原因になるため、片側を長穴にして逃がすなどの対策をとります。",
       },
+      {
+        q: "内のり 65.5 ± 0.1 のハウジングに、20 ± 0.1、30 ± 0.1、15 ± 0.05 の部品を並べます。最悪値法と RSS 法で、すき間の最小値を求めなさい。",
+        a: "基準すき間 0.5 mm。最悪値: 0.5 − 0.35 = <b>0.15 mm</b>。RSS: √(0.01 + 0.01 + 0.01 + 0.0025) ≈ 0.18 → 0.5 − 0.18 ≈ <b>0.32 mm</b>。どちらも正なので組めます。",
+      },
+      {
+        q: "デザインレビューで「このボルトは締められるか」と指摘されました。CAD 上でどう確認しますか?",
+        a: "工具 (レンチ・ソケット・ドライバー) の簡易モデルを置き、<b>回転域と挿入方向</b>で干渉を調べます。手や腕の入る空間、締付けトルクをかけられる姿勢か、組立順で先に付く部品が邪魔しないかも確認します。",
+      },
     ],
     quiz: [
       { q: "設計の誤りを見つける費用が最も安いのは?", choices: ["設計段階", "試作後", "量産後"], answer: 0, explain: "後の工程ほど作り直す物が増え、修正コストは大きくなります。" },
       { q: "アルミとステンレスを湿った環境で直接接触させると起こりやすいのは?", choices: ["アルミの腐食 (電食)", "ステンレスの軟化", "何も起こらない"], answer: 0, explain: "電位差のある異種金属が水分を介して接触すると、卑な金属 (アルミ) が腐食します。" },
+      { q: "公差の積み上げを「最悪値」で計算する意味は?", choices: ["全部品が同時に最も不利な寸法でも成り立つか確かめる", "平均的な寸法で確かめる", "公差を無視する"], answer: 0, explain: "最悪値法は全数で組めることを保証します。RSS は統計的な見積もりです。" },
     ],
   },
 ];
