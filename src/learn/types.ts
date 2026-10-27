@@ -34,6 +34,11 @@ export interface LearnState {
   realistic: boolean;
   /** A structural / modal / thermal analysis produced a result in the running analysis command. */
   analysisDone: boolean;
+  /** Zebra (reflection line) display is on (surface quality check). */
+  zebra?: boolean;
+  /** Assembly lightweight display / simplified pattern display (large assemblies). */
+  asmLight?: boolean;
+  asmSimplify?: boolean;
 }
 
 /** How the document is prepared when a lesson starts. */
@@ -86,6 +91,8 @@ export interface Chapter {
   id: string;
   title: string;
   desc: string;
+  /** 総合演習 (capstone) course: listed in the 総合演習 tab of the learning center. */
+  capstone?: boolean;
   lessons: Lesson[];
 }
 

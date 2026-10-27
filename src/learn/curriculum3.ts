@@ -74,6 +74,7 @@ export const CURRICULUM3: Chapter[] = [
   // ------------------------------------------------------ project-machine ---
   {
     id: "project-machine",
+    capstone: true,
     title: "総合コース: 機械設計 — ブラケットから組立図まで",
     desc: "回転軸を支える小さな機械ユニットを題材に、ブラケットの設計 → 軸受ハウジング → 組立と動作確認 → 組立図・部品表まで、機械設計の一連の流れを 4 レッスンで通して練習します。",
     lessons: [
@@ -188,10 +189,10 @@ export const CURRICULUM3: Chapter[] = [
         setup: { kind: "assembly", make: machineAssemblyStarter },
         steps: [
           { text: "<b>組立</b>タブの <b>図面ビュー</b> で組立図の図面環境を開きます。", tab: "assemble", ui: "asm-drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
-          { text: "<b>部品表</b> を押して部品表を表示します。", tab: "drawing", ui: "dw-parts", check: (s) => (drawing(s)?.sheets ?? []).some((sh) => !!sh.partsList) },
+          { text: "組立図には<b>部品表</b>が自動で配置されます。品番・品名・数量・材質を確認します (表示されていなければ <b>部品表</b> ボタンで表示)。確認できたら「次へ」。", tab: "drawing", ui: "dw-parts" },
           { text: "<b>自動風船</b> で品番の風船を配置します。", tab: "drawing", ui: "dw-autoballoon", check: (s) => annos(s, "balloon").length >= 1 },
           { text: "<b>寸法</b> で全体の外形寸法 (幅・高さ) を 2 つ以上記入します。", tab: "drawing", ui: "dw-dim", check: (s) => dims(s).length >= 2 },
-          { text: "<b>シート設定</b> で表題欄の<b>名称</b>・<b>図番</b>・<b>材料</b>・<b>設計者</b>を埋めます (材料欄は「組立品」など)。", tab: "drawing", ui: "dw-sheet", check: titleFilled },
+          { text: "<b>シート設定</b> で表題欄の<b>名称</b>・<b>図番</b>・<b>材質</b>・<b>設計</b>を埋めます (材質欄は「組立品」など)。", tab: "drawing", ui: "dw-sheet", check: titleFilled },
           { text: "<b>モデルに戻る</b> でアセンブリに戻ります。機械設計総合コース修了です!", tab: "drawing", ui: "dw-close", check: (s) => s.env === "assembly" },
         ],
         summary: ["組立図 = 組み方 + 部品表 + 組立・据付け寸法", "風船の番号 = 部品表の品番", "加工寸法は部品図に書く"],
@@ -206,6 +207,7 @@ export const CURRICULUM3: Chapter[] = [
   // -------------------------------------------------------- drawing-total ---
   {
     id: "drawing-total",
+    capstone: true,
     title: "総合演習: 製図 — 部品図を 1 枚完成させる",
     desc: "ブラケットの部品図を、投影図と断面 → 寸法 → 公差・幾何公差・表面性状 → 表題欄と検図・出図の順に仕上げます。製図の各レッスンで学んだことを 1 枚の図面にまとめる総合演習です。",
     lessons: [
@@ -258,7 +260,7 @@ export const CURRICULUM3: Chapter[] = [
         setup: { kind: "part", make: drawingBracketStarter },
         steps: [
           { text: "<b>図面ビュー</b> で図面環境を開き、<b>自動寸法</b> で寸法を記入します。", tab: "manage", ui: ["drawing", "dw-autodim"], check: (s) => s.env === "drawing" && dims(s).length >= 1 },
-          { text: "ボス穴の直径寸法をダブルクリックし、公差の種類を<b>はめあい</b>にして <b>H7</b> と入力します。", tab: "drawing", check: (s) => tolDims(s, "fit").length >= 1, hint: "直径寸法がなければ <b>寸法</b> で穴の円をクリックして記入します。" },
+          { text: "ボス穴の直径寸法をダブルクリックし、公差の種類を<b>はめあい</b>にして <b>H7</b> と入力します。", tab: "drawing", check: (s) => tolDims(s, "fit").some((a) => a.type === "dim" && ["diameter", "hole", "radius"].includes(a.kind)), hint: "直径寸法がなければ <b>寸法</b> で穴の円をクリックして記入します。" },
           { text: "板厚などの寸法をダブルクリックし、公差の種類を <b>±</b> にして <code>0.1</code> を入力します。", tab: "drawing", check: (s) => tolDims(s, "sym").length + tolDims(s, "dev").length >= 1 },
           { text: "<b>データム</b> で正面図の底面にデータム <b>A</b> を記入します。", tab: "drawing", ui: "dw-datum", check: (s) => annos(s, "datum").length >= 1 },
           { text: "<b>幾何公差</b> でボスの上面に <b>平行度 0.05 / A</b> を記入します。", tab: "drawing", ui: "dw-gdt", check: (s) => annos(s, "gdt").length >= 1 },
@@ -288,7 +290,7 @@ export const CURRICULUM3: Chapter[] = [
         setup: { kind: "part", make: drawingBracketStarter },
         steps: [
           { text: "<b>図面ビュー</b> で図面環境を開きます。", tab: "manage", ui: "drawing", check: (s) => s.env === "drawing" && views(s).length >= 1 },
-          { text: "<b>シート設定</b> で表題欄の<b>名称</b>・<b>図番</b>・<b>材料</b>・<b>設計者</b>と<b>普通公差</b>を埋めます。", tab: "drawing", ui: "dw-sheet", check: (s) => titleFilled(s) && !!drawing(s)?.title.generalTol.trim() },
+          { text: "<b>シート設定</b> で表題欄の<b>名称</b>・<b>図番</b>・<b>材質</b>・<b>設計</b>と<b>普通公差</b>を埋めます。", tab: "drawing", ui: "dw-sheet", check: (s) => titleFilled(s) && !!drawing(s)?.title.generalTol.trim() },
           { text: "検図: <b>自動寸法</b> で寸法を入れ、寸法の抜け・材料の指示・普通公差を自分で確かめたら「次へ」。", tab: "drawing", ui: "dw-autodim", hint: "テキストの「図面チェック」の章のチェックリストが参考になります。" },
           { text: "<b>PDF</b> で図面を書き出します。", tab: "drawing", ui: "dw-pdf" },
           { text: "<b>モデルに戻る</b> で 3D に戻ります。", tab: "drawing", ui: "dw-close", check: (s) => s.env === "part" },
@@ -306,6 +308,7 @@ export const CURRICULUM3: Chapter[] = [
   // ------------------------------------------------------- analysis-total ---
   {
     id: "analysis-total",
+    capstone: true,
     title: "総合演習: 解析 — ブラケットの安全を判定する",
     desc: "軸受ブラケットを題材に、手計算の見積もり → 静解析と安全率 → メッシュ収束と寸法の見直し → 固有振動数と座屈まで、解析結果から設計の合否を判断する力を身につけます。",
     lessons: [

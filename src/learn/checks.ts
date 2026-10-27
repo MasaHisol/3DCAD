@@ -76,3 +76,12 @@ export function usesUserParam(s: LearnState): boolean {
 export const annos = (s: LearnState, type: string) => (drawing(s)?.sheets ?? []).flatMap((sh) => sh.annos).filter((a) => a.type === type);
 /** Dimensions carrying a tolerance of the given kind (or any). */
 export const tolDims = (s: LearnState, kind?: string) => dims(s).filter((a) => a.type === "dim" && a.tol && a.tol.kind !== "none" && (!kind || a.tol.kind === kind));
+
+/** MBD 3D annotations (PMI) of the part, optionally of one type. */
+export const pmi = (s: LearnState, type?: string) => (s.part.pmi ?? []).filter((a) => !type || a.type === type);
+/** Committed wire / hose / pipe routes of the assembly with at least two points. */
+export const routes = (s: LearnState) => (s.asmCommand === "route" ? [] : (s.asm.routes ?? []).filter((r) => r.points.length >= 2));
+/** Active (not suppressed) assembly constraints of a type. */
+export const asmConstraints = (s: LearnState, type?: string) => s.asm.constraints.filter((c) => !c.suppressed && (!type || c.type === type));
+/** Number of sheets of the open drawing. */
+export const sheetCount = (s: LearnState) => drawing(s)?.sheets.length ?? 0;

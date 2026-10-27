@@ -266,3 +266,52 @@ describe("applied modelling lessons (chapter 8)", () => {
     expect(EXERCISES.find((e) => e.id === "ex-sheet")!.requirements[1].check(s)).toBe(true);
   }, 60000);
 });
+
+describe("applied courses and capstones (curriculum 4)", () => {
+  it("pmi / routes / constraint / sheet helpers read the documents", async () => {
+    const { pmi, routes, asmConstraints, sheetCount } = await import("../src/learn/checks");
+    const doc = sampleDocument();
+    expect(pmi(state(doc)).length).toBe(0);
+    doc.pmi = [{ id: "p1", type: "datum", letter: "A", refs: [] }, { id: "p2", type: "gdt", symbol: "⏥", value: "0.02", datums: "", refs: [] }];
+    expect(pmi(state(doc), "datum").length).toBe(1);
+    expect(pmi(state(doc)).length).toBe(2);
+    expect(stepCheck("MB-2", 0)(state(doc))).toBe(true);
+    const asm = newAssembly();
+    asm.routes = [{ id: "r", name: "c", kind: "cable", od: 6, wall: 0, bendRadius: 36, color: "#000", margin: 5, clearance: 2, points: [{ id: "a", local: [0, 0, 0], snap: "free", label: "" }, { id: "b", local: [10, 0, 0], snap: "free", label: "" }] }];
+    expect(routes(state(doc, { env: "assembly", asm })).length).toBe(1);
+    // the route being edited is only a preview
+    expect(routes(state(doc, { env: "assembly", asm, asmCommand: "route" })).length).toBe(0);
+    asm.constraints = [{ id: "k", name: "m", type: "mate", a: null as never, b: null as never, offset: "0", flip: false, suppressed: true }];
+    expect(asmConstraints(state(doc, { asm }), "mate").length).toBe(0);
+    expect(sheetCount(state(doc))).toBe(0);
+  });
+
+  it("equipment starters build: □40 frame along 400 × 300 and a 420 × 320 × 12 stage", async () => {
+    const { equipmentFramePart, stagePlatePart, equipmentAssemblyStarter } = await import("../src/learn/curriculum4");
+    const fr = await build(equipmentFramePart());
+    expect(fr.volume / ((40 * 40 - 35.4 * 35.4) * 1400)).toBeCloseTo(1, 2);
+    const st = await build(stagePlatePart());
+    expect(st.volume).toBeCloseTo(420 * 320 * 12, 0);
+    const asm = equipmentAssemblyStarter();
+    expect(asm.components.filter((c) => c.grounded).length).toBe(1);
+    expect(asm.constraints.length).toBe(0);
+    expect(stepCheck("EQ-3", 0)(state(newDocument(), { env: "assembly", asm }))).toBe(false);
+  }, 60000);
+
+  it("checks the surface, zebra and large-assembly steps", () => {
+    const doc = newDocument();
+    expect(stepCheck("SF-2", 3)(state(doc))).toBe(false);
+    expect(stepCheck("SF-2", 3)(state(doc, { zebra: true }))).toBe(true);
+    expect(stepCheck("AX-3", 2)(state(doc, { env: "assembly", asmLight: true }))).toBe(true);
+    expect(stepCheck("AX-3", 3)(state(doc, { env: "assembly" }))).toBe(false);
+  });
+
+  it("lists every course in the roadmap and marks the capstones", async () => {
+    const { ROADMAP } = await import("../src/learn/roadmap");
+    const inRoad = new Set(ROADMAP.flatMap((r) => r.chapters));
+    for (const c of CURRICULUM) expect(inRoad.has(c.id), c.id).toBe(true);
+    const caps = CURRICULUM.filter((c) => c.capstone).map((c) => c.id);
+    expect(caps).toEqual(expect.arrayContaining(["project-conveyor", "project-machine", "drawing-total", "analysis-total", "project-equipment"]));
+    for (const id of caps) expect(ROADMAP.find((r) => r.step === 6)!.chapters).toContain(id);
+  });
+});

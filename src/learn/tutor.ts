@@ -29,6 +29,9 @@ export function learnState(app: App): LearnState {
     section: app.sectionActive,
     realistic: app.vp.realistic,
     analysisDone: !!cmd?.hasResult,
+    zebra: !!app.vp.zebra,
+    asmLight: !!app.asm.light,
+    asmSimplify: !!app.asm.simplifyPatterns,
   };
 }
 
