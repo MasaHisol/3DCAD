@@ -48,6 +48,7 @@ import { MDESIGN } from "./mdesign";
 import { MECHANICS4 } from "./mechanics4";
 import { IDESIGN3 } from "./idesign3";
 import { DRILLS2 } from "./drills2";
+import { DRILLS3 } from "./drills3";
 
 export const PARTS: Part[] = [
   { id: "cad2d", title: "第 1 部 2D CAD 初級〜上級", desc: "座標と入力、作図・編集、拘束と寸法、線種と画層、図面の作図手順、幾何作図、接線、標準化、レイアウト設計、データ交換、図面管理", color: "#0891b2" },
@@ -66,7 +67,7 @@ export const PARTS: Part[] = [
 
 /** Reading order. The review chapter closes the know-how part. */
 const knowhow = [...KNOWHOW3.filter((c) => c.id === "design-thinking-eng"), ...KNOWHOW.filter((c) => c.id !== "review"), ...KNOWHOW_MORE, ...QUALITY, ...KNOWHOW2, ...SAFETY2, ...SAFETY3, ...PROCESS.filter((c) => c.part !== "basics"), ...KNOWHOW3.filter((c) => c.id !== "design-thinking-eng"), ...KNOWHOW4, ...IP.filter((c) => c.part === "knowhow"), ...KNOWHOW.filter((c) => c.id === "review")];
-export const CHAPTERS: TextChapter[] = [...CAD2D, ...CAD2D_ADV, ...CAD3D, ...BASICS, ...PROCESS.filter((c) => c.part === "basics"), ...DRAFTING, ...DRAFTING2, ...DRAFTING3, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...MECHANICS3, ...STIFFNESS, ...MECHANICS4, ...ELEMENTS, ...ELEMENTS2, ...MDESIGN, ...MECHATRONICS, ...MECHATRONICS2, ...MECHATRONICS3, ...knowhow, ...DESIGN2.filter((c) => c.id === "design-process"), ...DESIGN3.filter((c) => c.id === "form-language"), ...DESIGN, ...DESIGN3.filter((c) => c.id !== "form-language"), ...DESIGN_MORE, ...DESIGN2.filter((c) => c.id !== "design-process"), ...IDESIGN, ...DESIGN4, ...IDESIGN3, ...IP.filter((c) => c.part === "design"), ...UX2.filter((c) => c.id === "human-senses"), ...UX, ...OPUX, ...HMI, ...UX2.filter((c) => c.id !== "human-senses"), ...SERVICE, ...EQUIPMENT, ...EQUIPMENT2, ...EQUIPMENT3, ...SEMI, ...SEMI_HW, ...INSTRUMENT, ...FIXTURES, ...CASES, ...DRILLS, ...DRILLS2];
+export const CHAPTERS: TextChapter[] = [...CAD2D, ...CAD2D_ADV, ...CAD3D, ...BASICS, ...PROCESS.filter((c) => c.part === "basics"), ...DRAFTING, ...DRAFTING2, ...DRAFTING3, ...MECHANICS, ...MECHANICS_MORE, ...MECHANICS2, ...MECHANICS3, ...STIFFNESS, ...MECHANICS4, ...ELEMENTS, ...ELEMENTS2, ...MDESIGN, ...MECHATRONICS, ...MECHATRONICS2, ...MECHATRONICS3, ...knowhow, ...DESIGN2.filter((c) => c.id === "design-process"), ...DESIGN3.filter((c) => c.id === "form-language"), ...DESIGN, ...DESIGN3.filter((c) => c.id !== "form-language"), ...DESIGN_MORE, ...DESIGN2.filter((c) => c.id !== "design-process"), ...IDESIGN, ...DESIGN4, ...IDESIGN3, ...IP.filter((c) => c.part === "design"), ...UX2.filter((c) => c.id === "human-senses"), ...UX, ...OPUX, ...HMI, ...UX2.filter((c) => c.id !== "human-senses"), ...SERVICE, ...EQUIPMENT, ...EQUIPMENT2, ...EQUIPMENT3, ...SEMI, ...SEMI_HW, ...INSTRUMENT, ...FIXTURES, ...CASES, ...DRILLS, ...DRILLS2, ...DRILLS3];
 
 const EXTRA: GlossaryEntry[] = [
   { term: "応力", en: "Stress", desc: "単位面積あたりの内力。σ = F / A (MPa = N/mm²)。" },

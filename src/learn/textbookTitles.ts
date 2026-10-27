@@ -300,4 +300,12 @@ export const TEXTBOOK_TITLES: Record<string, string> = {
   "project-drawing": "総合演習: 部品図を完成させる",
   "project-product": "総合演習: 小型家電の外装デザイン",
   "project-equipment": "総合演習: 検査装置の構想設計",
+  "project-gearbox": "総合演習: 2 段歯車減速機の設計",
+  "project-frame-vibration": "総合演習: 装置フレームの剛性・振動",
+  "project-lagrange": "総合演習: ラグランジュ方程式による 2 自由度系",
+  "project-servo-axis": "総合演習: サーボ 1 軸ユニット",
+  "project-fixture": "総合演習: 精密検査治具",
+  "project-vacuum": "総合演習: 真空チャンバと搬送",
+  "project-safety": "総合演習: 装置の安全設計",
+  "project-id-cad": "総合演習: 意匠モデリングと量産化",
 };
