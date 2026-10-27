@@ -108,13 +108,13 @@ function fallback(stage: HTMLElement, ctl: HTMLElement) {
 function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) => Fig | void) {
   const { ctl, stage, out } = frame3d(host, title);
   if (typeof window === "undefined" || !hasWebGL()) return fallback(stage, ctl);
-  import("three")
-    .then((T) => {
-      if (host.isConnected || document.contains(host) || !host.parentNode) start(T);
+  Promise.all([import("three"), import("three/examples/jsm/environments/RoomEnvironment.js").catch(() => null)])
+    .then(([T, env]) => {
+      if (host.isConnected || document.contains(host) || !host.parentNode) start(T, env?.RoomEnvironment);
     })
-    .catch(() => fallback(stage, ctl));
+    .catch((e) => (console.warn("3D figure:", e), fallback(stage, ctl)));
 
-  function start(T: THREE) {
+  function start(T: THREE, Room?: new () => T3.Scene) {
     let renderer: T3.WebGLRenderer;
     try {
       renderer = new T.WebGLRenderer({ antialias: true, alpha: false });
@@ -122,6 +122,10 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
       return fallback(stage, ctl);
     }
     renderer.localClippingEnabled = true;
+    renderer.toneMapping = T.NeutralToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = T.PCFShadowMap;
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     const canvas = renderer.domElement;
     canvas.className = "tb-v3d-canvas";
@@ -144,10 +148,37 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
     const home = { ...orbit };
     const home0 = target.clone();
 
-    // studio lighting
-    const hemi = new T.HemisphereLight(0xffffff, 0x8a9099, 2.1);
-    const sun = new T.DirectionalLight(0xffffff, 2.0);
+    // studio lighting: soft room reflections (PBR metals read as metal) + key light with soft shadow
+    let envTex: T3.Texture | null = null;
+    if (Room) {
+      try {
+        const pm = new T.PMREMGenerator(renderer);
+        envTex = pm.fromScene(new Room(), 0.04).texture;
+        pm.dispose();
+        scene.environment = envTex;
+        scene.environmentIntensity = 0.38;
+      } catch {
+        envTex = null;
+      }
+    }
+    const hemi = new T.HemisphereLight(0xffffff, 0x8a9099, envTex ? 1.3 : 2.1);
+    const sun = new T.DirectionalLight(0xffffff, envTex ? 1.6 : 2.0);
     sun.position.set(0.6, 1.6, 1.1).multiplyScalar(opts.radius * 4);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(768, 768);
+    sun.shadow.bias = -0.0004;
+    sun.shadow.normalBias = opts.radius * 0.004;
+    sun.shadow.radius = 4;
+    {
+      const sc = sun.shadow.camera;
+      const r = opts.radius * 1.6;
+      sc.left = sc.bottom = -r;
+      sc.right = sc.top = r;
+      sc.near = opts.radius * 0.5;
+      sc.far = opts.radius * 10;
+      sun.target.position.set(...opts.target);
+      scene.add(sun.target);
+    }
     const fill = new T.DirectionalLight(0xffffff, 0.6);
     fill.position.set(-1.2, 0.4, -0.8).multiplyScalar(opts.radius * 4);
     scene.add(hemi, sun, fill);
@@ -163,6 +194,7 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
     }
 
     const edgeMat = new T.LineBasicMaterial({ color: 0x222831 });
+    let shadowMat: T3.ShadowMaterial | null = null;
     const themeFns: (() => void)[] = [];
     let isDark = false;
     const applyTheme = () => {
@@ -171,7 +203,8 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
       isDark = c.getHSL({ h: 0, s: 0, l: 0 }).l < 0.4;
       scene.background = new T.Color(isDark ? 0x2a3038 : 0xf4f5f7);
       hemi.groundColor.set(isDark ? 0x4a525e : 0x8a9099);
-      hemi.intensity = isDark ? 1.7 : 2.1;
+      hemi.intensity = (isDark ? 1.7 : 2.1) * (envTex ? 0.55 : 1);
+      if (shadowMat) shadowMat.opacity = isDark ? 0.32 : 0.16;
       edgeMat.color.set(isDark ? 0x0c0f13 : 0x2a313b);
       if (grid) {
         const gm = grid.material as T3.LineBasicMaterial;
@@ -213,6 +246,18 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
         if (tween.t >= 1) tween = null;
         else more = true;
       }
+      if (spin && !ptrs.size && !tween) {
+        orbit.th -= dt * 0.35;
+        more = true;
+      } else if (!ptrs.size && (Math.abs(vel.th) > 1e-4 || Math.abs(vel.ph) > 1e-4) && !reduced) {
+        // orbit inertia after a flick
+        orbit.th += vel.th;
+        orbit.ph = clampPh(orbit.ph + vel.ph);
+        const k = Math.exp(-dt * 6);
+        vel.th *= k;
+        vel.ph *= k;
+        more = true;
+      }
       if (animating && visible && fig.tick) {
         if (fig.tick(dt) === false) animating = false;
         else more = true;
@@ -231,12 +276,275 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
       camera.up.set(0, 1, 0);
       if (orbit.ph > 1.55) camera.up.set(-Math.sin(orbit.th), 0, -Math.cos(orbit.th));
       camera.lookAt(target);
+      if (mode !== "std") applyMode();
       renderer.render(scene, camera);
+      if (triad) {
+        // small orientation triad in the lower-right corner
+        const size = renderer.getSize(new T.Vector2());
+        const px = Math.round(Math.min(84, size.x * 0.16));
+        triadCam.position.copy(camera.position).sub(target).setLength(4.2);
+        triadCam.up.copy(camera.up);
+        triadCam.lookAt(0, 0, 0);
+        renderer.autoClear = false;
+        renderer.clearDepth();
+        renderer.setScissorTest(true);
+        renderer.setScissor(4, size.y - px - 4, px, px);
+        renderer.setViewport(4, size.y - px - 4, px, px);
+        const cp = renderer.clippingPlanes;
+        renderer.clippingPlanes = [];
+        renderer.render(triad, triadCam);
+        renderer.clippingPlanes = cp;
+        renderer.setScissorTest(false);
+        renderer.setViewport(0, 0, size.x, size.y);
+        renderer.autoClear = true;
+      }
+    }
+
+    // ------------------------------------------------- display / tools
+    type Mode = "std" | "shade" | "xray" | "lines";
+    let mode: Mode = "std";
+    const triadCam = new T.PerspectiveCamera(30, 1, 0.1, 20);
+    let triad: T3.Scene | null = null;
+    const triadTex: T3.Texture[] = [];
+    {
+      triad = new T.Scene();
+      const mk = (dir: [number, number, number], col: number, txt: string) => {
+        const v = new T.Vector3(...dir);
+        triad!.add(new T.ArrowHelper(v, new T.Vector3(), 1, col, 0.32, 0.18));
+        const c = document.createElement("canvas");
+        c.width = c.height = 64;
+        const g = c.getContext("2d")!;
+        g.font = "700 44px sans-serif";
+        g.textAlign = "center";
+        g.textBaseline = "middle";
+        g.fillStyle = "#" + new T.Color(col).getHexString();
+        g.fillText(txt, 32, 34);
+        const tex = new T.CanvasTexture(c);
+        triadTex.push(tex);
+        const sp = new T.Sprite(new T.SpriteMaterial({ map: tex, depthTest: false }));
+        sp.position.copy(v.multiplyScalar(1.38));
+        sp.scale.setScalar(0.42);
+        triad!.add(sp);
+      };
+      mk([1, 0, 0], 0xdc2626, "X");
+      mk([0, 1, 0], 0x16a34a, "Y");
+      mk([0, 0, 1], 0x2563eb, "Z");
+    }
+    type Saved = { transparent: boolean; opacity: number; depthWrite: boolean; visible: boolean; side: T3.Side };
+    const forMeshes = (fn: (m: T3.Mesh) => void) =>
+      root.traverse((o) => {
+        const m = o as T3.Mesh;
+        if (m.isMesh && !(o as T3.Object3D & { isSprite?: boolean }).isSprite && !o.userData.tbHelper) fn(m);
+      });
+    const mats = (m: T3.Mesh) => (Array.isArray(m.material) ? m.material : [m.material]) as T3.Material[];
+    function applyMode() {
+      forMeshes((m) => {
+        for (const x of mats(m)) {
+          const u = x.userData as { tbSaved?: Saved };
+          if (!u.tbSaved) u.tbSaved = { transparent: x.transparent, opacity: x.opacity, depthWrite: x.depthWrite, visible: x.visible, side: x.side };
+          const o = u.tbSaved;
+          x.transparent = mode === "xray" ? true : o.transparent;
+          x.opacity = mode === "xray" ? Math.min(o.opacity, 0.22) : o.opacity;
+          x.depthWrite = mode === "xray" ? false : o.depthWrite;
+          x.visible = mode === "lines" ? false : o.visible;
+          x.side = sectionOn ? T.DoubleSide : o.side;
+          x.needsUpdate = true;
+        }
+        const e = m.getObjectByName("edges");
+        if (e && e.parent === m) e.visible = mode !== "shade";
+      });
+    }
+    let sectionOn = false;
+    const secPlane = new T.Plane(new T.Vector3(-1, 0, 0), 0);
+    const bbox = () => {
+      const b = new T.Box3();
+      root.updateMatrixWorld(true);
+      forMeshes((m) => {
+        if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+        b.union(m.geometry.boundingBox!.clone().applyMatrix4(m.matrixWorld));
+      });
+      return b;
+    };
+    let dimGroup: T3.Group | null = null;
+    let dimBox: HTMLElement | null = null;
+    const dimMat = new T.LineBasicMaterial({ color: 0x0f766e, depthTest: false, transparent: true });
+    function showDims(on: boolean) {
+      if (dimGroup) {
+        scene.remove(dimGroup);
+        dimGroup.traverse((o) => (o as T3.Line).geometry?.dispose());
+        dimGroup = null;
+      }
+      dimBox?.remove();
+      dimBox = null;
+      if (!on) return invalidate();
+      const b = bbox();
+      if (b.isEmpty()) return;
+      const g = new T.Group();
+      const { min: a, max: z } = b;
+      const off = opts.radius * 0.12;
+      const seg = (p: number[][]) => {
+        const l = new T.Line(new T.BufferGeometry().setFromPoints(p.map((q) => new T.Vector3(q[0], q[1], q[2]))), dimMat);
+        l.renderOrder = 9;
+        g.add(l);
+      };
+      const tick = opts.radius * 0.03;
+      // width (x) along the front-bottom edge, height (y) at the front-right edge, depth (z) along the bottom-right edge
+      seg([[a.x, a.y - off, z.z + off], [z.x, a.y - off, z.z + off]]);
+      seg([[a.x, a.y - off - tick, z.z + off], [a.x, a.y - off + tick, z.z + off]]);
+      seg([[z.x, a.y - off - tick, z.z + off], [z.x, a.y - off + tick, z.z + off]]);
+      seg([[z.x + off, a.y, z.z + off], [z.x + off, z.y, z.z + off]]);
+      seg([[z.x + off - tick, a.y, z.z + off], [z.x + off + tick, a.y, z.z + off]]);
+      seg([[z.x + off - tick, z.y, z.z + off], [z.x + off + tick, z.y, z.z + off]]);
+      seg([[z.x + off, a.y - off, a.z], [z.x + off, a.y - off, z.z]]);
+      seg([[z.x + off, a.y - off - tick, a.z], [z.x + off, a.y - off + tick, a.z]]);
+      seg([[z.x + off, a.y - off - tick, z.z], [z.x + off, a.y - off + tick, z.z]]);
+      const sz = b.getSize(new T.Vector3());
+      const n = (v: number) => (v >= 100 ? v.toFixed(0) : v.toFixed(1));
+      const lab = (t: string, p: [number, number, number]) => {
+        const l = kit.label(t, "#0f766e", 0.8);
+        l.position.set(...p);
+        l.userData.tbHelper = true;
+        g.add(l);
+      };
+      lab(n(sz.x), [(a.x + z.x) / 2, a.y - off * 1.8, z.z + off]);
+      lab(n(sz.y), [z.x + off * 1.6, (a.y + z.y) / 2, z.z + off]);
+      lab(n(sz.z), [z.x + off * 1.6, a.y - off * 1.8, (a.z + z.z) / 2]);
+      dimGroup = g;
+      scene.add(g);
+      dimBox = document.createElement("div");
+      dimBox.className = "tb-v3d-dims";
+      dimBox.textContent = `外形 X ${n(sz.x)} × Y ${n(sz.y)} × Z ${n(sz.z)} (図の単位)`;
+      stage.appendChild(dimBox);
+      invalidate();
+    }
+
+    function setupTools() {
+      const bar = document.createElement("div");
+      bar.className = "tb-v3d-tools";
+      bar.setAttribute("role", "group");
+      bar.setAttribute("aria-label", "表示の操作");
+      ctl.after(bar);
+      const add = <E extends HTMLElement>(el: E) => (bar.appendChild(el), el);
+      const tbtn = (label: string, title: string, on: (v: boolean) => void) => {
+        let v = false;
+        const b = add(document.createElement("button"));
+        b.type = "button";
+        b.className = "tb-btn";
+        b.textContent = label;
+        b.title = title;
+        b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", () => {
+          v = !v;
+          b.classList.toggle("primary", v);
+          b.setAttribute("aria-pressed", String(v));
+          on(v);
+        });
+        return b;
+      };
+      const ms = add(document.createElement("select"));
+      ms.setAttribute("aria-label", "表示スタイル");
+      ms.title = "表示スタイル";
+      for (const [v, t] of [
+        ["std", "シェード + 稜線"],
+        ["shade", "シェードのみ"],
+        ["xray", "X 線 (透過)"],
+        ["lines", "稜線のみ"],
+      ]) {
+        const o = document.createElement("option");
+        o.value = v;
+        o.textContent = t;
+        ms.appendChild(o);
+      }
+      ms.addEventListener("change", () => {
+        mode = ms.value as Mode;
+        applyMode();
+        invalidate();
+      });
+      add(document.createElement("span")).className = "tb-sep";
+      // section plane (X)
+      const secLbl = document.createElement("label");
+      secLbl.className = "tb-anim-slider";
+      secLbl.style.display = "none";
+      const secIn = document.createElement("input");
+      secIn.type = "range";
+      secIn.min = "0";
+      secIn.max = "1";
+      secIn.step = "0.01";
+      secIn.value = "0.5";
+      secIn.setAttribute("aria-label", "断面の位置");
+      const secName = document.createElement("span");
+      secName.className = "tb-sl-name";
+      secName.textContent = "位置";
+      secLbl.append(secName, secIn);
+      const placeSec = () => {
+        const b = bbox();
+        if (b.isEmpty()) return;
+        secPlane.constant = b.min.x - 1e-3 + (b.max.x - b.min.x + 2e-3) * Number(secIn.value);
+        invalidate();
+      };
+      secIn.addEventListener("input", placeSec);
+      tbtn("断面", "X 方向の切断面で切って中を見る", (v) => {
+        sectionOn = v;
+        secLbl.style.display = v ? "" : "none";
+        renderer.clippingPlanes = v ? [secPlane] : [];
+        if (v) placeSec();
+        applyMode();
+        invalidate();
+      });
+      add(secLbl);
+      tbtn("寸法", "外形寸法 (バウンディングボックス) を表示", showDims);
+      tbtn("自動回転", "ゆっくり回して全体を見る", (v) => {
+        spin = v;
+        invalidate();
+      });
+      add(document.createElement("span")).className = "tb-sep";
+      const png = add(document.createElement("button"));
+      png.type = "button";
+      png.className = "tb-btn";
+      png.textContent = "⤓ PNG";
+      png.setAttribute("aria-label", "画像を保存");
+      png.title = "いまの視点を PNG で保存";
+      png.addEventListener("click", () => {
+        draw();
+        const a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png");
+        a.download = `${title.replace(/[\\/:*?"<>| ]+/g, "_")}.png`;
+        a.click();
+      });
+      if (stage.requestFullscreen) {
+        const fsb = add(document.createElement("button"));
+        fsb.type = "button";
+        fsb.className = "tb-btn";
+        fsb.textContent = "全画面";
+        fsb.title = "全画面表示";
+        fsb.setAttribute("aria-label", "全画面表示");
+        fsb.addEventListener("click", () => {
+          if (document.fullscreenElement === stage) void document.exitFullscreen();
+          else void stage.requestFullscreen().catch(() => undefined);
+        });
+        document.addEventListener("fullscreenchange", () => {
+          fsb.textContent = document.fullscreenElement === stage ? "全画面を終了" : "全画面";
+          resize();
+        });
+      }
+      // shadows: every part casts onto a soft contact-shadow ground
+      forMeshes((m) => (m.castShadow = true));
+      const b = bbox();
+      if (!b.isEmpty()) {
+        shadowMat = new T.ShadowMaterial({ opacity: 0.16, transparent: true, depthWrite: false });
+        const gr = new T.Mesh(new T.PlaneGeometry(opts.radius * 8, opts.radius * 8), shadowMat);
+        gr.rotation.x = -Math.PI / 2;
+        gr.position.set(opts.target[0], opts.grid ? opts.grid[1] + 0.02 : b.min.y - opts.radius * 0.02, opts.target[2]);
+        gr.receiveShadow = true;
+        gr.renderOrder = -1;
+        scene.add(gr);
+      }
     }
 
     const resize = () => {
       const w = Math.max(200, stage.clientWidth || 520);
-      const h = Math.round((w * 10) / 16);
+      const fs = typeof document !== "undefined" && document.fullscreenElement === stage;
+      const h = fs ? Math.max(200, stage.clientHeight) : Math.round((w * 10) / 16);
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
@@ -245,6 +553,9 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
 
     // ------------------------------------------------------ orbit control
     const ptrs = new Map<number, { x: number; y: number }>();
+    const vel = { th: 0, ph: 0 };
+    let spin = false;
+    let lastMove = 0;
     let pinch0 = 0;
     let d0 = orbit.d;
     const clampPh = (p: number) => Math.max(-Math.PI / 2 + 1e-3, Math.min(Math.PI / 2 - 1e-4, p));
@@ -271,6 +582,7 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
       canvas.setPointerCapture(e.pointerId);
       ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
       tween = null;
+      vel.th = vel.ph = 0;
       hint.classList.add("off");
       if (ptrs.size === 2) {
         const [a, b] = [...ptrs.values()];
@@ -281,6 +593,7 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
     const onMove = (e: PointerEvent) => {
       const p = ptrs.get(e.pointerId);
       if (!p) return;
+      lastMove = performance.now();
       const dx = e.clientX - p.x;
       const dy = e.clientY - p.y;
       p.x = e.clientX;
@@ -288,6 +601,8 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
       if (ptrs.size === 1) {
         orbit.th -= dx * 0.008;
         orbit.ph = clampPh(orbit.ph + dy * 0.008);
+        vel.th = -dx * 0.008 * 0.5;
+        vel.ph = dy * 0.008 * 0.5;
       } else if (ptrs.size === 2 && pinch0 > 0) {
         const [a, b] = [...ptrs.values()];
         orbit.d = clampD((d0 * pinch0) / Math.max(10, Math.hypot(a.x - b.x, a.y - b.y)));
@@ -297,6 +612,8 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
     const onUp = (e: PointerEvent) => {
       ptrs.delete(e.pointerId);
       pinch0 = 0;
+      if (performance.now() - lastMove > 80 || ptrs.size) vel.th = vel.ph = 0;
+      invalidate();
     };
     const onWheel = (e: WheelEvent) => {
       // plain wheel scrolls the page; Ctrl / ⌘ + wheel (and trackpad pinch) zooms the figure
@@ -316,6 +633,24 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
     canvas.addEventListener("pointercancel", onUp);
     canvas.addEventListener("wheel", onWheel, { passive: false });
     canvas.addEventListener("dblclick", onDbl);
+    // keyboard: arrows orbit, +/− zoom, Home resets
+    canvas.tabIndex = 0;
+    canvas.setAttribute("aria-label", `${title} (矢印キーで回転、+ / − で拡大縮小)`);
+    canvas.addEventListener("keydown", (e) => {
+      const a = 0.12;
+      if (e.key === "ArrowLeft") orbit.th += a;
+      else if (e.key === "ArrowRight") orbit.th -= a;
+      else if (e.key === "ArrowUp") orbit.ph = clampPh(orbit.ph + a);
+      else if (e.key === "ArrowDown") orbit.ph = clampPh(orbit.ph - a);
+      else if (e.key === "+" || e.key === "=") orbit.d = clampD(orbit.d * 0.9);
+      else if (e.key === "-") orbit.d = clampD(orbit.d / 0.9);
+      else if (e.key === "Home") return goTo({ ...home });
+      else return;
+      e.preventDefault();
+      tween = null;
+      hint.classList.add("off");
+      invalidate();
+    });
 
     function goTo(to: typeof orbit, animate = true, tgt = home0) {
       // shortest way round in azimuth
@@ -463,6 +798,7 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
     // theme first so materials built in `build` can read kit.dark()
     applyTheme();
     fig = build(kit) || {};
+    setupTools();
     applyTheme();
     resize();
 
@@ -507,6 +843,13 @@ function view3d(host: HTMLElement, title: string, opts: Opts, build: (k: Kit) =>
       });
       for (const t of textures) t.dispose();
       edgeMat.dispose();
+      dimMat.dispose();
+      for (const t of triadTex) t.dispose();
+      triad?.traverse((o) => {
+        (o as T3.Mesh).geometry?.dispose();
+        ((o as T3.Mesh).material as T3.Material | undefined)?.dispose();
+      });
+      envTex?.dispose();
       renderer.dispose();
       renderer.forceContextLoss();
     }

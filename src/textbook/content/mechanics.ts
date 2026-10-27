@@ -12,9 +12,9 @@ export const MECHANICS: TextChapter[] = [
 <h2>力とモーメント</h2>
 <p>力は<b>大きさ・向き・作用点</b>を持つベクトルです (単位 N。質量 1 kg にかかる重力は約 9.8 N)。
 力が物体を回そうとする働きを<b>モーメント</b>と呼び、「力 × 回転中心から力の作用線までの距離 (腕の長さ)」で表します (単位 N·m または N·mm)。</p>
-<div class="tb-formula">M = F × L　　例: 長さ 0.3 m のスパナの先端を 50 N で押す → M = 50 × 0.3 = 15 N·m</div>
+<div class="tb-math">M = F \\times L</div><p>例: 長さ 0.3 m のスパナの先端を 50 N で押す → <span class="tb-m">M = 50 \\times 0.3 = 15\\,\\mathrm{N\\cdot m}</span></p>
 <h2>つり合いの 3 式 (平面)</h2>
-<div class="tb-formula">ΣFx = 0　　ΣFy = 0　　ΣM = 0 (任意の点まわり)</div>
+<div class="tb-math">\\Sigma F_x = 0 \\qquad \\Sigma F_y = 0 \\qquad \\Sigma M = 0\\ \\ (\\text{任意の点まわり})</div>
 <p>静止している物体 (または一定速度で動く物体) では、この 3 式が成り立ちます。未知の反力が 3 つまでなら、この式だけで求められます (<b>静定</b>)。</p>
 <h2>自由体図 (FBD) の描き方</h2>
 <ol>
@@ -34,7 +34,7 @@ export const MECHANICS: TextChapter[] = [
 FEA (有限要素法) はこうした不静定構造も含めて自動で解く方法です。</p>
 <h2>斜めの力は成分に分ける</h2>
 <p>斜めに働く力は、x・y 方向の<b>成分</b>に分けてからつり合い式に入れます。水平から θ の向きの力 F なら</p>
-<div class="tb-formula">Fx = F cos θ　　Fy = F sin θ　　例: F = 500 N、θ = 30° → Fx ≈ 433 N、Fy = 250 N</div>
+<div class="tb-math">F_x = F\\cos\\theta \\qquad F_y = F\\sin\\theta</div><p>例: <span class="tb-m">F = 500\\,\\mathrm{N},\\ \\theta = 30^\\circ</span> → <span class="tb-m">F_x \\approx 433\\,\\mathrm{N},\\ F_y = 250\\,\\mathrm{N}</span></p>
 <h2>例題: 単純支持はりの反力</h2>
 <p>長さ L = 1000 mm のはりを両端で支え、左端から a = 300 mm の位置に P = 900 N をかけます。</p>
 <svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="単純支持はりの自由体図">
@@ -100,7 +100,7 @@ FEA (有限要素法) はこうした不静定構造も含めて自動で解く�
     lead: "同じ力でも、細い棒は切れ、太い棒は耐えます。部材の強さを比べる「応力」と、変形の度合い「ひずみ」、その関係 (フックの法則) を学びます。",
     body: `
 <h2>応力 — 単位面積あたりの力</h2>
-<div class="tb-formula">応力 σ = F / A　[MPa = N/mm²]</div>
+<div class="tb-math">\\text{応力}\\ \\sigma = \\dfrac{F}{A} \\qquad [\\mathrm{MPa} = \\mathrm{N/mm^2}]</div>
 <p>力を断面積で割った値が<b>応力</b>です。材料の強さ (降伏点・引張強さ) も MPa で表されるので、応力と比べれば壊れるかどうかがわかります。
 引張・圧縮の応力を<b>垂直応力</b> σ、断面に沿ってずらす応力を<b>せん断応力</b> τ (= F / A) と呼びます。</p>
 <svg class="tb-chart" viewBox="0 0 520 170" role="img" aria-label="引張・圧縮・せん断">
@@ -122,10 +122,10 @@ FEA (有限要素法) はこうした不静定構造も含めて自動で解く�
 </svg>
 <h2>例題: ピンのせん断</h2>
 <p>φ8 のピンでリンクをつなぎ、4 kN を伝えます。ピンが 2 面で切られようとする<b>二面せん断</b>では、せん断面積は 2 倍です。</p>
-<div class="tb-formula">τ = F / (2A) = 4000 / (2 × π × 8² / 4) = 4000 / 100.5 ≈ 39.8 MPa</div>
+<div class="tb-math">\\tau = \\dfrac{F}{2A} = \\dfrac{4000}{2 \\times \\pi \\times 8^2 / 4} = \\dfrac{4000}{100.5} \\approx 39.8\\,\\mathrm{MPa}</div>
 <p>鋼のせん断の許容値は、引張の許容値の約 0.6 倍 (せん断降伏 ≈ 0.58σy) を目安にします。</p>
 <h2>ひずみとフックの法則</h2>
-<div class="tb-formula">ひずみ ε = ΔL / L (無次元)　　フックの法則 σ = E · ε</div>
+<div class="tb-math">\\text{ひずみ}\\ \\varepsilon = \\dfrac{\\Delta L}{L}\\ (\\text{無次元}) \\qquad \\text{フックの法則}\\ \\sigma = E\\cdot\\varepsilon</div>
 <p>弾性範囲では応力とひずみは比例し、比例定数が<b>ヤング率 E</b> です。力を除くと元に戻ります。</p>
 <h2>応力–ひずみ線図 (軟鋼)</h2>
 <svg class="tb-chart" viewBox="0 0 520 240" role="img" aria-label="応力ひずみ線図">
@@ -230,7 +230,7 @@ FEA (有限要素法) はこうした不静定構造も含めて自動で解く�
 </svg>
 <p class="tb-caption">「力とモーメントのつり合い」の例題のはり (L = 1000 mm、a = 300 mm)。V が + から − に変わる荷重点で M が最大になります。BMD は引張側 (下側) に描いています。</p>
 <h2>曲げ応力</h2>
-<div class="tb-formula">σ = M / Z　　Z = I / e (断面係数)</div>
+<div class="tb-math">\\sigma = \\dfrac{M}{Z} \\qquad Z = \\dfrac{I}{e}\\ \\ (\\text{断面係数})</div>
 <p>曲げを受けると、断面の片側は引張、反対側は圧縮になり、中央の<b>中立軸</b>では応力ゼロです。応力は中立軸からの距離に比例し、表面で最大になります。</p>
 <h2>たわみの公式</h2>
 <table class="tb-table">
@@ -247,7 +247,7 @@ FEA (有限要素法) はこうした不静定構造も含めて自動で解く�
 <p class="tb-caption">3D 図: 断面積 (重さ) が同じでも、I 形は断面二次モーメントが大きく、たわみがずっと小さくなります。</p>
 <h2>例題: 等分布荷重の単純支持はり</h2>
 <p>スパン L = 1000 mm、等分布荷重 w = 2 N/mm (合計 2 kN)、断面 20 × 40 mm (縦置き、Z ≈ 5333 mm³、I ≈ 106 667 mm⁴)、鋼 E = 206 GPa。</p>
-<div class="tb-formula">Mmax = wL² / 8 = 2 × 1000² / 8 = 250 000 N·mm　→　σ = 250 000 / 5333 ≈ 46.9 MPa<br>δmax = 5wL⁴ / (384EI) = 5 × 2 × 1000⁴ / (384 × 206 000 × 106 667) ≈ 1.19 mm</div>
+<div class="tb-math">\\begin{aligned} M_{\\max} &= \\dfrac{wL^2}{8} = \\dfrac{2 \\times 1000^2}{8} = 250\\,000\\,\\mathrm{N\\cdot mm} \\\\ \\sigma &= \\dfrac{250\\,000}{5333} \\approx 46.9\\,\\mathrm{MPa} \\\\ \\delta_{\\max} &= \\dfrac{5wL^4}{384EI} = \\dfrac{5 \\times 2 \\times 1000^4}{384 \\times 206\\,000 \\times 106\\,667} \\approx 1.19\\,\\mathrm{mm} \\end{aligned}</div>
 <p>応力は SS400 の降伏点 245 MPa に対して十分低い (安全率約 5) ですが、たわみはスパンの約 1/840 です。精密な装置の架台なら、断面を大きくする必要があるかもしれません。</p>
 <h2>設計の目安</h2>
 <ul>
@@ -323,7 +323,7 @@ FEA (有限要素法) はこうした不静定構造も含めて自動で解く�
 <p class="tb-caption">左 2 つは同じ板の向き違い。鋼管は面積が 1/3.5 でも横置きの板より I が大きく、H 形は材料をフランジ (上下) に集めています。</p>
 <h2>組み合わせ断面と平行軸の定理</h2>
 <p>H 形のような組み合わせ断面は、長方形の足し引きで計算できます。中立軸が図心を通るとき、外形の長方形から「抜けている部分」を引くのが簡単です。</p>
-<div class="tb-formula">H 200 × 100 (フランジ・ウェブとも厚さ 10):<br>I = (100 × 200³ − 90 × 180³) / 12 ≈ 2.29 × 10⁷ mm⁴　　Z = I / 100 ≈ 2.29 × 10⁵ mm³　　A = 3800 mm²</div>
+<p>H 200 × 100 (フランジ・ウェブとも厚さ 10):</p><div class="tb-math">\\begin{aligned} I &= \\dfrac{100 \\times 200^3 - 90 \\times 180^3}{12} \\approx 2.29 \\times 10^7\\,\\mathrm{mm^4} \\\\ Z &= \\dfrac{I}{100} \\approx 2.29 \\times 10^5\\,\\mathrm{mm^3} \\qquad A = 3800\\,\\mathrm{mm^2} \\end{aligned}</div>
 <p>部品の図心が中立軸から距離 d だけ離れているときは、<b>平行軸の定理</b> I = I₀ + A·d² を使います (I₀: 部品自身の図心まわりの I)。
 A·d² の項が大きいことこそ、「中立軸から遠い材料ほど効く」理由です。</p>
 <h2>効率の良い断面</h2>
@@ -369,10 +369,10 @@ A·d² の項が大きいことこそ、「中立軸から遠い材料ほど効�
     lead: "モーターの回転を伝える軸は、ねじりを受けます。動力と回転数からトルクを求め、必要な軸径を決める方法を学びます。",
     body: `
 <h2>動力・回転数・トルク</h2>
-<div class="tb-formula">T = P / ω = P × 60 / (2π n)　[N·m]　(P: W、n: min⁻¹)</div>
+<div class="tb-math">T = \\dfrac{P}{\\omega} = \\dfrac{60P}{2\\pi n}\\ \\ [\\mathrm{N\\cdot m}] \\qquad (P:\\ \\mathrm{W},\\ n:\\ \\mathrm{min^{-1}})</div>
 <p>同じ動力でも<b>回転数が低いほどトルクは大きく</b>なります。減速機の出力軸がモーター軸より太いのはこのためです。</p>
 <h2>丸軸のねじり応力</h2>
-<div class="tb-formula">τ = T / Zp = 16T / (π d³)　　→　必要な軸径 d = ∛(16T / (π τa))</div>
+<div class="tb-math">\\tau = \\dfrac{T}{Z_p} = \\dfrac{16T}{\\pi d^3} \\quad\\Rightarrow\\quad \\text{必要な軸径}\\ d = \\sqrt[3]{\\dfrac{16T}{\\pi \\tau_a}}</div>
 <p>せん断応力は表面で最大、中心でゼロです。曲げと同じく、中心部の材料はあまり働かないので、<b>中空軸</b>は軽量化に有効です。</p>
 <svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="丸軸のねじりせん断応力分布">
 <circle class="k-part" cx="130" cy="100" r="64"/>
@@ -388,10 +388,10 @@ A·d² の項が大きいことこそ、「中立軸から遠い材料ほど効�
 <text class="k-note" x="260" y="60" text-anchor="middle">τ は半径に比例</text>
 <text class="k-note" x="260" y="76" text-anchor="middle">τ = T·r / Ip</text>
 </svg>
-<div class="tb-formula">中空軸 (外径 D、内径 d): Zp = π(D⁴ − d⁴) / (16D)　　Ip = π(D⁴ − d⁴) / 32</div>
+<p>中空軸 (外径 D、内径 d):</p><div class="tb-math">Z_p = \\dfrac{\\pi(D^4 - d^4)}{16D} \\qquad I_p = \\dfrac{\\pi(D^4 - d^4)}{32}</div>
 <p>例: D = 40、d = 30 の中空軸 (A ≈ 550 mm²) と同じ断面積の中実軸 (φ26.5) を比べると、ねじり強さ Zp は中空軸が約 <b>2.4 倍</b>です。</p>
 <h2>ねじれ角 — ねじり剛性</h2>
-<div class="tb-formula">θ = T·L / (G·Ip) [rad]　　中実丸軸 Ip = π d⁴ / 32　　(鋼の横弾性係数 G ≈ 79〜80 GPa)</div>
+<div class="tb-math">\\theta = \\dfrac{T L}{G I_p}\\ [\\mathrm{rad}] \\qquad \\text{中実丸軸}\\ I_p = \\dfrac{\\pi d^4}{32}</div><p>鋼の横弾性係数 G ≈ 79〜80 GPa。</p>
 <p>例: φ20 の鋼軸 (Ip ≈ 15 700 mm⁴) に T = 50 N·m、長さ L = 500 mm → θ = 50 000 × 500 / (79 000 × 15 700) ≈ 0.020 rad ≈ <b>1.15°</b>。
 このときの応力は τ = 16 × 50 000 / (π × 20³) ≈ 31.8 MPa です。伝動軸のねじれ角は、1 m あたり 0.25° 程度以下が古くからの目安です (用途により異なる)。位置決め精度が必要な軸ではねじれ角で軸径が決まることもあります。</p>
 <div data-widget="shaft"></div>
@@ -430,7 +430,7 @@ A·d² の項が大きいことこそ、「中立軸から遠い材料ほど効�
     lead: "細長い柱を押すと、材料が降伏するよりずっと小さな力で、突然横に曲がって壊れます。これが座屈です。オイラーの式と端末条件を学びます。",
     body: `
 <h2>オイラーの座屈荷重</h2>
-<div class="tb-formula">Pcr = π² E I / (K L)²</div>
+<div class="tb-math">P_{cr} = \\dfrac{\\pi^2 E I}{(K L)^2}</div>
 <p>座屈荷重は<b>長さの 2 乗に反比例</b>し、材料の強さ (降伏点) ではなく<b>ヤング率 E と断面二次モーメント I</b> で決まります。
 高強度の材料に替えても座屈荷重は増えません。</p>
 <table class="tb-table">
@@ -471,7 +471,7 @@ A·d² の項が大きいことこそ、「中立軸から遠い材料ほど効�
 <h2>長柱と短柱</h2>
 <p>細長比 λ = KL / i (i: 断面二次半径) が大きい<b>長柱</b>は座屈で、小さい<b>短柱</b>は圧縮の降伏で壊れます。
 境目の限界細長比は λ = π √(E / σy) (軟鋼で約 90)。短柱にオイラーの式を使うと強さを<b>過大評価</b>するので注意します (実務ではジョンソンの式や各種設計基準の式を使う)。</p>
-<div class="tb-formula">例: φ20 の鋼丸棒 (E = 206 GPa)、両端ピン、L = 1000 mm<br>I = π × 20⁴ / 64 ≈ 7854 mm⁴、i = d / 4 = 5 mm、λ = 1000 / 5 = 200 (&gt; 約 90 → 長柱)<br>Pcr = π² × 206 000 × 7854 / 1000² ≈ 16.0 kN (応力 51 MPa — 降伏点よりずっと低い)</div>
+<p>例: φ20 の鋼丸棒 (E = 206 GPa)、両端ピン、L = 1000 mm</p><div class="tb-math">\\begin{aligned} I &= \\dfrac{\\pi \\times 20^4}{64} \\approx 7854\\,\\mathrm{mm^4}, \\quad i = \\dfrac{d}{4} = 5\\,\\mathrm{mm} \\\\ \\lambda &= \\dfrac{1000}{5} = 200\\ \\ (\\gt \\text{約}\\ 90 \\to \\text{長柱}) \\\\ P_{cr} &= \\dfrac{\\pi^2 \\times 206\\,000 \\times 7854}{1000^2} \\approx 16.0\\,\\mathrm{kN} \\end{aligned}</div><p>(応力 51 MPa — 降伏点よりずっと低い)</p>
 <div data-widget="buckling"></div>
 <h2>座屈を防ぐ設計</h2>
 <ul>
@@ -510,7 +510,7 @@ A·d² の項が大きいことこそ、「中立軸から遠い材料ほど効�
     body: `
 <h2>応力集中</h2>
 <p>穴・段・溝・ねじの谷など、形が急に変わる所では局所的に応力が大きくなります。最大応力と公称応力の比を<b>応力集中係数 Kt</b> と呼びます。</p>
-<div class="tb-formula">σmax = Kt × σ公称　　(無限板の円孔で Kt = 3)</div>
+<div class="tb-math">\\sigma_{\\max} = K_t \\times \\sigma_{\\text{公称}} \\qquad (\\text{無限板の円孔で}\\ K_t = 3)</div>
 <svg class="tb-chart" viewBox="0 0 520 286" role="img" aria-label="円孔まわりの応力分布">
 <g class="k-shadow"><rect class="k-part-h" x="40" y="132" width="440" height="96" rx="2"/></g>
 <circle cx="260" cy="180" r="30" style="fill:var(--tb-surface)" class="k-edge"/>
@@ -566,7 +566,7 @@ A·d² の項が大きいことこそ、「中立軸から遠い材料ほど効�
 </ul>
 <h2>実部品の疲労限度を見積もる</h2>
 <p>試験片の疲労限度 σw から、表面・寸法の影響と切欠きを考えて実部品の値を見積もります。切欠きの効果は Kt そのものではなく、材料の切欠き感度を考えた<b>切欠き係数 β (Kf)</b> を使います (1 ≤ β ≤ Kt)。</p>
-<div class="tb-formula">σw' = σw × (表面・寸法などの係数) / β<br>例: σB = 400 MPa の鋼 → σw ≈ 200 MPa、係数 0.8、β = 1.8 → σw' = 200 × 0.8 / 1.8 ≈ 89 MPa</div>
+<div class="tb-math">\\sigma_w' = \\dfrac{\\sigma_w \\times (\\text{表面・寸法などの係数})}{\\beta}</div><p>例: σB = 400 MPa の鋼 → σw ≈ 200 MPa、係数 0.8、β = 1.8 → <span class="tb-m">\\sigma_w' = 200 \\times 0.8 / 1.8 \\approx 89\\,\\mathrm{MPa}</span></p>
 <p>平滑材の値の半分以下になることも珍しくありません。また平均応力 (引張側の一定荷重) があると許容できる応力振幅は下がります (修正グッドマン線図などで評価)。</p>
 <h2>疲労を防ぐ設計</h2>
 <ol>
@@ -603,7 +603,7 @@ A·d² の項が大きいことこそ、「中立軸から遠い材料ほど効�
     lead: "計算どおりに荷重がかかり、材料が規格どおりの強さを持つとは限りません。不確かさを見込む「安全率」の考え方と、決め方の目安を学びます。",
     body: `
 <h2>安全率とは</h2>
-<div class="tb-formula">安全率 S = 基準強さ / 発生応力　　許容応力 σa = 基準強さ / S</div>
+<div class="tb-math">\\text{安全率}\\ S = \\dfrac{\\text{基準強さ}}{\\text{発生応力}} \\qquad \\text{許容応力}\\ \\sigma_a = \\dfrac{\\text{基準強さ}}{S}</div>
 <p>基準強さには、延性材料の静荷重なら<b>降伏点</b>、脆性材料なら<b>引張強さ</b>、繰り返し荷重なら<b>疲労限度</b>を使います。</p>
 <svg class="tb-chart" viewBox="0 0 520 236" role="img" aria-label="応力と強さのばらつき">
 <line class="axis" x1="40" y1="190" x2="500" y2="190"/>
@@ -634,7 +634,7 @@ A·d² の項が大きいことこそ、「中立軸から遠い材料ほど効�
 クレーン・圧力容器・建築など、<b>法規や規格で安全率が決められている分野</b>ではそれに従います。</p>
 <h2>例題: 引張棒の径を決める</h2>
 <p>静荷重 20 kN を受ける SS400 の丸棒 (σy = 245 MPa) の直径を、降伏点基準・安全率 3 で決めます。</p>
-<div class="tb-formula">σa = 245 / 3 ≈ 81.7 MPa　→　A = 20 000 / 81.7 ≈ 245 mm²　→　d = √(4A / π) ≈ 17.7 mm　→　<b>φ18 を選ぶ</b></div>
+<div class="tb-math">\\begin{aligned} \\sigma_a &= 245 / 3 \\approx 81.7\\,\\mathrm{MPa} \\\\ A &= 20\\,000 / 81.7 \\approx 245\\,\\mathrm{mm^2} \\\\ d &= \\sqrt{4A/\\pi} \\approx 17.7\\,\\mathrm{mm} \\end{aligned}</div><p>→ <b>φ18 を選ぶ</b></p>
 <p>求めた値は切り上げて、入手しやすい寸法に丸めます。ねじ部や穴がある場合は、その部分の最小断面積と応力集中で評価し直します。</p>
 <h2>安全率の落とし穴</h2>
 <ul>

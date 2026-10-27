@@ -12,9 +12,9 @@ export const ELEMENTS2: TextChapter[] = [
     body: `
 <h2>軸にかかる力 — 曲げとねじりの組合せ</h2>
 <p>伝動軸には、プーリ・歯車の力による<b>曲げモーメント M</b> と、伝える動力による<b>ねじりモーメント T</b> が同時にかかります。回転軸では曲げ応力が 1 回転ごとに引張と圧縮を繰り返すので、<b>疲労</b>が設計の中心になります。</p>
-<div class="tb-formula">σ = 32M / (πd³)　　τ = 16T / (πd³)　　T = 9550 · P[kW] / n[min⁻¹]　[N·m]</div>
+<div class="tb-math">\\begin{gathered} \\sigma = \\dfrac{32M}{\\pi d^{3}} \\\\ \\tau = \\dfrac{16T}{\\pi d^{3}} \\\\ T\\,[\\mathrm{N\\cdot m}] = \\dfrac{9550\\cdot P\\,[\\mathrm{kW}]}{n\\,[\\mathrm{min^{-1}}]} \\end{gathered}</div>
 <p>延性材料 (鋼) の軸では、最大せん断応力説にもとづく<b>相当ねじりモーメント</b> Te と、最大主応力説にもとづく<b>相当曲げモーメント</b> Me を使い、両方から軸径を求めて大きいほうを採ります。</p>
-<div class="tb-formula">Te = √(M² + T²)　→ d = (16 Te / (π τa))^(1/3)<br>Me = (M + √(M² + T²)) / 2　→ d = (32 Me / (π σa))^(1/3)</div>
+<div class="tb-math">\\begin{aligned} T_e &= \\sqrt{M^2+T^2} \\\\ d &= \\left(\\dfrac{16\\,T_e}{\\pi\\,\\tau_a}\\right)^{1/3} \\\\ M_e &= \\dfrac{M+\\sqrt{M^2+T^2}}{2} \\\\ d &= \\left(\\dfrac{32\\,M_e}{\\pi\\,\\sigma_a}\\right)^{1/3} \\end{aligned}</div>
 <p>衝撃のある機械では、M と T にそれぞれ動的効果の係数 (Km, Kt: 1.5〜3 程度) を掛けてから合成します。許容応力 σa・τa には、キー溝・段付きによる応力集中と疲労を見込んだ低めの値を使います。</p>
 <svg class="tb-chart" viewBox="0 0 520 230" role="img" aria-label="軸に作用する曲げとねじり、曲げモーメント図">
 <g class="k-shadow"><rect class="k-part" x="60" y="56" width="400" height="28" rx="3"/><rect class="k-alu" x="230" y="36" width="60" height="68" rx="3"/></g>
@@ -57,7 +57,8 @@ export const ELEMENTS2: TextChapter[] = [
 </ul>
 <h2>危険速度 — 回転数と共振</h2>
 <p>軸と取り付けた円板は 1 つのばね-質量系で、回転数がその曲げ固有振動数と一致すると振れ回りが急増します。この回転数が<b>危険速度</b> Nc です。軸の静たわみ δ から簡単に見積もれます。</p>
-<div class="tb-formula">Nc ≈ (30/π) √(g/δ) ≈ 946 / √δ[mm]　[min⁻¹]　　ダンカレーの式 1/Nc² ≈ 1/N₁² + 1/N₂² + …</div>
+<div class="tb-math">\\begin{aligned} N_c &\\approx \\dfrac{30}{\\pi}\\sqrt{\\dfrac{g}{\\delta}} \\approx \\dfrac{946}{\\sqrt{\\delta\\,[\\mathrm{mm}]}}\\ [\\mathrm{min^{-1}}] \\\\ \\dfrac{1}{N_c^2} &\\approx \\dfrac{1}{N_1^2}+\\dfrac{1}{N_2^2}+\\cdots \\end{aligned}</div>
+<p>2 行目はダンカレーの式。</p>
 <p>常用回転数は Nc の 70〜80 % 以下 (または十分上で、通過を短時間に) とするのが一般的です。軸の自重による危険速度と円板による危険速度をダンカレーの式で合成すると、実際より少し低め (安全側) の値が得られます。</p>
 <div class="tb-tip"><b>設計のコツ</b>: 軸受間隔を短くするのが、強度・剛性・危険速度のすべてに効く最も強力な手段です。たわみは L³、傾きは L² に比例します。</div>
 <h2>よくある失敗</h2>
@@ -149,7 +150,8 @@ export const ELEMENTS2: TextChapter[] = [
   <tr><td>ラビリンス</td><td>高速主軸、ゴミよけ</td><td>非接触の迷路。摩擦・摩耗なし。完全な密封ではない</td></tr>
 </table>
 <h2>O リングのつぶし率</h2>
-<div class="tb-formula">つぶし率 = (線径 W − 溝深さ H) / W × 100 %</div>
+<div class="tb-math">\\text{つぶし率} = \\dfrac{W - H}{W}\\times 100\\ \\%</div>
+<p>W: 線径、H: 溝深さ</p>
 <p>つぶしが小さいと漏れ、大きすぎると組立時のねじれ・永久ひずみ・運動時の摩擦増加になります。目安として固定用は運動用より大きめにとり、溝寸法は規格・メーカーの推奨値に合わせます。圧力が高い場合や溝のすきまが大きい場合は、O リングがすきまにはみ出す (<b>はみ出し破損</b>) ので<b>バックアップリング</b>を併用します。</p>
 <h2>オイルシールの注意</h2>
 <ul>
@@ -198,7 +200,8 @@ export const ELEMENTS2: TextChapter[] = [
     body: `
 <h2>リードと効率</h2>
 <p>ねじ 1 回転で進む距離が<b>リード</b> l です (1 条ねじではピッチと同じ、多条ねじではピッチ × 条数)。ねじ面の傾きが<b>リード角</b> β で、tan β = l / (π d₂) (d₂: 有効径・ボール中心径)。</p>
-<div class="tb-formula">正効率 η₁ = tan β / tan(β + ρ′)　　逆効率 η₂ = tan(β − ρ′) / tan β<br>ρ′ = tan⁻¹(μ / cos(α/2))　(α: ねじ山の角度、台形ねじは 30°)</div>
+<div class="tb-math">\\begin{aligned} \\eta_1 &= \\dfrac{\\tan\\beta}{\\tan(\\beta+\\rho')} \\\\ \\eta_2 &= \\dfrac{\\tan(\\beta-\\rho')}{\\tan\\beta} \\\\ \\rho' &= \\tan^{-1}\\dfrac{\\mu}{\\cos(\\alpha/2)} \\end{aligned}</div>
+<p>η<sub>1</sub>: 正効率、η<sub>2</sub>: 逆効率、α: ねじ山の角度 (台形ねじは 30°)</p>
 <ul>
   <li><b>台形ねじ (すべりねじ)</b>: μ ≈ 0.1〜0.2。効率は 30〜50 % 程度</li>
   <li><b>ボールねじ</b>: 転がり接触で μ が非常に小さく、効率 90 % 以上</li>
@@ -220,7 +223,8 @@ export const ELEMENTS2: TextChapter[] = [
 </svg>
 <p class="tb-caption">図: リード角と正効率の傾向 (概念図)。リード角が大きいほど効率は上がるが、すべりねじではセルフロックしなくなる</p>
 <h2>駆動トルク</h2>
-<div class="tb-formula">T = F · l / (2π η₁)　　F = 外力 + 摩擦力 (μ_g · m · g) + 慣性力 (m · a)</div>
+<div class="tb-math">\\begin{gathered} T = \\dfrac{F\\cdot l}{2\\pi\\eta_1} \\\\ F = \\text{外力} + \\mu_g m g + m a \\end{gathered}</div>
+<p>μ<sub>g</sub> m g: 摩擦力、m a: 慣性力</p>
 <p><b>計算例</b>: F = 1 000 N を押す。</p>
 <ul>
   <li>台形ねじ Tr20 × 4 (d₂ = 18 mm、μ = 0.15): tan β = 4 / (π × 18) → β ≈ 4.05°、ρ′ ≈ 8.83°、η₁ ≈ <b>0.31</b>、T = 1 000 × 0.004 / (2π × 0.31) ≈ <b>2.06 N·m</b>。β &lt; ρ′ なのでセルフロック</li>
@@ -229,11 +233,13 @@ export const ELEMENTS2: TextChapter[] = [
 <p>実際のモーター選定では、これに予圧ナットの摩擦トルク、加速時の慣性トルク (ねじ・カップリング・テーブル換算慣性) を加えます。</p>
 <h2>ボールねじの寿命</h2>
 <p>転がり軸受と同じ考え方で、基本動定格荷重 Ca と軸方向荷重 Fa から定格寿命を求めます。</p>
-<div class="tb-formula">L = (Ca / (fw · Fa))³ × 10⁶ 回転　　走行距離 Ls = L × l</div>
+<div class="tb-math">\\begin{gathered} L = \\left(\\dfrac{C_a}{f_w\\cdot F_a}\\right)^{3}\\times 10^{6}\\ \\text{回転} \\\\ L_s = L\\times l \\end{gathered}</div>
+<p>L<sub>s</sub>: 走行距離</p>
 <p>往復運動で荷重が変わる場合は、各区間の荷重を回転数で重み付けした 3 乗平均荷重を使います。<b>計算例</b>: Ca = 10 kN (仮の値)、Fa = 1 kN、fw = 1.2、リード 10 mm なら L = (10 / 1.2)³ × 10⁶ ≈ 5.79 × 10⁸ 回転、走行距離 ≈ <b>5 790 km</b>。</p>
 <h2>許容回転数と座屈</h2>
 <p>長いねじ軸は<b>危険速度</b> (曲げ共振) と、ボール循環部品の限界 (<b>dn 値</b>、ボール中心径 × 回転数) の両方で回転数が制限されます。押しで使う場合は<b>座屈</b>も確認します。どちらもねじ軸の<b>谷径</b> dr で計算し、支持方法で大きく変わります。</p>
-<div class="tb-formula">座屈荷重 Pk = n π² E I / L²　　危険速度 Nc = (60 λ² / (2π L²)) √(E I / (ρ A))<br>I = π dr⁴ / 64、L: 取付け間距離、n・λ: 支持方法の係数</div>
+<div class="tb-math">\\begin{aligned} P_k &= \\dfrac{n\\pi^2 E I}{L^2} \\\\ N_c &= \\dfrac{60\\lambda^2}{2\\pi L^2}\\sqrt{\\dfrac{E I}{\\rho A}} \\\\ I &= \\dfrac{\\pi d_r^{4}}{64} \\end{aligned}</div>
+<p>P<sub>k</sub>: 座屈荷重、N<sub>c</sub>: 危険速度、L: 取付け間距離、n・λ: 支持方法の係数</p>
 <table class="tb-table">
   <tr><th>支持方法</th><th>座屈の係数 n</th><th>危険速度の係数 λ</th></tr>
   <tr><td>支持 − 支持</td><td>1</td><td>π (≈ 3.14)</td></tr>
@@ -326,7 +332,8 @@ export const ELEMENTS2: TextChapter[] = [
 <p><b>計算例</b>: 1.5 kW、1450 min⁻¹ のモーターでコンベヤを駆動。T = 9550 × 1.5 / 1450 ≈ <b>9.9 N·m</b>、K = 1.5 で設計トルク ≈ <b>14.8 N·m</b>。これ以上の定格トルクの継手を選び、軸穴がモーター軸径に合うかも確認します。</p>
 <h2>摩擦クラッチ・ブレーキのトルク</h2>
 <p>摩擦板を押付け力 F で押し付けると、平均半径 Rm で摩擦力が働きます。摩擦面の数 z (単板クラッチなら 2 面) に比例します。</p>
-<div class="tb-formula">T = μ · F · Rm · z　　Rm ≈ (D₀ + Dᵢ) / 4 (摩耗後の均一摩耗を仮定した近似)</div>
+<div class="tb-math">\\begin{gathered} T = \\mu\\cdot F\\cdot R_m\\cdot z \\\\ R_m \\approx \\dfrac{D_0 + D_i}{4} \\end{gathered}</div>
+<p>R<sub>m</sub> は摩耗後の均一摩耗を仮定した近似。</p>
 <p><b>計算例</b>: μ = 0.3、F = 2 000 N、外径 150 mm・内径 100 mm (Rm = 62.5 mm)、z = 2 → T = 0.3 × 2 000 × 0.0625 × 2 = <b>75 N·m</b>。摩擦係数は温度・なじみ・油の付着で変わるので、カタログの<b>静摩擦トルク</b>と<b>動摩擦トルク</b>を区別し、余裕を持たせます。</p>
 <ul>
   <li><b>電磁クラッチ・ブレーキ</b>: 通電で吸着。応答が速く制御しやすい</li>
@@ -336,7 +343,8 @@ export const ELEMENTS2: TextChapter[] = [
 </ul>
 <h2>垂直軸の保持ブレーキ</h2>
 <p>ボールねじやベルトで上下するテーブルは、電源が切れると自重で落下します。モーターには<b>無励磁作動形の保持ブレーキ</b>を付け、必要保持トルクに安全率を掛けて選びます。</p>
-<div class="tb-formula">保持に必要なトルク T ≈ m · g · l / (2π) × (逆効率)　→ 安全側に逆効率 1 として、さらに 2 倍程度の余裕</div>
+<div class="tb-math">T \\approx \\dfrac{m\\,g\\,l}{2\\pi}\\times(\\text{逆効率})</div>
+<p>保持に必要なトルク。安全側に逆効率 1 として、さらに 2 倍程度の余裕をみる。</p>
 <p>保持ブレーキは<b>停止中の保持用</b>で、運転中に何度も制動に使うと摩耗します (非常停止時の数回の制動は想定内として仕様が決まっている)。減速機付きの場合は減速比で割った値になりますが、減速機の破損でも落ちないよう、重要な装置では落下防止の機械的ロックも検討します。</p>
 <h2>よくある失敗</h2>
 <ul>

@@ -222,7 +222,8 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
 </table>
 <h2>加速試験の考え方</h2>
 <p>10 年の寿命を 10 年かけて試験することはできません。負荷・温度・頻度を<b>厳しく</b>して短時間で同じ劣化を起こさせるのが加速試験です。</p>
-<div class="tb-formula">加速係数 AF = 実使用での寿命 / 試験条件での寿命</div>
+<div class="tb-math">AF = \\dfrac{\\text{実使用での寿命}}{\\text{試験条件での寿命}}</div>
+<p>AF: 加速係数</p>
 <ul>
   <li><b>頻度の加速</b>: 1 日 100 回の開閉を、試験機で 1 時間 3600 回行う (発熱しない範囲で)</li>
   <li><b>温度の加速</b>: 化学反応による劣化は温度が高いほど速い (アレニウスの式)。経験則として「10 °C 上がると寿命が約半分」が目安に使われることがあるが、材料・劣化メカニズムで異なる</li>
@@ -288,7 +289,8 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
 <line class="k-dimline" x1="58" y1="150" x2="462" y2="150"/>
 <text class="k-dimtext" x="260" y="174" text-anchor="middle">ハウジング内寸 H = 75.5 ± 0.1</text>
 </svg>
-<div class="tb-formula">G = H − (A + B + C + D)　　公称 G = 75.5 − 75 = 0.5</div>
+<div class="tb-math">G = H - (A + B + C + D)</div>
+<p>公称 G = 75.5 − 75 = 0.5</p>
 <table class="tb-table">
   <tr><th>寸法</th><th>公称</th><th>公差 ±t</th><th>t²</th></tr>
   <tr><td>H</td><td>75.5</td><td>0.10</td><td>0.0100</td></tr>
@@ -323,7 +325,7 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
 <p>実際の組立品で何が起きるかをアニメーションで見てみましょう。寸法がばらついた部品を次々に組み立て、すき間と合否の数を積み上げていきます。ワーストケースの範囲の端にはほとんど届かないことが分かります。</p>
 <div data-widget="anim-stack"></div>
 <h2>寄与率と公差配分</h2>
-<div class="tb-formula">寄与率 = t<sub>i</sub>² / Σt²</div>
+<div class="tb-math">\\text{寄与率} = \\dfrac{t_i^2}{\\sum t^2}</div>
 <table class="tb-table">
   <tr><th>寸法</th><th>H</th><th>A</th><th>B</th><th>C</th><th>D</th></tr>
   <tr><td>寄与率</td><td>18.2 %</td><td>18.2 %</td><td>40.9 %</td><td>4.5 %</td><td>18.2 %</td></tr>
@@ -481,7 +483,7 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
     body: `
 <h2>故障率と信頼度</h2>
 <p><b>故障率 λ</b> は単位時間あたりに故障する割合です (例: 1 × 10⁻⁴ /h)。故障率が一定 (偶発故障期) なら、時間 t まで壊れない確率 = <b>信頼度 R(t)</b> は指数分布になります。</p>
-<div class="tb-formula">R(t) = exp(−λt) = exp(−t / MTBF)　　MTBF = 1 / λ</div>
+<div class="tb-math">\\begin{gathered} R(t) = e^{-\\lambda t} = \\exp\\left(-\\dfrac{t}{MTBF}\\right) \\\\ MTBF = \\dfrac{1}{\\lambda} \\end{gathered}</div>
 <p>MTBF と同じ時間だけ動かしたときの信頼度は exp(−1) ≈ 0.368 — つまり <b>MTBF まで生き残るのは約 37 %</b> です。「MTBF = 寿命」ではない点に注意します。</p>
 <h2>MTBF・MTTR・アベイラビリティ</h2>
 <table class="tb-table">
@@ -491,7 +493,7 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
   <tr><td>MTTR (平均修復時間)</td><td>故障してから復旧するまでの平均時間</td></tr>
   <tr><td>アベイラビリティ A</td><td>使いたいときに使える時間の割合</td></tr>
 </table>
-<div class="tb-formula">A = MTBF / (MTBF + MTTR)</div>
+<div class="tb-math">A = \\dfrac{MTBF}{MTBF + MTTR}</div>
 <p>例: MTBF 10 000 h、MTTR 5 h → A = 10 000 / 10 005 ≈ 0.9995 (99.95 %)。年間 8 760 h のうち停止は約 4.4 h。MTTR を短くする (交換しやすい構造、予備品、診断機能) こともアベイラビリティ向上に効きます。</p>
 <h2>バスタブ曲線</h2>
 <svg class="tb-chart" viewBox="0 0 520 214" role="img" aria-label="バスタブ曲線">
@@ -514,7 +516,7 @@ C   2026-07-02  取付穴 φ5.5 → 長穴 5.5×8              組立時の位�
   <tr><td>摩耗故障期</td><td>疲労、摩耗、劣化 (軸受、ベルト、電解コンデンサ)</td><td>寿命計算、定期交換 (予防保全)</td></tr>
 </table>
 <h2>直列系と並列系</h2>
-<div class="tb-formula">直列: R<sub>s</sub> = Π R<sub>i</sub>　　並列: R<sub>p</sub> = 1 − Π (1 − R<sub>i</sub>)</div>
+<div class="tb-math">\\begin{gathered} \\text{直列: } R_s = \\prod R_i \\\\ \\text{並列: } R_p = 1 - \\prod (1 - R_i) \\end{gathered}</div>
 <svg class="tb-chart" viewBox="0 0 520 184" role="img" aria-label="直列系と並列系">
 <rect class="k-panel" x="8" y="8" width="244" height="168" rx="8"/><rect class="k-panel" x="268" y="8" width="244" height="168" rx="8"/>
 <circle class="k-badge" cx="28" cy="28" r="10" style="fill:var(--tb-bad)"/><text class="k-badge-t" x="28" y="32" text-anchor="middle">✕</text><text class="k-title" x="46" y="32">直列</text><circle class="k-badge" cx="288" cy="28" r="10" style="fill:var(--tb-good)"/><text class="k-badge-t" x="288" y="32" text-anchor="middle">✓</text><text class="k-title" x="306" y="32">並列 (冗長)</text>

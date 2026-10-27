@@ -513,7 +513,7 @@ export const DESIGN2: TextChapter[] = [
   <tr><td>製造性・コスト</td><td>2</td><td>5</td><td>2</td><td>4</td></tr>
   <tr><td><b>合計 (重み × 点)</b></td><td></td><td><b>40</b></td><td><b>38</b></td><td><b>40</b></td></tr>
 </table>
-<p class="tb-formula">合計 = Σ (重み × 評点)</p>
+<div class="tb-math">\\text{合計} = \\sum (\\text{重み} \\times \\text{評点})</div>
 <p>点数はあくまで議論の材料です。同点や僅差のときは、<b>どの軸で差がついたか</b>を話し合い、弱点を改善した案を作ることもあります。</p>
 <h2>ムードボード</h2>
 <p><b>ムードボード</b>は、目指す雰囲気を写真・素材・色見本・言葉で 1 枚に集めたものです。形を描く前に「方向性」を共有できます。</p>

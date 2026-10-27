@@ -28,7 +28,8 @@ export const UX: TextChapter[] = [
 <text class="k-note" x="105" y="170" text-anchor="middle">5 %</text><text class="k-note" x="435" y="170" text-anchor="middle">5 %</text>
 <text class="lbl" x="500" y="212" text-anchor="end">寸法</text>
 </svg>
-<div class="tb-formula">p 値 = μ + z × σ　　(z: 5 % → −1.645、1 % → −2.326、50 % → 0、95 % → +1.645、99 % → +2.326)</div>
+<div class="tb-math">\\text{p 値} = \\mu + z \\times \\sigma</div>
+<p>(z: 5 % → −1.645、1 % → −2.326、50 % → 0、95 % → +1.645、99 % → +2.326)</p>
 <p>注意: パーセンタイルは<b>寸法ごと</b>の値です。「身長 5 パーセンタイルの人」の腕の長さが 5 パーセンタイルとは限りません。複数の寸法を同時に満たすと、カバーできる人の割合は 90 % より小さくなります。また、パーセンタイル値どうしを足し算しても、その合計のパーセンタイルにはなりません。</p>
 <h2>代表的な寸法 (日本人成人・概略値)</h2>
 <table class="tb-table">
@@ -193,7 +194,8 @@ export const UX: TextChapter[] = [
 <p>なお、照明スイッチの上下は国や地域で慣習が異なります。<b>ステレオタイプは文化に依存</b>するので、海外向けでは確認が必要です。</p>
 <h2>ターゲットの大きさと距離 (フィッツの法則)</h2>
 <p>ボタンに手や指を動かす時間は、距離 D が長いほど、ボタン幅 W が小さいほど長くなります。これを<b>フィッツの法則</b>といいます (詳しくは「ターゲットの大きさと配置」の章)。</p>
-<div class="tb-formula">MT = a + b × log₂(D/W + 1)　(a, b は人・装置ごとに実験で求める係数)</div>
+<div class="tb-math">\\mathrm{MT} = a + b \\log_2\\!\\left(\\dfrac{D}{W} + 1\\right)</div>
+<p>(a, b は人・装置ごとに実験で求める係数)</p>
 <p>次の実験で、大きさと距離の違うターゲットをクリックし、所要時間と難易度 ID の関係を確かめてみましょう。</p>
 <div data-widget="anim-fitts"></div>
 <h2>配置の原則</h2>
@@ -271,7 +273,8 @@ export const UX: TextChapter[] = [
 <text class="k-dimtext" x="243" y="170" text-anchor="middle">視距離 D</text>
 <line class="k-thin" x1="90" y1="104" x2="70" y2="84"/><text class="tick" x="94" y="110">目</text>
 </svg>
-<div class="tb-formula">h ≈ D × tan(α)　　例: D = 700 mm、α = 20′ → h = 700 × tan(0.333°) ≈ 4.1 mm</div>
+<div class="tb-math">h \\approx D \\tan\\alpha</div>
+<p>例: D = 700 mm、α = 20′ → <span class="tb-m">h = 700 \times \tan(0.333^\circ) \approx 4.1\,\mathrm{mm}</span></p>
 <p>文字高さの視角の目安は、読める限界でおよそ 10′ 前後、<b>楽に読める推奨値で 16〜24′ 程度</b>とされます (文献により異なる目安)。重要な表示・高齢者・低照度・振動のある環境では大きめにします。</p>
 <div data-widget="legibility"></div>
 <table class="tb-table">
@@ -750,7 +753,7 @@ export const UX: TextChapter[] = [
 </table>
 <h2>SUS (System Usability Scale)</h2>
 <p>SUS はジョン・ブルックが考案した 10 項目の質問紙です。各項目に 1 (全くそう思わない) 〜 5 (強くそう思う) で答えます。奇数番の項目は肯定文 (例: 「このシステムを頻繁に使いたい」)、偶数番は否定文 (例: 「このシステムは不必要に複雑だ」) です。</p>
-<div class="tb-formula">奇数項目: (回答 − 1)　偶数項目: (5 − 回答)　→ 10 項目の合計 (0〜40) × 2.5 = SUS スコア (0〜100)</div>
+<div class="tb-math">\\begin{aligned} &\\text{奇数項目: } (\\text{回答} - 1) \\\\ &\\text{偶数項目: } (5 - \\text{回答}) \\\\ &\\text{SUS スコア} = \\text{合計 (0〜40)} \\times 2.5 \\\\ &\\text{SUS スコアの範囲: } 0〜100 \\end{aligned}</div>
 <pre class="tb-pre">回答:   Q1=4 Q2=2 Q3=5 Q4=1 Q5=4 Q6=2 Q7=5 Q8=2 Q9=4 Q10=1
 奇数:   3 + 4 + 3 + 4 + 3 = 17
 偶数:   3 + 4 + 3 + 3 + 4 = 17

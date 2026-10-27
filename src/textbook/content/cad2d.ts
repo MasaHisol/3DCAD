@@ -125,7 +125,7 @@ export const CAD2D: TextChapter[] = [
   <tr><td>相対座標</td><td>@40,0</td><td>直前の点から X 方向に 40、Y 方向に 0</td></tr>
   <tr><td>極座標 (相対)</td><td>@50&lt;30</td><td>直前の点から距離 50、角度 30° の方向</td></tr>
 </table>
-<div class="tb-formula">極座標 → 増分: dx = L · cos θ　　dy = L · sin θ</div>
+<div class="tb-math">\\text{極座標} \\to \\text{増分:}\\ dx = L\\cos\\theta \\qquad dy = L\\sin\\theta</div>
 <p>角度は <b>X 軸の正の向き (右) を 0°</b> とし、<b>反時計回りが正</b>です。上が 90°、左が 180°、下が 270° (= −90°) です。</p>
 <svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="絶対座標と相対座標">
 <rect class="k-panel" x="8" y="8" width="318" height="204" rx="8"/><rect class="k-panel" x="338" y="8" width="174" height="204" rx="8"/>
@@ -435,7 +435,7 @@ export const CAD2D: TextChapter[] = [
   <tr><td>円弧</td><td>5</td><td>中心 x, y + 半径 + 始点角 + 終点角</td></tr>
 </table>
 <p>拘束はそれぞれ自由度を減らします (点の一致 −2、水平 −1、寸法 1 つ −1 など)。自由度が 0 になった状態が<b>完全拘束</b>です。</p>
-<div class="tb-formula">長方形 = 線分 4 本 (16) − 角の一致 4 (8) − 水平 2 − 垂直 2 = 残り 4 (位置 x, y・幅・高さ)</div>
+<div class="tb-math">\\begin{aligned} \\text{長方形} &= \\text{線分 4 本}\\ (16) - \\text{角の一致 4}\\ (8) \\\\ &\\quad - \\text{水平 2} - \\text{垂直 2} = \\text{残り 4} \\end{aligned}</div><p>(位置 x, y・幅・高さ)</p>
 <p>残り 4 は、幅と高さの寸法、そして 1 つの角を原点に一致させる (−2) ことで 0 になります。</p>
 <svg class="tb-chart" viewBox="0 0 520 210" role="img" aria-label="長方形が完全拘束になるまで">
 <rect class="k-panel" x="8" y="8" width="246" height="194" rx="8"/><rect class="k-panel" x="266" y="8" width="246" height="194" rx="8"/>

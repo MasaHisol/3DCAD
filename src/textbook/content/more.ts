@@ -10,7 +10,7 @@ export const MECHANICS_MORE: TextChapter[] = [
     lead: "回転する機械は必ず振動を生みます。加振の周波数が構造の固有振動数に近づくと共振し、小さな力でも大きく揺れて壊れます。固有振動数の見積もりと防振の考え方を学びます。",
     body: `
 <h2>固有振動数</h2>
-<div class="tb-formula">fn = (1 / 2π) √(k / m)　[Hz]</div>
+<div class="tb-math">f_n = \\dfrac{1}{2\\pi}\\sqrt{\\dfrac{k}{m}}\\ [\\mathrm{Hz}]</div>
 <p>ばねが硬いほど・質量が軽いほど、固有振動数は高くなります。片持ちはりのような連続体には、1 次・2 次 … と複数の固有振動数があります。</p>
 <div data-widget="cantilevervib"></div>
 <h2>共振</h2>
@@ -42,10 +42,11 @@ export const MECHANICS_MORE: TextChapter[] = [
 <p class="tb-caption">1 自由度系の振幅倍率 (静たわみに対する比)。r = 1 付近で共振し、減衰比 ζ が小さいほど鋭く高い山になります。r &gt; √2 では床への伝達率が 1 未満になります。</p>
 <h2>静たわみから固有振動数を見積もる</h2>
 <p>自重で δ (mm) だけ沈むばね–質量系では k / m = g / δ なので、次の簡単な式が使えます。</p>
-<div class="tb-formula">fn = (1 / 2π) √(g / δ) ≈ 15.8 / √δ[mm]　[Hz]　　例: δ = 2 mm → fn ≈ 11.1 Hz</div>
+<div class="tb-math">f_n = \\dfrac{1}{2\\pi}\\sqrt{\\dfrac{g}{\\delta}} \\approx \\dfrac{15.8}{\\sqrt{\\delta\\,[\\mathrm{mm}]}}\\ [\\mathrm{Hz}]</div>
+<p>例: δ = 2 mm → f<sub>n</sub> ≈ 11.1 Hz</p>
 <h2>例題: モーター架台の共振チェック</h2>
 <p>1200 min⁻¹ (20 Hz) のモーターを載せたブラケットの固有振動数が 25 Hz (r = 0.8)、減衰比 ζ = 0.05 とします。</p>
-<div class="tb-formula">倍率 = 1 / √((1 − r²)² + (2ζr)²) = 1 / √(0.36² + 0.08²) ≈ 2.7</div>
+<div class="tb-math">\\begin{aligned} \\text{倍率} &= \\dfrac{1}{\\sqrt{(1-r^2)^2 + (2\\zeta r)^2}} \\\\ &= \\dfrac{1}{\\sqrt{0.36^2 + 0.08^2}} \\approx 2.7 \\end{aligned}</div>
 <p>振動数比が 0.8 でも振幅は約 2.7 倍に増えます。リブを足してブラケットの固有振動数を加振周波数の 1.3 倍 (26 Hz) より十分高く、例えば 30 Hz 以上に上げるか、回転数の範囲を変えます。
 インバーターで回転数を変える機械では、<b>運転範囲全体</b>で共振を避ける必要がある点に注意します。</p>
 <h2>防振 — 床に振動を伝えない</h2>
@@ -84,7 +85,7 @@ export const MECHANICS_MORE: TextChapter[] = [
     lead: "温度が変わると部品は伸び縮みし、電子部品やモーターは熱を逃がさないと壊れます。熱膨張と熱伝導の基本、放熱設計の考え方を学びます。",
     body: `
 <h2>熱膨張</h2>
-<div class="tb-formula">ΔL = α × L × ΔT　　拘束されると σ = E α ΔT</div>
+<div class="tb-math">\\begin{gathered} \\Delta L = \\alpha\\, L\\, \\Delta T \\\\ \\text{拘束されると } \\sigma = E\\,\\alpha\\,\\Delta T \\end{gathered}</div>
 <p>アルミは鋼の約 2 倍、樹脂は約 7 倍伸びます。長い部材、異なる材料の組み合わせ、精密な位置決めでは必ず見積もりましょう。</p>
 <ul>
   <li>異種材料を長い距離でボルト固定するときは、片側を<b>長穴</b>にして伸びを逃がす</li>
@@ -99,7 +100,7 @@ export const MECHANICS_MORE: TextChapter[] = [
 </table>
 <div data-widget="thermal"></div>
 <h2>熱抵抗で温度を見積もる</h2>
-<div class="tb-formula">ΔT = Q × Rth　　Rth (伝導) = t / (λA)　　Rth (対流) = 1 / (hA)　[K/W]</div>
+<div class="tb-math">\\begin{gathered} \\Delta T = Q\\, R_{th} \\\\ R_{th}^{\\text{伝導}} = \\dfrac{t}{\\lambda A} \\\\ R_{th}^{\\text{対流}} = \\dfrac{1}{hA}\\ [\\mathrm{K/W}] \\end{gathered}</div>
 <svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="熱抵抗の直列モデル">
 <text class="k-title" x="260" y="20" text-anchor="middle">発熱 Q = 10 W が素子から空気へ流れる経路</text>
 <rect class="k-part" x="20" y="70" width="70" height="44" rx="4"/><text class="k-note" x="55" y="96" text-anchor="middle">素子 Tj</text>
@@ -251,7 +252,7 @@ export const KNOWHOW_MORE: TextChapter[] = [
 </table>
 <h2>計算例: 手計算による検算</h2>
 <p>鋼の片持ちはり (長さ L = 100 mm、幅 b = 20 mm、高さ h = 10 mm、E = 206 GPa)、先端に P = 500 N。</p>
-<div class="tb-formula">Z = bh²/6 ≈ 333 mm³ → σ = PL/Z = 50 000 / 333 = 150 MPa　　I = bh³/12 ≈ 1 667 mm⁴ → δ = PL³/(3EI) ≈ 0.49 mm</div>
+<div class="tb-math">\\begin{aligned} Z &= \\dfrac{bh^2}{6} \\approx 333\\ \\mathrm{mm^3} \\\\ \\sigma &= \\dfrac{PL}{Z} = \\dfrac{50\\,000}{333} = 150\\ \\mathrm{MPa} \\\\ I &= \\dfrac{bh^3}{12} \\approx 1\\,667\\ \\mathrm{mm^4} \\\\ \\delta &= \\dfrac{PL^3}{3EI} \\approx 0.49\\ \\mathrm{mm} \\end{aligned}</div>
 <p>解析が根元の応力 約 150 MPa、先端たわみ 約 0.5 mm 付近なら条件は妥当です。たわみが 0.05 mm や 5 mm なら、単位 (GPa と MPa) や拘束を疑います。
 なお根元の固定端では特異点の影響で応力が高く出るので、根元から少し離れた位置で比べます。</p>
 <h2>よくある失敗</h2>
@@ -395,7 +396,7 @@ export const KNOWHOW_MORE: TextChapter[] = [
 <p>具体的な膜厚は処理業者・規格の等級で決まります。図面には「膜厚 ○〜○ µm」または規格の等級で指示します。</p>
 <h2>計算例: アルマイト前の穴径</h2>
 <p>硬質アルマイト 50 µm で仕上がり φ20.00 の穴にしたい。半分 (25 µm) が外側 (穴の中心側) に成長すると、穴径は 2 × 0.025 = 0.05 mm 小さくなります。</p>
-<div class="tb-formula">処理前の穴径 = 20.00 + 0.05 = φ20.05 mm</div>
+<div class="tb-math">\\begin{aligned} \\text{処理前の穴径} &= 20.00 + 0.05 \\\\ &= \\phi 20.05\\ \\mathrm{mm} \\end{aligned}</div>
 <p>外径 (軸) なら逆に処理前を φ19.95 にします。公差の厳しいはめあい面は、膜厚のばらつき分も公差に含めるか、マスキングして処理しないよう指示します。</p>
 <h2>よくある失敗</h2>
 <ul>
@@ -435,7 +436,7 @@ export const KNOWHOW_MORE: TextChapter[] = [
     lead: "同じ部品でも、作る数量によって最適な工法は変わります。部品単価の内訳と、数量による工法の選び方 (損益分岐) を学びます。",
     body: `
 <h2>部品単価の内訳</h2>
-<div class="tb-formula">単価 = 材料費 + 加工時間 × チャージ + 段取り費 / ロット数 + 型・治具費 / 総数量 + 処理・検査・運搬</div>
+<div class="tb-math">\\begin{aligned} \\text{単価} = {} & \\text{材料費} + \\text{加工時間}\\times\\text{チャージ} \\\\ & + \\dfrac{\\text{段取り費}}{\\text{ロット数}} + \\dfrac{\\text{型・治具費}}{\\text{総数量}} \\\\ & + \\text{処理・検査・運搬} \\end{aligned}</div>
 <ul>
   <li><b>材料費</b>: 素材の質量 × 単価。削る前の素材 (定尺からの切り出し) で計算する</li>
   <li><b>チャージ (時間単価)</b>: 機械と人の 1 時間あたりの費用。マシニングセンタで数千〜1 万円/時程度</li>
@@ -663,7 +664,8 @@ export const KNOWHOW_MORE: TextChapter[] = [
 <p class="tb-caption">図: ガードの開口と危険源までの距離。開口の大きさに応じて、届かないだけの距離が必要になる (具体値は ISO 13857 の表で決める)</p>
 <h2>計算例: 光電センサの取付距離 (ISO 13855 の考え方)</h2>
 <p>ライトカーテンで人の侵入を検知して機械を止める場合、手が危険源に届く前に止まる距離 S に設置します。</p>
-<div class="tb-formula">S = K × T + C　　K: 接近速度 (まず 2 000 mm/s)、T: 検知から停止までの時間 [s]、C = 8 (d − 14) [mm] (d: 検出能力 ≤ 40 mm)</div>
+<div class="tb-math">\\begin{gathered} S = K\\times T + C \\\\ C = 8\\,(d-14)\\ [\\mathrm{mm}] \\end{gathered}</div>
+<p>K: 接近速度 (まず 2 000 mm/s)、T: 検知から停止までの時間 [s]、d: 検出能力 (≤ 40 mm)</p>
 <p>T = 0.3 s (センサ 0.02 s + 機械の停止 0.28 s)、d = 30 mm とすると、S = 2 000 × 0.3 + 8 × 16 = 600 + 128 = <b>728 mm</b>。
 S が 500 mm を超えるので K = 1 600 mm/s で計算し直すと S = 480 + 128 = <b>608 mm</b> (500 mm 以上なのでこの値を採用)。
 停止時間 T を短くする (ブレーキの追加) ほど、機械を小さくできます。</p>

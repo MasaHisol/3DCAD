@@ -25,8 +25,10 @@ export const PROCESS: TextChapter[] = [
   <li><b>送り f</b> (旋削: mm/rev、フライス: 1 刃あたり f<sub>z</sub> mm/tooth): 面粗さと加工時間を左右する</li>
   <li><b>切込み a<sub>p</sub></b> (mm): 1 回で削る深さ。切削抵抗 (力) と取り代を左右する</li>
 </ul>
-<div class="tb-formula">回転数 n = 1000 · V<sub>c</sub> / (π · D)　[min⁻¹]　　送り速度 V<sub>f</sub> = f · n (旋削)、 V<sub>f</sub> = f<sub>z</sub> · z · n (フライス)</div>
-<div class="tb-formula">加工時間 T = L / V<sub>f</sub>　　除去率 Q = a<sub>p</sub> · f · V<sub>c</sub>　[cm³/min]</div>
+<div class="tb-math">\\begin{aligned} n &= \\dfrac{1000\\cdot V_c}{\\pi\\cdot D}\\ [\\mathrm{min^{-1}}] \\\\ V_f &= f\\cdot n\\ \\text{(旋削)} \\\\ V_f &= f_z\\cdot z\\cdot n\\ \\text{(フライス)} \\end{aligned}</div>
+<p>n: 回転数、V<sub>f</sub>: 送り速度</p>
+<div class="tb-math">\\begin{gathered} T = \\dfrac{L}{V_f} \\\\ Q = a_p\\cdot f\\cdot V_c\\ [\\mathrm{cm^3/min}] \\end{gathered}</div>
+<p>T: 加工時間、Q: 除去率</p>
 <svg class="tb-chart" viewBox="0 0 520 222" role="img" aria-label="旋削の切削条件">
   <g class="k-shadow">
     <rect class="k-part" x="16" y="34" width="44" height="132" rx="4"/>
@@ -66,7 +68,7 @@ export const PROCESS: TextChapter[] = [
 <p class="tb-note">数値は工具メーカーのカタログ値をまとめた目安です。機械の剛性・工具径・突出し長さで大きく変わります。</p>
 <h2>送りと仕上げ面粗さ</h2>
 <p>旋削の仕上げ面には、バイト先端の丸み (<b>ノーズ半径 r</b>) が 1 回転ごとに送り f ずつずれて転写された<b>送りマーク</b>が残ります。その理論高さは</p>
-<div class="tb-formula">R<sub>z</sub> ≈ f² / (8 r)　　R<sub>a</sub> ≈ R<sub>z</sub> / 4 ≈ f² / (32 r)</div>
+<div class="tb-math">\\begin{gathered} R_z \\approx \\dfrac{f^2}{8r} \\\\ R_a \\approx \\dfrac{R_z}{4} \\approx \\dfrac{f^2}{32r} \\end{gathered}</div>
 <p>送りを半分にすれば粗さは 1/4 になりますが、加工時間は 2 倍になります。ノーズ R を大きくすれば同じ送りで面はきれいになりますが、切削抵抗の背分力が増えて細長い軸ではびびりやすくなります。</p>
 <div data-widget="anim-turning"></div>
 <h2>加工法で到達できる精度と粗さ</h2>
@@ -94,7 +96,8 @@ export const PROCESS: TextChapter[] = [
 </svg>
 <p class="tb-caption">図: 公差とコストの関係 (模式図)。公差を狭くするほどコストは指数関数的に上がる。特に「削りで出る範囲」から「研削・測定の追加が必要な範囲」に踏み込むと工程そのものが増え、段差状に高くなる</p>
 <h2>加工コストを決めるもの</h2>
-<div class="tb-formula">加工費 ≈ (段取り時間 + 加工時間 × 個数) × 機械チャージ (円/時間) + 工具費 + 材料費</div>
+<div class="tb-math">\\begin{aligned} \\text{加工費} \\approx {} & (\\text{段取り時間} \\\\ & + \\text{加工時間}\\times\\text{個数}) \\\\ & \\times\\text{機械チャージ} \\\\ & + \\text{工具費} + \\text{材料費} \\end{aligned}</div>
+<p>機械チャージの単位は 円/時間。</p>
 <ul>
   <li><b>段取り</b>: 治具の準備、原点出し、プログラム作成。1 個〜数個の試作ではこれが大半。段取り回数 (加工面の向きの数) を減らす</li>
   <li><b>加工時間</b>: 取り代 (削る体積) ÷ 除去率 + 仕上げパスの長さ ÷ 送り速度。素材を形に近い規格材から選ぶと荒削りが減る</li>
@@ -153,7 +156,8 @@ export const PROCESS: TextChapter[] = [
   <li><b>焼入れ鋼</b> (HRC 60 前後) も削れる — 熱処理後の仕上げはほぼ研削</li>
   <li>取り代は小さい (径で 0.1〜0.5 mm 程度)。前工程で寸法を「研削代」だけ残しておく</li>
 </ul>
-<div class="tb-formula">砥石周速 V<sub>s</sub> = π · D<sub>s</sub> · n<sub>s</sub> / 60000　[m/s]　(一般砥石で 30 m/s 前後、高速研削で 60 m/s 以上)</div>
+<div class="tb-math">V_s = \\dfrac{\\pi\\cdot D_s\\cdot n_s}{60000}\\ [\\mathrm{m/s}]</div>
+<p>砥石周速。一般砥石で 30 m/s 前後、高速研削で 60 m/s 以上。</p>
 <table class="tb-table">
   <tr><th>研削の種類</th><th>対象</th><th>用途</th></tr>
   <tr><td>円筒研削</td><td>軸の外径</td><td>軸受・オイルシールのはまる軸、ピン</td></tr>
@@ -378,7 +382,8 @@ export const PROCESS: TextChapter[] = [
 </table>
 <h2>溶接部の構造と入熱</h2>
 <p>溶接部は、溶けて固まった<b>溶接金属</b>、溶けなかったが熱で組織が変わった<b>熱影響部 (HAZ)</b>、母材からなります。熱影響部は硬くもろくなったり (炭素量の多い鋼)、逆に軟らかくなったり (熱処理アルミ A6061-T6 は強度が母材の 6 割程度まで落ちる) します。</p>
-<div class="tb-formula">入熱 Q = η · V · I / v　[J/mm]　(V: アーク電圧、I: 電流、v: 溶接速度 mm/s、η: 熱効率)</div>
+<div class="tb-math">Q = \\dfrac{\\eta\\cdot V\\cdot I}{v}\\ [\\mathrm{J/mm}]</div>
+<p>Q: 入熱、V: アーク電圧、I: 電流、v: 溶接速度 mm/s、η: 熱効率</p>
 <p>入熱が大きいほど溶込みは深くなりますが、熱影響部が広がり、ひずみも大きくなります。</p>
 <svg class="tb-chart" viewBox="0 30 520 172" role="img" aria-label="溶接部の断面">
   <g class="k-shadow">
@@ -522,7 +527,8 @@ export const PROCESS: TextChapter[] = [
 </table>
 <h2>打抜き (せん断) — 力とクリアランス</h2>
 <p>パンチとダイの間で板をせん断して穴をあけたり外形を抜いたりします。必要な力は</p>
-<div class="tb-formula">打抜き力 F = L · t · τ<sub>s</sub>　(L: 切り口の長さ、t: 板厚、τ<sub>s</sub>: せん断抵抗 ≈ 0.8 × 引張強さ)</div>
+<div class="tb-math">F = L\\cdot t\\cdot\\tau_s</div>
+<p>F: 打抜き力、L: 切り口の長さ、t: 板厚、τ<sub>s</sub>: せん断抵抗 ≈ 0.8 × 引張強さ</p>
 <p>パンチとダイの片側すき間 (<b>クリアランス</b>) は板厚の 5〜10 % (軟鋼)、アルミで 4〜8 %、ステンレスはやや大きめが目安です。切り口は、上から<b>だれ・せん断面・破断面・かえり (バリ)</b> の 4 つの層になります。</p>
 <svg class="tb-chart" viewBox="0 0 520 218" role="img" aria-label="打抜きの切り口">
   <line class="k-force" x1="156" y1="8" x2="156" y2="28"/>
@@ -563,7 +569,8 @@ export const PROCESS: TextChapter[] = [
 </ul>
 <h2>曲げとスプリングバック</h2>
 <p>曲げた板は、荷重を抜くと弾性ひずみの分だけ戻ります (<b>スプリングバック</b>)。弾完全塑性体の簡単なモデルでは</p>
-<div class="tb-formula">R<sub>i</sub> / R<sub>f</sub> = 4x³ − 3x + 1、　x = R<sub>i</sub> · σ<sub>y</sub> / (E · t)　(R<sub>i</sub>: 曲げ中の内 R、R<sub>f</sub>: 除荷後の内 R)</div>
+<div class="tb-math">\\begin{gathered} \\dfrac{R_i}{R_f} = 4x^3 - 3x + 1, \\\\ x = \\dfrac{R_i\\cdot\\sigma_y}{E\\cdot t} \\end{gathered}</div>
+<p>R<sub>i</sub>: 曲げ中の内 R、R<sub>f</sub>: 除荷後の内 R</p>
 <p>戻りが大きくなるのは、<b>降伏点が高い</b> (高張力鋼・ステンレス)、<b>ヤング率が小さい</b> (アルミは鋼の約 1/3)、<b>R/t が大きい</b> 場合です。下の図で材料と R/t を変えて確かめてください。</p>
 <div data-widget="anim-springback"></div>
 <table class="tb-table">
@@ -576,7 +583,8 @@ export const PROCESS: TextChapter[] = [
 <p class="tb-note">曲げの<b>方向</b>も大切です。圧延方向に平行に曲げ線を置くと (繊維に沿って曲げる) 割れやすいので、小さい R で曲げるときは曲げ線を圧延方向と直角にします。</p>
 <h2>深絞り — 板から容器を作る</h2>
 <p>平らな円板 (ブランク) をパンチでダイに押し込み、継ぎ目のないカップを作ります。フランジ部が円周方向に縮みながら流れ込むため、しわ押え力でしわを防ぎます。</p>
-<div class="tb-formula">円筒カップのブランク径 D ≈ √(d² + 4 d h)　　絞り率 m = d / D (1 回目は 0.5〜0.6 が限界の目安)</div>
+<div class="tb-math">\\begin{gathered} D \\approx \\sqrt{d^2 + 4dh} \\\\ m = \\dfrac{d}{D} \\end{gathered}</div>
+<p>D: 円筒カップのブランク径、m: 絞り率 (1 回目は 0.5〜0.6 が限界の目安)</p>
 <svg class="tb-chart" viewBox="0 0 520 196" role="img" aria-label="深絞りの断面">
   <line class="k-force" x1="154" y1="6" x2="154" y2="26"/>
   <g class="k-shadow">
@@ -706,8 +714,10 @@ export const PROCESS: TextChapter[] = [
 </table>
 <p><b>焼入れが効くのは炭素 0.3 % 以上</b>が目安です。SS400 (炭素量は規定なしで実際は 0.2 % 前後以下) はほとんど焼きが入りません。表面だけ硬くしたい低炭素鋼は浸炭焼入れを使います (→「熱処理と表面処理」)。</p>
 <h2>硬さと強さ、溶接性の目安</h2>
-<div class="tb-formula">引張強さ σ<sub>B</sub> ≈ 3.4〜3.5 × HB　[MPa]　(炭素鋼・低合金鋼の目安)</div>
-<div class="tb-formula">炭素当量 C<sub>eq</sub> = C + Mn/6 + Si/24 + Ni/40 + Cr/5 + Mo/4 + V/14　[%]</div>
+<div class="tb-math">\\sigma_B \\approx (3.4\\text{〜}3.5)\\times HB\\ [\\mathrm{MPa}]</div>
+<p>引張強さの目安 (炭素鋼・低合金鋼)。</p>
+<div class="tb-math">\\begin{aligned} C_{eq} = {} & C + \\dfrac{Mn}{6} + \\dfrac{Si}{24} + \\dfrac{Ni}{40} \\\\ & + \\dfrac{Cr}{5} + \\dfrac{Mo}{4} + \\dfrac{V}{14}\\ [\\%] \\end{aligned}</div>
+<p>炭素当量</p>
 <p>炭素当量が 0.44 % 程度を超えると溶接部が硬化して割れやすくなり、予熱が必要になります。SS400 は 0.3 % 前後で溶接しやすく、S45C は 0.55 % を超えるため溶接構造には向きません。</p>`,
     points: [
       "SS400 の数字は引張強さ下限、S45C の数字は炭素量 0.45 %、SCM は Cr-Mo 鋼",
@@ -838,7 +848,7 @@ export const PROCESS: TextChapter[] = [
     body: `
 <h2>工程能力 — その公差は量産で守れるか</h2>
 <p>どんな工程でも寸法はばらつきます。ばらつきの標準偏差 σ と公差幅を比べたものが<b>工程能力指数</b>です。</p>
-<div class="tb-formula">C<sub>p</sub> = (USL − LSL) / (6σ)　　C<sub>pk</sub> = min(USL − μ, μ − LSL) / (3σ)</div>
+<div class="tb-math">\\begin{gathered} C_p = \\dfrac{USL - LSL}{6\\sigma} \\\\ C_{pk} = \\dfrac{\\min(USL-\\mu,\\ \\mu-LSL)}{3\\sigma} \\end{gathered}</div>
 <table class="tb-table">
   <tr><th>C<sub>pk</sub></th><th>不良率の目安 (正規分布、片側)</th><th>評価</th></tr>
   <tr><td>0.67</td><td>約 2.3 %</td><td>不足 — 全数検査や工程の見直しが必要</td></tr>

@@ -82,7 +82,13 @@ export function openLearningCenter(app: App) {
       const sec = h(
         "section",
         { class: "ln-chapter" },
-        h("div", { class: "ln-chapter-head" }, h("h3", {}, ch.title), h("span", { class: "ln-chapter-count" + (n === ch.lessons.length ? " full" : "") }, `${n} / ${ch.lessons.length}`)),
+        h(
+          "div",
+          { class: "ln-chapter-head" },
+          h("h3", {}, ch.capstone ? h("span", { class: "ln-quiz-score perfect", title: "複数の機能を通しで使う総合演習コースです" }, "総合演習") : null, ch.capstone ? " " : null, ch.title),
+          h("span", { class: "ln-lesson-meta" }, h("span", { title: "このコースの目安時間" }, `約 ${ch.lessons.reduce((m, l) => m + l.minutes, 0)} 分`)),
+          h("span", { class: "ln-chapter-count" + (n === ch.lessons.length ? " full" : "") }, `${n} / ${ch.lessons.length}`),
+        ),
         h("p", { class: "ln-chapter-desc" }, ch.desc),
       );
       for (const l of ch.lessons) {
@@ -127,6 +133,24 @@ export function openLearningCenter(app: App) {
 
   const exercises = () => {
     const p = loadProgress();
+    // capstone courses: guided, step-checked projects that combine many features
+    const caps = CURRICULUM.filter((c) => c.capstone);
+    if (caps.length) {
+      pane.appendChild(h("p", { class: "ln-intro" }, "総合コース — 複数の機能を通しで使い、1 つの製品・図面・解析を仕上げるガイド付きの演習です (各ステップは自動でチェックされます)。"));
+      for (const ch of caps) {
+        const n = ch.lessons.filter((l) => p.done[l.id]).length;
+        const first = ch.lessons.find((l) => !p.done[l.id]) ?? ch.lessons[0];
+        pane.appendChild(
+          h(
+            "section",
+            { class: "ln-ex" + (n === ch.lessons.length ? " done" : "") },
+            h("div", { class: "ln-chapter-head" }, h("h3", {}, ch.title), h("span", { class: "ln-lesson-meta" }, h("span", {}, `${ch.lessons.length} レッスン・約 ${ch.lessons.reduce((m, l) => m + l.minutes, 0)} 分`), h("span", { class: "ln-chapter-count" + (n === ch.lessons.length ? " full" : "") }, `${n} / ${ch.lessons.length}`))),
+            h("p", { class: "ln-chapter-desc" }, ch.desc),
+            h("div", { class: "ln-actions" }, h("span", { class: "spacer" }), h("button", { class: "btn primary", onClick: () => start(first) }, iconEl("play"), n ? (n === ch.lessons.length ? "復習" : "続きから") : "開始")),
+          ),
+        );
+      }
+    }
     pane.appendChild(h("p", { class: "ln-intro" }, "レッスンで学んだことを組み合わせて、自分で考えて設計する課題です。要件はモデルを見て自動でチェックされます (形や寸法の正解は 1 つではありません)。"));
     for (const ex of EXERCISES) {
       pane.appendChild(
@@ -186,6 +210,8 @@ export function openLearningCenter(app: App) {
   <tr><td>応用 (約 1 時間)</td><td>第 5〜7 章</td><td>アセンブリ、図面、解析、製造データ</td></tr>
   <tr><td>製図 (約 2.5 時間)</td><td>第 6 章 (続)・(実践)</td><td>白紙からの図面構成・尺度・階段断面・溶接記号・設計変更と版管理・PDF/DXF 出力、詳細図・中心線・穴注記、公差とはめあい、データム・幾何公差・表面性状、部分断面・破断、穴テーブル、組立図と部品表</td></tr>
   <tr><td>発展 (約 45 分)</td><td>第 8 章</td><td>スイープ・ロフト・板金</td></tr>
+  <tr><td>応用 (約 2 時間)</td><td>サーフェス設計・MBD・機構/配線/大規模アセンブリ</td><td>曲面と厚み付け・ゼブラ、3D 注記 (データム・幾何公差・PMI 取り込み)、拘束の駆動とモーション解析、配線・配管、パターンと軽量表示</td></tr>
+  <tr><td>総合コース (各 1〜1.5 時間)</td><td>搬送ユニット・機械設計・製図・解析・装置設計</td><td>要求仕様から部品・組立・検証・図面一式までを通しで (「総合演習」タブにも一覧)</td></tr>
   <tr><td>総合演習</td><td>演習 0〜11</td><td>要件から自分で設計する力 (板金カバー・ダクト・リンク機構・部品図の製図を含む)</td></tr>
 </table>
 <h3>困ったときは</h3>
@@ -196,7 +222,7 @@ export function openLearningCenter(app: App) {
   <li>レッスンは毎回、専用の練習モデルから始まります。作業中のモデルは先に保存しておきましょう</li>
 </ul>
 <h3>座学テキスト</h3>
-<p>操作の実習とは別に、<b>設計の基礎・構造力学 (材料力学)・設計ノウハウ・プロダクトデザイン</b> を学ぶ座学テキストがあります (12 部 268 章、機械要素・剛性・振動・熱・コスト・安全設計を含む。計算ツール・計算練習・確認テスト付き)。
+<p>操作の実習とは別に、<b>設計の基礎・構造力学 (材料力学)・設計ノウハウ・プロダクトデザイン</b> を学ぶ座学テキストがあります (12 部 307 章、機械要素・剛性・振動・熱・コスト・安全設計を含む。計算ツール・計算練習・確認テスト付き)。
 「コース」タブの <b>座学テキスト</b> ボタン、または各レッスンの解説にあるリンクから別ウィンドウで開けます。テキストからレッスンを開くこともできます。</p>
 <p class="ln-note">進捗はこのコンピュータ (ブラウザ / アプリ) に保存されます。紙の教材として使える解説は <code>docs/learning/</code> にもあります。</p>
 </div>`;

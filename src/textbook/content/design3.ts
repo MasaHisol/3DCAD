@@ -298,7 +298,7 @@ export const DESIGN3: TextChapter[] = [
 <p class="tb-caption">図: 標準見本と上下の限度見本。見本は退色するので保管条件と更新時期を決める</p>
 <h2>色差 ΔE</h2>
 <p>色を数値で比べるときは、L*a*b* 色空間 (L* = 明度、a* = 赤−緑、b* = 黄−青) で測色し、2 色の距離を<b>色差 ΔE</b> で表します。</p>
-<p class="tb-formula">ΔE*ab = √( (ΔL*)² + (Δa*)² + (Δb*)² )</p>
+<div class="tb-math">\\Delta E^{*}_{ab} = \\sqrt{(\\Delta L^{*})^2 + (\\Delta a^{*})^2 + (\\Delta b^{*})^2}</div>
 <table class="tb-table">
   <tr><th>ΔE*ab の目安</th><th>見え方 (並べて比べたとき)</th></tr>
   <tr><td>〜0.5 程度</td><td>ほとんど区別できない</td></tr>

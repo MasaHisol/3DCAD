@@ -17,14 +17,14 @@ export const DRILLS: TextChapter[] = [
 GUIDE
 <h2>公式集</h2>
 <table class="tb-table"><tr><th>項目</th><th>式</th></tr>
-<tr><td>相対極座標 @r&lt;θ</td><td>x = x₀ + r cos θ、y = y₀ + r sin θ</td></tr>
-<tr><td>2 点間距離</td><td>√((x₂−x₁)² + (y₂−y₁)²)</td></tr>
-<tr><td>押し出し体積</td><td>V = 断面積 × 厚さ</td></tr>
-<tr><td>回転体の体積 (中空円筒)</td><td>V = π (R² − r²) h</td></tr>
-<tr><td>質量</td><td>m = ρV (鋼 7.85 g/cm³、アルミ 2.70 g/cm³)</td></tr>
-<tr><td>PCD 上の隣接穴間距離</td><td>s = PCD × sin(180° / n)</td></tr>
-<tr><td>直線パターン個数 (両端含む)</td><td>n = 全長 / ピッチ + 1</td></tr>
-<tr><td>図心</td><td>x̄ = Σ A<sub>i</sub>x<sub>i</sub> / Σ A<sub>i</sub></td></tr>
+<tr><td>相対極座標 @r&lt;θ</td><td><span class="tb-m">x = x_0 + r\\cos\\theta,\\quad y = y_0 + r\\sin\\theta</span></td></tr>
+<tr><td>2 点間距離</td><td><span class="tb-m">\\sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}</span></td></tr>
+<tr><td>押し出し体積</td><td><span class="tb-m">V = \\text{断面積} \\times \\text{厚さ}</span></td></tr>
+<tr><td>回転体の体積 (中空円筒)</td><td><span class="tb-m">V = \\pi (R^2 - r^2) h</span></td></tr>
+<tr><td>質量</td><td><span class="tb-m">m = \\rho V</span> (鋼 7.85 g/cm³、アルミ 2.70 g/cm³)</td></tr>
+<tr><td>PCD 上の隣接穴間距離</td><td><span class="tb-m">s = \\mathrm{PCD} \\times \\sin(180^\\circ / n)</span></td></tr>
+<tr><td>直線パターン個数 (両端含む)</td><td><span class="tb-m">n = \\dfrac{\\text{全長}}{\\text{ピッチ}} + 1</span></td></tr>
+<tr><td>図心</td><td><span class="tb-m">\\bar{x} = \\dfrac{\\sum A_i x_i}{\\sum A_i}</span></td></tr>
 <tr><td>剛体の自由度</td><td>2D: 3、3D: 6</td></tr>
 </table>
 `.replace("GUIDE", GUIDE),
@@ -71,15 +71,15 @@ GUIDE
 GUIDE
 <h2>公式集</h2>
 <table class="tb-table"><tr><th>項目</th><th>式・値</th></tr>
-<tr><td>すきま (最大 / 最小)</td><td>穴の上限 − 軸の下限 / 穴の下限 − 軸の上限</td></tr>
+<tr><td>すきま (最大 / 最小)</td><td>最大 <span class="tb-m">= \\text{穴の上限} - \\text{軸の下限}</span> / 最小 <span class="tb-m">= \\text{穴の下限} - \\text{軸の上限}</span></td></tr>
 <tr><td>φ18〜30 の公差</td><td>H7: +0.021/0、g6: −0.007/−0.020、h6: 0/−0.013、p6: +0.035/+0.022</td></tr>
 <tr><td>φ30〜50 の公差</td><td>H7: +0.025/0、h6: 0/−0.016</td></tr>
-<tr><td>積み上げ (最悪値)</td><td>T = Σ t<sub>i</sub></td></tr>
-<tr><td>積み上げ (統計 RSS)</td><td>T = √(Σ t<sub>i</sub>²)</td></tr>
-<tr><td>位置度 (浮動締結)</td><td>T = H − F (穴径 − ねじ径)</td></tr>
-<tr><td>位置度 (固定締結)</td><td>T = (H − F) / 2</td></tr>
-<tr><td>メートル並目ねじの下穴</td><td>≈ d − P</td></tr>
-<tr><td>テーパ 1 : a</td><td>(D − d) / L = 1 / a</td></tr>
+<tr><td>積み上げ (最悪値)</td><td><span class="tb-m">T = \\sum t_i</span></td></tr>
+<tr><td>積み上げ (統計 RSS)</td><td><span class="tb-m">T = \\sqrt{\\sum t_i^2}</span></td></tr>
+<tr><td>位置度 (浮動締結)</td><td><span class="tb-m">T = H - F</span> (穴径 − ねじ径)</td></tr>
+<tr><td>位置度 (固定締結)</td><td><span class="tb-m">T = \\dfrac{H - F}{2}</span></td></tr>
+<tr><td>メートル並目ねじの下穴</td><td><span class="tb-m">\\approx d - P</span></td></tr>
+<tr><td>テーパ 1 : a</td><td><span class="tb-m">\\dfrac{D - d}{L} = \\dfrac{1}{a}</span></td></tr>
 </table>
 `.replace("GUIDE", GUIDE),
     points: [
@@ -125,16 +125,16 @@ GUIDE
 GUIDE
 <h2>公式集</h2>
 <table class="tb-table"><tr><th>項目</th><th>式</th></tr>
-<tr><td>引張応力 / 伸び</td><td>σ = F / A、δ = σL / E</td></tr>
-<tr><td>曲げ応力</td><td>σ = M / Z</td></tr>
-<tr><td>長方形断面</td><td>I = bh³/12、Z = bh²/6</td></tr>
-<tr><td>丸棒</td><td>I = πd⁴/64、Z = πd³/32、I<sub>p</sub> = πd⁴/32、Z<sub>p</sub> = πd³/16</td></tr>
-<tr><td>片持ちはり (先端集中)</td><td>M<sub>max</sub> = PL、δ = PL³ / (3EI)</td></tr>
-<tr><td>単純支持 (中央集中)</td><td>M<sub>max</sub> = PL/4、δ = PL³ / (48EI)</td></tr>
-<tr><td>単純支持 (等分布)</td><td>M<sub>max</sub> = wL²/8、δ = 5wL⁴ / (384EI)</td></tr>
-<tr><td>ねじり</td><td>τ = T / Z<sub>p</sub>、θ = TL / (G I<sub>p</sub>)</td></tr>
-<tr><td>オイラー座屈</td><td>P<sub>cr</sub> = π²EI / L<sub>e</sub>² (両端ピン L<sub>e</sub> = L、一端固定他端自由 2L、両端固定 0.5L)</td></tr>
-<tr><td>相当応力 (ミーゼス)</td><td>σ<sub>eq</sub> = √(σ² + 3τ²)</td></tr>
+<tr><td>引張応力 / 伸び</td><td><span class="tb-m">\\sigma = \\dfrac{F}{A},\\quad \\delta = \\dfrac{\\sigma L}{E}</span></td></tr>
+<tr><td>曲げ応力</td><td><span class="tb-m">\\sigma = \\dfrac{M}{Z}</span></td></tr>
+<tr><td>長方形断面</td><td><span class="tb-m">I = \\dfrac{bh^3}{12},\\quad Z = \\dfrac{bh^2}{6}</span></td></tr>
+<tr><td>丸棒</td><td><span class="tb-m">I = \\dfrac{\\pi d^4}{64},\\ Z = \\dfrac{\\pi d^3}{32},\\ I_p = \\dfrac{\\pi d^4}{32},\\ Z_p = \\dfrac{\\pi d^3}{16}</span></td></tr>
+<tr><td>片持ちはり (先端集中)</td><td><span class="tb-m">M_{\\max} = PL,\\quad \\delta = \\dfrac{PL^3}{3EI}</span></td></tr>
+<tr><td>単純支持 (中央集中)</td><td><span class="tb-m">M_{\\max} = \\dfrac{PL}{4},\\quad \\delta = \\dfrac{PL^3}{48EI}</span></td></tr>
+<tr><td>単純支持 (等分布)</td><td><span class="tb-m">M_{\\max} = \\dfrac{wL^2}{8},\\quad \\delta = \\dfrac{5wL^4}{384EI}</span></td></tr>
+<tr><td>ねじり</td><td><span class="tb-m">\\tau = \\dfrac{T}{Z_p},\\quad \\theta = \\dfrac{TL}{G I_p}</span></td></tr>
+<tr><td>オイラー座屈</td><td><span class="tb-m">P_{cr} = \\dfrac{\\pi^2 EI}{L_e^2}</span> (両端ピン <span class="tb-m">L_e = L</span>、一端固定他端自由 2L、両端固定 0.5L)</td></tr>
+<tr><td>相当応力 (ミーゼス)</td><td><span class="tb-m">\\sigma_{eq} = \\sqrt{\\sigma^2 + 3\\tau^2}</span></td></tr>
 </table>
 `.replace("GUIDE", GUIDE),
     points: [
@@ -180,17 +180,17 @@ GUIDE
 GUIDE
 <h2>公式集</h2>
 <table class="tb-table"><tr><th>項目</th><th>式</th></tr>
-<tr><td>締付けトルクと軸力</td><td>T = K·F·d (K ≈ 0.2)</td></tr>
+<tr><td>締付けトルクと軸力</td><td><span class="tb-m">T = K F d</span> (K ≈ 0.2)</td></tr>
 <tr><td>ねじの有効断面積</td><td>M8: 36.6、M10: 58.0、M12: 84.3 mm²</td></tr>
-<tr><td>摩擦で受ける横荷重</td><td>F<sub>s</sub> = μ·F·n (面数・本数)</td></tr>
-<tr><td>軸受の基本定格寿命</td><td>L<sub>10</sub> = (C/P)<sup>p</sup> × 10⁶ 回 (玉 p = 3、ころ p = 10/3)</td></tr>
-<tr><td>寿命時間</td><td>L<sub>h</sub> = L<sub>10</sub> / (60 n)</td></tr>
-<tr><td>歯車</td><td>d = m·z、歯先円 d<sub>a</sub> = m(z + 2)、中心距離 a = m(z₁ + z₂)/2</td></tr>
-<tr><td>速度比・トルク</td><td>i = z₂/z₁、T₂ = T₁·i·η、n₂ = n₁/i</td></tr>
-<tr><td>接線力</td><td>F<sub>t</sub> = 2T / d</td></tr>
-<tr><td>キーのせん断</td><td>τ = F<sub>t</sub> / (b·l)、F<sub>t</sub> = 2T / d<sub>軸</sub></td></tr>
-<tr><td>コイルばね</td><td>k = G d⁴ / (8 D³ n) (G ≈ 78.5 GPa)</td></tr>
-<tr><td>動力</td><td>P = T·ω、ω = 2πn/60</td></tr>
+<tr><td>摩擦で受ける横荷重</td><td><span class="tb-m">F_s = \\mu F n</span> (面数・本数)</td></tr>
+<tr><td>軸受の基本定格寿命</td><td><span class="tb-m">L_{10} = \\left(\\dfrac{C}{P}\\right)^{p} \\times 10^6</span> 回 (玉 p = 3、ころ p = 10/3)</td></tr>
+<tr><td>寿命時間</td><td><span class="tb-m">L_h = \\dfrac{L_{10}}{60\\,n}</span></td></tr>
+<tr><td>歯車</td><td><span class="tb-m">d = m z</span>、歯先円 <span class="tb-m">d_a = m(z + 2)</span>、中心距離 <span class="tb-m">a = \\dfrac{m(z_1 + z_2)}{2}</span></td></tr>
+<tr><td>速度比・トルク</td><td><span class="tb-m">i = \\dfrac{z_2}{z_1},\\quad T_2 = T_1\\, i\\, \\eta,\\quad n_2 = \\dfrac{n_1}{i}</span></td></tr>
+<tr><td>接線力</td><td><span class="tb-m">F_t = \\dfrac{2T}{d}</span></td></tr>
+<tr><td>キーのせん断</td><td><span class="tb-m">\\tau = \\dfrac{F_t}{b\\,l},\\quad F_t = \\dfrac{2T}{d_{\\text{軸}}}</span></td></tr>
+<tr><td>コイルばね</td><td><span class="tb-m">k = \\dfrac{G d^4}{8 D^3 n}</span> (G ≈ 78.5 GPa)</td></tr>
+<tr><td>動力</td><td><span class="tb-m">P = T\\omega,\\quad \\omega = \\dfrac{2\\pi n}{60}</span></td></tr>
 </table>
 `.replace("GUIDE", GUIDE),
     points: [
@@ -235,14 +235,14 @@ GUIDE
 GUIDE
 <h2>公式集</h2>
 <table class="tb-table"><tr><th>項目</th><th>式</th></tr>
-<tr><td>固有振動数</td><td>f<sub>n</sub> = (1/2π)√(k/m)</td></tr>
-<tr><td>静たわみからの固有振動数</td><td>f<sub>n</sub> ≈ 15.76 / √δ (δ: mm)</td></tr>
-<tr><td>回転による加振</td><td>f = rpm / 60</td></tr>
-<tr><td>応答倍率 (減衰なし)</td><td>1 / |1 − r²|、r = f / f<sub>n</sub></td></tr>
-<tr><td>振動伝達率 (減衰なし、r &gt; √2)</td><td>T = 1 / (r² − 1)</td></tr>
-<tr><td>共振時の倍率</td><td>Q ≈ 1 / (2ζ)</td></tr>
-<tr><td>ばねの直列 / 並列</td><td>1/k = 1/k₁ + 1/k₂ / k = k₁ + k₂</td></tr>
-<tr><td>片持ちはりの剛性</td><td>k = 3EI / L³</td></tr>
+<tr><td>固有振動数</td><td><span class="tb-m">f_n = \\dfrac{1}{2\\pi}\\sqrt{\\dfrac{k}{m}}</span></td></tr>
+<tr><td>静たわみからの固有振動数</td><td><span class="tb-m">f_n \\approx \\dfrac{15.76}{\\sqrt{\\delta}}</span> (δ: mm)</td></tr>
+<tr><td>回転による加振</td><td><span class="tb-m">f = \\dfrac{\\mathrm{rpm}}{60}</span></td></tr>
+<tr><td>応答倍率 (減衰なし)</td><td><span class="tb-m">\\dfrac{1}{|1 - r^2|},\\quad r = \\dfrac{f}{f_n}</span></td></tr>
+<tr><td>振動伝達率 (減衰なし、r &gt; √2)</td><td><span class="tb-m">T = \\dfrac{1}{r^2 - 1}</span></td></tr>
+<tr><td>共振時の倍率</td><td><span class="tb-m">Q \\approx \\dfrac{1}{2\\zeta}</span></td></tr>
+<tr><td>ばねの直列 / 並列</td><td>直列 <span class="tb-m">\\dfrac{1}{k} = \\dfrac{1}{k_1} + \\dfrac{1}{k_2}</span> / 並列 <span class="tb-m">k = k_1 + k_2</span></td></tr>
+<tr><td>片持ちはりの剛性</td><td><span class="tb-m">k = \\dfrac{3EI}{L^3}</span></td></tr>
 </table>
 `.replace("GUIDE", GUIDE),
     points: [
@@ -287,15 +287,15 @@ GUIDE
 GUIDE
 <h2>公式集</h2>
 <table class="tb-table"><tr><th>項目</th><th>式・目安</th></tr>
-<tr><td>90° 曲げの曲げしろ</td><td>BA = (π/2)(R + K·t) (K ≈ 0.3〜0.5)</td></tr>
-<tr><td>展開長</td><td>L = 直線部の和 + BA</td></tr>
-<tr><td>切削速度</td><td>V = π D n / 1000 (m/min)</td></tr>
-<tr><td>旋削時間</td><td>t = L / (f·n) (f: mm/rev)</td></tr>
-<tr><td>打抜き力</td><td>F = 周長 × 板厚 × せん断強さ</td></tr>
-<tr><td>成形の冷却時間</td><td>∝ 肉厚²</td></tr>
+<tr><td>90° 曲げの曲げしろ</td><td><span class="tb-m">BA = \\dfrac{\\pi}{2}(R + K t)</span> (K ≈ 0.3〜0.5)</td></tr>
+<tr><td>展開長</td><td><span class="tb-m">L = \\text{直線部の和} + BA</span></td></tr>
+<tr><td>切削速度</td><td><span class="tb-m">V = \\dfrac{\\pi D n}{1000}</span> (m/min)</td></tr>
+<tr><td>旋削時間</td><td><span class="tb-m">t = \\dfrac{L}{f\\,n}</span> (f: mm/rev)</td></tr>
+<tr><td>打抜き力</td><td><span class="tb-m">F = \\text{周長} \\times \\text{板厚} \\times \\text{せん断強さ}</span></td></tr>
+<tr><td>成形の冷却時間</td><td><span class="tb-m">\\propto \\text{肉厚}^2</span></td></tr>
 <tr><td>リブ厚</td><td>0.5〜0.6 × 一般肉厚</td></tr>
-<tr><td>工程の累積歩留まり</td><td>Y = y₁ × y₂ × … × y<sub>n</sub></td></tr>
-<tr><td>DFA 効率 (Boothroyd)</td><td>E = 3 N<sub>min</sub> / 組立時間 (s)</td></tr>
+<tr><td>工程の累積歩留まり</td><td><span class="tb-m">Y = y_1 \\times y_2 \\times \\cdots \\times y_n</span></td></tr>
+<tr><td>DFA 効率 (Boothroyd)</td><td><span class="tb-m">E = \\dfrac{3 N_{\\min}}{\\text{組立時間 (s)}}</span></td></tr>
 </table>
 `.replace("GUIDE", GUIDE),
     points: [
@@ -340,15 +340,15 @@ GUIDE
 GUIDE
 <h2>公式集</h2>
 <table class="tb-table"><tr><th>項目</th><th>式・目安</th></tr>
-<tr><td>パーセンタイル (正規分布)</td><td>5th = 平均 − 1.645σ、95th = 平均 + 1.645σ</td></tr>
+<tr><td>パーセンタイル (正規分布)</td><td><span class="tb-m">5\\text{th} = \\text{平均} - 1.645\\sigma,\\quad 95\\text{th} = \\text{平均} + 1.645\\sigma</span></td></tr>
 <tr><td>どこまで合わせるか</td><td>届く距離は小さい人 (5th)、すき間は大きい人 (95th)</td></tr>
-<tr><td>視角と大きさ</td><td>h = 2 D tan(θ/2) (小角では h ≈ D·θ)</td></tr>
-<tr><td>文字高さの目安</td><td>視角 20 分以上: h ≈ 0.0058 D</td></tr>
-<tr><td>Fitts の法則</td><td>MT = a + b log₂(2D / W)</td></tr>
-<tr><td>Hick の法則</td><td>RT = a + b log₂(n + 1)</td></tr>
-<tr><td>コントラスト比 (WCAG)</td><td>(L₁ + 0.05) / (L₂ + 0.05)、本文 4.5 以上</td></tr>
+<tr><td>視角と大きさ</td><td><span class="tb-m">h = 2 D \\tan(\\theta/2)</span> (小角では <span class="tb-m">h \\approx D\\theta</span>)</td></tr>
+<tr><td>文字高さの目安</td><td>視角 20 分以上: <span class="tb-m">h \\approx 0.0058\\,D</span></td></tr>
+<tr><td>Fitts の法則</td><td><span class="tb-m">\\mathrm{MT} = a + b \\log_2(2D / W)</span></td></tr>
+<tr><td>Hick の法則</td><td><span class="tb-m">\\mathrm{RT} = a + b \\log_2(n + 1)</span></td></tr>
+<tr><td>コントラスト比 (WCAG)</td><td><span class="tb-m">\\dfrac{L_1 + 0.05}{L_2 + 0.05}</span>、本文 4.5 以上</td></tr>
 <tr><td>黄金比</td><td>1 : 1.618</td></tr>
-<tr><td>操作力とトルク</td><td>T = F × r</td></tr>
+<tr><td>操作力とトルク</td><td><span class="tb-m">T = F \\times r</span></td></tr>
 </table>
 `.replace("GUIDE", GUIDE),
     points: [
@@ -393,15 +393,15 @@ GUIDE
 GUIDE
 <h2>公式集</h2>
 <table class="tb-table"><tr><th>項目</th><th>式・値</th></tr>
-<tr><td>安全距離 (ISO 13855、垂直検出面)</td><td>S = K·T + C、C = 8(d − 14) (d ≤ 40)</td></tr>
+<tr><td>安全距離 (ISO 13855、垂直検出面)</td><td><span class="tb-m">S = K T + C,\\quad C = 8(d - 14)</span> (d ≤ 40)</td></tr>
 <tr><td>K の選び方</td><td>K = 2000 mm/s。S &gt; 500 なら K = 1600 で再計算 (最小 500)。最小 100 mm</td></tr>
 <tr><td>最小すき間 (ISO 13854)</td><td>体 500、頭 300、脚 180、足 120、腕 120、手 100、指 25 mm</td></tr>
-<tr><td>停止時間・停止距離</td><td>t = v / a、s = v² / (2a)</td></tr>
-<tr><td>シリンダ推力</td><td>F = p × A (A = πD²/4)</td></tr>
-<tr><td>垂直軸の保持トルク (ボールねじ)</td><td>T = F·ℓ / (2π η)</td></tr>
-<tr><td>運動エネルギー</td><td>E = ½ m v²</td></tr>
-<tr><td>コンデンサの蓄積エネルギー</td><td>E = ½ C V²</td></tr>
-<tr><td>独立な 2 チャンネルの同時故障</td><td>P = P₁ × P₂ (共通原因故障は別途考慮)</td></tr>
+<tr><td>停止時間・停止距離</td><td><span class="tb-m">t = \\dfrac{v}{a},\\quad s = \\dfrac{v^2}{2a}</span></td></tr>
+<tr><td>シリンダ推力</td><td><span class="tb-m">F = p \\times A</span> (<span class="tb-m">A = \\pi D^2/4</span>)</td></tr>
+<tr><td>垂直軸の保持トルク (ボールねじ)</td><td><span class="tb-m">T = \\dfrac{F\\,\\ell}{2\\pi\\eta}</span></td></tr>
+<tr><td>運動エネルギー</td><td><span class="tb-m">E = \\tfrac{1}{2} m v^2</span></td></tr>
+<tr><td>コンデンサの蓄積エネルギー</td><td><span class="tb-m">E = \\tfrac{1}{2} C V^2</span></td></tr>
+<tr><td>独立な 2 チャンネルの同時故障</td><td><span class="tb-m">P = P_1 \\times P_2</span> (共通原因故障は別途考慮)</td></tr>
 </table>
 `.replace("GUIDE", GUIDE),
     points: [

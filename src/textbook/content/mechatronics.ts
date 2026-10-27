@@ -26,12 +26,15 @@ export const MECHATRONICS: TextChapter[] = [
   <li><b>余裕率</b>: 最大トルク・実効トルクがモーターの定格に対して余裕があるか (目安 1.5〜2 倍)</li>
 </ol>
 <h2>負荷慣性の換算 (モーター軸換算、単位 kg·m²)</h2>
-<div class="tb-formula">ボールねじ: JL = m (P / 2π)² + JS　　(P: リード [m]、JS: ねじ軸の慣性)<br>ベルト・プーリ: JL = m (D / 2)² + プーリの慣性　　(D: プーリ直径 [m])</div>
+<div class="tb-math">\\begin{aligned} &\\text{ボールねじ: } \\\\ &\\quad J_L = m\\left(\\dfrac{P}{2\\pi}\\right)^2 + J_S \\\\ &\\text{ベルト・プーリ: } \\\\ &\\quad J_L = m\\left(\\dfrac{D}{2}\\right)^2 + J_{\\text{プーリ}} \\end{aligned}</div>
+<p>P: リード [m]、J<sub>S</sub>: ねじ軸の慣性、D: プーリ直径 [m]</p>
 <p>直線運動する質量 m を、モーター軸の回転に置き換えたものです。リードやプーリ径を小さくすると負荷慣性は小さく見えますが、必要な回転数は上がります。</p>
 <h2>トルクの計算 (単位 N·m)</h2>
-<div class="tb-formula">角加速度 α = ω / ta = (2π N / 60) / ta　[rad/s²]<br>加速トルク Ta = (JM + JL) · α<br>一定速トルク (摩擦) Tf = μ m g P / (2π η)　(ボールねじ)<br>最大トルク Tpeak = Ta + Tf</div>
+<div class="tb-math">\\begin{aligned} \\alpha &= \\dfrac{\\omega}{t_a} = \\dfrac{2\\pi N/60}{t_a}\\ [\\mathrm{rad/s^2}] \\\\ T_a &= (J_M + J_L)\\,\\alpha \\\\ T_f &= \\dfrac{\\mu m g P}{2\\pi\\eta} \\\\ T_{\\text{peak}} &= T_a + T_f \\end{aligned}</div>
+<p>α: 角加速度、T<sub>a</sub>: 加速トルク、T<sub>f</sub>: 一定速トルク (摩擦、ボールねじ)、T<sub>peak</sub>: 最大トルク</p>
 <p>加速中は Ta + Tf、一定速では Tf、減速中は Tf − Ta が必要です。これを時間で 2 乗平均したものが<b>実効トルク</b>で、モーターの<b>定格トルク以下</b>にします (発熱の確認)。</p>
-<div class="tb-formula">実効トルク Trms = √( Σ (Ti² × ti) / t サイクル )</div>
+<div class="tb-math">T_{\\text{rms}} = \\sqrt{\\dfrac{\\sum T_i^2\\, t_i}{t_{\\text{サイクル}}}}</div>
+<p>T<sub>rms</sub>: 実効トルク</p>
 <h2>慣性比の目安</h2>
 <p>慣性比 JL / JM が大きいと、制御が振動的になり整定に時間がかかります。AC サーボでは<b>10 倍以下程度</b>が一つの目安ですが、許容値は機種・剛性・用途で異なります (高慣性機種では 30 倍程度まで許すものもある)。メーカーの推奨値を必ず確認します。大きすぎるときは減速機を入れると 1/i² で小さく見えます。</p>
 <div data-widget="motor"></div>
@@ -85,7 +88,8 @@ export const MECHATRONICS: TextChapter[] = [
 </table>
 <p>値は代表的な範囲で、メーカー・機種により異なります。</p>
 <h2>減速比と慣性・トルク</h2>
-<div class="tb-formula">出力回転数 = N / i　　出力トルク = T × i × η<br>モーター軸から見た負荷慣性 JL' = JL / i²</div>
+<div class="tb-math">\\begin{aligned} \\text{出力回転数} &= \\dfrac{N}{i} \\\\ \\text{出力トルク} &= T\\times i\\times\\eta \\\\ J_L' &= \\dfrac{J_L}{i^2} \\end{aligned}</div>
+<p>J<sub>L</sub>': モーター軸から見た負荷慣性</p>
 <p>減速比 i = 10 なら負荷慣性は 1/100 に見えます。慣性比を下げるのに減速機は非常に効果的です。ただし減速比を上げすぎると、モーターの最高回転数で速度が足りなくなります。</p>
 <h2>選定で見る項目</h2>
 <ul>
@@ -183,7 +187,8 @@ export const MECHATRONICS: TextChapter[] = [
   <tr><td>すべりガイド</td><td>減衰が大きく衝撃に強い。摩擦は大きい</td><td>工作機械のあり溝、低速・重荷重</td></tr>
 </table>
 <h2>定格荷重と寿命</h2>
-<div class="tb-formula">定格寿命 L = (C / P)³ × 50 km　(玉の場合)</div>
+<div class="tb-math">L = \\left(\\dfrac{C}{P}\\right)^{3}\\times 50\\ \\mathrm{km}</div>
+<p>定格寿命 (玉の場合)</p>
 <p>C は基本動定格荷重、P は加わる荷重です。<b>基準距離はメーカーにより 50 km または 100 km</b> で、同じガイドでも C の値が異なります (100 km 基準の C は 50 km 基準の約 0.79 倍)。比較するときは基準をそろえます。ころ形は指数 10/3 です。</p>
 <h2>モーメント荷重</h2>
 <p>荷重がブロックの中心から外れると、ピッチング・ヨーイング・ローリングのモーメントがかかります。1 本のレールに 1 ブロックでは弱いので、2 本のレール × 2 ブロックにし、重心をブロックの間に置くのが基本です。</p>
@@ -221,7 +226,8 @@ export const MECHATRONICS: TextChapter[] = [
 <text class="lbl" x="66" y="54" text-anchor="end">レール</text>
 </svg>
 <p class="tb-caption">図: 荷重点が中心から x, y ずれると、近いブロック ② に荷重が集中する</p>
-<div class="tb-formula">ブロック荷重 (静的・水平設置) P = W/4 ± W·x / (2 L0) ± W·y / (2 L1)</div>
+<div class="tb-math">P = \\dfrac{W}{4} \\pm \\dfrac{W\\,x}{2L_0} \\pm \\dfrac{W\\,y}{2L_1}</div>
+<p>ブロック荷重 (静的・水平設置)</p>
 <h2>計算例: 偏心荷重の配分と寿命</h2>
 <p>m = 40 kg (W = 392 N)、L0 = 200 mm、L1 = 150 mm、荷重点が中心から x = 40 mm、y = 30 mm。</p>
 <ul>
@@ -276,7 +282,8 @@ export const MECHATRONICS: TextChapter[] = [
     lead: "空気圧シリンダは安く簡単に直線運動を作れるため、自動機で多用されます。推力の計算、空気消費量、回路を構成する機器と安全上の注意を学びます。",
     body: `
 <h2>シリンダの推力</h2>
-<div class="tb-formula">押し側 F = p × (π D² / 4) × 負荷率　　引き側 F = p × π (D² − d²) / 4 × 負荷率<br>(p [MPa] × 面積 [mm²] = 力 [N])</div>
+<div class="tb-math">\\begin{aligned} \\text{押し側 } F &= p\\times\\dfrac{\\pi D^2}{4}\\times\\text{負荷率} \\\\ \\text{引き側 } F &= p\\times\\dfrac{\\pi(D^2-d^2)}{4}\\times\\text{負荷率} \\end{aligned}</div>
+<p>p [MPa] × 面積 [mm²] = 力 [N]</p>
 <svg class="tb-chart" viewBox="0 0 520 212" role="img" aria-label="シリンダの受圧面積">
 <rect x="74" y="58" width="96" height="92" style="fill:var(--tb-accent)" opacity="0.13"/>
 <rect x="192" y="58" width="120" height="92" style="fill:var(--tb-accent)" opacity="0.13"/>
@@ -337,7 +344,8 @@ export const MECHATRONICS: TextChapter[] = [
   <li>垂直負荷でエアが抜けたときの落下を考えていない (落下防止ロック、パイロットチェック弁などを検討)</li>
 </ul>
 <h2>空気消費量</h2>
-<div class="tb-formula">1 往復の消費量 (大気圧換算) = (A押し + A引き) × ストローク × (p + 0.1013) / 0.1013</div>
+<div class="tb-math">\\begin{aligned} Q &= (A_{\\text{押し}} + A_{\\text{引き}})\\times\\text{ストローク} \\\\ &\\quad \\times\\dfrac{p + 0.1013}{0.1013} \\end{aligned}</div>
+<p>Q: 1 往復の消費量 (大気圧換算)</p>
 <p>圧縮された空気を大気圧の体積に直したものです。コンプレッサの容量や配管を決めるのに使います。配管の容積も加わるので、実際はもう少し多くなります。</p>
 <h2>回路の機器</h2>
 <ol class="tb-flow">
@@ -401,7 +409,7 @@ export const MECHATRONICS: TextChapter[] = [
   <li><b>インクリメンタル</b>: 回転に応じてパルスを出す。A・B 相の 2 信号で回転方向がわかり、4 逓倍で分解能を 4 倍にできる。電源を切ると位置を失うので原点復帰が必要</li>
   <li><b>アブソリュート</b>: 絶対位置をコードで出力。電源を入れ直しても位置がわかる</li>
 </ul>
-<div class="tb-formula">直線分解能 = リード / (パルス数 × 逓倍)</div>
+<div class="tb-math">\\text{直線分解能} = \\dfrac{\\text{リード}}{\\text{パルス数}\\times\\text{逓倍}}</div>
 <p>例: 2 500 パルス/回転、4 逓倍、リード 10 mm → 10 / 10 000 = 0.001 mm (1 μm)。ただし機械の精度 (ねじのリード誤差・バックラッシ) は別に考えます。</p>
 <h2>力・温度のセンサ</h2>
 <ul>
@@ -552,7 +560,8 @@ export const MECHATRONICS: TextChapter[] = [
 <text class="sec" x="265" y="120" text-anchor="middle">面積 = 移動距離 L</text>
 <text class="lbl" x="500" y="160" text-anchor="end">時間 t</text><text class="lbl" x="58" y="22">速度</text>
 </svg>
-<div class="tb-formula">加速・減速時間が等しいとき: 移動時間 t = L / v + ta　(条件: L ≥ v·ta)</div>
+<div class="tb-math">\\begin{gathered} t = \\dfrac{L}{v} + t_a \\\\ (L \\ge v\\,t_a) \\end{gathered}</div>
+<p>加速・減速時間が等しいときの移動時間。</p>
 <p>L &lt; v·ta のときは最高速度に届かず三角形のパターンになり、t = 2√(L·ta / v) です。加速を急にすると移動時間は短くなりますが、トルクと振動が増えます。</p>
 <h2>機械設計者が決める制御の条件 (手順)</h2>
 <ol class="tb-flow">
@@ -638,7 +647,8 @@ export const QUALITY: TextChapter[] = [
   <li>目安として、測定器の分解能は<b>公差の 1/10 程度</b>を選ぶ。公差 0.02 mm なら 0.001〜0.002 mm 読みのマイクロメータ</li>
 </ul>
 <h2>温度 — 20 °C 基準</h2>
-<div class="tb-formula">伸び ΔL = α × L × ΔT　(鋼 α ≈ 11.5 × 10⁻⁶ /K)</div>
+<div class="tb-math">\\Delta L = \\alpha\\, L\\, \\Delta T</div>
+<p>鋼では α ≈ 11.5 × 10⁻⁶ /K。</p>
 <p>長さの標準温度は <b>20 °C</b> です (ISO 1)。部品・測定器が手の熱で温まるだけでも μm 単位で変わります。精密測定は恒温室で、部品をなじませてから測ります。</p>
 <h2>アッベの原理</h2>
 <p>測定する部分と目盛を<b>同じ直線上</b>に置くと誤差が小さくなる、という原理です。マイクロメータは測定軸と目盛が一直線なので守っていますが、ノギスはジョウと目盛がずれているため、ジョウの傾きが誤差になります。ノギスはジョウの根元で測るのがコツです。</p>
@@ -683,7 +693,7 @@ export const QUALITY: TextChapter[] = [
   <tr><td>層別</td><td>機械別・作業者別などに分けて違いを見る</td></tr>
 </table>
 <h2>工程能力指数</h2>
-<div class="tb-formula">Cp = (USL − LSL) / 6σ　　Cpk = min(USL − μ, μ − LSL) / 3σ</div>
+<div class="tb-math">\\begin{gathered} C_p = \\dfrac{USL - LSL}{6\\sigma} \\\\ C_{pk} = \\dfrac{\\min(USL-\\mu,\\ \\mu-LSL)}{3\\sigma} \\end{gathered}</div>
 <svg class="tb-chart" viewBox="0 0 520 205" role="img" aria-label="正規分布と規格">
 <rect x="70" y="24" width="390" height="146" style="fill:var(--tb-good)" opacity="0.07"/>
 <path d="M120,170 C190,168 215,40 265,40 C315,40 340,168 410,170 Z" style="fill:var(--tb-accent)" opacity="0.18"/>

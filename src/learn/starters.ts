@@ -5,7 +5,7 @@ import type { Parameter, PartDocument, SketchFeature } from "../core/types";
 import type { AssemblyDocument } from "../assembly/types";
 import { sampleAssembly } from "../samples";
 
-function builder(doc: PartDocument) {
+export function builder(doc: PartDocument) {
   let n = 0;
   return (expr: string, owner: string, unit: Parameter["unit"] = "mm"): string => {
     const name = `d${n++}`;
@@ -15,7 +15,7 @@ function builder(doc: PartDocument) {
 }
 
 /** Centred, fully dimensioned rectangle on the XZ (floor) plane. */
-function rectSketch(id: string, name: string, w: string, d: string, P: ReturnType<typeof builder>, W: number, D: number): SketchFeature {
+export function rectSketch(id: string, name: string, w: string, d: string, P: ReturnType<typeof builder>, W: number, D: number): SketchFeature {
   const sk: SketchFeature = {
     id,
     type: "sketch",

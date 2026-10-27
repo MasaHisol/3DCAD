@@ -485,7 +485,7 @@ export const BASICS: TextChapter[] = [
   <tr><td>軸 k6</td><td>+15</td><td>+2</td><td>20.002〜20.015</td></tr>
   <tr><td>軸 p6</td><td>+35</td><td>+22</td><td>20.022〜20.035</td></tr>
 </table>
-<div class="tb-formula">最大すきま = 穴の最大 − 軸の最小　　最小すきま = 穴の最小 − 軸の最大<br>(最小すきまが負ならしめしろ。最大しめしろ = 軸の最大 − 穴の最小)</div>
+<div class="tb-math">\\begin{aligned} \\text{最大すきま} &= \\text{穴の最大} - \\text{軸の最小} \\\\ \\text{最小すきま} &= \\text{穴の最小} - \\text{軸の最大} \\end{aligned}</div><p>(最小すきまが負ならしめしろ。最大しめしろ = 軸の最大 − 穴の最小)</p>
 <table class="tb-table">
   <tr><th>はめあい</th><th>最小</th><th>最大</th><th>種類と用途の例</th></tr>
   <tr><td>H7/f7</td><td>すきま 0.020</td><td>すきま 0.062</td><td>すきまばめ。潤滑した回転軸・すべり軸受</td></tr>
@@ -503,7 +503,7 @@ export const BASICS: TextChapter[] = [
 </ul>
 <h2>公差の積み上げ</h2>
 <p>部品を何個も重ねると、全体の寸法のばらつきは足し合わさります。</p>
-<div class="tb-formula">ワーストケース: T = t₁ + t₂ + … + tₙ<br>二乗和平方根 (RSS): T = √(t₁² + t₂² + … + tₙ²)</div>
+<div class="tb-math">\\begin{aligned} \\text{ワーストケース:}\\ T &= t_1 + t_2 + \\cdots + t_n \\\\ \\text{二乗和平方根 (RSS):}\\ T &= \\sqrt{t_1^2 + t_2^2 + \\cdots + t_n^2} \\end{aligned}</div>
 <p>ワーストケースは全部品が同時に最悪の値になる場合で、確実ですが公差が厳しくなります。
 実際には全部が同時に端に寄ることはまれなので、量産品では統計的な <b>RSS</b> で評価することも多いです (各寸法が正規分布で、平均が中央にある前提)。</p>
 <svg class="tb-chart" viewBox="0 0 520 232" role="img" aria-label="公差の積み上げ">
@@ -589,7 +589,7 @@ export const BASICS: TextChapter[] = [
 <p class="tb-caption">図: 同じ形・同じ荷重なら、たわみはヤング率に反比例する。アルミは鋼の約 3 倍たわむ (たわみは誇張して描いた)</p>
 <h2>比剛性と比強度</h2>
 <p>軽量化を考えるときは、密度あたりの値で比べます。</p>
-<div class="tb-formula">比剛性 = E / ρ　　比強度 = σy / ρ</div>
+<div class="tb-math">\\text{比剛性} = \\dfrac{E}{\\rho} \\qquad \\text{比強度} = \\dfrac{\\sigma_y}{\\rho}</div>
 <p>おもしろいことに、鋼・アルミ・チタンの<b>比剛性はほぼ同じ</b> (約 26 GPa/(g/cm³)) です。つまり、同じ質量で「たわみにくさ」を上げたいとき、材料を変えても効果は小さく、
 <b>形 (断面) を工夫する</b>ほうがはるかに有効です (→ 構造力学「断面の形と剛性」)。一方、比強度は高強度アルミ合金やチタンが有利です。</p>
 <svg class="tb-chart" viewBox="0 0 520 212" role="img" aria-label="比剛性の比較">
@@ -655,7 +655,7 @@ export const BASICS: TextChapter[] = [
 <p class="tb-caption">鋼材は JIS の規格値 (最小値)、アルミ合金と樹脂は代表値。樹脂は温度・吸水・グレードで大きく変わるので、メーカーのデータで確認する</p>
 <h2>例題 — 同じ剛性で鋼をアルミに置き換える</h2>
 <p>幅 b・高さ h の長方形断面のはりを鋼からアルミ (E = 70 GPa) に替え、<b>曲げのたわみを同じ</b>にしたい。幅は変えずに高さだけ変えるとします。</p>
-<div class="tb-formula">たわみ ∝ 1 / (E · I)、I = b h³ / 12 → E h³ を等しくする<br>h_Al / h_鋼 = (206 / 70)^(1/3) ≈ 1.43　　質量比 = 1.43 × 2.70 / 7.85 ≈ 0.49</div>
+<div class="tb-math">\\begin{aligned} &\\text{たわみ} \\propto \\dfrac{1}{E \\cdot I},\\quad I = \\dfrac{b h^3}{12}\\ \\Rightarrow\\ E h^3\\ \\text{を等しくする} \\\\ &\\dfrac{h_{\\mathrm{Al}}}{h_{\\text{鋼}}} = \\left(\\dfrac{206}{70}\\right)^{1/3} \\approx 1.43 \\qquad \\text{質量比} = \\dfrac{1.43 \\times 2.70}{7.85} \\approx 0.49 \\end{aligned}</div>
 <p>材料単体の比剛性はほぼ同じでも、<b>はりの高さを増やせる</b>場合は、密度の小さいアルミのほうが同じ剛性で約半分の質量になります。曲げ剛性は h³ で効くのに、質量は h に比例するからです。逆に、引張・圧縮の剛性 (E·A) で比べると質量はほぼ同じになります。</p>
 <h2>よくある間違い</h2>
 <ul>
@@ -697,7 +697,7 @@ export const BASICS: TextChapter[] = [
     body: `
 <h2>ボルトの強度区分</h2>
 <p>鋼製ボルトの頭には <code>8.8</code> や <code>10.9</code> のような<b>強度区分</b>が刻印されています。</p>
-<div class="tb-formula">8.8 → 引張強さ 8 × 100 = 800 MPa、降伏点 = 800 × 0.8 = 640 MPa</div>
+<div class="tb-math">\\begin{aligned} &8.8 \\to \\text{引張強さ}\\ 8 \\times 100 = 800\\,\\mathrm{MPa} \\\\ &\\text{降伏点} = 800 \\times 0.8 = 640\\,\\mathrm{MPa} \\end{aligned}</div>
 <p>ナットは「8」「10」のようにボルトと組み合わせる区分を選びます。ステンレスボルトは <code>A2-70</code> (SUS304 相当、引張強さ 700 MPa) のように表します。</p>
 <h2>締付力 (軸力) が締結の主役</h2>
 <p>ボルトは「ピンのように」せん断で荷重を受けるのではなく、<b>締め付けて部材同士を押し付ける力 (軸力)</b>で、摩擦により荷重を支えるのが基本です。</p>
@@ -714,7 +714,7 @@ export const BASICS: TextChapter[] = [
 <div data-widget="bolt"></div>
 <h2>例題 — 締付トルクの目安を計算する</h2>
 <p>強度区分 8.8 (呼び径 16 以下の保証荷重応力 580 MPa) のボルトを、保証荷重の 70 % の軸力で締める場合を考えます。</p>
-<div class="tb-formula">保証荷重 = 有効断面積 A<sub>s</sub> × 580 MPa　→　目標軸力 F = 0.7 × 保証荷重　→　T = K · d · F (K = 0.2)</div>
+<div class="tb-math">\\begin{aligned} \\text{保証荷重} &= A_s \\times 580\\,\\mathrm{MPa} \\\\ F &= 0.7 \\times \\text{保証荷重} \\\\ T &= K \\cdot d \\cdot F \\quad (K = 0.2) \\end{aligned}</div><p>A<sub>s</sub>: 有効断面積、F: 目標軸力</p>
 <table class="tb-table">
   <tr><th>ねじ</th><th>A<sub>s</sub> [mm²]</th><th>保証荷重 [kN]</th><th>軸力 F (70 %) [kN]</th><th>締付トルク T [N·m]</th></tr>
   <tr><td>M5</td><td>14.2</td><td>8.24</td><td>5.77</td><td>5.8</td></tr>

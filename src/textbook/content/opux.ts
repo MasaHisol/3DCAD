@@ -26,7 +26,8 @@ export const OPUX: TextChapter[] = [
 
 <h2>作業高さを体格から計算する</h2>
 <p>立位の作業面高さは<b>肘高</b>を基準にし、作業の種類で上下させます。肘高は身長のおよそ 0.62 倍 (概略) です。</p>
-<div class="tb-formula">推奨作業面高さ ≈ 肘高 + 作業による補正　　(肘高 ≈ 0.62 × 身長、靴の分 +20〜30 mm)</div>
+<div class="tb-math">\\begin{aligned} &\\text{推奨作業面高さ} \\\\ &\\quad \\approx \\text{肘高} + \\text{作業による補正} \\end{aligned}</div>
+<p>(肘高 ≈ 0.62 × 身長、靴の分 +20〜30 mm)</p>
 <table class="tb-table">
   <tr><th>作業</th><th>肘高からの補正 (目安)</th><th>装置での例</th></tr>
   <tr><td>精密・目視検査</td><td>+50〜100 mm (肘を支える台を併用)</td><td>微小部品の組立、外観検査台</td></tr>
@@ -319,7 +320,8 @@ export const OPUX: TextChapter[] = [
 
 <h2>NIOSH 持ち上げ式 (改訂版)</h2>
 <p>米国 NIOSH の改訂持ち上げ式は、両手で持ち上げる作業について、健康な作業者の大多数が腰を痛めずに扱える<b>推奨重量限界 RWL</b> を求めます。理想条件の 23 kg に、条件ごとの係数 (最大 1.0) を掛けていきます。</p>
-<div class="tb-formula">RWL = LC × HM × VM × DM × AM × FM × CM　　LC = 23 kg<br>持ち上げ指数 LI = 実際の重量 ÷ RWL</div>
+<div class="tb-math">\\begin{aligned} \\mathrm{RWL} &= \\mathrm{LC}\\times\\mathrm{HM}\\times\\mathrm{VM}\\times\\mathrm{DM}\\times\\mathrm{AM} \\\\ &\\quad \\times\\mathrm{FM}\\times\\mathrm{CM} \\\\ \\mathrm{LC} &= 23\\,\\mathrm{kg} \\\\ \\mathrm{LI} &= \\dfrac{\\text{実際の重量}}{\\mathrm{RWL}} \\end{aligned}</div>
+<p>LI は持ち上げ指数です。</p>
 <table class="tb-table">
   <tr><th>係数</th><th>式 (SI 版)</th><th>意味</th></tr>
   <tr><td>HM 水平距離</td><td>25 / H (H: 25〜63 cm、25 未満は 25)</td><td>両足首の中点から手までの水平距離。遠いほど小さい</td></tr>
@@ -611,7 +613,8 @@ export const OPUX: TextChapter[] = [
   <tr><td>止め方</td><td>確認ボタンで音を止め、表示灯は状態が直るまで残す</td></tr>
   <tr><td>工場全体</td><td>隣の装置と同じ音にしない。音で装置を特定できるようにする</td></tr>
 </table>
-<div class="tb-formula">同じ大きさの音源 2 つ: L = L₁ + 10 log₁₀ 2 ≈ L₁ + 3 dB</div>
+<p>同じ大きさの音源 2 つ:</p>
+<div class="tb-math">L = L_1 + 10\\log_{10} 2 \\approx L_1 + 3\\,\\mathrm{dB}</div>
 <p>聴覚保護具を着ける職場では、保護具越しに聞こえるかを確認し、聞こえにくい場合は<b>光 (回転灯・フラッシュ) や振動 (ウェアラブル)</b>を併用します。聴覚に障害のある作業者への配慮としても有効です。</p>
 <div class="tb-tip"><b>3DCAD Studio</b>: 工場レイアウトのアセンブリに装置とシグナルタワーを配置し、作業者の眼高に置いたカメラ視点から各タワーが見えるかを確認しましょう。</div>`,
     points: [
@@ -801,7 +804,8 @@ export const OPUX: TextChapter[] = [
 
 <h2>学習曲線</h2>
 <p>繰り返しで作業時間が短くなる様子は<b>学習曲線</b>で表せます。代表的な式では、累積回数が 2 倍になるごとに作業時間が一定の比率 (習熟率) になります。</p>
-<div class="tb-formula">Tₙ = T₁ × n<sup>b</sup>　　b = log₂(習熟率)　(習熟率 80 % なら b = log₂ 0.8 ≈ −0.322)</div>
+<div class="tb-math">T_n = T_1 \\times n^{b} \\qquad b = \\log_2(\\text{習熟率})</div>
+<p>(習熟率 80 % なら <span class="tb-m">b = \log_2 0.8 \approx -0.322</span>)</p>
 <svg class="tb-chart" viewBox="0 0 520 220" role="img" aria-label="学習曲線">
 <line class="grid" x1="50" y1="100" x2="500" y2="100"/><line class="grid" x1="50" y1="60" x2="500" y2="60"/>
 <path d="M60,40 C90,110 130,140 200,155 C280,168 380,174 490,178 L490,179 C380,176 280,172 200,162 C130,150 90,130 60,90 Z" style="fill:var(--tb-good)" opacity="0.12"/>
@@ -934,7 +938,7 @@ export const OPUX: TextChapter[] = [
 
 <h2>時間研究と動作研究</h2>
 <p>ビデオで作業を撮影し、要素作業に分けて時間を測ります。<b>主体作業</b> (付加価値を生む) と、<b>付随作業・ムダ</b> (歩行、持ち替え、探す、待つ) に分類すると、装置で減らせる部分が分かります。</p>
-<div class="tb-formula">正味時間 = 観測時間 × レイティング係数　　標準時間 = 正味時間 × (1 + 余裕率)</div>
+<div class="tb-math">\\begin{aligned} \\text{正味時間} &= \\text{観測時間} \\\\ &\\quad \\times \\text{レイティング係数} \\\\ \\text{標準時間} &= \\text{正味時間} \\\\ &\\quad \\times (1 + \\text{余裕率}) \\end{aligned}</div>
 <p>レイティングは、観測した作業者の速さを標準的な速さに補正する係数です (速い人なら 1 より大きい)。余裕率は疲労や用達などの余裕を加えるものです。</p>
 <table class="tb-table">
   <tr><th>要素作業</th><th>時間 (秒)</th><th>分類</th><th>装置での対策</th></tr>
@@ -967,7 +971,8 @@ export const OPUX: TextChapter[] = [
   <tr><td>努力</td><td>その成績のためにどれだけ頑張ったか</td></tr>
   <tr><td>フラストレーション</td><td>不安・いらいら・ストレスをどれだけ感じたか</td></tr>
 </table>
-<div class="tb-formula">重み付き TLX = Σ(評定 × 重み) ÷ 15　　(重みは 15 通りの一対比較で選ばれた回数、合計 15)<br>Raw TLX = 6 尺度の評定の平均</div>
+<div class="tb-math">\\begin{aligned} \\text{重み付き TLX} &= \\dfrac{\\sum(\\text{評定} \\times \\text{重み})}{15} \\\\ \\text{Raw TLX} &= \\text{6 尺度の評定の平均} \\end{aligned}</div>
+<p>(重みは 15 通りの一対比較で選ばれた回数、合計 15)</p>
 <svg class="tb-chart" viewBox="0 0 520 200" role="img" aria-label="NASA-TLX の改善前後">
 <line class="grid" x1="60" y1="130" x2="500" y2="130"/><line class="grid" x1="60" y1="90" x2="500" y2="90"/><line class="grid" x1="60" y1="50" x2="500" y2="50"/>
 <g class="k-shadow"><rect x="88" y="65" width="16" height="105" rx="3" style="fill:var(--tb-bad)" fill-opacity="1"/><rect x="106" y="110" width="16" height="60" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/><rect x="158" y="125" width="16" height="45" rx="3" style="fill:var(--tb-bad)" fill-opacity="1"/><rect x="176" y="133" width="16" height="37" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/><rect x="228" y="50" width="16" height="120" rx="3" style="fill:var(--tb-bad)" fill-opacity="1"/><rect x="246" y="95" width="16" height="75" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/><rect x="298" y="110" width="16" height="60" rx="3" style="fill:var(--tb-bad)" fill-opacity="1"/><rect x="316" y="133" width="16" height="37" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/><rect x="368" y="80" width="16" height="90" rx="3" style="fill:var(--tb-bad)" fill-opacity="1"/><rect x="386" y="118" width="16" height="52" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/><rect x="438" y="95" width="16" height="75" rx="3" style="fill:var(--tb-bad)" fill-opacity="1"/><rect x="456" y="140" width="16" height="30" rx="3" style="fill:var(--tb-good)" fill-opacity="1"/></g>

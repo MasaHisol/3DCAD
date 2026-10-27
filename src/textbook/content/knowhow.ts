@@ -212,7 +212,8 @@ export const KNOWHOW: TextChapter[] = [
 </svg>
 <p class="tb-caption">図: 曲げの断面 (t: 板厚、R: 内側曲げ半径)。穴が曲げ部に近いと、曲げで引き伸ばされて楕円になる</p>
 <h2>展開長さと K 係数</h2>
-<div class="tb-formula">曲げ代 BA = θ(rad) × (R + K × t)　　(K: 中立面の位置、0.3〜0.5 程度)</div>
+<div class="tb-math">BA = \\theta\\,[\\mathrm{rad}]\\times(R + K\\times t)</div>
+<p>BA: 曲げ代、K: 中立面の位置 (0.3〜0.5 程度)</p>
 <p>曲げると板の外側は伸び、内側は縮みます。伸び縮みしない<b>中立面</b>の位置を K 係数で表し、展開長さを計算します。</p>
 <h2>溶接構造の注意点</h2>
 <ul>
@@ -249,7 +250,7 @@ export const KNOWHOW: TextChapter[] = [
 <p>数値は一般的な目安です。実際の最小値は材料 (SPCC・SUS・アルミ) と加工先の金型で変わるので、量産前に加工先の標準を確認します。</p>
 <h2>計算例: L 曲げの展開長さ</h2>
 <p>外形寸法 50 × 30 mm、板厚 t = 2、内側 R = 2、K = 0.4 の 90° 曲げ。直線部は外形から (R + t) を引きます。</p>
-<div class="tb-formula">直線部 = (50 − 4) + (30 − 4) = 72 mm　　BA = (π/2)(2 + 0.4 × 2) ≈ 4.40 mm　　展開長 ≈ 76.40 mm</div>
+<div class="tb-math">\\begin{aligned} \\text{直線部} &= (50-4) + (30-4) = 72\\ \\mathrm{mm} \\\\ BA &= \\dfrac{\\pi}{2}(2 + 0.4\\times 2) \\approx 4.40\\ \\mathrm{mm} \\\\ \\text{展開長} &\\approx 76.40\\ \\mathrm{mm} \\end{aligned}</div>
 <p>外形寸法の合計 80 mm から引く量 (<b>曲げ控除</b> BD = 2(R + t) − BA ≈ 3.60 mm) で表すこともできます。CAD の板金機能はこの計算を K 係数や曲げ表で自動で行います。</p>
 <h2>よくある失敗</h2>
 <ul>
@@ -639,7 +640,8 @@ export const KNOWHOW: TextChapter[] = [
 <p class="tb-caption">図: 組付け方向が増えるほど、ワークの裏返し・持ち替え・治具の付け替えが増える。上から積み重ねる (トップダウン組立) 構造にする</p>
 <h2>組立効率を数値で見る</h2>
 <p>DFA の代表的な手法 (Boothroyd–Dewhurst 法) では、理論上の最少部品数 N<sub>min</sub> (上の 3 つの質問で残る部品数) と、実際の組立時間 T から<b>組立効率</b>を求めます。1 部品あたりの理想時間を約 3 秒とします。</p>
-<div class="tb-formula">組立効率 E = 3 × N<sub>min</sub> / T　(T: 全部品の組立時間 [s])</div>
+<div class="tb-math">E = \\dfrac{3\\times N_{\\min}}{T}</div>
+<p>E: 組立効率、T: 全部品の組立時間 [s]</p>
 <table class="tb-table">
   <tr><th></th><th>部品点数</th><th>ねじ</th><th>組立時間 T</th><th>N<sub>min</sub></th><th>効率 E</th></tr>
   <tr><td>改善前</td><td>12</td><td>6 本</td><td>85 s</td><td>4</td><td>14 %</td></tr>
@@ -743,7 +745,8 @@ export const KNOWHOW: TextChapter[] = [
 <p class="tb-caption">図: 同じ部品のフィーチャツリー。左はフィレット面にスケッチを置いており、R を変えると以降のフィーチャが壊れる。右は機能名で並び、仕上げが最後にある</p>
 <h2>計算例: 式で設計意図を残す</h2>
 <p>幅 W の板に、両端から 15 mm の位置を起点として n 個の穴を等間隔に並べるとします。ピッチを式にしておけば、W や n を変えても自動で並び直します。</p>
-<div class="tb-formula">ピッチ p = (W − 2 × 15) / (n − 1)　　W = 120、n = 4 → p = 90 / 3 = 30 mm</div>
+<div class="tb-math">p = \\dfrac{W - 2\\times 15}{n-1}</div>
+<p>W = 120、n = 4 → p = 90 / 3 = 30 mm</p>
 <p>W = 150 に変えれば p = 40 mm。数値で 30 と入れていたら、穴が端に寄ったまま残ります。</p>
 <h2>モデルの点検チェックリスト</h2>
 <table class="tb-table">
