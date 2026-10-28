@@ -4,6 +4,13 @@
 import type { BoolOp, EdgeRef, FaceRef, PlaneDef, Vec2, Vec3 } from "../core/types";
 import type { LoopSeg } from "../sketch/profiles";
 import type { SurfaceRFeature } from "./surface";
+import type { BrokenRef } from "../core/naming";
+
+/** Sketch placed on a model face: the kernel re-resolves the face and moves the plane with it. */
+export interface PlaneFaceRef {
+  sketch: string;
+  face: FaceRef;
+}
 
 export interface RRegion {
   outer: LoopSeg[];
@@ -186,6 +193,9 @@ export interface BodyMesh {
   surface?: string;
   /** Colour read from the file (STEP / IGES). */
   color?: string;
+  /** Persistent topology names, index-aligned with `faces` / `edges` (core/naming.ts). */
+  faceNames?: string[];
+  edgeNames?: string[];
 }
 
 export interface RebuildResult {
@@ -198,7 +208,9 @@ export interface RebuildResult {
   /** Messages for the user per feature (e.g. what an import repaired). */
   notices?: Record<string, string>;
   /** References re-resolved during the rebuild (keeps them tracking edits). */
-  updatedRefs: Record<string, { edges?: EdgeRef[]; faces?: FaceRef[] }>;
+  updatedRefs: Record<string, { edges?: EdgeRef[]; faces?: FaceRef[]; plane?: PlaneDef }>;
+  /** References that could not be resolved, per feature, with candidates to repair from. */
+  brokenRefs?: Record<string, BrokenRef[]>;
   timeMs: number;
   threads: ThreadInfo[];
 }

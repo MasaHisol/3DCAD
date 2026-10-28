@@ -7,7 +7,7 @@ import { evalWith, evaluateParams } from "../core/params";
 import { prepareDocument, resolveDocument } from "../core/resolve";
 import { Store } from "../core/store";
 import type { PartDocument, Vec3 } from "../core/types";
-import type { BodyMesh, EdgeInfo, FaceInfo, MassProps, Placement, RFeature } from "../kernel/protocol";
+import type { BodyMesh, MassProps, Placement, RFeature } from "../kernel/protocol";
 import { confirmDialog, contextMenu, download, h, iconEl, markingMenu, modal, pickFile, toast, type MenuItem } from "../ui/dom";
 import { PropertyPanel } from "../ui/panel";
 import type { RibbonTab } from "../ui/ribbon";
@@ -20,6 +20,7 @@ import { LIGHT_OPEN_COMPONENTS, boxMatrix, hashKey, isolateVisibility, matchesFi
 import { idbGet, idbSet } from "../core/idb";
 import { constraintError, solveAssembly, type SolverConstraint } from "./solver";
 import { RouteManager } from "../routing/ui";
+import { edgeGeo, faceGeo, geoFromRef, meshEdgeRef, meshFaceRef } from "./toporef";
 import { IDENTITY, newAssembly, type AsmComponent, type AsmConstraint, type AsmConstraintType, type AssemblyDocument, type GeoRef } from "./types";
 
 const PALETTE = ["#c9ced6", "#9fb7d6", "#d8c39a", "#a9c9a4", "#d3a6a6", "#b8a9d6", "#9fd0cf", "#d6b38f"];
@@ -264,41 +265,20 @@ export class AssemblyEnv {
         const comp = this.doc.components.find((x) => x.id === g.comp);
         const cache = comp && this.parts.get(comp.partId);
         if (!cache) continue;
-        const r = this.geoFromRef(g, cache.bodies);
+        const r = geoFromRef(g, cache.bodies);
         if (r && (dist(r.point, g.point) > 1e-9 || dist(r.dir, g.dir) > 1e-9)) {
           g.point = r.point;
           g.dir = r.dir;
           changed = true;
         }
+        // migrate references saved before topology names existed
+        const topo = g.face ?? g.edge;
+        if (r?.name && topo && topo.name !== r.name) {
+          topo.name = r.name;
+          changed = true;
+        }
       }
     if (changed) this.store.patch((d) => (d.constraints = next), "solve");
-  }
-
-  private geoFromRef(g: GeoRef, bodies: BodyMesh[]): { point: Vec3; dir: Vec3 } | null {
-    let best: { score: number; point: Vec3; dir: Vec3 } | null = null;
-    for (const b of bodies) {
-      if (g.face) {
-        for (const f of b.faces) {
-          const score = dist(f.center, g.face.center) + (1 - dot(f.normal, g.face.normal)) * 50;
-          if (!best || score < best.score) {
-            const geo = faceGeo(f, g.geom);
-            if (geo) best = { score, ...geo };
-          }
-        }
-      } else if (g.edge) {
-        for (const e of b.edges) {
-          const score = dist(e.mid, g.edge.mid);
-          if (!best || score < best.score) {
-            const geo = edgeGeo(e, g.geom, b);
-            if (geo) best = { score, ...geo };
-          }
-        }
-      }
-    }
-    if (!best || best.score > 25) return null;
-    // keep the user's chosen direction sense
-    if (dot(best.dir, g.dir) < 0) best.dir = best.dir.map((x) => -x) as Vec3;
-    return best;
   }
 
   solverConstraints(doc = this.doc): SolverConstraint[] {
@@ -551,24 +531,24 @@ export class AssemblyEnv {
       if (p.kind === "edge") {
         const e = body.edges[p.index];
         const pt = e.axis ? e.axis.origin : e.mid;
-        return { comp: comp.id, geom: "axis", point: pt, dir: e.axis?.dir ?? [0, 0, 1], edge: { mid: e.mid, a: e.a, b: e.b, type: e.type }, label: `${comp.name} ${e.axis ? "円の中心" : "エッジ"}` };
+        return { comp: comp.id, geom: "axis", point: pt, dir: e.axis?.dir ?? [0, 0, 1], edge: meshEdgeRef(body, p.index), label: `${comp.name} ${e.axis ? "円の中心" : "エッジ"}` };
       }
       const f = body.faces[p.index];
       const pt = f.type === "SPHERE" && f.axis ? f.axis.origin : f.center;
-      return { comp: comp.id, geom: "plane", point: pt, dir: f.normal, face: { center: f.center, normal: f.normal, type: f.type }, label: `${comp.name} ${f.type === "SPHERE" ? "球の中心" : "面"}` };
+      return { comp: comp.id, geom: "plane", point: pt, dir: f.normal, face: meshFaceRef(body, p.index), label: `${comp.name} ${f.type === "SPHERE" ? "球の中心" : "面"}` };
     }
     const want = type === "mate" || type === "flush" ? "plane" : type === "angle" ? "plane" : "axis";
     if (p.kind === "face") {
       const f = body.faces[p.index];
       const g = faceGeo(f, want);
       if (!g) return null;
-      return { comp: comp.id, geom: want, ...g, face: { center: f.center, normal: f.normal, type: f.type }, label: `${comp.name} 面` };
+      return { comp: comp.id, geom: want, ...g, face: meshFaceRef(body, p.index), label: `${comp.name} 面` };
     }
     if (p.kind === "edge") {
       const e = body.edges[p.index];
       const g = edgeGeo(e, want, body);
       if (!g) return null;
-      return { comp: comp.id, geom: want, ...g, edge: { mid: e.mid, a: e.a, b: e.b, type: e.type }, label: `${comp.name} エッジ` };
+      return { comp: comp.id, geom: want, ...g, edge: meshEdgeRef(body, p.index), label: `${comp.name} エッジ` };
     }
     return null;
   }
@@ -1461,38 +1441,6 @@ class ConstraintCommand {
 
 function dist(a: Vec3, b: Vec3) {
   return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
-}
-function dot(a: Vec3, b: Vec3) {
-  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-}
-function norm(a: Vec3): Vec3 {
-  const l = Math.hypot(...a) || 1;
-  return [a[0] / l, a[1] / l, a[2] / l];
-}
-
-function faceGeo(f: FaceInfo, want: "plane" | "axis"): { point: Vec3; dir: Vec3 } | null {
-  if (want === "plane") return f.type === "PLANE" ? { point: f.center, dir: f.normal } : null;
-  return f.axis ? { point: f.axis.origin, dir: f.axis.dir } : null;
-}
-
-/** Circular edges use the normal of the planar face they bound (outward). */
-function edgeGeo(e: EdgeInfo, want: "plane" | "axis", body: BodyMesh): { point: Vec3; dir: Vec3 } | null {
-  if (e.type === "LINE") return want === "axis" ? { point: e.a, dir: norm([e.b[0] - e.a[0], e.b[1] - e.a[1], e.b[2] - e.a[2]]) } : null;
-  if (!e.axis) return null;
-  let dir = e.axis.dir;
-  let best = Infinity;
-  for (const f of body.faces) {
-    if (f.type !== "PLANE") continue;
-    if (Math.abs(Math.abs(dot(f.normal, dir)) - 1) > 1e-6) continue;
-    const off = Math.abs(dot([e.axis.origin[0] - f.center[0], e.axis.origin[1] - f.center[1], e.axis.origin[2] - f.center[2]], f.normal));
-    if (off > 1e-4) continue;
-    const d = dist(f.center, e.axis.origin);
-    if (d < best) {
-      best = d;
-      dir = f.normal;
-    }
-  }
-  return { point: e.axis.origin, dir };
 }
 
 const constraintResidual = constraintError;

@@ -6,6 +6,7 @@
 import type { EdgeRef, FaceRef, Vec3 } from "../core/types";
 import type { AxisInfo, BodyMesh } from "../kernel/protocol";
 import type { PmiAnno, PmiRef } from "./pmi";
+import { resolveNamed, type RefCandidate } from "../core/naming";
 
 const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
@@ -53,8 +54,8 @@ export interface ResolvedRef {
 }
 
 export function resolveRef(bodies: BodyMesh[], r: PmiRef, diag: number): ResolvedRef | null {
-  let best: { score: number; res: ResolvedRef } | null = null;
   const match = (pos: Vec3, n: Vec3, refPos: Vec3, refN: Vec3 | undefined) => Math.min(dist(pos, refPos), refN ? dist(n, refN) * diag : Infinity);
+  const cands: RefCandidate[] = [];
   bodies.forEach((b, bi) => {
     if (r.kind === "face") {
       const ref = r.ref as FaceRef;
@@ -63,11 +64,7 @@ export function resolveRef(bodies: BodyMesh[], r: PmiRef, diag: number): Resolve
         const nTerm = ref.type === "CYLINDRE" && f.type === "CYLINDRE" ? 0 : (1 - dot(f.normal, ref.normal)) * diag;
         let score = match(f.center, n, ref.center, ref.n) + nTerm;
         if (ref.type && ref.type !== f.type) score += diag * 0.3;
-        if (!best || score < best.score)
-          best = {
-            score,
-            res: { kind: "face", body: bi, index: fi, type: f.type, point: f.center, normal: f.normal, axis: f.axis, updated: { kind: "face", ref: { center: f.center, normal: f.normal, n, type: f.type } } },
-          };
+        cands.push({ body: bi, index: fi, name: b.faceNames?.[fi], score });
       });
     } else {
       const ref = r.ref as EdgeRef;
@@ -77,17 +74,23 @@ export function resolveRef(bodies: BodyMesh[], r: PmiRef, diag: number): Resolve
         let score = match(e.mid, n, ref.mid, ref.n);
         if (refDir && e.type === "LINE") score += (1 - Math.abs(dot(refDir, unit(sub(e.b, e.a))))) * diag * 0.5;
         if (ref.type && ref.type !== e.type) score += diag * 0.3;
-        if (!best || score < best.score)
-          best = {
-            score,
-            res: { kind: "edge", body: bi, index: ei, type: e.type, point: e.mid, a: e.a, b: e.b, axis: e.axis, updated: { kind: "edge", ref: { mid: e.mid, a: e.a, b: e.b, n, type: e.type } } },
-          };
+        cands.push({ body: bi, index: ei, name: b.edgeNames?.[ei], score });
       });
     }
   });
-  const f = best as { score: number; res: ResolvedRef } | null;
-  if (!f || f.score > diag * 0.25 + 1e-3) return null;
-  return f.res;
+  const res = resolveNamed(r.kind, r.ref.name, cands, diag * 0.25 + 1e-3);
+  if ("broken" in res) return null;
+  const { body: bi, index } = res.ok;
+  const b = bodies[bi];
+  const name = res.ok.name ? { name: res.ok.name } : {};
+  if (r.kind === "face") {
+    const f = b.faces[index];
+    const n = normInBox(f.center, b.bbox);
+    return { kind: "face", body: bi, index, type: f.type, point: f.center, normal: f.normal, axis: f.axis, updated: { kind: "face", ref: { center: f.center, normal: f.normal, n, type: f.type, ...name } } };
+  }
+  const e = b.edges[index];
+  const n = normInBox(e.mid, b.bbox);
+  return { kind: "edge", body: bi, index, type: e.type, point: e.mid, a: e.a, b: e.b, axis: e.axis, updated: { kind: "edge", ref: { mid: e.mid, a: e.a, b: e.b, n, type: e.type, ...name } } };
 }
 
 /** Geometry of an annotation in world space. */

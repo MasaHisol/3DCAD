@@ -6,6 +6,8 @@ import { DocumentStore, FEATURE_LABELS, MATERIALS, ORIGIN_PLANES, featureSketchR
 import { formatNumber } from "./core/expr";
 import { evaluateParams } from "./core/params";
 import { planeToWorld, prepareDocument, resolveDocument, worldToPlane, type Resolved, type SketchState } from "./core/resolve";
+import type { BrokenRef } from "./core/naming";
+import { RepairRefCommand } from "./commands/repairRef";
 import type { EdgeRef, FaceRef, Feature, PartDocument, PlaneDef, SketchFeature, Vec3, WorkPlaneFeature } from "./core/types";
 import { KernelClient } from "./kernel/client";
 import type { BodyMesh, RebuildResult } from "./kernel/protocol";
@@ -87,6 +89,9 @@ export class App {
   bodies: BodyMesh[] = [];
   /** Bodies used for picking: the state before the edited feature while a command needs it. */
   pickBodies: BodyMesh[] = [];
+  /** Topology references the last rebuild could not resolve (per feature), with candidates. */
+  brokenRefs: Record<string, BrokenRef[]> = {};
+  private shownBroken = new Set<string>();
   /** Surface bodies (open shells) of the last rebuild; displayed after `bodies`. */
   surfaces: BodyMesh[] = [];
   featureErrors: Record<string, string> = {};
@@ -440,6 +445,15 @@ export class App {
     this.vp.setThreads(res.threads ?? []);
     this.vp.setMaterialColor(doc.material.color);
     this.statusRegen.textContent = `${Math.round(res.timeMs)} ms`;
+    // broken topology references: tell the user once, repair from the feature's menu
+    this.brokenRefs = res.brokenRefs ?? {};
+    for (const [id, list] of Object.entries(this.brokenRefs)) {
+      const key = id + list.map((b) => b.name ?? b.message).join();
+      if (this.shownBroken.has(key) || this.command?.id === "repairRef") continue;
+      this.shownBroken.add(key);
+      const f = this.store.feature(id);
+      toast(`${f?.name ?? id}: ${list[0].message} (右クリック →「参照を修復」)`, "warn", 10000);
+    }
     // keep topology references tracking the edited geometry
     const upd = res.updatedRefs;
     if (Object.keys(upd).length) {
@@ -448,6 +462,17 @@ export class App {
         const f = this.store.feature(id) as (Feature & { edges?: EdgeRef[]; faces?: FaceRef[] }) | undefined;
         if (!f) continue;
         if (r.edges && JSON.stringify(f.edges) !== JSON.stringify(r.edges)) (f.edges = r.edges), (changed = true);
+        if (f.type === "sketch") {
+          // sketch on a model face: the plane follows the face
+          if (r.plane && JSON.stringify(f.plane) !== JSON.stringify(r.plane)) (f.plane = r.plane), (changed = true);
+          if (r.faces?.[0] && JSON.stringify(f.faceRef) !== JSON.stringify(r.faces[0])) (f.faceRef = r.faces[0]), (changed = true);
+          continue;
+        }
+        const single = f as Feature & { face?: FaceRef | null };
+        if (r.faces?.length === 1 && "face" in single && !Array.isArray(f.faces)) {
+          if (JSON.stringify(single.face) !== JSON.stringify(r.faces[0])) (single.face = r.faces[0]), (changed = true);
+          continue;
+        }
         if (r.faces && JSON.stringify(f.faces) !== JSON.stringify(r.faces)) (f.faces = r.faces), (changed = true);
       }
       if (changed) this.store.emit("refs");
@@ -537,18 +562,20 @@ export class App {
     const b = this.pickBodies[p.body];
     const e = b?.edges[p.index];
     if (!e) return null;
-    return { mid: e.mid, a: e.a, b: e.b, n: normInBox(e.mid, b.bbox), type: e.type };
+    const name = b.edgeNames?.[p.index];
+    return { mid: e.mid, a: e.a, b: e.b, n: normInBox(e.mid, b.bbox), type: e.type, ...(name ? { name } : {}) };
   }
 
   faceRef(p: Pick): FaceRef | null {
     const b = this.pickBodies[p.body];
     const f = b?.faces[p.index];
     if (!f) return null;
-    return { center: f.center, normal: f.normal, n: normInBox(f.center, b.bbox), type: f.type };
+    const name = b.faceNames?.[p.index];
+    return { center: f.center, normal: f.normal, n: normInBox(f.center, b.bbox), type: f.type, ...(name ? { name } : {}) };
   }
 
   /** Plane definition for a picked plane / planar face. */
-  planeOf(p: Pick): { plane: PlaneDef; label: string; ref?: string } | null {
+  planeOf(p: Pick): { plane: PlaneDef; label: string; ref?: string; face?: FaceRef } | null {
     if (p.kind === "plane" && p.key) {
       if (p.key in ORIGIN_PLANES) return { plane: ORIGIN_PLANES[p.key as "XY"], label: `${p.key} 平面` };
       const wp = this.store.feature<WorkPlaneFeature>(p.key);
@@ -556,7 +583,7 @@ export class App {
     }
     if (p.kind === "face") {
       const f = this.pickBodies[p.body]?.faces[p.index];
-      if (f?.plane) return { plane: f.plane, label: "面" };
+      if (f?.plane) return { plane: f.plane, label: "面", face: this.faceRef(p) ?? undefined };
     }
     return null;
   }
@@ -664,6 +691,13 @@ export class App {
 
   // ---------------------------------------------------------- commands ---
 
+  /** Repair the broken topology references of a feature by picking among the proposed candidates. */
+  repairRefs(id: string) {
+    const cmd = new RepairRefCommand(this, id);
+    this.startCommand(cmd);
+    void this.regenNow().then(() => cmd.show());
+  }
+
   startCommand(cmd: Command) {
     if (this.command) this.finishCommand(this.command, false);
     this.command = cmd;
@@ -711,7 +745,7 @@ export class App {
 
   // -------------------------------------------------------------- sketch ---
 
-  createSketch(plane: PlaneDef, label: string, planeRef?: string) {
+  createSketch(plane: PlaneDef, label: string, planeRef?: string, faceRef?: FaceRef) {
     const id = uid("sk");
     const origin = worldToPlane(plane, [0, 0, 0]);
     const sk: SketchFeature = {
@@ -721,6 +755,7 @@ export class App {
       plane,
       planeLabel: label,
       planeRef,
+      ...(faceRef && !planeRef ? { faceRef } : {}),
       entities: [{ id: "origin", type: "point", x: origin[0], y: origin[1], fixed: true, ref: true }],
       constraints: [],
       dimensions: [],
@@ -1142,6 +1177,7 @@ export class App {
     const items: MenuItem[] = [];
     if (f.type === "sketch") items.push({ label: "スケッチを編集", icon: "edit", action: () => this.enterSketch(id) });
     else items.push({ label: "フィーチャを編集", icon: "edit", action: () => this.editFeature(id) });
+    if (this.brokenRefs[id]?.length) items.push({ label: "参照を修復", icon: "edit", action: () => this.repairRefs(id) });
     for (const sk of featureSketchRefs(f)) {
       const name = this.store.feature(sk)?.name ?? "";
       items.push({ label: `スケッチを編集 (${name})`, icon: "sketch", action: () => this.enterSketch(sk) });

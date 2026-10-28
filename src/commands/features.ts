@@ -1657,6 +1657,7 @@ class HoleCommand extends FeatureCommand<HoleFeature> {
           name: this.app.store.nextFeatureName("sketch"),
           plane: pl.plane,
           planeLabel: pl.label,
+          ...(pl.face ? { faceRef: pl.face } : {}),
           entities: [
             { id: "origin", type: "point", x: origin[0], y: origin[1], fixed: true, ref: true },
             { id: uid("p"), type: "point", x: uv[0], y: uv[1] },
@@ -2317,7 +2318,7 @@ class SketchCommand implements Command {
         const pl = p ? app.planeOf(p) : null;
         if (!pl) return;
         app.finishCommand(this, false);
-        app.createSketch(pl.plane, pl.label, pl.ref);
+        app.createSketch(pl.plane, pl.label, pl.ref, pl.face);
       },
     };
     app.status("スケッチ平面 (原点平面、作業平面、またはモデルの平らな面) を選択");

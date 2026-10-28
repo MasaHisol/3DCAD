@@ -13,6 +13,7 @@ import type {
   MassProps,
   MeasureResult,
   PickRef,
+  PlaneFaceRef,
   ProjectionView,
   RebuildResult,
   RFeature,
@@ -28,6 +29,8 @@ import type {
 import { evalSurface, isSurfaceRFeature } from "./surface";
 import { bodyMeta, exportStepXcaf, healSummary, igesToShapes, importStepWithMeta, shapesToIges } from "./exchange";
 import { readIges, writeIges } from "../io/iges";
+import { RefBrokenError, edgeFaces, resolveNamed, type BrokenRef, type RefCandidate } from "../core/naming";
+import { copyNames, nameFromSources, nameGenericTool, nameHoleTool, nameProfileTool, namesOf, setNames, type NameSource, type NamingHints } from "./naming";
 
 type Shape = R.Shape3D;
 
@@ -45,6 +48,10 @@ interface CacheEntry {
   state: State;
   error?: string;
   refs?: { edges?: EdgeRef[]; faces?: FaceRef[] };
+  /** Sketch placed on a model face: the re-resolved face and plane (keyed by sketch id). */
+  sketchRefs?: { id: string; faces: FaceRef[]; plane: PlaneDef };
+  /** References that could not be resolved (with candidates). */
+  broken?: BrokenRef[];
   /** Information for the user (e.g. what the import repair did). */
   notice?: string;
 }
@@ -236,34 +243,43 @@ function resolveEdges(bodies: Shape[], refs: EdgeRef[], diag: number): { perBody
   const updated: EdgeRef[] = [];
   const infos = bodies.map((b) => {
     const box = bodyBox(b);
-    return b.edges.map((e) => {
+    const names = namesOf(b)?.edges;
+    const list = b.edges;
+    return list.map((e, i) => {
       const info = edgeInfo(e);
-      return { e, info, n: normInBox(info.mid, box), box };
+      return { e, info, n: normInBox(info.mid, box), name: names?.[i] };
     });
   });
-  const taken = new Set<R.Edge>();
-  for (const ref of refs) {
-    let best: { bi: number; e: R.Edge; info: EdgeInfo; n: Vec3; score: number } | null = null;
+  const taken = new Set<string>();
+  const broken: BrokenRef[] = [];
+  refs.forEach((ref, slot) => {
     const refDir = ref.a && ref.b ? normalize(sub(ref.b, ref.a)) : null;
+    const cands: RefCandidate[] = [];
     infos.forEach((list, bi) =>
-      list.forEach(({ e, info, n }) => {
-        if (taken.has(e)) return;
+      list.forEach(({ info, n, name }, index) => {
         let score = matchScore(info.mid, n, ref.mid, ref.n, diag);
         if (ref.type && ref.type !== info.type) score += diag * 0.3;
         if (refDir && info.type === "LINE") {
           const d = normalize(sub(info.b, info.a));
           score += (1 - Math.abs(dot(d, refDir))) * diag * 0.5;
         }
-        if (!best || score < best.score) best = { bi, e, info, n, score };
+        cands.push({ body: bi, index, name, score });
       }),
     );
-    if (!best || (best as { score: number }).score > diag * 0.2 + 1e-3) throw new Error("参照エッジが見つかりません (形状が大きく変化しました)");
-    const b = best as { bi: number; e: R.Edge; info: EdgeInfo; n: Vec3 };
-    taken.add(b.e);
-    if (!perBody.has(b.bi)) perBody.set(b.bi, []);
-    perBody.get(b.bi)!.push(b.e);
-    updated.push({ mid: b.info.mid, a: b.info.a, b: b.info.b, n: b.n, type: b.info.type });
-  }
+    const res = resolveNamed("edge", ref.name, cands, diag * 0.2 + 1e-3, taken);
+    if ("broken" in res) {
+      broken.push({ ...res.broken, slot });
+      updated.push(ref);
+      return;
+    }
+    const { body: bi, index } = res.ok;
+    const b = infos[bi][index];
+    taken.add(`${bi}:${index}`);
+    if (!perBody.has(bi)) perBody.set(bi, []);
+    perBody.get(bi)!.push(b.e);
+    updated.push({ mid: b.info.mid, a: b.info.a, b: b.info.b, n: b.n, type: b.info.type, ...(b.name ? { name: b.name } : {}) });
+  });
+  if (broken.length) throw new RefBrokenError(broken);
   return { perBody, updated };
 }
 
@@ -316,28 +332,37 @@ function resolveFaces(bodies: Shape[], refs: FaceRef[], diag: number): { perBody
   const updated: FaceRef[] = [];
   const infos = bodies.map((b) => {
     const box = bodyBox(b);
-    return b.faces.map((f) => {
+    const names = namesOf(b)?.faces;
+    return b.faces.map((f, i) => {
       const info = faceInfo(f);
-      return { f, info, n: normInBox(info.center, box) };
+      return { f, info, n: normInBox(info.center, box), name: names?.[i] };
     });
   });
-  for (const ref of refs) {
-    let best: { bi: number; f: R.Face; info: FaceInfo; n: Vec3; score: number } | null = null;
+  const broken: BrokenRef[] = [];
+  refs.forEach((ref, slot) => {
+    const cands: RefCandidate[] = [];
     infos.forEach((list, bi) =>
-      list.forEach(({ f, info, n }) => {
+      list.forEach(({ info, n, name }, index) => {
         // a full cylinder's "normal at centre" is ill-defined: match those by position only
         const nTerm = ref.type === "CYLINDRE" && info.type === "CYLINDRE" ? 0 : (1 - dot(info.normal, ref.normal)) * diag;
         let score = matchScore(info.center, n, ref.center, ref.n, diag) + nTerm;
         if (ref.type && ref.type !== info.type) score += diag * 0.3;
-        if (!best || score < best.score) best = { bi, f, info, n, score };
+        cands.push({ body: bi, index, name, score });
       }),
     );
-    if (!best || (best as { score: number }).score > diag * 0.25 + 1e-3) throw new Error("参照面が見つかりません");
-    const b = best as { bi: number; f: R.Face; info: FaceInfo; n: Vec3 };
-    if (!perBody.has(b.bi)) perBody.set(b.bi, []);
-    perBody.get(b.bi)!.push(b.f);
-    updated.push({ center: b.info.center, normal: b.info.normal, n: b.n, type: b.info.type });
-  }
+    const res = resolveNamed("face", ref.name, cands, diag * 0.25 + 1e-3);
+    if ("broken" in res) {
+      broken.push({ ...res.broken, slot });
+      updated.push(ref);
+      return;
+    }
+    const { body: bi, index } = res.ok;
+    const b = infos[bi][index];
+    if (!perBody.has(bi)) perBody.set(bi, []);
+    perBody.get(bi)!.push(b.f);
+    updated.push({ center: b.info.center, normal: b.info.normal, n: b.n, type: b.info.type, ...(b.name ? { name: b.name } : {}) });
+  });
+  if (broken.length) throw new RefBrokenError(broken);
   return { perBody, updated };
 }
 
@@ -402,7 +427,60 @@ function buildPrimitive(f: Extract<RFeature, { type: "primitive" }>): Shape {
   }
 }
 
+// ----------------------------------------------------- topology naming ---
+
+/** Extra naming sources / hints produced by the feature being evaluated. */
+let stepSources: NameSource[] = [];
+let stepHints: NamingHints = {};
+
+/** Plane of a sketch placed on a model face, following that face. */
+function followFace(pf: PlaneFaceRef, st: State, entry: CacheEntry, old: PlaneDef): PlaneDef {
+  const diag = modelDiag(st.bodies);
+  const { updated } = resolveFaces(st.bodies, [pf.face], diag);
+  const fr = updated[0];
+  if (fr.type !== "PLANE") throw new Error("スケッチを配置した面が平面ではなくなりました");
+  let n = normalize(fr.normal);
+  if (dot(n, old.normal) < 0) n = scale(n, -1);
+  const origin = add(old.origin, scale(n, dot(sub(fr.center, old.origin), n)));
+  let x = sub(old.xDir, scale(n, dot(old.xDir, n)));
+  if (Math.hypot(...x) < 1e-9) x = perp(n);
+  const plane: PlaneDef = { origin, xDir: normalize(x), normal: n };
+  entry.sketchRefs = { id: pf.sketch, faces: updated, plane };
+  return plane;
+}
+
+function nameStep(f: RFeature, st: State, out: State) {
+  const fresh = out.bodies.filter((b) => !namesOf(b));
+  if (!fresh.length) return;
+  const diag = modelDiag(out.bodies);
+  const tool = out.tools.get(f.id)?.shape;
+  const newTool = tool && tool !== st.tools.get(f.id)?.shape ? tool : undefined;
+  if (newTool && !namesOf(newTool)) setNames(newTool, nameGenericTool(f.id, newTool));
+  const sources: NameSource[] = [];
+  for (const b of st.bodies) {
+    const n = namesOf(b);
+    if (n) sources.push({ shape: b, names: n, priority: 0 });
+  }
+  if (newTool) sources.push({ shape: newTool, names: namesOf(newTool)!, priority: 1 });
+  sources.push(...stepSources);
+  for (const b of fresh) setNames(b, nameFromSources(b, sources, f.id, diag, stepHints));
+}
+
 async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<State> {
+  const pf = (f as { planeFace?: PlaneFaceRef }).planeFace;
+  if (pf && "plane" in f && f.plane) f = { ...f, plane: followFace(pf, st, entry, f.plane as PlaneDef) } as RFeature;
+  stepSources = [];
+  stepHints = {};
+  const out = await evalFeatureRaw(f, st, entry);
+  try {
+    nameStep(f, st, out);
+  } catch {
+    /* naming is best effort: references fall back to geometry */
+  }
+  return out;
+}
+
+async function evalFeatureRaw(f: RFeature, st: State, entry: CacheEntry): Promise<State> {
   if (isSurfaceRFeature(f)) {
     const res = evalSurface(f, {
       bodies: st.bodies,
@@ -531,6 +609,7 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
       if (f.flip) [from, to] = [-to, -from];
       const start = { ...f.plane, origin: add(f.plane.origin, scale(n, from)) };
       const tool = profileSolid(start, f.regions, (sk) => sk.extrude(to - from));
+      setNames(tool, nameProfileTool(f.id, tool, start, f.regions, "extrude", diag));
       tools.set(f.id, { shape: tool, op: f.op });
       return { bodies: applyOp(bodies, tool, f.op), tools };
     }
@@ -539,6 +618,7 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
       const y = cross(f.plane.normal, f.plane.xDir);
       const axis = add(scale(f.plane.xDir, f.axisDir[0]), scale(y, f.axisDir[1]));
       const tool = profileSolid(f.plane, f.regions, (sk) => sk.revolve(axis, { origin: o, angle: f.angle }));
+      setNames(tool, nameProfileTool(f.id, tool, f.plane, f.regions, "revolve", diag));
       tools.set(f.id, { shape: tool, op: f.op });
       return { bodies: applyOp(bodies, tool, f.op), tools };
     }
@@ -565,6 +645,7 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
         return solid;
       });
       const tool = fuseAll(parts);
+      setNames(tool, nameProfileTool(f.id, tool, f.plane, f.regions, "sweep", diag));
       tools.set(f.id, { shape: tool, op: f.op });
       return { bodies: applyOp(bodies, tool, f.op), tools };
     }
@@ -586,6 +667,7 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
     case "chamfer": {
       const { perBody, updated } = resolveEdges(bodies, f.edges, diag);
       entry.refs = { edges: updated };
+      stepHints = { blends: updated.filter((u) => u.name).map((u) => ({ edge: u.name!, faces: edgeFaces(u.name!) })) };
       const out = bodies.map((b, i) => {
         const edges = perBody.get(i);
         if (!edges) return b;
@@ -598,6 +680,7 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
     case "shell": {
       const { perBody, updated } = resolveFaces(bodies, f.faces, diag);
       entry.refs = { faces: updated };
+      stepHints = { offset: Math.abs(f.thickness) };
       if (!bodies.length) throw new Error("ボディがありません");
       const out = bodies.map((b, i) => {
         const faces = perBody.get(i) ?? [];
@@ -610,6 +693,7 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
     }
     case "hole": {
       const tool = buildHole(f, diag);
+      setNames(tool, nameHoleTool(f.id, tool, f.plane, f.points, f.diameter));
       tools.set(f.id, { shape: tool, op: "cut" });
       return { bodies: applyOp(bodies, tool, "cut"), tools };
     }
@@ -621,7 +705,12 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
       for (const src of f.sources) {
         const t = tools.get(src);
         if (t) {
-          for (const tr of f.transforms) out = applyOp(out, transformShape(t.shape, tr), t.op === "new" ? "join" : t.op);
+          const tn = namesOf(t.shape);
+          f.transforms.forEach((tr, k) => {
+            const copy = transformShape(t.shape, tr);
+            if (tn) stepSources.push({ shape: copy, names: copyNames(tn, `${f.id}.${k + 1}`), priority: 2 });
+            out = applyOp(out, copy, t.op === "new" ? "join" : t.op);
+          });
           continue;
         }
         // surface bodies: each copy becomes a new surface keyed "<pattern id>#<n>"
@@ -673,7 +762,15 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
       return { bodies: [...bodies, ...solids], tools, surfaces };
     }
     case "move": {
-      const moved = f.solids === false ? bodies : bodies.map((b) => transformShape(b, f.transform));
+      const moved =
+        f.solids === false
+          ? bodies
+          : bodies.map((b) => {
+              const m = transformShape(b, f.transform);
+              const n = namesOf(b);
+              if (n) setNames(m, n);
+              return m;
+            });
       if (!f.surfaces?.length) return { bodies: moved, tools };
       // surfaces keep their key so later surface features still find them
       const surfaces = new Map(st.surfaces ?? []);
@@ -1011,6 +1108,7 @@ export class GeometryEngine {
     const errors: Record<string, string> = {};
     const notices: Record<string, string> = {};
     const updatedRefs: RebuildResult["updatedRefs"] = {};
+    const brokenRefs: Record<string, BrokenRef[]> = {};
     const next: CacheEntry[] = [];
     let prefix = "";
     let valid = true;
@@ -1031,6 +1129,7 @@ export class GeometryEngine {
         try {
           entry.state = await evalFeature(f, state, entry);
         } catch (e) {
+          if (e instanceof RefBrokenError) entry.broken = e.broken;
           // surface stitching that could not close keeps its sewn surface
           const partial = (e as { partial?: { bodies: Shape[]; surfaces: Map<string, Shape> } })?.partial;
           entry.state = partial ? { ...state, bodies: partial.bodies, surfaces: partial.surfaces } : state;
@@ -1042,6 +1141,8 @@ export class GeometryEngine {
       if (entry.error) errors[f.id] = entry.error;
       if (entry.notice) notices[f.id] = entry.notice;
       if (entry.refs) updatedRefs[f.id] = entry.refs;
+      if (entry.sketchRefs) updatedRefs[entry.sketchRefs.id] = { faces: entry.sketchRefs.faces, plane: entry.sketchRefs.plane };
+      if (entry.broken) brokenRefs[f.id] = entry.broken;
     }
     this.cache = next;
     this.bodies = state.bodies;
@@ -1054,7 +1155,7 @@ export class GeometryEngine {
     const beforeMeshes = before
       ? [...before.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag)), ...beforeSurf.map(([id, b], i) => ({ ...meshBody(b, `サーフェス${i + 1}`, diag), surface: id }))]
       : undefined;
-    return { bodies, surfaces, before: beforeMeshes, errors, notices, updatedRefs, timeMs: performance.now() - t0, threads: this.threads };
+    return { bodies, surfaces, before: beforeMeshes, errors, notices, updatedRefs, brokenRefs, timeMs: performance.now() - t0, threads: this.threads };
   }
 
   exportFile(format: "step" | "stl" | "brep" | "iges", name: string, color?: string): Blob {
@@ -1568,5 +1669,6 @@ export function meshBody(b: Shape, name: string, diag: number): BodyMesh {
     edgePositions: new Float32Array(em.lines),
     edgeRanges,
     edges: edges.map(edgeInfo),
+    ...(namesOf(b) ? { faceNames: namesOf(b)!.faces, edgeNames: namesOf(b)!.edges } : {}),
   };
 }

@@ -10,6 +10,7 @@ import { confirmDialog, contextMenu, download, h, iconEl, modal, pickFile, promp
 import type { RibbonTab } from "../ui/ribbon";
 import { arrangeDims, findChamfers, holeTable } from "./annolayout";
 import { pmiToViews } from "../mbd/drawing";
+import { attachTopo, expectedRef } from "./toporef";
 import { dimValue, linearPoints, projectedFrame, resnap, sectionFrame, snapAt, toSheet, toView, viewBox, viewSpec, type Snap } from "./geom";
 import { renderSheet, type BomRow } from "./render";
 import {
@@ -763,7 +764,13 @@ export class DrawingEnv {
       // imported PMI dims are placed at exact model points (often mid-edge, not a drawn vertex):
       // only follow geometry that is really there, never jump to a nearby feature
       const tol = (a.id.startsWith("pmi-") ? 0.5 : 25) / (v?.scale ?? 1);
-      const refs = a.refs.map((r) => resnap(g, r, tol) ?? r);
+      // attached by topology name: go to where the named 3D edge projects now
+      const spec = v && this.source === "part" ? viewSpec(v, this.sheet.views.find((p) => p.id === v.parent)) : null;
+      const refs = a.refs.map((r) => {
+        const want = spec ? expectedRef(r, this.app.bodies, spec) : null;
+        const res = want ? resnap(g, want, 1e-3) : resnap(g, r, tol);
+        return res ? (r.topo ? { ...res, topo: want?.topo ?? r.topo } : res) : r;
+      });
       // never collapse a linear dimension onto a single point
       const collapsed = refs.length === 2 && refs[0].kind === "point" && refs[1].kind === "point" && Math.hypot(refs[0].p[0] - refs[1].p[0], refs[0].p[1] - refs[1].p[1]) < 1e-6;
       if (!collapsed && JSON.stringify(refs) !== JSON.stringify(a.refs)) changes.push({ id: a.id, refs });
@@ -866,7 +873,20 @@ export class DrawingEnv {
     return renderSheet({ doc: this.doc, sheet, geom: this.geom, bom: this.bom(), itemOfTag: this.itemOfTag, sheetIndex, revisions: this.revisions() });
   }
 
+  /** Link dimension references to the 3D edges they were drawn on (part drawings, geometry up to date). */
+  private attachTopology() {
+    if (this.source !== "part" || this.modelHash() !== this.modelVersion || !this.app.bodies.length) return;
+    for (const a of this.sheet.annos) {
+      if (a.type !== "dim") continue;
+      const v = this.sheet.views.find((x) => x.id === a.view);
+      if (!v || !this.geom.has(v.id)) continue;
+      const spec = viewSpec(v, this.sheet.views.find((p) => p.id === v.parent));
+      a.refs = a.refs.map((r) => (r.topo ? r : (attachTopo(r, this.app.bodies, spec) ?? r)));
+    }
+  }
+
   render() {
+    this.attachTopology();
     if (!this.store.doc.drawing) return;
     if (!this.stage) return;
     const ctx = { doc: this.doc, sheet: this.sheet, geom: this.geom, bom: this.bom(), itemOfTag: this.itemOfTag, selected: this.selected, sheetIndex: this.activeSheet, revisions: this.revisions() };

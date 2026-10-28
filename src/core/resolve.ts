@@ -134,12 +134,21 @@ export function resolveDocument(doc: PartDocument, values: Map<string, number>, 
     if (f.suppressed || f.type === "sketch" || f.type === "workplane" || f.type === "workaxis" || f.type === "workpoint") continue;
     try {
       const rf = resolveFeature(doc, f, sketches, num, values);
-      if (rf) out.push(rf);
+      if (rf) out.push(withPlaneFace(doc, f, rf));
     } catch (e) {
       errors[f.id] = (e as Error).message;
     }
   }
   return { features: out, errors, sketches, values };
+}
+
+/** Sketch placed on a model face: let the kernel move the plane with that face. */
+function withPlaneFace(doc: PartDocument, f: Feature, rf: RFeature): RFeature {
+  const skId = (f as { sketch?: unknown }).sketch;
+  if (typeof skId !== "string" || !("plane" in rf)) return rf;
+  const sk = doc.features.find((x) => x.id === skId) as SketchFeature | undefined;
+  if (!sk?.faceRef || sk.planeRef) return rf;
+  return { ...rf, planeFace: { sketch: sk.id, face: sk.faceRef } } as unknown as RFeature;
 }
 
 function resolveFeature(

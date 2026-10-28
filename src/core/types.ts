@@ -114,12 +114,16 @@ export interface EdgeRef {
   /** Mid point normalised to the owning body's bounding box (0..1). */
   n?: Vec3;
   type?: string;
+  /** Persistent topology name (see core/naming.ts); absent in documents saved before stage 1.5. */
+  name?: string;
 }
 export interface FaceRef {
   center: Vec3;
   normal: Vec3;
   n?: Vec3;
   type?: string;
+  /** Persistent topology name (see core/naming.ts). */
+  name?: string;
 }
 
 export interface FeatureBase {
@@ -135,6 +139,8 @@ export interface SketchFeature extends FeatureBase {
   planeLabel: string;
   /** Work plane feature the sketch lives on (plane follows it). */
   planeRef?: string;
+  /** Model face the sketch was placed on: the plane follows that face after upstream edits. */
+  faceRef?: FaceRef;
   entities: SkEntity[];
   constraints: SkConstraint[];
   dimensions: SkDimension[];
