@@ -429,7 +429,7 @@ export interface WorkPointFeature extends FeatureBase {
 
 export interface ImportFeature extends FeatureBase {
   type: "import";
-  format: "step" | "stl";
+  format: "step" | "stl" | "iges";
   fileName: string;
   /** File contents (STEP text, or base64 for binary STL). */
   data: string;

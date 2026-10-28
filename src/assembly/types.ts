@@ -8,6 +8,8 @@ export interface AsmPart {
   doc?: PartDocument;
   /** STEP text for imported parts. */
   step?: string;
+  /** Colour read from the STEP file. */
+  color?: string;
   fileName?: string;
 }
 

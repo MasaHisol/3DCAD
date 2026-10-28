@@ -2338,7 +2338,8 @@ class MeasureCommand implements Command {
   private out: HTMLElement;
   private panel: PropertyPanel;
   constructor(private app: App) {
-    app.vp.pickKinds = new Set(["face", "edge"]);
+    // reference data (point clouds, IFC) is measured point to point
+    app.vp.pickKinds = new Set(["face", "edge", "ref"]);
     this.panel = new PropertyPanel(app.panelHost, "測定", "measure", { onOk: () => app.finishCommand(this, true), onCancel: () => app.finishCommand(this, false) }, () => app.values());
     const s = this.panel.section("結果");
     this.out = h("div", { class: "measure-out" }, "面またはエッジを選択してください (2 つ選ぶと距離・角度)");
@@ -2366,6 +2367,18 @@ class MeasureCommand implements Command {
   }
   private async compute() {
     const [a, b] = this.picks;
+    if (a.kind === "ref" || b?.kind === "ref") {
+      // picked points of reference data: coordinates and straight distance
+      const f = (v: number) => `${formatNumber(v, 3)}`;
+      const rows: [string, string][] = [["点 1", a.point.map(f).join(", ")]];
+      if (b) {
+        const d = [0, 1, 2].map((k) => b.point[k] - a.point[k]);
+        rows.push(["点 2", b.point.map(f).join(", ")], ["距離", `${formatNumber(Math.hypot(d[0], d[1], d[2]), 4)} mm`], ["ΔX, ΔY, ΔZ", d.map(f).join(", ")]);
+      }
+      this.out.innerHTML = "";
+      this.out.appendChild(h("table", { class: "kv" }, ...rows.map(([k, v]) => h("tr", {}, h("th", {}, k), h("td", {}, v)))));
+      return;
+    }
     try {
       const r = await this.app.kernel.measure(
         { body: a.body, kind: a.kind as "face", index: a.index },

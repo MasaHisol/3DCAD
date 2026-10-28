@@ -97,8 +97,12 @@ export class KernelClient {
   dropEngine(key: string): Promise<boolean> {
     return this.call({ kind: "dropEngine", key });
   }
-  exportAssembly(format: "step" | "stl", placements: Placement[], withRoutes = false): Promise<ArrayBuffer> {
-    return this.call({ kind: "exportAssembly", format, placements, withRoutes });
+  exportAssembly(format: "step" | "stl" | "iges", placements: Placement[], withRoutes = false, name?: string): Promise<ArrayBuffer> {
+    return this.call({ kind: "exportAssembly", format, placements, withRoutes, name });
+  }
+  /** STEP assembly -> one STEP part per product and the placed instances. */
+  stepAssembly(text: string): Promise<{ parts: { name: string; color?: string; step: string }[]; comps: { part: number; name: string; matrix: number[] }[] }> {
+    return this.call({ kind: "stepAssembly", text });
   }
   buildRoutes(routes: import("./route").RouteSolidSpec[]): Promise<import("./route").RouteSolidResult[]> {
     return this.call({ kind: "routeBuild", routes });
@@ -147,8 +151,8 @@ export class KernelClient {
     }
   }
 
-  exportFile(format: "step" | "stl" | "brep", name: string): Promise<ArrayBuffer> {
-    return this.call({ kind: "export", format, name });
+  exportFile(format: "step" | "stl" | "brep" | "iges", name: string, color?: string): Promise<ArrayBuffer> {
+    return this.call({ kind: "export", format, name, color });
   }
   massProps(): Promise<MassProps> {
     return this.call({ kind: "massProps" });

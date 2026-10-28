@@ -5,6 +5,7 @@ import wasmUrl from "replicad-opencascadejs/wasm?url";
 import { setOC } from "replicad";
 import { drawView, exportPlaced, GeometryEngine, interferences, placeShape } from "./geometry";
 import { buildRoutes, routeInterference, routeShapes } from "./route";
+import { exportStepXcaf, importStepAssembly } from "./exchange";
 import type { BodyMesh, Placement, ThreadInfo, WorkerRequest, WorkerResponse } from "./protocol";
 import type { Vec3 } from "../core/types";
 
@@ -64,9 +65,30 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
       return { result: req.views.map((v) => drawView(items, v, threads)), transfer: [] };
     }
     case "exportAssembly": {
-      const buf = await exportPlaced([...placed(req.placements), ...(req.withRoutes ? routeShapes() : [])], req.format).arrayBuffer();
+      let blob: Blob;
+      if (req.format === "step") {
+        // assembly structure: one product per part (shared by its instances), placed components
+        const keys = [...new Set(req.placements.map((p) => p.key))];
+        const parts = keys.map((k) => {
+          const p = req.placements.find((x) => x.key === k)!;
+          return { name: p.part ?? p.name, color: p.color, shapes: engineFor(k).bodies };
+        });
+        const comps = req.placements.map((p) => ({ part: keys.indexOf(p.key), name: p.name, matrix: p.matrix }));
+        const routes = req.withRoutes ? routeShapes() : [];
+        if (routes.length) {
+          parts.push({ name: "配管・配線", color: "#8a96a8", shapes: routes.map((r) => r.shape) });
+          comps.push({ part: parts.length - 1, name: "配管・配線", matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] });
+        }
+        blob = exportStepXcaf(parts, comps, req.name ?? "アセンブリ");
+      } else {
+        const colors = new Map(req.placements.map((p) => [p.name, p.color]));
+        blob = exportPlaced([...placed(req.placements).map((x) => ({ ...x, color: colors.get(x.name) })), ...(req.withRoutes ? routeShapes() : [])], req.format);
+      }
+      const buf = await blob.arrayBuffer();
       return { result: buf, transfer: [buf] };
     }
+    case "stepAssembly":
+      return { result: await importStepAssembly(req.text), transfer: [] };
     case "interference": {
       const shapes = placed(req.placements);
       const hits = interferences(shapes.map((x) => x.shape)).map((h) => ({ a: shapes[h.a].index, b: shapes[h.b].index, volume: h.volume }));
@@ -88,7 +110,7 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
       return { result: res, transfer };
     }
     case "export": {
-      const blob = eng.exportFile(req.format, req.name);
+      const blob = eng.exportFile(req.format, req.name, req.color);
       const buf = await blob.arrayBuffer();
       return { result: buf, transfer: [buf] };
     }

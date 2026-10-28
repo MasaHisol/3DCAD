@@ -15,8 +15,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "e2e": "node scripts/e2e.mjs && node scripts/e2e-recovery.mjs",
-    "e2e:recovery": "node scripts/e2e-recovery.mjs"
+    "e2e": "node scripts/e2e.mjs && node scripts/e2e-recovery.mjs && node scripts/e2e-formats.mjs",
+    "e2e:recovery": "node scripts/e2e-recovery.mjs",
+    "e2e:formats": "node scripts/e2e-formats.mjs"
   },
   "devDependencies": {
     "@types/three": "^0.186.0",
@@ -29,7 +30,8 @@
     "three": "^0.186.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.3",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.3",
+    "web-ifc": "^0.0.78"
   },
   "main": "electron/main.cjs",
   "productName": "3DCAD Studio",
@@ -63,6 +65,89 @@
         "description": "3DCAD Studio アセンブリ",
         "role": "Editor",
         "icon": "icon"
+      },
+      {
+        "ext": [
+          "stp",
+          "step"
+        ],
+        "name": "STEP",
+        "description": "STEP 3D モデル",
+        "role": "Viewer"
+      },
+      {
+        "ext": [
+          "igs",
+          "iges"
+        ],
+        "name": "IGES",
+        "description": "IGES 3D モデル",
+        "role": "Viewer"
+      },
+      {
+        "ext": [
+          "stl"
+        ],
+        "name": "STL",
+        "description": "STL メッシュ",
+        "role": "Viewer"
+      },
+      {
+        "ext": [
+          "obj"
+        ],
+        "name": "OBJ",
+        "description": "OBJ メッシュ",
+        "role": "Viewer"
+      },
+      {
+        "ext": [
+          "3mf"
+        ],
+        "name": "3MF",
+        "description": "3MF 3D プリント モデル",
+        "role": "Viewer"
+      },
+      {
+        "ext": [
+          "glb",
+          "gltf"
+        ],
+        "name": "glTF",
+        "description": "glTF 3D モデル",
+        "role": "Viewer"
+      },
+      {
+        "ext": [
+          "ply"
+        ],
+        "name": "PLY",
+        "description": "PLY 点群 / メッシュ",
+        "role": "Viewer"
+      },
+      {
+        "ext": [
+          "e57"
+        ],
+        "name": "E57",
+        "description": "E57 点群",
+        "role": "Viewer"
+      },
+      {
+        "ext": [
+          "ifc"
+        ],
+        "name": "IFC",
+        "description": "IFC 建築モデル",
+        "role": "Viewer"
+      },
+      {
+        "ext": [
+          "dxf"
+        ],
+        "name": "DXF",
+        "description": "DXF 図面",
+        "role": "Viewer"
       }
     ],
     "win": {

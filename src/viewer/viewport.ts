@@ -7,7 +7,21 @@ import { DEFAULT_LOD, batchGroups, boxMatrix, edgeVisibleAtZoom, lodLevel, proje
 import { TriangleBVH } from "./bvh";
 import { clusterSimplify, decimateEdges } from "./simplify";
 
-export type PickKind = "face" | "edge" | "plane" | "axis" | "point";
+export type PickKind = "face" | "edge" | "plane" | "axis" | "point" | "ref";
+
+/** Display-only reference data (point clouds, IFC buildings, large meshes): drawn, measured, never modelled. */
+export interface RefModel {
+  id: string;
+  name: string;
+  kind: "points" | "mesh";
+  object: THREE.Object3D;
+  /** Points or triangles. */
+  count: number;
+  pointSize: number;
+  /** Uniform colour; null = the file's own colours. */
+  color: string | null;
+  visible: boolean;
+}
 
 export interface Pick {
   kind: PickKind;
@@ -123,6 +137,9 @@ export class Viewport {
   readonly threadLayer = new THREE.Group();
   readonly trailLayer = new THREE.Group();
   readonly refLayer = new THREE.Group();
+  /** Reference data (point clouds, IFC, display-only meshes). */
+  readonly refModelLayer = new THREE.Group();
+  refModels: RefModel[] = [];
   readonly triadScene = new THREE.Scene();
   readonly triadCam = new THREE.OrthographicCamera(-1.6, 1.6, 1.6, -1.6, -10, 10);
 
@@ -204,7 +221,7 @@ export class Viewport {
     });
     this.backMaterial = new THREE.MeshBasicMaterial({ color: "#e0a458", side: THREE.BackSide });
 
-    this.scene.add(this.model, this.threadLayer, this.trailLayer, this.refLayer, this.sketchLayer, this.overlay);
+    this.scene.add(this.model, this.threadLayer, this.trailLayer, this.refLayer, this.refModelLayer, this.sketchLayer, this.overlay);
     this.overlay.add(this.tagObj, this.hoverObj, this.selectObj);
     this.buildTriad();
     this.setStandardView([1, 1, 1], false);
@@ -1112,9 +1129,98 @@ export class Viewport {
     this.invalidate();
   }
 
+  // ----------------------------------------------------- reference data ---
+
+  /** Adds a point cloud (positions in mm, optional rgb 0..1). */
+  addPointCloud(id: string, name: string, positions: Float32Array, colors?: Float32Array, pointSize = 2): RefModel {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    if (colors) g.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    g.computeBoundingBox();
+    g.computeBoundingSphere();
+    const mat = new THREE.PointsMaterial({ size: pointSize, sizeAttenuation: false, vertexColors: !!colors, color: colors ? 0xffffff : 0x5b8bd9 });
+    const pts = new THREE.Points(g, mat);
+    const r: RefModel = { id, name, kind: "points", object: pts, count: positions.length / 3, pointSize, color: colors ? null : "#5b8bd9", visible: true };
+    this.refModels.push(r);
+    this.refModelLayer.add(pts);
+    this.invalidate();
+    return r;
+  }
+
+  /** Adds display-only meshes (e.g. an IFC building), one per colour. */
+  addRefMeshes(id: string, name: string, parts: { positions: Float32Array; indices: Uint32Array; color: string; opacity?: number }[]): RefModel {
+    const grp = new THREE.Group();
+    let tris = 0;
+    for (const p of parts) {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.BufferAttribute(p.positions, 3));
+      g.setIndex(new THREE.BufferAttribute(p.indices, 1));
+      g.computeVertexNormals();
+      g.computeBoundingBox();
+      g.computeBoundingSphere();
+      const op = p.opacity ?? 1;
+      const m = new THREE.MeshStandardMaterial({ color: p.color, metalness: 0.02, roughness: 0.75, side: THREE.DoubleSide, transparent: op < 1, opacity: op, depthWrite: op >= 1 });
+      grp.add(new THREE.Mesh(g, m));
+      tris += p.indices.length / 3;
+    }
+    const r: RefModel = { id, name, kind: "mesh", object: grp, count: tris, pointSize: 0, color: null, visible: true };
+    this.refModels.push(r);
+    this.refModelLayer.add(grp);
+    this.invalidate();
+    return r;
+  }
+
+  removeRefModel(id: string) {
+    const i = this.refModels.findIndex((r) => r.id === id);
+    if (i < 0) return;
+    const r = this.refModels[i];
+    r.object.traverse((o) => {
+      const m = o as THREE.Mesh;
+      m.geometry?.dispose();
+      (m.material as THREE.Material | undefined)?.dispose?.();
+    });
+    this.refModelLayer.remove(r.object);
+    this.refModels.splice(i, 1);
+    this.invalidate();
+  }
+
+  setRefModelStyle(id: string, opts: { pointSize?: number; color?: string | null; visible?: boolean }) {
+    const r = this.refModels.find((x) => x.id === id);
+    if (!r) return;
+    if (opts.visible !== undefined) (r.visible = opts.visible), (r.object.visible = opts.visible);
+    if (r.kind === "points") {
+      const m = (r.object as THREE.Points).material as THREE.PointsMaterial;
+      if (opts.pointSize !== undefined) (r.pointSize = opts.pointSize), (m.size = opts.pointSize);
+      if (opts.color !== undefined) {
+        const hasColors = !!(r.object as THREE.Points).geometry.getAttribute("color");
+        r.color = opts.color ?? (hasColors ? null : "#5b8bd9");
+        m.vertexColors = r.color === null;
+        m.color.set(r.color ?? "#ffffff");
+        m.needsUpdate = true;
+      }
+    } else if (opts.color !== undefined) {
+      r.color = opts.color;
+      r.object.traverse((o) => {
+        const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+        if (!m) return;
+        m.userData.orig ??= m.color.getHexString();
+        m.color.set(opts.color ?? `#${m.userData.orig}`);
+      });
+    }
+    this.invalidate();
+  }
+
+  /** Screen position (CSS pixels, page coordinates) of a world point. */
+  worldToScreen(p: Vec3): { x: number; y: number } {
+    const v = new THREE.Vector3(...p).project(this.camera);
+    const r = this.renderer.domElement.getBoundingClientRect();
+    return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height };
+  }
+
   modelBounds(): THREE.Box3 {
     const box = new THREE.Box3();
     for (const b of this.bodies) box.expandByObject(b.mesh);
+    for (const r of this.refModels) if (r.visible) box.expandByObject(r.object);
     this.sketchLayer.traverse((o) => {
       if ((o as THREE.Line).isLine && o.visible) box.expandByObject(o);
     });
@@ -1244,11 +1350,32 @@ export class Viewport {
         break;
       }
     }
+    if (kinds.has("ref") && this.refModels.some((r) => r.visible)) {
+      for (const r of this.refModels) {
+        if (!r.visible) continue;
+        if (r.kind === "points") {
+          // screen-space tolerance: a few pixels around the drawn point
+          this.raycaster.params.Points = { threshold: ps * Math.max(4, r.pointSize) };
+          const hits = this.raycaster.intersectObject(r.object, true).filter((h) => h.distance <= occl);
+          // nearest to the ray, then nearest to the eye
+          hits.sort((a, b) => (a.distanceToRay ?? 0) - (b.distanceToRay ?? 0) || a.distance - b.distance);
+          const h = hits[0];
+          if (h && h.index !== undefined) {
+            const pos = (h.object as THREE.Points).geometry.getAttribute("position") as THREE.BufferAttribute;
+            const pt = new THREE.Vector3(pos.getX(h.index), pos.getY(h.index), pos.getZ(h.index)).applyMatrix4(h.object.matrixWorld);
+            cands.push({ kind: "ref", body: -1, index: h.index, key: r.id, point: pt.toArray() as Vec3, dist: h.distance - ps * 6, prio: 0 });
+          }
+        } else {
+          const h = this.raycaster.intersectObject(r.object, true).filter((x) => !this.clipPlane || this.clipPlane.distanceToPoint(x.point) >= 0)[0];
+          if (h && h.distance <= occl + ps * 2) cands.push({ kind: "ref", body: -1, index: -1, key: r.id, point: h.point.toArray() as Vec3, dist: h.distance, prio: 2 });
+        }
+      }
+    }
     const filtered = this.pickFilter ? cands.filter((c) => this.pickFilter!(c)) : cands;
     if (!filtered.length) return null;
     // edges win when the cursor is near them; otherwise the closest hit
     filtered.sort((a, b) => a.prio - b.prio || a.dist - b.dist);
-    const edge = filtered.find((c) => c.kind === "edge" || c.kind === "axis" || c.kind === "point");
+    const edge = filtered.find((c) => c.kind === "edge" || c.kind === "axis" || c.kind === "point" || (c.kind === "ref" && c.index >= 0));
     const best = edge ?? filtered.sort((a, b) => a.dist - b.dist)[0];
     const { dist: _d, prio: _p, ...pick } = best;
     void _d;
@@ -1397,6 +1524,13 @@ export class Viewport {
         this.applyBodyMatrix(l, p.body);
         group.add(l);
         // thick look: a few offset copies are not portable; draw end markers instead
+      } else if (p.kind === "ref") {
+        // a marker at the picked point (constant screen size)
+        const r = this.pixelSize * (isHover ? 5 : 6);
+        const m = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 8), new THREE.MeshBasicMaterial({ color, depthTest: false, transparent: true, opacity: 0.9 }));
+        m.position.set(...p.point);
+        m.renderOrder = 12;
+        group.add(m);
       } else if (p.key) {
         const ref = this.refs.find((r) => r.key === p.key);
         if (!ref) continue;
@@ -1632,5 +1766,5 @@ export function planeMatrix(p: PlaneDef): THREE.Matrix4 {
 
 export function samePick(a: Pick | null, b: Pick | null): boolean {
   if (!a || !b) return a === b;
-  return a.kind === b.kind && a.body === b.body && a.index === b.index && a.key === b.key;
+  return a.kind === b.kind && a.body === b.body && a.index === b.index && a.key === b.key && (a.kind !== "ref" || a.index >= 0 || a.point.every((v, i) => v === b.point[i]));
 }

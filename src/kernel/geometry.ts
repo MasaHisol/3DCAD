@@ -26,6 +26,8 @@ import type {
   ViewSpec,
 } from "./protocol";
 import { evalSurface, isSurfaceRFeature } from "./surface";
+import { bodyMeta, exportStepXcaf, healSummary, igesToShapes, importStepWithMeta, shapesToIges } from "./exchange";
+import { readIges, writeIges } from "../io/iges";
 
 type Shape = R.Shape3D;
 
@@ -43,6 +45,8 @@ interface CacheEntry {
   state: State;
   error?: string;
   refs?: { edges?: EdgeRef[]; faces?: FaceRef[] };
+  /** Information for the user (e.g. what the import repair did). */
+  notice?: string;
 }
 
 const tuple = (v: R.Vector | number[]): Vec3 => (Array.isArray(v) ? [v[0], v[1], v[2]] : (v.toTuple() as Vec3));
@@ -635,14 +639,38 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
       return { bodies: applyOp(bodies, tool, f.op), tools };
     }
     case "import": {
-      let shape: Shape;
+      // solids join the bodies; open shells left after repair become surface bodies
+      const heal = f.heal !== false;
+      const notes: string[] = [];
+      let shapes: Shape[];
       if (f.format === "step") {
-        shape = (await R.importSTEP(new Blob([f.data]))) as Shape;
+        const r = await importStepWithMeta(f.data, heal);
+        shapes = r.shapes;
+        r.shapes.forEach((s, i) => bodyMeta.set(s, r.meta[i]));
+        if (r.products > 1) notes.push(`部品 ${r.products} 種類・${r.instances} 個 (名前と色を読み込み)`);
+        if (r.heal) notes.push(healSummary(r.heal));
+      } else if (f.format === "iges") {
+        const model = readIges(f.data);
+        const r = igesToShapes(model, 0.01);
+        shapes = r.shapes;
+        r.shapes.forEach((s, i) => bodyMeta.set(s, r.meta[i]));
+        if (r.failedFaces) notes.push(`作成できなかった面 ${r.failedFaces} 個`);
+        const skipped = Object.entries(model.skipped).map(([t, n]) => `${t}×${n}`);
+        if (skipped.length) notes.push(`未対応の要素を読み飛ばし (${skipped.join(", ")})`);
+        if (!shapes.length) throw new Error("IGES から形状を作成できませんでした");
       } else {
-        shape = importStl(Uint8Array.from(atob(f.data), (c) => c.charCodeAt(0)));
+        // meshes: sewn into a solid by the STL importer (face-by-face repair would be too slow for big meshes)
+        const shape = importStl(Uint8Array.from(atob(f.data), (c) => c.charCodeAt(0)));
+        shapes = shape.solids?.length ? (shape.solids as Shape[]) : [shape];
       }
-      const solids = shape.solids?.length ? (shape.solids as Shape[]) : [shape];
-      return { bodies: [...bodies, ...solids], tools };
+      const isSolid = (s: Shape) => (s as unknown as { wrapped: { ShapeType(): string } }).wrapped.ShapeType() === "TopAbs_SOLID" || !!(s as Shape).solids?.length;
+      const solids = shapes.filter(isSolid);
+      const open = shapes.filter((s) => !isSolid(s));
+      if (notes.filter(Boolean).length) entry.notice = notes.filter(Boolean).join("。");
+      if (!open.length) return { bodies: [...bodies, ...solids], tools };
+      const surfaces = new Map(st.surfaces ?? []);
+      open.forEach((s, i) => surfaces.set(`${f.id}#${i + 1}`, s));
+      return { bodies: [...bodies, ...solids], tools, surfaces };
     }
     case "move": {
       const moved = f.solids === false ? bodies : bodies.map((b) => transformShape(b, f.transform));
@@ -981,6 +1009,7 @@ export class GeometryEngine {
     const t0 = performance.now();
     let state: State = { bodies: [], tools: new Map(), threads: [] };
     const errors: Record<string, string> = {};
+    const notices: Record<string, string> = {};
     const updatedRefs: RebuildResult["updatedRefs"] = {};
     const next: CacheEntry[] = [];
     let prefix = "";
@@ -1011,6 +1040,7 @@ export class GeometryEngine {
       next.push(entry);
       state = entry.state;
       if (entry.error) errors[f.id] = entry.error;
+      if (entry.notice) notices[f.id] = entry.notice;
       if (entry.refs) updatedRefs[f.id] = entry.refs;
     }
     this.cache = next;
@@ -1018,17 +1048,17 @@ export class GeometryEngine {
     this.threads = state.threads ?? [];
     this.surfaces = [...(state.surfaces ?? new Map()).entries()].map(([id, shape]) => ({ id, shape }));
     const diag = modelDiag([...this.bodies, ...this.surfaces.map((s) => s.shape)]);
-    const bodies = this.bodies.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag));
-    const surfaces = this.surfaces.map((s, i) => ({ ...meshBody(s.shape, `サーフェス${i + 1}`, diag), surface: s.id }));
+    const bodies = this.bodies.map((b, i) => ({ ...meshBody(b, bodyMeta.get(b)?.name ?? `ソリッド${i + 1}`, diag), color: bodyMeta.get(b)?.color }));
+    const surfaces = this.surfaces.map((s, i) => ({ ...meshBody(s.shape, bodyMeta.get(s.shape)?.name ?? `サーフェス${i + 1}`, diag), surface: s.id, color: bodyMeta.get(s.shape)?.color }));
     // picking while editing: solids, then surfaces (same order as the display)
     const beforeMeshes = before
       ? [...before.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag)), ...beforeSurf.map(([id, b], i) => ({ ...meshBody(b, `サーフェス${i + 1}`, diag), surface: id }))]
       : undefined;
-    return { bodies, surfaces, before: beforeMeshes, errors, updatedRefs, timeMs: performance.now() - t0, threads: this.threads };
+    return { bodies, surfaces, before: beforeMeshes, errors, notices, updatedRefs, timeMs: performance.now() - t0, threads: this.threads };
   }
 
-  exportFile(format: "step" | "stl" | "brep", name: string): Blob {
-    if (!this.bodies.length && !(format === "step" && this.surfaces.length))
+  exportFile(format: "step" | "stl" | "brep" | "iges", name: string, color?: string): Blob {
+    if (!this.bodies.length && !((format === "step" || format === "iges") && this.surfaces.length))
       throw new Error(this.surfaces.length ? "サーフェスには体積がないため STL / BREP に書き出せません。ステッチまたは厚み付けでソリッドにしてください (STEP ならサーフェスも書き出せます)" : "エクスポートするボディがありません");
     if (format === "brep") {
       // OpenCascade native B-rep (FreeCAD, Salome, CAD Exchanger, OCCT tools)
@@ -1040,12 +1070,14 @@ export class GeometryEngine {
       oc.FS.unlink(file);
       return new Blob([data as BlobPart], { type: "application/octet-stream" });
     }
-    if (format === "step") {
-      // surface bodies are exported too (open shells)
-      return R.exportSTEP(
-        [...this.bodies.map((shape, i) => ({ shape, name: this.bodies.length > 1 ? `${name}_${i + 1}` : name })), ...this.surfaces.map((s, i) => ({ shape: s.shape, name: `${name}_surface${i + 1}` }))],
-        { unit: "MM" } as never,
-      );
+    if (format === "step" || format === "iges") {
+      // surface bodies are exported too (open shells); names and colours from the import or the part
+      const items = [
+        ...this.bodies.map((shape, i) => ({ shape, name: bodyMeta.get(shape)?.name ?? (this.bodies.length > 1 ? `${name}_${i + 1}` : name), color: bodyMeta.get(shape)?.color ?? color })),
+        ...this.surfaces.map((s, i) => ({ shape: s.shape, name: bodyMeta.get(s.shape)?.name ?? `${name}_surface${i + 1}`, color: bodyMeta.get(s.shape)?.color ?? color })),
+      ];
+      if (format === "iges") return new Blob([writeIges(shapesToIges(items), `${name}.igs`)], { type: "model/iges" });
+      return exportStepXcaf(items.map((x) => ({ name: x.name, color: x.color, shapes: [x.shape] })), null, name);
     }
     const shape = this.bodies.length === 1 ? this.bodies[0] : (R.makeCompound(this.bodies) as unknown as Shape);
     const diag = modelDiag(this.bodies);
@@ -1463,9 +1495,10 @@ export function placeShape(s: Shape, m: number[]): Shape {
   return out;
 }
 
-export function exportPlaced(shapes: { shape: Shape; name: string }[], format: "step" | "stl"): Blob {
+export function exportPlaced(shapes: { shape: Shape; name: string; color?: string }[], format: "step" | "stl" | "iges"): Blob {
   if (!shapes.length) throw new Error("エクスポートするボディがありません");
   if (format === "step") return R.exportSTEP(shapes.map((x) => ({ shape: x.shape, name: x.name })), { unit: "MM" } as never);
+  if (format === "iges") return new Blob([writeIges(shapesToIges(shapes))], { type: "model/iges" });
   const comp = R.makeCompound(shapes.map((x) => x.shape)) as unknown as Shape;
   const diag = modelDiag(shapes.map((x) => x.shape));
   return comp.blobSTL({ tolerance: Math.max(0.005, diag * 2e-4), angularTolerance: 0.1, binary: true });
