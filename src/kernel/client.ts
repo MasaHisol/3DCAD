@@ -91,8 +91,17 @@ export class KernelClient {
   }
 
   /** Rebuild of an assembly part in its own engine (not coalesced). */
-  rebuildKey(key: string, features: RFeature[]): Promise<RebuildResult> {
-    return this.call({ kind: "rebuild", features, key });
+  rebuildKey(key: string, features: RFeature[], timeoutMs = 0): Promise<RebuildResult> {
+    return this.call({ kind: "rebuild", features, key }, timeoutMs);
+  }
+  /** Stop the worker for good (worker pool shrinking); pending calls fail. */
+  dispose() {
+    this.onRestart = null;
+    this.worker.terminate();
+    const err = new KernelCrashError("ジオメトリ カーネルを終了しました");
+    const pend = [...this.pending.values()];
+    this.pending.clear();
+    pend.forEach((p) => p.reject(err));
   }
   dropEngine(key: string): Promise<boolean> {
     return this.call({ kind: "dropEngine", key });

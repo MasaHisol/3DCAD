@@ -95,6 +95,8 @@ export class App {
   /** Surface bodies (open shells) of the last rebuild; displayed after `bodies`. */
   surfaces: BodyMesh[] = [];
   featureErrors: Record<string, string> = {};
+  /** Incremental rebuild statistics of the last part rebuild (features reused / evaluated). */
+  lastRebuildStats: import("./kernel/protocol").RebuildResult["stats"] | null = null;
   browserSelection = new Set<string>();
   originVis = new Set<string>();
   private kernelReady = false;
@@ -444,7 +446,8 @@ export class App {
     refreshCurvature(this);
     this.vp.setThreads(res.threads ?? []);
     this.vp.setMaterialColor(doc.material.color);
-    this.statusRegen.textContent = `${Math.round(res.timeMs)} ms`;
+    this.statusRegen.textContent = `${Math.round(res.timeMs)} ms` + (res.stats ? ` (${res.stats.recomputed}/${res.stats.features})` : "");
+    this.lastRebuildStats = res.stats ?? null;
     // broken topology references: tell the user once, repair from the feature's menu
     this.brokenRefs = res.brokenRefs ?? {};
     for (const [id, list] of Object.entries(this.brokenRefs)) {

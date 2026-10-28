@@ -15,7 +15,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "e2e": "node scripts/e2e.mjs && node scripts/e2e-recovery.mjs && node scripts/e2e-formats.mjs && node scripts/e2e-naming.mjs",
+    "e2e": "node scripts/e2e.mjs && node scripts/e2e-recovery.mjs && node scripts/e2e-formats.mjs && node scripts/e2e-naming.mjs && node scripts/e2e-rebuild.mjs",
+    "e2e:rebuild": "node scripts/e2e-rebuild.mjs",
+    "bench:rebuild": "node scripts/bench-rebuild.mjs",
     "e2e:naming": "node scripts/e2e-naming.mjs",
     "e2e:recovery": "node scripts/e2e-recovery.mjs",
     "e2e:formats": "node scripts/e2e-formats.mjs"

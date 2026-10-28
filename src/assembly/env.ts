@@ -18,6 +18,8 @@ import { startDrive, startExplode } from "./motionUi";
 import { patternMatrices, type AsmPattern } from "./pattern";
 import { LIGHT_OPEN_COMPONENTS, boxMatrix, hashKey, isolateVisibility, matchesFilter, rebuildOrder, useProxy } from "./largeAsm";
 import { idbGet, idbSet } from "../core/idb";
+import { KernelClient } from "../kernel/client";
+import { KernelPool, poolSize } from "../kernel/pool";
 import { constraintError, solveAssembly, type SolverConstraint } from "./solver";
 import { RouteManager } from "../routing/ui";
 import { edgeGeo, faceGeo, geoFromRef, meshEdgeRef, meshFaceRef } from "./toporef";
@@ -79,6 +81,13 @@ export class AssemblyEnv {
    * export, drawings) — set when a large assembly is opened.
    */
   lightOpen = false;
+  /** Build independent parts in a pool of kernel workers (engine #3); off = one by one in the main worker. */
+  parallel = true;
+  private pool: KernelPool | null = null;
+  /** Main-kernel B-rep builds in flight (ensureBrep), per part. */
+  private brepJobs = new Map<string, Promise<void>>();
+  /** Duration of the last part rebuild pass (ms) and how many parts the pool built. */
+  lastBuild = { ms: 0, parts: 0, pooled: 0 };
   /** Part rebuild progress while loading (null when idle). */
   loading: { done: number; total: number } | null = null;
   private progressEl: HTMLElement | null = null;
@@ -168,8 +177,37 @@ export class AssemblyEnv {
           if (c?.length) cached.set(id, c);
         }),
       );
+    const t0 = performance.now();
+    // several distinct parts: build them in parallel in the worker pool (display meshes);
+    // the main kernel builds a part's B-rep when an operation needs it (ensureBrep)
+    const pooled = new Set<string>();
+    const poolIds = todo.filter((id) => !cached.has(id));
+    const n = this.parallel && poolIds.length >= 2 ? poolSize() : 0;
+    if (n > 0) {
+      this.pool ??= new KernelPool(() => new KernelClient(), n);
+      const jobs = poolIds.map((id) => ({ id, features: this.partFeatures(id) }));
+      const hashes = new Map(poolIds.map((id) => [id, hashOf(this.doc.parts.find((x) => x.id === id)!)]));
+      await this.pool.run(jobs, (r) => {
+        if (!r.result) return; // failed in the pool: built in the main worker below
+        const errs = Object.values(r.result.errors);
+        const hash = hashes.get(r.id)!;
+        this.parts.set(r.id, { hash, bodies: r.result.bodies, error: errs[0], brep: false });
+        if (large && !errs.length && r.result.bodies.length) void idbSet(meshKey(hash), r.result.bodies).catch(() => {});
+        pooled.add(r.id);
+        if (this.loading) {
+          this.loading.done++;
+          this.showProgress();
+          const now = performance.now();
+          if (now - this.lastProgressRender > 150 && this.loading.done < this.loading.total) {
+            this.lastProgressRender = now;
+            this.render();
+          }
+        }
+      });
+    }
     try {
       for (const id of todo) {
+        if (pooled.has(id)) continue;
         const p = this.doc.parts.find((x) => x.id === id);
         if (!p) continue;
         const hash = hashOf(p);
@@ -199,33 +237,44 @@ export class AssemblyEnv {
         }
       }
     } finally {
+      if (todo.length) this.lastBuild = { ms: performance.now() - t0, parts: todo.length, pooled: pooled.size };
       if (progressive) {
         this.loading = null;
         this.showProgress();
       }
     }
+    // normal open: load the B-rep of pool-built parts in the background
+    if (pooled.size && !this.lightOpen) void this.ensureBrep([...pooled], true).catch(() => {});
   }
 
   /**
    * Builds the kernel B-rep of parts opened from cached display meshes
    * (lightweight open). Call before any kernel operation on placements.
    */
-  async ensureBrep(partIds?: string[]) {
+  async ensureBrep(partIds?: string[], quiet = false) {
     const want = new Set(partIds ?? this.doc.components.filter((c) => c.visible !== false).map((c) => c.partId));
     const todo = [...this.parts].filter(([id, c]) => want.has(id) && c.brep === false);
     if (!todo.length) return;
     let i = 0;
     for (const [id, c] of todo) {
-      this.app.status(`詳細形状を読み込み中… ${++i} / ${todo.length}`);
-      try {
-        // the display keeps the cached mesh (same tessellation); only the kernel state is new
-        await this.app.kernel.rebuildKey(key(id), this.partFeatures(id));
-        c.brep = true;
-      } catch (e) {
-        c.error = (e as Error).message;
+      if (!quiet) this.app.status(`詳細形状を読み込み中… ${++i} / ${todo.length}`);
+      // one build per part even when several callers ask at once (background load + an operation)
+      let job = this.brepJobs.get(id);
+      if (!job) {
+        job = (async () => {
+          try {
+            // the display keeps the cached mesh (same tessellation); only the kernel state is new
+            await this.app.kernel.rebuildKey(key(id), this.partFeatures(id));
+            c.brep = true;
+          } catch (e) {
+            c.error = (e as Error).message;
+          }
+        })().finally(() => this.brepJobs.delete(id));
+        this.brepJobs.set(id, job);
       }
+      await job;
     }
-    this.app.status("準備完了");
+    if (!quiet) this.app.status("準備完了");
   }
 
   /** Parts shown from cached display meshes (B-rep not loaded yet). */
