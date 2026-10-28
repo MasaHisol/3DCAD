@@ -224,19 +224,24 @@ npm run app        # デスクトップ アプリとして起動
 
 | 形式 | 読込 | 書出 | 主な相手先 |
 | --- | :-: | :-: | --- |
-| STEP (.stp/.step, AP214) | ✓ | ✓ | Inventor / SOLIDWORKS / Fusion 360 / CATIA / Creo / NX / Onshape / FreeCAD (形状 = B-rep ソリッド。アセンブリは部品名付き) |
+| STEP (.stp/.step, AP214) | ✓ | ✓ | Inventor / SOLIDWORKS / Fusion 360 / CATIA / Creo / NX / Onshape / FreeCAD (形状 = B-rep ソリッド。部品名・色・アセンブリ構造 (配置) を読み書き) |
+| IGES (.igs/.iges) | ✓ | ✓ | 旧来の CAD / CAM — トリム サーフェス (144) と NURBS。名前・色・単位 (inch など) を反映し、平面・円柱・球は解析面に戻す |
 | DXF (R12) | ✓ (スケッチとして) | ✓ (スケッチ / 図面 / 展開図) | AutoCAD / Jw_cad / DraftSight / LibreCAD / BricsCAD — 読込: 線分・円・円弧・ポリライン (バルジ)・楕円・スプライン (NURBS)・ブロック挿入、UTF-8 / Shift_JIS 自動判別。書出: JIS 風の画層 (外形線 VISIBLE / かくれ線 HIDDEN / 中心線 CENTER / 細線 / 寸法 / 文字 / ハッチング / 図枠) と線種、日本語は Shift_JIS ($DWGCODEPAGE ANSI_932)、断面ハッチングは 45° の線 |
 | STL | ✓ | ✓ | 3D プリンタ、スキャナ |
 | 3MF | ✓ | ✓ | Bambu Studio / PrusaSlicer / Cura / Windows 3D ビューアー (ビルド配置・単位を反映) |
 | OBJ | ✓ | ✓ | Blender / Rhino / メッシュ系ツール |
-| GLB (glTF) | ✓ | ✓ | Web・AR・プレゼン (ノード変換を反映、m → mm) |
-| PLY | ✓ | ✓ | 点群 / メッシュ ツール (ASCII / バイナリ) |
+| glTF (.gltf / .glb) | ✓ | ✓ | Web・AR・プレゼン・Blender (ノード変換・名前・色、m → mm。.gltf は埋め込みバッファ) |
+| PLY | ✓ | ✓ | メッシュ ツール (ASCII / バイナリ)。面のない PLY は点群として表示 |
+| E57 (点群) | ✓ (表示・測定) | | レーザー スキャナ (非圧縮の bitPackCodec、Float / ScaledInteger、色・強度、姿勢を反映) |
+| IFC (建築) | ✓ (表示・測定) | | Revit / ArchiCAD など (web-ifc で三角形化。IFC を開くときだけ読み込む) |
 | BREP | | ✓ | FreeCAD / OpenCascade 系ツール (ネイティブ B-rep) |
 | Inventor (.ipt/.iam/.idw/.ipn)・旧 SOLIDWORKS | iProperties・プレビュー | | 形状は非公開形式のため STEP 経由 (読み取った iProperties は現在のパーツに取り込み可能) |
 | CSV | ✓ | ✓ | Excel (パラメータ = デザイン テーブル) |
 | SVG / PDF (印刷) | | ✓ | 図面 |
 
-メッシュ形式 (STL / OBJ / 3MF / GLB / PLY) の読み込みは三角形を縫合してソリッド化します (編集はできますが面は多面体になります)。
+メッシュ形式 (STL / OBJ / 3MF / glTF / PLY) の読み込みは三角形を縫合してソリッド化します (編集はできますが面は多面体になります)。点群 (面のない PLY、E57) と IFC は「参照データ」として表示し、点の大きさ・色を変えて、測定コマンドで点と点の距離を測れます。
+
+STEP / IGES の読み込みでは形状を自動で修復します (微小面の削除、隙間の縫合、ワイヤーの修正、面の向きをそろえてソリッド化)。修復した内容は読み込み後に表示されます。
 
 ## Inventor との互換性について
 
@@ -293,8 +298,8 @@ npm run build && npm run e2e   # ブラウザでの E2E (スケッチ→押し�
 
 OpenCascade (replicad-opencascadejs) は LGPL-2.1、replicad は MIT、three.js は MIT ライセンスです。
 
-文字フィーチャ用に IPA P ゴシック (`src/assets/fonts/ipagp.ttf`) を同梱しています。IPA フォントライセンス v1.0 に従います (配布物の `licenses/IPA_Font_License_Agreement_v1.0.txt`)。工具経路のオフセット計算に clipper-lib (Boost Software License) を使用しています。
+文字フィーチャ用に IPA P ゴシック (`src/assets/fonts/ipagp.ttf`) を同梱しています。IPA フォントライセンス v1.0 に従います (配布物の `licenses/IPA_Font_License_Agreement_v1.0.txt`)。工具経路のオフセット計算に clipper-lib (Boost Software License) を使用しています。IFC の表示に web-ifc (Mozilla Public License 2.0、改変なしで同梱。ライセンス文は `licenses/web-ifc_MPL-2.0.txt`、ソースは https://github.com/ThatOpen/engine_web-ifc) を使用しています。
 
 ### 対応していない形式
 
-IGES・Parasolid (x_t)・DWG・Inventor / SOLIDWORKS の形状データは、仕様が非公開か、ブラウザで使える変換ライブラリがないため対応していません。いずれも STEP (形状) または DXF (2D) を経由してください。
+JT・Parasolid (x_t)・DWG・Inventor / SOLIDWORKS の形状データは、仕様が非公開か、商用配布と両立する変換ライブラリがないため対応していません。いずれも STEP (形状) または DXF (2D) を経由してください。調査の詳細は [docs/format-research.md](docs/format-research.md) にあります。

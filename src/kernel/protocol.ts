@@ -101,7 +101,7 @@ export type RFeature =
       transforms: Transform[];
     }
   | { id: string; type: "primitive"; shape: "box" | "cylinder" | "sphere" | "torus"; plane: PlaneDef; center: Vec2; a: number; b: number; c: number; op: BoolOp }
-  | { id: string; type: "import"; format: "step" | "stl"; data: string }
+  | { id: string; type: "import"; format: "step" | "stl" | "iges"; data: string; /** Repair the geometry (default on). */ heal?: boolean }
   | { id: string; type: "move"; transform: Transform; surfaces?: string[]; solids?: boolean }
   | SurfaceRFeature;
 
@@ -184,6 +184,8 @@ export interface BodyMesh {
   edges: EdgeInfo[];
   /** Surface body (open shell): id of the feature that made it. */
   surface?: string;
+  /** Colour read from the file (STEP / IGES). */
+  color?: string;
 }
 
 export interface RebuildResult {
@@ -193,6 +195,8 @@ export interface RebuildResult {
   /** Bodies just before the feature named in `captureBefore` (for picking while editing it). */
   before?: BodyMesh[];
   errors: Record<string, string>;
+  /** Messages for the user per feature (e.g. what an import repaired). */
+  notices?: Record<string, string>;
   /** References re-resolved during the rebuild (keeps them tracking edits). */
   updatedRefs: Record<string, { edges?: EdgeRef[]; faces?: FaceRef[] }>;
   timeMs: number;
@@ -265,6 +269,9 @@ export interface Placement {
   key: string;
   matrix: number[];
   name: string;
+  /** Part (product) name and colour for structured STEP export. */
+  part?: string;
+  color?: string;
 }
 
 export interface Interference {
@@ -277,11 +284,12 @@ export interface Interference {
 export type WorkerRequest =
   | { kind: "init" }
   | { kind: "rebuild"; features: RFeature[]; captureBefore?: string; key?: string }
-  | { kind: "export"; format: "step" | "stl" | "brep"; name: string; key?: string }
+  | { kind: "export"; format: "step" | "stl" | "brep" | "iges"; name: string; key?: string; color?: string }
+  | { kind: "stepAssembly"; text: string }
   | { kind: "massProps"; key?: string }
   | { kind: "measure"; a: PickRef; b?: PickRef; key?: string }
   | { kind: "projection"; views: { name: string; dir: Vec3; xAxis: Vec3 }[]; key?: string; placements?: Placement[] }
-  | { kind: "exportAssembly"; format: "step" | "stl"; placements: Placement[]; withRoutes?: boolean }
+  | { kind: "exportAssembly"; format: "step" | "stl" | "iges"; placements: Placement[]; withRoutes?: boolean; name?: string }
   | { kind: "interference"; placements: Placement[] }
   | { kind: "dropEngine"; key: string }
   | { kind: "drawViews"; key?: string; placements?: Placement[]; views: ViewSpec[] }

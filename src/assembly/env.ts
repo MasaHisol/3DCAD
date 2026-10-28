@@ -456,6 +456,7 @@ export class AssemblyEnv {
 
   partColor(partId: string): string {
     const p = this.doc.parts.find((x) => x.id === partId);
+    if (p?.color) return p.color;
     const mat = p?.doc?.material;
     if (mat && mat.name !== MATERIALS[0].name) return mat.color;
     const i = this.doc.parts.findIndex((x) => x.id === partId);
@@ -474,7 +475,9 @@ export class AssemblyEnv {
   }
 
   placements(): Placement[] {
-    return this.doc.components.filter((c) => c.visible !== false).map((c) => ({ key: key(c.partId), matrix: c.matrix, name: c.name }));
+    return this.doc.components
+      .filter((c) => c.visible !== false)
+      .map((c) => ({ key: key(c.partId), matrix: c.matrix, name: c.name, part: this.doc.parts.find((p) => p.id === c.partId)?.name, color: this.partColor(c.partId) }));
   }
 
   // ------------------------------------------------------------ picking ---
@@ -923,11 +926,7 @@ export class AssemblyEnv {
     const ext = f.name.split(".").pop()!.toLowerCase();
     try {
       if (ext === "step" || ext === "stp") {
-        const id = uid("pt");
-        const name = f.name.replace(/\.[^.]+$/, "");
-        const step = await f.text();
-        this.store.mutate("配置", (d) => d.parts.push({ id, name, kind: "step", step, fileName: f.name }));
-        await this.placeInstance(id);
+        await this.importStep(f.name, await f.text());
       } else {
         const doc = JSON.parse(await f.text()) as PartDocument;
         if (doc.format !== "3dcad-part") throw new Error("パーツ ファイル (.3dcp) ではありません");
@@ -950,6 +949,36 @@ export class AssemblyEnv {
     const id = uid("pt");
     this.store.mutate("パーツを作成", (d) => d.parts.push({ id, name: doc.name, kind: "part", doc }));
     void this.placeInstance(id).then(() => this.app.editAssemblyPart(id));
+  }
+
+  /**
+   * STEP into the assembly: a file with an assembly structure becomes one part
+   * per product (name and colour kept) and its instances at their placements;
+   * a single part is placed like before.
+   */
+  async importStep(fileName: string, text: string) {
+    const base = fileName.replace(/\.[^.]+$/, "");
+    let res: Awaited<ReturnType<App["kernel"]["stepAssembly"]>> | null = null;
+    try {
+      res = await this.app.kernel.stepAssembly(text);
+    } catch {
+      res = null;
+    }
+    if (!res || res.comps.length <= 1) {
+      const id = uid("pt");
+      this.store.mutate("配置", (d) => d.parts.push({ id, name: res?.parts[0]?.name || base, kind: "step", step: text, fileName, color: res?.parts[0]?.color }));
+      await this.placeInstance(id);
+      return;
+    }
+    const r = res;
+    const ids = r.parts.map(() => uid("pt"));
+    const first = this.doc.components.length === 0;
+    this.store.mutate("STEP アセンブリを配置", (d) => {
+      r.parts.forEach((p, i) => d.parts.push({ id: ids[i], name: p.name, kind: "step", step: p.step, fileName, color: p.color }));
+      r.comps.forEach((c, i) => d.components.push({ id: uid("cm"), name: c.name, partId: ids[c.part], matrix: c.matrix, grounded: first && i === 0 }));
+    });
+    setTimeout(() => this.app.vp.fitAll(), 50);
+    toast(`${fileName}: 部品 ${r.parts.length} 種類・コンポーネント ${r.comps.length} 個を配置しました (名前・色・位置を読み込み)`, "ok");
   }
 
   /** Adds a component of an existing part next to the current assembly. */
@@ -1082,7 +1111,7 @@ export class AssemblyEnv {
     }
     try {
       const withRoutes = this.routes.hasRoutes() && (await this.routes.ensureBuilt()) > 0;
-      const buf = await this.app.kernel.exportAssembly("step", this.placements(), withRoutes);
+      const buf = await this.app.kernel.exportAssembly("step", this.placements(), withRoutes, this.doc.name);
       download(`${this.doc.name}.stp`, buf, "application/step");
       toast(`${this.doc.name}.stp をエクスポートしました — Inventor で開けます`, "ok");
     } catch (e) {

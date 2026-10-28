@@ -18,7 +18,12 @@ const MIME = {
   ".ico": "image/x-icon",
   ".woff2": "font/woff2",
 };
-const OPENABLE = new Set([".3dcp", ".3dca", ".stp", ".step", ".stl", ".json"]);
+// files the app opens from the OS (double-click / "open with" / command line);
+// keep in sync with build.fileAssociations in package.json and IMPORT_EXTS in src/app.ts
+const OPENABLE = new Set([
+  ".3dcp", ".3dca", ".json",
+  ".stp", ".step", ".igs", ".iges", ".stl", ".obj", ".3mf", ".glb", ".gltf", ".ply", ".e57", ".ifc", ".dxf",
+]);
 
 // CAD needs WebGL even on blocklisted / virtual GPUs (VMs, remote desktop):
 // allow the GPU anyway and fall back to software rendering when there is none.

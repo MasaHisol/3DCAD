@@ -4,8 +4,10 @@
 import { preview } from "vite";
 import { chromium } from "playwright";
 
-const server = await preview({ preview: { port: 4174, strictPort: true }, logLevel: "error" });
-const url = "http://localhost:4174/";
+// E2E_PORT: preview port (default 4174)
+const port = +(process.env.E2E_PORT || 4174);
+const server = await preview({ preview: { port, strictPort: true }, logLevel: "error" });
+const url = `http://localhost:${port}/`;
 const browser = await chromium.launch({
   executablePath: process.env.CHROMIUM_PATH || undefined,
   args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"],

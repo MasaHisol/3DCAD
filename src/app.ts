@@ -29,7 +29,10 @@ import { Timeline } from "./ui/timeline";
 import { openCommandSearch } from "./ui/commandSearch";
 import { AssemblyEnv } from "./assembly/env";
 import { openLibrary } from "./library/dialog";
-import { read3mf, readGlb, readPly } from "./io/meshin";
+import { read3mf, readPly, trisToStl } from "./io/meshin";
+import { readGltf } from "./io/gltf";
+import { plyIsPointCloud, readPlyPoints } from "./io/pointcloud";
+import { openRefModels } from "./ui/refModels";
 import { openNativeInfo } from "./io/nativeDialog";
 import type { Rule, RuleContext, RuleResult } from "./rules/engine";
 import { DrawingEnv } from "./drawing/env";
@@ -40,6 +43,9 @@ import { openLearningCenter, startLessonById } from "./learn/lazy";
 import { listenForLessons, openTextbook } from "./learn/textbookLink";
 
 const AUTOSAVE_KEY = "3dcad.autosave.v2";
+
+/** Formats that can be imported (file dialogs; the desktop app opens the same list). */
+export const IMPORT_EXTS = ".step,.stp,.igs,.iges,.stl,.obj,.3mf,.glb,.gltf,.ply,.e57,.ifc,.dxf";
 
 export interface SketchOverlay {
   sketchId: string;
@@ -391,7 +397,12 @@ export class App {
     this.surfaces = res.surfaces ?? [];
     const shown = this.surfaces.length ? [...res.bodies, ...this.surfaces] : res.bodies;
     this.pickBodies = res.before ?? shown;
-    this.vp.setBodies(shown, res.before);
+    this.vp.setBodies(shown, res.before, shown.some((b) => b.color) ? shown.map((b) => b.color) : undefined);
+    for (const [id, msg] of Object.entries(res.notices ?? {}))
+      if (!this.shownNotices.has(id + msg)) {
+        this.shownNotices.add(id + msg);
+        toast(msg, "info", 8000);
+      }
     refreshCurvature(this);
     this.vp.setThreads(res.threads ?? []);
     this.vp.setMaterialColor(doc.material.color);
@@ -1329,13 +1340,43 @@ export class App {
     toast("サンプル パーツを開きました。ブラウザのフィーチャをダブルクリックすると編集できます", "ok");
   }
 
+  /** Notices already shown (an import's repair report is shown once). */
+  private shownNotices = new Set<string>();
+
+  /**
+   * Point clouds (PLY without faces, E57) and IFC buildings: display-only
+   * reference data, measurable with the measure command. Heavy readers load on demand.
+   */
+  async openReference(f: File) {
+    const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
+    const bytes = new Uint8Array(await f.arrayBuffer());
+    this.busyEl.classList.add("show");
+    try {
+      const id = uid("ref");
+      if (ext === "ifc") {
+        const { readIfc } = await import("./io/ifc");
+        const m = await readIfc(bytes, f.name);
+        this.vp.addRefMeshes(id, f.name, m.parts);
+        toast(`${f.name} を表示しました (IFC ${m.schema}、要素 ${m.elements} 個、表示専用)`, "ok");
+      } else {
+        const c = ext === "e57" ? (await import("./io/e57")).readE57(bytes, f.name) : readPlyPoints(bytes, f.name);
+        this.vp.addPointCloud(id, f.name, c.positions, c.colors, 2);
+        toast(`${f.name} を表示しました (点群 ${(c.positions.length / 3).toLocaleString()} 点、表示専用)`, "ok");
+      }
+      this.vp.fitAll();
+      openRefModels(this);
+    } finally {
+      this.busyEl.classList.remove("show");
+    }
+  }
+
   async openFile() {
-    const f = await pickFile(".3dcp,.3dca,.json,.step,.stp,.stl,.obj,.3mf,.glb,.ply,.dxf,.ipt,.iam,.idw,.ipn,.sldprt,.sldasm,.slddrw");
+    const f = await pickFile(`.3dcp,.3dca,.json,${IMPORT_EXTS},.ipt,.iam,.idw,.ipn,.sldprt,.sldasm,.slddrw`);
     if (f) this.openOrImport(f);
   }
 
   async importFile() {
-    const f = await pickFile(".step,.stp,.stl,.obj,.3mf,.glb,.ply,.dxf");
+    const f = await pickFile(IMPORT_EXTS);
     if (f) this.openOrImport(f);
   }
 
@@ -1357,18 +1398,28 @@ export class App {
         this.vp.setStandardView([1, 1, 1], false);
         toast(`${f.name} を開きました`, "ok");
       } else if (this.env === "assembly" && (ext === "step" || ext === "stp")) {
-        const step = await f.text();
-        const id = uid("pt");
-        this.asm.store.mutate("配置", (d) => d.parts.push({ id, name: f.name.replace(/\.[^.]+$/, ""), kind: "step", step, fileName: f.name }));
-        await this.asm.placeInstance(id);
+        await this.asm.importStep(f.name, await f.text());
+      } else if (ext === "e57" || ext === "ifc" || (ext === "ply" && plyIsPointCloud(new Uint8Array(await f.arrayBuffer())))) {
+        await this.openReference(f);
       } else if (ext === "dxf") {
         this.importDxf(f.name, decodeDxf(new Uint8Array(await f.arrayBuffer())));
-      } else if (["step", "stp", "stl", "obj", "3mf", "glb", "ply"].includes(ext)) {
+      } else if (["step", "stp", "igs", "iges", "stl", "obj", "3mf", "glb", "gltf", "ply"].includes(ext)) {
         let data: string;
-        const mesh = ext !== "step" && ext !== "stp";
+        const cad = ext === "step" || ext === "stp" || ext === "igs" || ext === "iges";
+        const mesh = !cad;
         if (mesh) {
           const raw = new Uint8Array(await f.arrayBuffer());
-          const bytes = ext === "obj" ? objToStl(new TextDecoder().decode(raw)) : ext === "3mf" ? await read3mf(raw) : ext === "glb" ? readGlb(raw) : ext === "ply" ? readPly(raw) : raw;
+          const gltfTris = () => {
+            const ms = readGltf(raw);
+            const P: number[] = [], T: number[] = [];
+            for (const m of ms) {
+              const base = P.length / 3;
+              P.push(...m.positions);
+              for (const i of m.indices) T.push(i + base);
+            }
+            return trisToStl(P, T);
+          };
+          const bytes = ext === "obj" ? objToStl(new TextDecoder().decode(raw)) : ext === "3mf" ? await read3mf(raw) : ext === "glb" || ext === "gltf" ? gltfTris() : ext === "ply" ? readPly(raw) : raw;
           let bin = "";
           for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
           data = btoa(bin);
@@ -1378,7 +1429,7 @@ export class App {
             id: uid("im"),
             type: "import",
             name: f.name.replace(/\.[^.]+$/, ""),
-            format: mesh ? "stl" : "step",
+            format: mesh ? "stl" : ext === "igs" || ext === "iges" ? "iges" : "step",
             fileName: f.name,
             data,
           }),
@@ -1434,25 +1485,26 @@ export class App {
     toast(`${name} を保存しました`, "ok", 2000);
   }
 
-  async exportFile(format: "step" | "stl" | "brep") {
+  async exportFile(format: "step" | "stl" | "brep" | "iges") {
     if (this.asmDoc) {
       if (format === "step") return this.asm.exportStep();
       if (format === "brep") return void toast("BREP はパーツから書き出します", "info");
       try {
-        download(`${this.asm.doc.name}.stl`, await this.kernel.exportAssembly("stl", this.asm.placements()), "model/stl");
+        const ext = format === "iges" ? "igs" : "stl";
+        download(`${this.asm.doc.name}.${ext}`, await this.kernel.exportAssembly(format, this.asm.placements()), format === "iges" ? "model/iges" : "model/stl");
       } catch (e) {
         toast((e as Error).message, "error");
       }
       return;
     }
-    if (!this.bodies.length && !(format === "step" && this.surfaces.length)) {
+    if (!this.bodies.length && !((format === "step" || format === "iges") && this.surfaces.length)) {
       toast(this.surfaces.length ? SURFACE_ONLY_MSG : "エクスポートするソリッドがありません", "warn");
       return;
     }
     try {
-      const buf = await this.kernel.exportFile(format, this.store.doc.name);
-      const name = `${this.store.doc.name}.${format === "step" ? "stp" : format}`;
-      download(name, buf, format === "step" ? "application/step" : format === "stl" ? "model/stl" : "application/octet-stream");
+      const buf = await this.kernel.exportFile(format, this.store.doc.name, this.store.doc.material.color);
+      const name = `${this.store.doc.name}.${format === "step" ? "stp" : format === "iges" ? "igs" : format}`;
+      download(name, buf, format === "step" ? "application/step" : format === "stl" ? "model/stl" : format === "iges" ? "model/iges" : "application/octet-stream");
       toast(`${name} をエクスポートしました${format === "step" ? " — Inventor で開けます" : ""}`, "ok");
     } catch (e) {
       toast(`エクスポートに失敗しました: ${(e as Error).message}`, "error");
@@ -1508,7 +1560,7 @@ export class App {
       });
     } else {
       name = this.store.doc.name;
-      bodies = this.bodies.map((b, i) => ({ mesh: b, color: this.store.doc.material.color, name: `${name}_${i + 1}` }));
+      bodies = this.bodies.map((b, i) => ({ mesh: b, color: b.color ?? this.store.doc.material.color, name: b.name && !/^ソリッド\d+$/.test(b.name) ? b.name : `${name}_${i + 1}` }));
     }
     if (!bodies.length) {
       toast("エクスポートするソリッドがありません", "warn");
@@ -1528,9 +1580,11 @@ export class App {
       { label: "STEP (AP214) — Inventor / SOLIDWORKS / Fusion / CATIA / Creo", icon: "export", action: () => this.exportFile("step") },
       { label: "STL — 3D プリンタ", icon: "export", action: () => this.exportFile("stl") },
       { label: "BREP — FreeCAD / OpenCascade (B-rep)", icon: "export", action: () => this.exportFile("brep") },
+      { label: "IGES — 旧来の CAD / CAM (トリム サーフェス)", icon: "export", action: () => this.exportFile("iges") },
       { label: "3MF — 3D プリンタ (Bambu / Prusa / Cura)", icon: "export", action: () => this.exportMesh("3mf") },
       { label: "OBJ — Blender / Rhino / 汎用メッシュ", icon: "export", action: () => this.exportMesh("obj") },
-      { label: "GLB (glTF) — Web / AR / プレゼン", icon: "export", action: () => this.exportMesh("glb") },
+      { label: "GLB (glTF バイナリ) — Web / AR / プレゼン", icon: "export", action: () => this.exportMesh("glb") },
+      { label: "glTF (テキスト) — Web / Blender", icon: "export", action: () => this.exportMesh("gltf") },
       { label: "PLY — 点群 / メッシュ", icon: "export", action: () => this.exportMesh("ply") },
       { separator: true, label: "" },
       { label: "DXF (スケッチ) — AutoCAD / Jw_cad", icon: "drawing", disabled: !this.dxfTarget(), action: () => this.exportSketchDxf(this.dxfTarget()!) },
