@@ -2935,3 +2935,18 @@ kbd {
 .pmi-label .pmi-datum { border: 1.5px solid currentColor; padding: 0 4px; }
 .pmi-label .pmi-surf { fill: none; stroke: currentColor; stroke-width: 1.4; }
 .pmi-table td { vertical-align: middle; }
+
+/* crash recovery dialog */
+.recovery-dialog .recovery-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 2px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.recovery-dialog .hint {
+  margin-top: 8px;
+  font-size: 11px;
+  opacity: 0.75;
+}

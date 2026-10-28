@@ -9,6 +9,8 @@ import { planeToWorld, prepareDocument, resolveDocument, worldToPlane, type Reso
 import type { EdgeRef, FaceRef, Feature, PartDocument, PlaneDef, SketchFeature, Vec3, WorkPlaneFeature } from "./core/types";
 import { KernelClient } from "./kernel/client";
 import type { BodyMesh, RebuildResult } from "./kernel/protocol";
+import { KernelCrashError } from "./kernel/client";
+import { hasContent, MAX_SNAPSHOTS, OpLog, parseSession, parseSnapshots, pushSnapshot, recoveryDecision, type Snapshot } from "./core/recovery";
 import type { Command } from "./commands/command";
 import { buildCommands, preloadLazyCommands, type CommandRegistry } from "./commands/features";
 import { ModelBrowser } from "./ui/browser";
@@ -40,6 +42,10 @@ import { openLearningCenter, startLessonById } from "./learn/lazy";
 import { listenForLessons, openTextbook } from "./learn/textbookLink";
 
 const AUTOSAVE_KEY = "3dcad.autosave.v2";
+/** Snapshot history (newest first) for crash recovery, in IndexedDB. */
+const HISTORY_KEY = "3dcad.autosave.history.v1";
+/** Session flag: `running` stays true when the app did not exit cleanly. */
+const SESSION_KEY = "3dcad.session.v1";
 
 export interface SketchOverlay {
   sketchId: string;
@@ -80,6 +86,11 @@ export class App {
   browserSelection = new Set<string>();
   originVis = new Set<string>();
   private kernelReady = false;
+  /** User operations and errors (exported for bug reports, saved with the autosave). */
+  readonly opLog = new OpLog(500);
+  /** Last part document that rebuilt without a kernel exception (rollback target). */
+  private lastGood: string | null = null;
+  private crashRestarts: number[] = [];
   private regenTimer = 0;
   private regenSeq = 0;
   private sketchRenderers: SketchRenderer[] = [];
@@ -198,6 +209,16 @@ export class App {
     this.buildNavBar(vpEl);
 
     this.commands = buildCommands(this);
+    const run = this.commands.run.bind(this.commands);
+    this.commands.run = (id: string) => {
+      this.opLog.add({ kind: "command", id, params: this.env });
+      try {
+        run(id);
+      } catch (e) {
+        this.opLog.add({ kind: "error", id, result: (e as Error).message });
+        throw e;
+      }
+    };
     this.ribbon = new Ribbon(ribbonHost, [...buildRibbonTabs(this), this.drawing.ribbonTab()], (a) => this.fileMenu(a));
 
     this.store.on((reason) => this.onDocChanged(reason));
@@ -214,6 +235,12 @@ export class App {
     window.addEventListener("beforeunload", (e) => {
       if (this.store.dirty) e.preventDefault();
     });
+    this.asm.store.on((r) => {
+      if (r === "refs") return;
+      this.opLog.add({ kind: "edit", id: `asm:${r}` });
+      this.scheduleAutosave();
+    });
+    this.installRecoveryHooks();
     vpEl.addEventListener("dragover", (e) => e.preventDefault());
     vpEl.addEventListener("drop", (e) => {
       e.preventDefault();
@@ -234,6 +261,7 @@ export class App {
         setTimeout(preloadLazyCommands, 1500);
       })
       .catch((e) => toast(`ジオメトリ カーネルの初期化に失敗しました: ${e.message}`, "error", 10000));
+    this.kernel.onRestart = (reason) => this.onKernelRestart(reason);
   }
 
   private qatBtn(ic: string, title: string, fn: () => void, id?: string) {
@@ -336,6 +364,7 @@ export class App {
 
   private onDocChanged(reason: string) {
     if (reason === "refs") return;
+    this.opLog.add({ kind: "edit", id: reason });
     this.watchRules(reason);
     this.scheduleAutosave();
     if (reason.startsWith("PMI")) return void this.refreshUI(); // annotations only: no rebuild
@@ -349,7 +378,7 @@ export class App {
         return;
       }
     }
-    if (reason === "load" || reason === "undo" || reason === "redo") this.syncMaterial();
+    if (reason === "load" || reason === "undo" || reason === "redo" || reason === "rollback") this.syncMaterial();
     this.scheduleRegen();
     this.refreshUI();
   }
@@ -372,6 +401,8 @@ export class App {
       return;
     }
     const seq = ++this.regenSeq;
+    const gen = this.store.generation;
+    const docJson = this.store.snapshot();
     const busyTimer = setTimeout(() => this.busyEl.classList.add("show"), 250);
     let res: RebuildResult;
     try {
@@ -379,9 +410,10 @@ export class App {
     } catch (e) {
       clearTimeout(busyTimer);
       this.busyEl.classList.remove("show");
-      toast(`再計算エラー: ${(e as Error).message}`, "error");
+      this.onRebuildFailed(e as Error, seq, gen, docJson);
       return;
     }
+    if (this.store.generation === gen) this.lastGood = docJson;
     clearTimeout(busyTimer);
     this.busyEl.classList.remove("show");
     if (seq !== this.regenSeq) return; // a newer regen superseded this one
@@ -1139,6 +1171,8 @@ export class App {
       { label: "インポート (STEP / STL / OBJ / DXF)…", icon: "import", action: () => this.importFile() },
       { label: "エクスポート…", icon: "export", action: () => this.exportMenu(r.left + 240, r.bottom + 2) },
       { label: "オプション…", icon: "settings", action: () => this.openSettings() },
+      { label: "自動保存から復元…", icon: "open", action: () => this.recoveryDialog() },
+      { label: "操作ログを書き出す (不具合報告用)", icon: "export", action: () => this.exportOpLog() },
       { separator: true, label: "" },
       { label: "図面を作成…", icon: "drawing", action: () => this.openDrawingEnv() },
       { label: "標準部品ライブラリ…", icon: "library", action: () => openLibrary(this) },
@@ -1415,6 +1449,8 @@ export class App {
       this.asm.store.fileHandleName = name;
       this.asm.store.dirty = false;
       this.refreshUI();
+      this.opLog.add({ kind: "info", id: "save", params: "assembly" });
+      this.scheduleAutosave(0);
       toast(`${name} を保存しました`, "ok", 2000);
       return;
     }
@@ -1431,6 +1467,8 @@ export class App {
     this.store.fileHandleName = name;
     this.store.dirty = false;
     this.refreshUI();
+    this.opLog.add({ kind: "info", id: "save", params: "part" });
+    this.scheduleAutosave(0);
     toast(`${name} を保存しました`, "ok", 2000);
   }
 
@@ -1609,68 +1647,260 @@ export class App {
     a.click();
   }
 
+  // ------------------------------------------------- autosave / recovery ---
+
   private autosaveTimer = 0;
   private autosaveWarned = false;
-  private scheduleAutosave() {
+  /** Snapshot history (newest first); written only after the start-up check read it. */
+  private snapHistory: Snapshot[] = [];
+  /** Snapshots the user chose to restore "later" (kept apart so new autosaves do not evict them). */
+  private postponed: Snapshot[] = [];
+  private historyLoaded = false;
+  private readonly sessionId = Math.random().toString(36).slice(2, 10);
+
+  private scheduleAutosave(delay = 800) {
     clearTimeout(this.autosaveTimer);
-    this.autosaveTimer = window.setTimeout(() => {
-      const asmActive = this.asmDoc || !!this.asm.editingPart;
-      const json = JSON.stringify({ env: asmActive ? "assembly" : "part", part: asmActive ? null : this.store.doc, asm: asmActive ? this.asm.doc : null, t: Date.now() });
-      // IndexedDB holds large models (STEP imports, big assemblies); localStorage stays as a fallback
-      void idbSet(AUTOSAVE_KEY, json)
-        .then(() => (this.autosaveWarned = false))
-        .catch(() => {
-          if (!this.autosaveWarned) toast("自動保存できませんでした。こまめに保存してください (Ctrl+S)", "warn", 8000);
-          this.autosaveWarned = true;
-        });
-      try {
-        if (json.length < 2_000_000) localStorage.setItem(AUTOSAVE_KEY, json);
-        else localStorage.removeItem(AUTOSAVE_KEY);
-      } catch {
-        /* quota / private mode: IndexedDB keeps the copy */
+    this.autosaveTimer = window.setTimeout(() => this.writeAutosave(), delay);
+  }
+
+  private currentSnapshot(): Snapshot {
+    const asmActive = this.asmDoc || !!this.asm.editingPart;
+    // a part edited in place inside the assembly is copied into its assembly document
+    let asm = asmActive ? this.asm.doc : null;
+    if (asm && this.asm.editingPart && this.store.dirty) {
+      asm = structuredClone(asm);
+      const p = asm.parts.find((x) => x.id === this.asm.editingPart);
+      if (p) p.doc = structuredClone(this.store.doc);
+    }
+    return {
+      t: Date.now(),
+      env: asmActive ? "assembly" : "part",
+      part: asmActive ? null : this.store.doc,
+      asm,
+      dirty: asmActive ? this.asm.store.dirty || this.store.dirty : this.store.dirty,
+      fileName: asmActive ? this.asm.store.fileHandleName : this.store.fileHandleName,
+      name: asmActive ? this.asm.doc.name : this.store.doc.name,
+      session: this.sessionId,
+    };
+  }
+
+  private writeAutosave() {
+    if (!this.historyLoaded) return void this.scheduleAutosave();
+    const snap = this.currentSnapshot();
+    if (hasContent(snap)) this.snapHistory = pushSnapshot(this.snapHistory, snap);
+    const record = JSON.stringify({ snaps: this.snapHistory, postponed: this.postponed, log: this.opLog.entries() });
+    // IndexedDB holds large models (STEP imports, big assemblies); localStorage keeps the newest as a fallback
+    void idbSet(HISTORY_KEY, record)
+      .then(() => (this.autosaveWarned = false))
+      .catch(() => {
+        if (!this.autosaveWarned) toast("自動保存できませんでした。こまめに保存してください (Ctrl+S)", "warn", 8000);
+        this.autosaveWarned = true;
+      });
+    try {
+      const json = JSON.stringify(snap);
+      if (json.length < 2_000_000) localStorage.setItem(AUTOSAVE_KEY, json);
+      else localStorage.removeItem(AUTOSAVE_KEY);
+    } catch {
+      /* quota / private mode: IndexedDB keeps the copy */
+    }
+  }
+
+  private setSession(running: boolean) {
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ running, t: Date.now() }));
+    } catch {
+      /* private mode: recovery then relies on the dirty flag of the snapshot */
+    }
+  }
+
+  private installRecoveryHooks() {
+    // a clean exit (window closed / reloaded through the UI) clears the running flag;
+    // a crash, kill or power loss leaves it set and the next start offers recovery
+    window.addEventListener("pagehide", () => {
+      if (this.historyLoaded) {
+        clearTimeout(this.autosaveTimer);
+        this.writeAutosave();
       }
-    }, 800);
+      this.setSession(false);
+    });
+    window.addEventListener("error", (e) => this.opLog.add({ kind: "error", id: "window", result: e.message }));
+    window.addEventListener("unhandledrejection", (e) => this.opLog.add({ kind: "error", id: "promise", result: String((e.reason as Error)?.message ?? e.reason) }));
   }
 
   private async restoreAutosave() {
-    let s: string | null | undefined = null;
+    const prev = parseSession(localStorage.getItem(SESSION_KEY));
+    this.setSession(true);
     // the read is asynchronous: if the user (or a file / lesson) already opened something
     // meanwhile, neither restore over it nor cover it with the welcome card
     const untouched = (gen: number) => this.store.generation === gen && !this.asmDoc && this.env === "part";
     const gen0 = this.store.generation;
+    let snaps: Snapshot[] = [];
     try {
-      // the newer of the two copies (IndexedDB is written first and has no size limit)
-      const fromIdb = await idbGet<string>(AUTOSAVE_KEY).catch(() => undefined);
-      const fromLs = localStorage.getItem(AUTOSAVE_KEY);
-      const t = (x: string | null | undefined) => (x ? ((JSON.parse(x) as { t?: number }).t ?? 0) : -1);
-      s = t(fromIdb) >= t(fromLs) ? fromIdb : fromLs;
-      if (!untouched(gen0)) return;
-      if (!s) {
-        this.showWelcome();
-        return;
+      const rec = await idbGet<string>(HISTORY_KEY).catch(() => undefined);
+      if (rec) {
+        const r = JSON.parse(rec) as { snaps?: unknown; postponed?: unknown; log?: unknown };
+        snaps = parseSnapshots(r.snaps);
+        this.postponed = parseSnapshots(r.postponed);
+        this.opLog.load(r.log);
       }
-      const saved = JSON.parse(s) as { env: string; part: PartDocument | null; asm: AssemblyDocument | null };
-      if (saved.env === "assembly" && saved.asm?.components.length) {
-        this.loadAssembly(saved.asm);
-      } else if (saved.part?.format === "3dcad-part" && saved.part.features.length) {
-        const { doc, warnings } = validatePart(saved.part);
+      // legacy single autosave (and the localStorage fallback when IndexedDB failed)
+      const legacy = parseSnapshots([await idbGet<string>(AUTOSAVE_KEY).catch(() => undefined), localStorage.getItem(AUTOSAVE_KEY)].filter(Boolean).map((x) => JSON.parse(x as string)));
+      if (legacy[0] && (!snaps[0] || legacy[0].t > snaps[0].t)) snaps = pushSnapshot(snaps, legacy[0], MAX_SNAPSHOTS, 0);
+    } catch (e) {
+      console.warn("autosave history unreadable", e);
+    }
+    this.snapHistory = snaps;
+    this.historyLoaded = true;
+    this.opLog.add({ kind: "info", id: "session-start", params: prev?.running ? "previous session ended abnormally" : undefined });
+    if (!untouched(gen0)) return;
+    const decision = recoveryDecision(prev, snaps, this.postponed);
+    if (decision === "none") return this.showWelcome();
+    if (decision === "silent") {
+      if (!this.applySnapshot(snaps.find(hasContent)!, false)) this.showWelcome();
+      else toast("前回の作業内容を復元しました", "info", 2500);
+      return;
+    }
+    this.recoveryDialog(!!prev?.running);
+  }
+
+  /** Offer the autosaved states (newest first): 復元 / 破棄 / あとで. */
+  recoveryDialog(crashed = false) {
+    const list = [...this.postponed, ...this.snapHistory].filter(hasContent).sort((a, b) => b.t - a.t);
+    if (!list.length) return void toast("復元できる自動保存データはありません", "info");
+    let pick = 0;
+    const fmt = (s: Snapshot) => {
+      const d = new Date(s.t);
+      const p2 = (n: number) => String(n).padStart(2, "0");
+      return `${d.getMonth() + 1}/${d.getDate()} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+    };
+    const items = list.map((s, i) =>
+      h(
+        "label",
+        { class: "recovery-item" },
+        h("input", { type: "radio", name: "recovery-pick", checked: i === 0, onChange: () => (pick = i) }),
+        h("span", {}, `${fmt(s)}  ${s.name || "(無題)"}${s.env === "assembly" ? " (アセンブリ)" : ""}${s.dirty ? " — 未保存の変更あり" : ""}${s.fileName ? ` [${s.fileName}]` : ""}`),
+      ),
+    );
+    const msg = crashed
+      ? "前回は正常に終了しませんでした。自動保存された作業内容を復元できます。"
+      : "保存されていない作業内容が自動保存されています。復元しますか?";
+    let choice: "restore" | "discard" | "later" = "later";
+    modal({
+      title: "作業内容の復元",
+      icon: "warning",
+      width: 480,
+      body: h(
+        "div",
+        { class: "recovery-dialog" },
+        h("p", { class: "confirm-msg" }, msg),
+        ...items,
+        h("p", { class: "hint" }, "復元してもファイルは上書きされません。必要なら保存し直してください。"),
+      ),
+      buttons: [
+        { label: "復元", primary: true, onClick: () => void (choice = "restore") },
+        { label: "破棄", onClick: () => void (choice = "discard") },
+        { label: "あとで" },
+      ],
+      onClose: () => {
+        if (choice === "restore") {
+          const s = list[pick];
+          this.postponed = [];
+          if (this.applySnapshot(s, true)) toast(`${fmt(s)} の作業内容を復元しました`, "ok", 3000);
+          else this.showWelcome();
+        } else if (choice === "discard") {
+          this.postponed = [];
+          this.snapHistory = [];
+          this.opLog.add({ kind: "info", id: "recovery", result: "discarded" });
+          try {
+            localStorage.removeItem(AUTOSAVE_KEY);
+          } catch {
+            /* ignore */
+          }
+          void idbSet(AUTOSAVE_KEY, "").catch(() => undefined);
+          this.writeAutosave();
+          this.showWelcome();
+        } else {
+          // keep them apart from the rolling history; offered again at next start or from the file menu
+          this.postponed = list.slice(0, MAX_SNAPSHOTS);
+          this.opLog.add({ kind: "info", id: "recovery", result: "postponed" });
+          this.writeAutosave();
+          this.showWelcome();
+        }
+      },
+    });
+  }
+
+  /** Load an autosaved state into the app. Never writes to the user's file. */
+  private applySnapshot(s: Snapshot, recovered: boolean): boolean {
+    try {
+      if (s.env === "assembly" && hasContent(s)) {
+        this.loadAssembly(s.asm as AssemblyDocument, s.fileName ?? undefined);
+        if (recovered || s.dirty) this.asm.store.dirty = true;
+      } else if ((s.part as PartDocument | null)?.format === "3dcad-part" && hasContent(s)) {
+        const { doc, warnings } = validatePart(s.part as PartDocument);
         this.reportRepairs(warnings);
         this.store.load(doc);
-      } else {
-        this.showWelcome();
-        return;
-      }
-      toast("前回の作業内容を復元しました", "info", 2500);
+        this.store.fileHandleName = s.fileName;
+        if (recovered || s.dirty) this.store.dirty = true;
+      } else return false;
+      this.opLog.add({ kind: "info", id: "recovery", params: new Date(s.t).toISOString(), result: recovered ? "restored" : "continued" });
+      this.refreshUI();
+      return true;
     } catch (e) {
-      // keep the unreadable autosave instead of overwriting it with the next edit
-      try {
-        if (s) void idbSet(`${AUTOSAVE_KEY}.broken`, s);
-      } catch {
-        /* ignore */
-      }
+      // keep the unreadable state instead of overwriting it with the next edit
+      void idbSet(`${AUTOSAVE_KEY}.broken`, JSON.stringify(s)).catch(() => undefined);
       toast(`前回の作業内容を復元できませんでした: ${(e as Error).message}`, "warn", 8000);
-      this.showWelcome();
+      return false;
     }
+  }
+
+  exportOpLog() {
+    const text = this.opLog.format({
+      app: "3DCAD Studio",
+      exported: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      env: this.env,
+      kernelRestarts: String(this.kernel.restarts),
+    });
+    const d = new Date();
+    const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}`;
+    download(`3dcad-oplog-${stamp}.txt`, text, "text/plain");
+  }
+
+  // ------------------------------------------------------ kernel errors ---
+
+  /** A rebuild threw (kernel exception, crash or timeout): go back to the last good model. */
+  private onRebuildFailed(e: Error, seq: number, gen: number, docJson: string) {
+    const crashed = e instanceof KernelCrashError;
+    this.opLog.add({ kind: "error", id: "rebuild", result: e.message });
+    if (seq !== this.regenSeq) return; // superseded by a newer rebuild
+    if (this.lastGood && this.lastGood !== docJson && this.store.generation === gen) {
+      // the command preview (if any) belongs to the failed state
+      if (this.command) this.command.cancel();
+      this.store.restore(this.lastGood, "rollback");
+      this.store.dirty = true;
+      toast(`${crashed ? "ジオメトリ カーネルが停止しました" : "再計算でエラーが発生しました"}。直前の正常な状態に戻しました: ${e.message}`, "error", 9000);
+      return;
+    }
+    toast(`再計算エラー: ${e.message}`, "error");
+  }
+
+  /** The kernel worker was restarted: rebuild whatever is shown from the documents. */
+  private onKernelRestart(reason: string) {
+    const now = Date.now();
+    this.crashRestarts = [...this.crashRestarts.filter((t) => now - t < 60_000), now];
+    this.opLog.add({ kind: "error", id: "kernel-restart", result: reason });
+    if (this.crashRestarts.length > 3) {
+      toast("ジオメトリ カーネルが繰り返し停止しています。直前の操作を元に戻すか、ファイルを保存して再起動してください", "error", 12000);
+      return;
+    }
+    toast("ジオメトリ カーネルを再起動しました", "warn", 4000);
+    if (this.env === "assembly" || this.asmDoc) {
+      this.asm.parts.clear();
+      void this.asm.update();
+    }
+    if (this.env === "part") this.scheduleRegen();
+    if (this.env === "drawing") void this.drawing.refresh();
   }
 
   /** Tell the user what was repaired while opening a file. */

@@ -1,36 +1,93 @@
 // Promise-based RPC to the geometry worker. Rebuild requests are coalesced:
 // while one is running only the latest pending request is kept.
+//
+// The worker is supervised: if it dies (uncaught error, WebAssembly abort) or a main
+// rebuild exceeds the watchdog, it is terminated and restarted, pending calls are
+// rejected with KernelCrashError and `onRestart` lets the app rebuild its last good state.
 import type { ViewGeometry, ViewSpec, Interference, MassProps, MeasureResult, PickRef, Placement, ProjectionView, RebuildResult, RFeature, WorkerRequest, WorkerResponse } from "./protocol";
 
+/** The geometry worker died or hung; it has been restarted and holds no models. */
+export class KernelCrashError extends Error {
+  readonly crashed = true;
+}
+
+/** Watchdog for the main part rebuild only (other calls, e.g. big exports, may legitimately run long). */
+export const REBUILD_TIMEOUT_MS = 180_000;
+
 export class KernelClient {
-  private worker: Worker;
+  private worker!: Worker;
+  /** Called after the worker was restarted (and initialised) following a crash. */
+  onRestart: ((reason: string) => void) | null = null;
+  restarts = 0;
+  rebuildTimeoutMs = REBUILD_TIMEOUT_MS;
   private seq = 0;
   private pending = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
   private rebuildRunning = false;
   private rebuildQueued: { features: RFeature[]; capture?: string; waiters: { resolve: (v: RebuildResult) => void; reject: (e: Error) => void }[] } | null = null;
 
   constructor() {
-    this.worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
-    this.worker.onmessage = (ev: MessageEvent<WorkerResponse>) => {
+    this.spawn();
+  }
+
+  private spawn() {
+    const w = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
+    this.worker = w;
+    w.onmessage = (ev: MessageEvent<WorkerResponse>) => {
       const p = this.pending.get(ev.data.id);
       if (!p) return;
       this.pending.delete(ev.data.id);
       if (ev.data.ok) p.resolve(ev.data.result);
       else p.reject(new Error(ev.data.error));
     };
-    this.worker.onerror = (ev) => console.error("geometry worker error", ev);
+    // an uncaught error leaves OpenCascade in an unknown state: treat it as a crash
+    w.onerror = (ev) => {
+      console.error("geometry worker error", ev);
+      ev.preventDefault?.();
+      if (this.worker === w) this.restart(`ワーカーの異常終了${ev.message ? ` (${ev.message})` : ""}`);
+    };
+    w.onmessageerror = () => this.worker === w && this.restart("ワーカーとの通信エラー");
   }
 
-  private call<T>(req: WorkerRequest): Promise<T> {
+  private initialised = false;
+
+  /** Terminate the worker, fail everything in flight and start a fresh one. */
+  restart(reason: string) {
+    this.restarts++;
+    this.worker.terminate();
+    const err = new KernelCrashError(`ジオメトリ カーネルが停止したため再起動しました: ${reason}`);
+    const pend = [...this.pending.values()];
+    this.pending.clear();
+    this.spawn();
+    pend.forEach((p) => p.reject(err));
+    if (!this.initialised) return;
+    this.call<boolean>({ kind: "init" })
+      .then(() => this.onRestart?.(reason))
+      .catch((e) => console.error("geometry worker restart failed", e));
+  }
+
+  /** Test hook: behave as if the worker crashed. */
+  simulateCrash() {
+    this.restart("テスト用の強制終了");
+  }
+
+  private call<T>(req: WorkerRequest, timeoutMs = 0): Promise<T> {
     const id = ++this.seq;
     return new Promise<T>((resolve, reject) => {
-      this.pending.set(id, { resolve: resolve as (v: unknown) => void, reject });
+      let timer = 0;
+      const done = () => timer && clearTimeout(timer);
+      this.pending.set(id, { resolve: (v) => (done(), resolve(v as T)), reject: (e) => (done(), reject(e)) });
+      if (timeoutMs > 0)
+        timer = setTimeout(() => {
+          if (this.pending.has(id)) this.restart(`${Math.round(timeoutMs / 1000)} 秒以内に応答がありません`);
+        }, timeoutMs) as unknown as number;
       this.worker.postMessage({ id, req });
     });
   }
 
-  init(): Promise<boolean> {
-    return this.call({ kind: "init" });
+  async init(): Promise<boolean> {
+    const r = await this.call<boolean>({ kind: "init" });
+    this.initialised = true;
+    return r;
   }
 
   /** Rebuild of an assembly part in its own engine (not coalesced). */
@@ -78,7 +135,7 @@ export class KernelClient {
   private async runRebuild(features: RFeature[], captureBefore: string | undefined, waiters: { resolve: (v: RebuildResult) => void; reject: (e: Error) => void }[]) {
     this.rebuildRunning = true;
     try {
-      const r = await this.call<RebuildResult>({ kind: "rebuild", features, captureBefore });
+      const r = await this.call<RebuildResult>({ kind: "rebuild", features, captureBefore }, this.rebuildTimeoutMs);
       waiters.forEach((w) => w.resolve(r));
     } catch (e) {
       waiters.forEach((w) => w.reject(e as Error));

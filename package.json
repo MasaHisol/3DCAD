@@ -15,7 +15,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "e2e": "node scripts/e2e.mjs"
+    "e2e": "node scripts/e2e.mjs && node scripts/e2e-recovery.mjs",
+    "e2e:recovery": "node scripts/e2e-recovery.mjs"
   },
   "devDependencies": {
     "@types/three": "^0.186.0",

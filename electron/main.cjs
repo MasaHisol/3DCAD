@@ -194,9 +194,47 @@ function createWindow() {
       cancelId: 1,
       title: "3DCAD Studio",
       message: "保存されていない変更があります。",
-      detail: "保存せずに終了すると変更は失われます (作業内容は次回起動時に自動復元されます)。",
+      detail: "保存せずに終了すると変更は失われます (作業内容は自動保存されており、次回起動時に復元できます)。",
     });
     if (choice === 0) e.preventDefault();
+  });
+
+  // renderer crash / hang: offer a reload; the reloaded app finds its session flag still
+  // set (no clean exit) and offers to restore the autosaved work
+  win.webContents.on("render-process-gone", (_e, details) => {
+    if (details.reason === "clean-exit") return;
+    rendererReady = false;
+    const choice = dialog.showMessageBoxSync(win, {
+      type: "error",
+      buttons: ["再読み込み", "終了"],
+      defaultId: 0,
+      cancelId: 1,
+      title: "3DCAD Studio",
+      message: "表示プロセスが異常終了しました。",
+      detail: `理由: ${details.reason}\n再読み込みすると、自動保存された作業内容を復元できます。`,
+    });
+    if (choice === 0) win.webContents.reload();
+    else app.quit();
+  });
+  let hangDialog = false;
+  win.on("unresponsive", () => {
+    if (hangDialog) return;
+    hangDialog = true;
+    const choice = dialog.showMessageBoxSync(win, {
+      type: "warning",
+      buttons: ["待機", "再読み込み"],
+      defaultId: 0,
+      cancelId: 0,
+      title: "3DCAD Studio",
+      message: "3DCAD Studio が応答していません。",
+      detail: "処理が終わるまで待つか、再読み込みしてください。再読み込みすると自動保存された作業内容を復元できます。",
+    });
+    hangDialog = false;
+    if (choice === 1) {
+      rendererReady = false;
+      win.webContents.forcefullyCrashRenderer();
+      win.webContents.reload();
+    }
   });
 
   win.loadURL("app://cad/index.html");
