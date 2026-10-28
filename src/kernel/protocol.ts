@@ -294,6 +294,17 @@ export type WorkerRequest =
   | { kind: "dropEngine"; key: string }
   | { kind: "drawViews"; key?: string; placements?: Placement[]; views: ViewSpec[] }
   | { kind: "routeBuild"; routes: import("./route").RouteSolidSpec[] }
-  | { kind: "routeInterference"; placements: Placement[] };
+  | { kind: "routeInterference"; placements: Placement[] }
+  /** Exact hidden-line removal per view (drawing engine input). */
+  | { kind: "hlr"; views: import("./hlr").HlrView[]; key?: string; placements?: Placement[] }
+  /** State of the extended kernel; `load` loads it now. */
+  | { kind: "extKernel"; load?: boolean };
+
+/** Extended OpenCascade kernel state (IGES / XCAF / ShapeFix, src/kernel/ext.ts). */
+export interface ExtKernelInfo {
+  available: boolean;
+  loaded: boolean;
+  error?: string;
+}
 
 export type WorkerResponse = { id: number; ok: true; result: unknown } | { id: number; ok: false; error: string };

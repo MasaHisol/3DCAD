@@ -101,8 +101,16 @@ export class KernelClient {
     return this.call({ kind: "exportAssembly", format, placements, withRoutes, name });
   }
   /** STEP assembly -> one STEP part per product and the placed instances. */
-  stepAssembly(text: string): Promise<{ parts: { name: string; color?: string; step: string }[]; comps: { part: number; name: string; matrix: number[] }[] }> {
+  stepAssembly(text: string): Promise<import("./exchange").StepAssembly> {
     return this.call({ kind: "stepAssembly", text });
+  }
+  /** Exact hidden-line removal of the part (or placed assembly) for each view. */
+  hlr(views: import("./hlr").HlrView[], placements?: Placement[]): Promise<import("./hlr").HlrResult[]> {
+    return this.call({ kind: "hlr", views, placements });
+  }
+  /** Extended kernel state; `load` loads it now (otherwise it loads on first use). */
+  extKernel(load = false): Promise<import("./protocol").ExtKernelInfo> {
+    return this.call({ kind: "extKernel", load });
   }
   buildRoutes(routes: import("./route").RouteSolidSpec[]): Promise<import("./route").RouteSolidResult[]> {
     return this.call({ kind: "routeBuild", routes });
