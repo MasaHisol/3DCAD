@@ -18,6 +18,9 @@ function placedThreads(ps: Placement[]): ThreadInfo[] {
   });
 }
 
+// debug: compare every incremental rebuild with a full one (VITE_VERIFY_REBUILD=1)
+GeometryEngine.verify = import.meta.env?.VITE_VERIFY_REBUILD === "1";
+
 const engines = new Map<string, GeometryEngine>();
 let ready: Promise<void> | null = null;
 
@@ -55,6 +58,7 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
     case "init":
       return { result: true, transfer: [] };
     case "dropEngine":
+      engines.get(req.key)?.dispose();
       engines.delete(req.key);
       return { result: true, transfer: [] };
     case "drawViews": {

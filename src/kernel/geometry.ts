@@ -30,9 +30,14 @@ import { evalSurface, isSurfaceRFeature } from "./surface";
 import { bodyMeta, exportStepXcaf, healSummary, igesToShapes, importStepWithMeta, shapesToIges } from "./exchange";
 import { readIges, writeIges } from "../io/iges";
 import { RefBrokenError, edgeFaces, resolveNamed, type BrokenRef, type RefCandidate } from "../core/naming";
+import { installFastTopology } from "./topo";
+import { StateCache, prefixKeys, resumeIndex, type CacheStats } from "./rebuildCache";
+import { verifyAgainstFull } from "./verifyRebuild";
 import { copyNames, nameFromSources, nameGenericTool, nameHoleTool, nameProfileTool, namesOf, setNames, type NameSource, type NamingHints } from "./naming";
 
 type Shape = R.Shape3D;
+
+installFastTopology();
 
 interface State {
   bodies: Shape[];
@@ -1095,36 +1100,96 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
 
 // ------------------------------------------------------------ the engine ---
 
+/** Kernel objects a cached state keeps alive (bodies, feature tools, surfaces). */
+function stateShapes(e: CacheEntry): Shape[] {
+  const st = e.state;
+  const out: Shape[] = [...st.bodies];
+  for (const t of st.tools.values()) out.push(t.shape);
+  if (st.surfaces) out.push(...st.surfaces.values());
+  return out;
+}
+
+/** Display meshes by shape and tolerance (a cached state shown again needs no tessellation). */
+const MESHES = new WeakMap<Shape, { diag: number; mesh: BodyMesh }>();
+
+function cloneMesh(m: BodyMesh): BodyMesh {
+  return {
+    ...m,
+    positions: m.positions.slice(),
+    normals: m.normals.slice(),
+    indices: m.indices.slice(),
+    faceRanges: m.faceRanges.slice(),
+    edgePositions: m.edgePositions.slice(),
+    edgeRanges: m.edgeRanges.slice(),
+  };
+}
+
+/** meshBody with a per-shape cache; the result is a fresh copy (its buffers get transferred). */
+function meshCached(b: Shape, name: string, diag: number): BodyMesh {
+  const c = MESHES.get(b);
+  if (c && c.diag === diag) return { ...cloneMesh(c.mesh), name };
+  const m = meshBody(b, name, diag);
+  MESHES.set(b, { diag, mesh: cloneMesh(m) });
+  return m;
+}
+
+/** Statistics of the last rebuild (see RebuildResult.stats). */
+export interface RebuildStats {
+  features: number;
+  /** Features taken from the cache / evaluated. */
+  reused: number;
+  recomputed: number;
+  /** Index of the first evaluated feature (= features when nothing was). */
+  first: number;
+  cache: CacheStats;
+}
+
 export class GeometryEngine {
-  private cache: CacheEntry[] = [];
+  /** Debug / verify mode: every incremental rebuild is compared with a full one (throws on mismatch). */
+  static verify = false;
+  /** Unpinned cached states kept per engine (older versions of the model: undo, redo, suppress …). */
+  static maxExtraStates = 160;
+
+  private cache = new StateCache<CacheEntry, Shape>(stateShapes, (s) => {
+    MESHES.delete(s);
+    s.delete();
+  }, GeometryEngine.maxExtraStates);
   bodies: Shape[] = [];
   threads: ThreadInfo[] = [];
   /** Surface bodies (open shells) after the last rebuild, in display order. */
   surfaces: { id: string; shape: Shape }[] = [];
+  lastStats: RebuildStats | null = null;
+
+  /** Free every cached kernel shape (engine dropped). */
+  dispose() {
+    this.cache.clear();
+    this.bodies = [];
+    this.surfaces = [];
+  }
+
+  /** Clear the incremental cache: the next rebuild evaluates every feature. */
+  resetCache() {
+    this.cache.pin([]);
+    this.cache.trim(0);
+  }
 
   async rebuild(features: RFeature[], captureBefore?: string): Promise<RebuildResult> {
     const t0 = performance.now();
+    const keys = prefixKeys(features);
+    const start = resumeIndex(keys, (k) => this.cache.has(k));
     let state: State = { bodies: [], tools: new Map(), threads: [] };
     const errors: Record<string, string> = {};
     const notices: Record<string, string> = {};
     const updatedRefs: RebuildResult["updatedRefs"] = {};
     const brokenRefs: Record<string, BrokenRef[]> = {};
-    const next: CacheEntry[] = [];
-    let prefix = "";
-    let valid = true;
     let before: Shape[] | null = null;
     let beforeSurf: [string, Shape][] = [];
     for (let i = 0; i < features.length; i++) {
       const f = features[i];
       if (f.id === captureBefore) (before = state.bodies), (beforeSurf = [...(state.surfaces?.entries() ?? [])]);
-      prefix += JSON.stringify(f).length + ":" + JSON.stringify(f);
-      const key = prefix;
-      const cached = this.cache[i];
-      let entry: CacheEntry;
-      if (valid && cached && cached.key === key) {
-        entry = cached;
-      } else {
-        valid = false;
+      const key = keys[i];
+      let entry: CacheEntry | undefined = i < start ? this.cache.get(key, i) : undefined;
+      if (!entry) {
         entry = { key, state };
         try {
           entry.state = await evalFeature(f, state, entry);
@@ -1135,8 +1200,8 @@ export class GeometryEngine {
           entry.state = partial ? { ...state, bodies: partial.bodies, surfaces: partial.surfaces } : state;
           entry.error = errorMessage(e);
         }
+        this.cache.set(key, entry, i);
       }
-      next.push(entry);
       state = entry.state;
       if (entry.error) errors[f.id] = entry.error;
       if (entry.notice) notices[f.id] = entry.notice;
@@ -1144,18 +1209,24 @@ export class GeometryEngine {
       if (entry.sketchRefs) updatedRefs[entry.sketchRefs.id] = { faces: entry.sketchRefs.faces, plane: entry.sketchRefs.plane };
       if (entry.broken) brokenRefs[f.id] = entry.broken;
     }
-    this.cache = next;
+    this.cache.pin(keys);
     this.bodies = state.bodies;
     this.threads = state.threads ?? [];
     this.surfaces = [...(state.surfaces ?? new Map()).entries()].map(([id, shape]) => ({ id, shape }));
+    // `before` shapes belong to pinned states; trimming never frees them
+    this.cache.trim(GeometryEngine.maxExtraStates);
+    const stats: RebuildStats = { features: features.length, reused: start, recomputed: features.length - start, first: start, cache: { ...this.cache.stats } };
+    this.lastStats = stats;
     const diag = modelDiag([...this.bodies, ...this.surfaces.map((s) => s.shape)]);
-    const bodies = this.bodies.map((b, i) => ({ ...meshBody(b, bodyMeta.get(b)?.name ?? `ソリッド${i + 1}`, diag), color: bodyMeta.get(b)?.color }));
-    const surfaces = this.surfaces.map((s, i) => ({ ...meshBody(s.shape, bodyMeta.get(s.shape)?.name ?? `サーフェス${i + 1}`, diag), surface: s.id, color: bodyMeta.get(s.shape)?.color }));
+    const bodies = this.bodies.map((b, i) => ({ ...meshCached(b, bodyMeta.get(b)?.name ?? `ソリッド${i + 1}`, diag), color: bodyMeta.get(b)?.color }));
+    const surfaces = this.surfaces.map((s, i) => ({ ...meshCached(s.shape, bodyMeta.get(s.shape)?.name ?? `サーフェス${i + 1}`, diag), surface: s.id, color: bodyMeta.get(s.shape)?.color }));
     // picking while editing: solids, then surfaces (same order as the display)
     const beforeMeshes = before
-      ? [...before.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag)), ...beforeSurf.map(([id, b], i) => ({ ...meshBody(b, `サーフェス${i + 1}`, diag), surface: id }))]
+      ? [...before.map((b, i) => meshCached(b, `ソリッド${i + 1}`, diag)), ...beforeSurf.map(([id, b], i) => ({ ...meshCached(b, `サーフェス${i + 1}`, diag), surface: id }))]
       : undefined;
-    return { bodies, surfaces, before: beforeMeshes, errors, notices, updatedRefs, brokenRefs, timeMs: performance.now() - t0, threads: this.threads };
+    const res: RebuildResult = { bodies, surfaces, before: beforeMeshes, errors, notices, updatedRefs, brokenRefs, timeMs: performance.now() - t0, threads: this.threads, stats };
+    if (GeometryEngine.verify && start > 0) await verifyAgainstFull(this, features, res);
+    return res;
   }
 
   exportFile(format: "step" | "stl" | "brep" | "iges", name: string, color?: string): Blob {

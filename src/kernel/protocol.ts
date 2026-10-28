@@ -213,6 +213,8 @@ export interface RebuildResult {
   brokenRefs?: Record<string, BrokenRef[]>;
   timeMs: number;
   threads: ThreadInfo[];
+  /** Incremental rebuild: features reused from the cache / evaluated (engine #3). */
+  stats?: { features: number; reused: number; recomputed: number; first: number; cache: { entries: number; pinned: number; evicted: number; freed: number; liveShapes: number } };
 }
 
 export interface MassProps {

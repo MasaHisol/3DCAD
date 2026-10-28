@@ -19,6 +19,7 @@ import type { PlaneDef, Vec2, Vec3 } from "../core/types";
 import type { LoopSeg } from "../sketch/profiles";
 import { baseName, edgeName } from "../core/naming";
 import type { RRegion } from "./protocol";
+import { edgeFaceTable } from "./topo";
 
 type Shape = R.Shape3D;
 
@@ -109,13 +110,51 @@ function faceDesc(f: R.Face): SurfDesc {
   return d;
 }
 
+const FACES = new WeakMap<object, R.Face[]>();
+
+/** Face wrappers of a shape (explored once per shape object). */
+function facesOf(s: Shape): R.Face[] {
+  let f = FACES.get(s);
+  if (!f) {
+    f = s.faces;
+    FACES.set(s, f);
+  }
+  return f;
+}
+
+/**
+ * Descriptions of faces already described (input bodies / tools of the current
+ * step), by OCC hash: a result face that is the very same TopoDS face (same
+ * TShape, location and orientation) reuses its description instead of
+ * re-measuring it — booleans leave most faces of a large body untouched.
+ */
+let descPool: Map<number, { face: R.Face; desc: SurfDesc }[]> | null = null;
+
 function descs(s: Shape): SurfDesc[] {
   let d = DESC.get(s);
   if (!d) {
-    d = s.faces.map(faceDesc);
+    d = facesOf(s).map((f) => {
+      const hit = descPool?.get(f.hashCode)?.find((x) => x.face.isEqual(f));
+      return hit ? hit.desc : faceDesc(f);
+    });
     DESC.set(s, d);
   }
   return d;
+}
+
+function poolOf(shapes: Shape[]): Map<number, { face: R.Face; desc: SurfDesc }[]> {
+  const pool = new Map<number, { face: R.Face; desc: SurfDesc }[]>();
+  for (const s of shapes) {
+    const d = DESC.get(s);
+    if (!d) continue;
+    facesOf(s).forEach((face, i) => {
+      const h = face.hashCode;
+      const l = pool.get(h);
+      if (l) l.push({ face, desc: d[i] });
+      else pool.set(h, [{ face, desc: d[i] }]);
+    });
+  }
+  return pool;
 }
 
 /** Distance from p to the line (o, dir). */
@@ -185,9 +224,17 @@ export interface NamingHints {
  */
 export function nameFromSources(body: Shape, sources: NameSource[], fid: string, diag: number, hints: NamingHints = {}): TopoNames {
   const tol = Math.max(1e-6, diag * 1e-7) * 100;
-  const faces = body.faces;
-  const out = descs(body);
+  const faces = facesOf(body);
   const srcData = sources.map((s) => ({ s, d: descs(s.shape), f: null as R.Face[] | null }));
+  if (!DESC.has(body)) {
+    descPool = poolOf(sources.map((s) => s.shape).filter((x) => x !== body));
+    try {
+      descs(body);
+    } finally {
+      descPool = null;
+    }
+  }
+  const out = descs(body);
   const names: (string | null)[] = faces.map(() => null);
   out.forEach((od, i) => {
     let best: { name: string; rank: number } | null = null;
@@ -195,7 +242,7 @@ export function nameFromSources(body: Shape, sources: NameSource[], fid: string,
       sd.d.forEach((d, j) => {
         let hit = sameSurface(od, d, tol);
         if (!hit && !["PLANE", "CYLINDRE", "CONE", "SPHERE", "TORUS"].includes(od.type)) {
-          sd.f ??= sd.s.shape.faces;
+          sd.f ??= facesOf(sd.s.shape);
           hit = liesOn(od, sd.f[j], d, tol);
         }
         if (!hit) return;
@@ -207,24 +254,10 @@ export function nameFromSources(body: Shape, sources: NameSource[], fid: string,
     if (best) names[i] = (best as { name: string }).name;
   });
   // adjacency
-  const edges = body.edges;
-  const edgeIdx = new Map<number, number[]>();
-  edges.forEach((e, i) => {
-    const h = e.hashCode;
-    if (!edgeIdx.has(h)) edgeIdx.set(h, []);
-    edgeIdx.get(h)!.push(i);
-  });
-  const edgeFaces: number[][] = edges.map(() => []);
+  let edgeW: R.Edge[] | null = null;
+  const edgesOf = () => (edgeW ??= body.edges);
+  const edgeFaces = edgeFaceTable(body) ?? slowEdgeFaces(faces, edgesOf());
   const faceAdj: Set<number>[] = faces.map(() => new Set());
-  faces.forEach((f, fi) => {
-    for (const e of f.edges) {
-      const list = edgeIdx.get(e.hashCode);
-      if (!list) continue;
-      const ei = list.length === 1 ? list[0] : list.find((k) => edges[k].isSame(e));
-      if (ei === undefined) continue;
-      if (!edgeFaces[ei].includes(fi)) edgeFaces[ei].push(fi);
-    }
-  });
   for (const fl of edgeFaces) for (const a of fl) for (const b of fl) if (a !== b) faceAdj[a].add(b);
   // new faces
   const inherited = names.slice();
@@ -249,15 +282,36 @@ export function nameFromSources(body: Shape, sources: NameSource[], fid: string,
   const faceNames = dedupe(names as string[], out.map((d) => d.center));
   const edgeNames = dedupe(
     edgeFaces.map((fl) => edgeName(fl.map((k) => faceNames[k]))),
-    edges.map((e) => {
+    (i) => {
       try {
-        return tuple(e.pointAt(0.5));
+        return tuple(edgesOf()[i].pointAt(0.5));
       } catch {
         return [0, 0, 0] as Vec3;
       }
-    }),
+    },
   );
   return { faces: faceNames, edges: edgeNames };
+}
+
+/** Edge -> faces table through replicad wrappers (fallback of edgeFaceTable). */
+function slowEdgeFaces(faces: R.Face[], edges: R.Edge[]): number[][] {
+  const edgeIdx = new Map<number, number[]>();
+  edges.forEach((e, i) => {
+    const h = e.hashCode;
+    if (!edgeIdx.has(h)) edgeIdx.set(h, []);
+    edgeIdx.get(h)!.push(i);
+  });
+  const edgeFaces: number[][] = edges.map(() => []);
+  faces.forEach((f, fi) => {
+    for (const e of f.edges) {
+      const list = edgeIdx.get(e.hashCode);
+      if (!list) continue;
+      const ei = list.length === 1 ? list[0] : list.find((k) => edges[k].isSame(e));
+      if (ei === undefined) continue;
+      if (!edgeFaces[ei].includes(fi)) edgeFaces[ei].push(fi);
+    }
+  });
+  return edgeFaces;
 }
 
 /**
@@ -265,7 +319,15 @@ export function nameFromSources(body: Shape, sources: NameSource[], fid: string,
  * the direction in which the duplicates are spread the most (stable under
  * moves of the whole group).
  */
-export function dedupe(names: string[], pos: Vec3[]): string[] {
+export function dedupe(names: string[], posOf: Vec3[] | ((i: number) => Vec3)): string[] {
+  // positions are only needed for duplicated names (computed lazily, once each)
+  const memo = new Map<number, Vec3>();
+  const P = (i: number): Vec3 => {
+    if (typeof posOf !== "function") return posOf[i];
+    let v = memo.get(i);
+    if (!v) memo.set(i, (v = posOf(i)));
+    return v;
+  };
   const groups = new Map<string, number[]>();
   names.forEach((n, i) => {
     if (!groups.has(n)) groups.set(n, []);
@@ -277,12 +339,12 @@ export function dedupe(names: string[], pos: Vec3[]): string[] {
     const lo: Vec3 = [Infinity, Infinity, Infinity], hi: Vec3 = [-Infinity, -Infinity, -Infinity];
     for (const i of idx)
       for (let k = 0; k < 3; k++) {
-        lo[k] = Math.min(lo[k], pos[i][k]);
-        hi[k] = Math.max(hi[k], pos[i][k]);
+        lo[k] = Math.min(lo[k], P(i)[k]);
+        hi[k] = Math.max(hi[k], P(i)[k]);
       }
     const spread = [0, 1, 2].map((k) => hi[k] - lo[k]);
     const order = [0, 1, 2].sort((a, b) => spread[b] - spread[a]);
-    const key = (i: number) => order.map((k) => Math.round(pos[i][k] * 1e4) / 1e4);
+    const key = (i: number) => order.map((k) => Math.round(P(i)[k] * 1e4) / 1e4);
     idx.sort((a, b) => {
       const ka = key(a), kb = key(b);
       for (let k = 0; k < 3; k++) if (ka[k] !== kb[k]) return ka[k] - kb[k];
