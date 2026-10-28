@@ -232,6 +232,7 @@ export class RouteManager {
     let kernelHits: { route: string; comp: number; volume: number }[] | null = null;
     try {
       await this.ensureBuilt();
+      await this.env.ensureBrep();
       kernelHits = await this.app.kernel.routeInterference(this.env.placements());
     } catch {
       kernelHits = null;

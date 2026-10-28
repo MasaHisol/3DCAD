@@ -16,7 +16,8 @@ import { lazyCommand, loadLazyCommand } from "../commands/features";
 import { analyzeDof, explodeOffsets, type DofReport } from "./motion";
 import { startDrive, startExplode } from "./motionUi";
 import { patternMatrices, type AsmPattern } from "./pattern";
-import { boxMatrix, isolateVisibility, matchesFilter, rebuildOrder, useProxy } from "./largeAsm";
+import { LIGHT_OPEN_COMPONENTS, boxMatrix, hashKey, isolateVisibility, matchesFilter, rebuildOrder, useProxy } from "./largeAsm";
+import { idbGet, idbSet } from "../core/idb";
 import { constraintError, solveAssembly, type SolverConstraint } from "./solver";
 import { RouteManager } from "../routing/ui";
 import { IDENTITY, newAssembly, type AsmComponent, type AsmConstraint, type AsmConstraintType, type AssemblyDocument, type GeoRef } from "./types";
@@ -37,7 +38,12 @@ interface PartCache {
   hash: string;
   bodies: BodyMesh[];
   error?: string;
+  /** False when the display mesh came from the cache (lightweight open): the kernel has no B-rep yet. */
+  brep?: boolean;
 }
+
+/** IndexedDB key of a part's cached display meshes. */
+const meshKey = (hash: string) => `asm-mesh:${hashKey(hash)}`;
 
 const key = (partId: string) => `asm:${partId}`;
 const m4 = (a: number[]) => new THREE.Matrix4().fromArray(a);
@@ -66,6 +72,12 @@ export class AssemblyEnv {
   light = false;
   /** パターンの簡略表示: pattern instances drawn as bounding boxes. */
   simplifyPatterns = false;
+  /**
+   * 軽量表示で開く: parts are shown from cached display meshes and their
+   * kernel B-rep is built only when needed (ensureBrep: measure, interference,
+   * export, drawings) — set when a large assembly is opened.
+   */
+  lightOpen = false;
   /** Part rebuild progress while loading (null when idle). */
   loading: { done: number; total: number } | null = null;
   private progressEl: HTMLElement | null = null;
@@ -144,15 +156,33 @@ export class AssemblyEnv {
       this.showProgress();
       this.render();
     }
+    const large = this.doc.components.length >= LIGHT_OPEN_COMPONENTS;
+    // lightweight open: fetch every cached display mesh up front (no kernel work)
+    const cached = new Map<string, BodyMesh[]>();
+    if (this.lightOpen)
+      await Promise.all(
+        todo.map(async (id) => {
+          const p = this.doc.parts.find((x) => x.id === id);
+          const c = p && (await idbGet<BodyMesh[]>(meshKey(hashOf(p))).catch(() => undefined));
+          if (c?.length) cached.set(id, c);
+        }),
+      );
     try {
       for (const id of todo) {
         const p = this.doc.parts.find((x) => x.id === id);
         if (!p) continue;
         const hash = hashOf(p);
+        const c = cached.get(id);
+        if (c) {
+          this.parts.set(p.id, { hash, bodies: c, brep: false });
+          if (this.loading) this.loading.done++;
+          continue;
+        }
         try {
           const res = await this.app.kernel.rebuildKey(key(p.id), this.partFeatures(p.id));
           const errs = Object.values(res.errors);
-          this.parts.set(p.id, { hash, bodies: res.bodies, error: errs[0] });
+          this.parts.set(p.id, { hash, bodies: res.bodies, error: errs[0], brep: true });
+          if (large && !errs.length && res.bodies.length) void idbSet(meshKey(hash), res.bodies).catch(() => {});
         } catch (e) {
           this.parts.set(p.id, { hash, bodies: [], error: (e as Error).message });
         }
@@ -173,6 +203,33 @@ export class AssemblyEnv {
         this.showProgress();
       }
     }
+  }
+
+  /**
+   * Builds the kernel B-rep of parts opened from cached display meshes
+   * (lightweight open). Call before any kernel operation on placements.
+   */
+  async ensureBrep(partIds?: string[]) {
+    const want = new Set(partIds ?? this.doc.components.filter((c) => c.visible !== false).map((c) => c.partId));
+    const todo = [...this.parts].filter(([id, c]) => want.has(id) && c.brep === false);
+    if (!todo.length) return;
+    let i = 0;
+    for (const [id, c] of todo) {
+      this.app.status(`詳細形状を読み込み中… ${++i} / ${todo.length}`);
+      try {
+        // the display keeps the cached mesh (same tessellation); only the kernel state is new
+        await this.app.kernel.rebuildKey(key(id), this.partFeatures(id));
+        c.brep = true;
+      } catch (e) {
+        c.error = (e as Error).message;
+      }
+    }
+    this.app.status("準備完了");
+  }
+
+  /** Parts shown from cached display meshes (B-rep not loaded yet). */
+  lightParts(): string[] {
+    return [...this.parts].filter(([, c]) => c.brep === false).map(([id]) => id);
   }
 
   /** Progress indicator over the viewport while parts rebuild. */
@@ -1003,6 +1060,7 @@ export class AssemblyEnv {
       if (!qty) continue;
       let mp: MassProps | null = null;
       try {
+        await this.ensureBrep([p.id]);
         mp = await this.app.kernel.massPropsKey(key(p.id));
       } catch {
         /* no solid */
@@ -1051,6 +1109,7 @@ export class AssemblyEnv {
     }
     this.app.status("干渉を計算中…");
     try {
+      await this.ensureBrep();
       const ps = this.placements();
       const comps = this.doc.components.filter((c) => c.visible !== false);
       const hits = await this.app.kernel.interference(ps);
@@ -1082,6 +1141,7 @@ export class AssemblyEnv {
     }
     try {
       const withRoutes = this.routes.hasRoutes() && (await this.routes.ensureBuilt()) > 0;
+      await this.ensureBrep();
       const buf = await this.app.kernel.exportAssembly("step", this.placements(), withRoutes);
       download(`${this.doc.name}.stp`, buf, "application/step");
       toast(`${this.doc.name}.stp をエクスポートしました — Inventor で開けます`, "ok");

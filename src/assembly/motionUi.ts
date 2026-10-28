@@ -72,6 +72,7 @@ export function startDrive(env: AssemblyEnv, constraintId?: string) {
       setValue(val);
       app.status(`${target.name}: ${formatNumber(val, 2)} ${unit === "deg" ? "°" : "mm"}  (${i}/${n})`);
       if (st.collide) {
+        await env.ensureBrep();
         const hits = await app.kernel.interference(env.placements());
         if (hits.length) {
           toast(`${formatNumber(val, 2)} で干渉を検出したため停止しました`, "warn");

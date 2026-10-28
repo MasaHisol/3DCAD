@@ -38,6 +38,7 @@ import { DrawingEnv } from "./drawing/env";
 import { PmiLayer } from "./mbd/layer";
 import { editPmi } from "./mbd/commands";
 import { newAssembly, type AssemblyDocument } from "./assembly/types";
+import { shouldOpenLight } from "./assembly/largeAsm";
 import { openLearningCenter, startLessonById } from "./learn/lazy";
 import { listenForLessons, openTextbook } from "./learn/textbookLink";
 
@@ -1015,6 +1016,9 @@ export class App {
     this.asm.store.reset(doc, "load");
     this.asm.store.fileHandleName = name ?? null;
     this.asm.selected.clear();
+    // 軽量表示で開く: large assemblies show cached display meshes and load B-rep on demand
+    this.asm.lightOpen = shouldOpenLight(doc.components.length);
+    if (this.asm.lightOpen) this.status(`軽量表示で開きます (${doc.components.length} コンポーネント): 詳細形状は測定・干渉・書き出し時に読み込みます`);
     this.firstFit = true;
     this.vp.setStandardView([1, 1, 1], false);
     this.activateAssembly();
@@ -1477,6 +1481,7 @@ export class App {
       if (format === "step") return this.asm.exportStep();
       if (format === "brep") return void toast("BREP はパーツから書き出します", "info");
       try {
+        await this.asm.ensureBrep();
         download(`${this.asm.doc.name}.stl`, await this.kernel.exportAssembly("stl", this.asm.placements()), "model/stl");
       } catch (e) {
         toast((e as Error).message, "error");
