@@ -3,7 +3,9 @@ import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { BodyMesh, ThreadInfo } from "../kernel/protocol";
 import type { PlaneDef, Vec3 } from "../core/types";
-import { edgeVisibleAtZoom } from "../assembly/largeAsm";
+import { DEFAULT_LOD, batchGroups, boxMatrix, edgeVisibleAtZoom, lodLevel, projectedDiameter, spatialChunks, type LodOptions } from "../assembly/largeAsm";
+import { TriangleBVH } from "./bvh";
+import { clusterSimplify, decimateEdges } from "./simplify";
 
 export type PickKind = "face" | "edge" | "plane" | "axis" | "point";
 
@@ -148,7 +150,11 @@ export class Viewport {
   private selectObj = new THREE.Group();
   private tagObj = new THREE.Group();
   private tags: { picks: Pick[]; color: string; opacity: number }[] = [];
-  private raycaster = new THREE.Raycaster();
+  private raycaster = (() => {
+    const r = new THREE.Raycaster();
+    r.layers.enable(Viewport.OFFSCREEN); // batched bodies are still picked through their own meshes
+    return r;
+  })();
   private needsRender = true;
   private anim: { from: ViewState; to: ViewState; t0: number; dur: number } | null = null;
   private drag: { mode: "orbit" | "pan" | "zoom"; x: number; y: number; pivot: THREE.Vector3; button: number; moved: boolean; down: PointerEvent } | null = null;
@@ -302,10 +308,13 @@ export class Viewport {
     if (!this.needsRender) return;
     this.needsRender = false;
     this.cullEdges();
+    if (this.meshBatchDirty || this.edgeBatchDirty) this.rebuildBatches();
+    this.updateLod();
     const r = this.renderer;
     r.setScissorTest(false);
     r.clear();
     r.render(this.scene, this.camera);
+    this.frameInfo = { calls: r.info.render.calls, triangles: r.info.render.triangles };
     if (this.capturing) return;
     // axis triad (bottom-left)
     const s = 90 * r.getPixelRatio();
@@ -405,7 +414,7 @@ export class Viewport {
   setBodyHighlight(indices: Set<number>) {
     this.highlighted = indices;
     this.bodies.forEach((b, i) => (b.mesh.material = this.materialFor(i)));
-    this.invalidate();
+    this.markBatches(false);
   }
 
   /** Shared geometries keyed by the BodyMesh object (assembly part cache bodies are reused per instance). */
@@ -495,6 +504,10 @@ export class Viewport {
     const v = this.bodies[i];
     if (!v) return;
     this.placeView(v, m.clone());
+    if (!this.unbatched.has(i)) {
+      this.unbatched.add(i);
+      this.markBatches();
+    }
     if (this.pickViews !== this.bodies && this.pickViews[i]) this.placeView(this.pickViews[i], m.clone());
     this.refreshHighlights();
   }
@@ -560,7 +573,231 @@ export class Viewport {
   /** Renderer statistics (geometries / textures in GPU memory, last frame draw calls / triangles). */
   stats() {
     const i = this.renderer.info;
-    return { geometries: i.memory.geometries, textures: i.memory.textures, calls: i.render.calls, triangles: i.render.triangles, bodies: this.bodies.length, sharedGeometries: this.geomCache.size };
+    return {
+      geometries: i.memory.geometries,
+      textures: i.memory.textures,
+      calls: this.frameInfo.calls,
+      triangles: this.frameInfo.triangles,
+      bodies: this.bodies.length,
+      sharedGeometries: this.geomCache.size,
+      batches: this.batches.length,
+      batchedBodies: this.batches.reduce((n, b) => n + b.items.length, 0),
+      edgeChunks: this.edgeChunks.length,
+      lod: { ...this.lodCounts },
+    };
+  }
+
+  /** Draw calls / triangles of the last model render (excluding the axis triad). */
+  private frameInfo = { calls: 0, triangles: 0 };
+
+  // ------------------------------------------- batching / LOD (instancing) ---
+
+  /**
+   * Draw repeated assembly bodies (same shared geometry and material) as one
+   * InstancedMesh each, and merge their edges into a few spatial chunks.
+   * The per-body meshes stay in the scene on a layer the camera does not draw,
+   * so picking, highlighting and bounds keep working unchanged.
+   */
+  batching = true;
+  /** Level of detail of batched instances (projected size thresholds in px). */
+  lod: LodOptions = { ...DEFAULT_LOD };
+  private batchLayer = new THREE.Group();
+  private batches: { items: number[]; mesh: THREE.InstancedMesh; coarse: THREE.InstancedMesh; box: THREE.InstancedMesh; mats: THREE.Matrix4[]; boxMats: THREE.Matrix4[]; centers: THREE.Vector3[]; radius: number }[] = [];
+  private edgeChunks: { full: THREE.LineSegments; coarse: THREE.LineSegments; maxR: number }[] = [];
+  private coarseEdgeCache = new WeakMap<BodyMesh, Float32Array>();
+
+  private coarseEdges(d: BodyMesh): Float32Array {
+    let e = this.coarseEdgeCache.get(d);
+    if (!e) this.coarseEdgeCache.set(d, (e = decimateEdges(d.edgePositions, d.edgeRanges, 6)));
+    return e;
+  }
+  private meshBatchDirty = true;
+  private edgeBatchDirty = true;
+  private lodKey = "";
+  private lodCounts = { full: 0, coarse: 0, box: 0, none: 0 };
+  /** Bodies moved individually (dragging) stay out of the batches until the next setBodies. */
+  private unbatched = new Set<number>();
+  /** Component visibility per body (setBodyVisible). */
+  private bodyOn: boolean[] = [];
+  private static readonly OFFSCREEN = 1;
+
+  /** Simplified geometry per shared geometry (coarse LOD); the geometry itself when simplifying does not pay. */
+  private coarseGeoms = new WeakMap<THREE.BufferGeometry, THREE.BufferGeometry>();
+
+  private coarseGeom(g: THREE.BufferGeometry): THREE.BufferGeometry {
+    let c = this.coarseGeoms.get(g);
+    if (c) return c;
+    c = g;
+    const pos = g.getAttribute("position"), nor = g.getAttribute("normal");
+    if (g.index && pos && nor && g.index.count >= 3 * 400) {
+      const s = clusterSimplify(pos.array, nor.array, g.index.array, 8);
+      if (s.indices.length * 2 < g.index.count && s.indices.length) {
+        c = new THREE.BufferGeometry();
+        c.setAttribute("position", new THREE.BufferAttribute(s.positions, 3));
+        c.setAttribute("normal", new THREE.BufferAttribute(s.normals, 3));
+        c.setIndex(new THREE.BufferAttribute(s.indices, 1));
+        g.addEventListener("dispose", () => c!.dispose());
+      }
+    }
+    this.coarseGeoms.set(g, c);
+    return c;
+  }
+
+  private markBatches(edges = true) {
+    this.meshBatchDirty = true;
+    if (edges) this.edgeBatchDirty = true;
+    this.invalidate();
+  }
+
+  private batchable(i: number): boolean {
+    const b = this.bodies[i];
+    return !!b?.shared && this.batching && !this.zebra && this.bodyOn[i] !== false && !this.proxied.has(i) && !this.unbatched.has(i);
+  }
+
+  private rebuildBatches() {
+    if (!this.batchLayer.parent) this.scene.add(this.batchLayer);
+    const L = Viewport.OFFSCREEN;
+    if (this.meshBatchDirty) {
+      this.meshBatchDirty = false;
+      for (const b of this.batches) {
+        this.batchLayer.remove(b.mesh, b.coarse, b.box);
+        b.mesh.dispose();
+        b.coarse.dispose();
+        b.box.dispose();
+      }
+      this.batches = [];
+      this.bodies.forEach((b) => b.mesh.layers.set(0));
+      const keys = this.bodies.map((b, i) => (this.style !== "wireframe" && this.batchable(i) && b.mesh.material instanceof THREE.MeshStandardMaterial ? `${b.mesh.geometry.uuid}|${b.mesh.material.uuid}` : null));
+      const { batches } = batchGroups(keys, 2);
+      for (const { items } of batches) {
+        const first = this.bodies[items[0]].mesh;
+        const geom = first.geometry;
+        if (!geom.boundingBox) geom.computeBoundingBox();
+        if (!geom.boundingSphere) geom.computeBoundingSphere();
+        const mat = first.material as THREE.MeshStandardMaterial;
+        const mesh = new THREE.InstancedMesh(geom, mat, items.length);
+        const coarse = new THREE.InstancedMesh(this.coarseGeom(geom), mat, items.length);
+        const box = new THREE.InstancedMesh(this.proxyGeom, mat, items.length);
+        const bb = geom.boundingBox!;
+        const unitBox = new THREE.Matrix4().fromArray(boxMatrix(bb.min.toArray() as Vec3, bb.max.toArray() as Vec3));
+        const sph = geom.boundingSphere!;
+        const mats: THREE.Matrix4[] = [], boxMats: THREE.Matrix4[] = [], centers: THREE.Vector3[] = [];
+        let radius = 0;
+        for (const i of items) {
+          const v = this.bodies[i];
+          const m = v.matrix ? v.matrix.clone() : new THREE.Matrix4();
+          mats.push(m);
+          boxMats.push(m.clone().multiply(unitBox));
+          centers.push(sph.center.clone().applyMatrix4(m));
+          radius = Math.max(radius, sph.radius * m.getMaxScaleOnAxis());
+          v.mesh.layers.set(L);
+        }
+        for (const im of [mesh, coarse, box]) {
+          im.frustumCulled = false; // culled per instance in updateLod
+          im.castShadow = this.realistic;
+          im.count = 0;
+          this.batchLayer.add(im);
+        }
+        this.batches.push({ items, mesh, coarse, box, mats, boxMats, centers, radius });
+      }
+    }
+    if (this.edgeBatchDirty) {
+      this.edgeBatchDirty = false;
+      for (const c of this.edgeChunks) {
+        this.batchLayer.remove(c.full, c.coarse);
+        c.full.geometry.dispose();
+        c.coarse.geometry.dispose();
+      }
+      this.edgeChunks = [];
+      this.bodies.forEach((b) => b.edges.layers.set(0));
+      const ids = this.style === "shaded" ? [] : this.bodies.flatMap((_, i) => (this.batchable(i) ? [i] : []));
+      if (ids.length >= 2) {
+        const sph = ids.map((i) => {
+          const v = this.bodies[i], g = v.mesh.geometry;
+          if (!g.boundingSphere) g.computeBoundingSphere();
+          const s = g.boundingSphere!.clone();
+          if (v.matrix) s.applyMatrix4(v.matrix);
+          return s;
+        });
+        const v3 = new THREE.Vector3();
+        // segments of the chunk's bodies in assembly coordinates
+        const merge = (chunk: number[], src: (v: BodyView) => ArrayLike<number>) => {
+          let n = 0;
+          for (const k of chunk) n += src(this.bodies[ids[k]]).length;
+          const out = new Float32Array(n);
+          let o = 0;
+          for (const k of chunk) {
+            const v = this.bodies[ids[k]], a = src(v);
+            for (let j = 0; j + 2 < a.length; j += 3, o += 3) {
+              v3.set(a[j], a[j + 1], a[j + 2]);
+              if (v.matrix) v3.applyMatrix4(v.matrix);
+              out[o] = v3.x;
+              out[o + 1] = v3.y;
+              out[o + 2] = v3.z;
+            }
+          }
+          const g = new THREE.BufferGeometry();
+          g.setAttribute("position", new THREE.BufferAttribute(out, 3));
+          g.computeBoundingSphere();
+          const lines = new THREE.LineSegments(g, this.edgeMaterial);
+          this.batchLayer.add(lines);
+          return lines;
+        };
+        for (const chunk of spatialChunks(sph.map((s) => s.center.toArray() as Vec3), 64)) {
+          const full = merge(chunk, (v) => v.edges.geometry.getAttribute("position").array);
+          const coarse = merge(chunk, (v) => this.coarseEdges(v.data));
+          let maxR = 0;
+          for (const k of chunk) {
+            maxR = Math.max(maxR, sph[k].radius);
+            this.bodies[ids[k]].edges.layers.set(L);
+          }
+          this.edgeChunks.push({ full, coarse, maxR });
+        }
+      }
+    }
+    this.lodKey = "";
+  }
+
+  /** Per-instance frustum culling and level of detail of the batches (when the view changed). */
+  private updateLod() {
+    const cam = this.camera;
+    const persp = this.perspective;
+    const ps = this.pixelSize;
+    const key = `${cam.matrixWorld.elements.map((x) => x.toPrecision(6)).join()}|${ps}|${persp}|${this.lod.coarsePx}|${this.lod.boxPx}|${this.lod.cullPx}|${this.edgeCullPx}|${this.el.clientWidth}`;
+    if (key === this.lodKey) return;
+    this.lodKey = key;
+    const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+    const camPos = cam.getWorldPosition(new THREE.Vector3());
+    const pixelAtUnit = persp ? (2 * Math.tan(THREE.MathUtils.degToRad(this.persp.fov / 2))) / Math.max(1, this.el.clientHeight) : 0;
+    const diam = (c: THREE.Vector3, r: number) => projectedDiameter(r, ps, persp ? { distance: c.distanceTo(camPos), pixelAtUnit } : undefined);
+    const s = new THREE.Sphere();
+    const counts = { full: 0, coarse: 0, box: 0, none: 0 };
+    for (const b of this.batches) {
+      const same = b.coarse.geometry === b.mesh.geometry;
+      let nf = 0, nc = 0, nb = 0;
+      b.items.forEach((_, k) => {
+        if (!frustum.intersectsSphere(s.set(b.centers[k], b.radius))) return void counts.none++;
+        const lv = lodLevel(diam(b.centers[k], b.radius), this.lod);
+        counts[lv]++;
+        if (lv === "full" || (lv === "coarse" && same)) b.mesh.setMatrixAt(nf++, b.mats[k]);
+        else if (lv === "coarse") b.coarse.setMatrixAt(nc++, b.mats[k]);
+        else if (lv === "box") b.box.setMatrixAt(nb++, b.boxMats[k]);
+      });
+      for (const [im, c] of [[b.mesh, nf], [b.coarse, nc], [b.box, nb]] as const) {
+        im.count = c;
+        im.visible = c > 0;
+        im.instanceMatrix.needsUpdate = true;
+      }
+    }
+    this.lodCounts = counts;
+    // edges: full detail near, decimated polylines further away, none for tiny parts
+    const minPx = Math.max(this.edgeCullPx, 3 * this.lod.boxPx);
+    for (const c of this.edgeChunks) {
+      const bs = c.full.geometry.boundingSphere!;
+      const d = frustum.intersectsSphere(bs) ? diam(bs.center, c.maxR) : 0;
+      c.full.visible = d >= Math.max(minPx, this.lod.coarsePx);
+      c.coarse.visible = !c.full.visible && d >= minPx;
+    }
   }
 
   // ------------------------------------------------------- realistic ---
@@ -595,6 +832,7 @@ export class Viewport {
     this.scene.remove(this.sun, this.sun.target);
     // bodies only cast: self shadowing on coarse tessellation shows acne
     for (const b of this.bodies) b.mesh.castShadow = this.realistic;
+    for (const b of this.batches) b.mesh.castShadow = b.coarse.castShadow = b.box.castShadow = this.realistic;
     if (this.realistic) {
       const box = this.modelBounds();
       if (!box.isEmpty()) {
@@ -674,7 +912,7 @@ export class Viewport {
       }
       g.computeBoundingSphere();
     });
-    this.invalidate();
+    this.markBatches();
   }
 
   private preview: THREE.Mesh | null = null;
@@ -806,6 +1044,8 @@ export class Viewport {
         this.geomCache.delete(d);
       }
     this.proxied = new Set([...this.proxied].filter((i) => i < this.bodies.length));
+    this.bodyOn = [];
+    this.unbatched.clear();
     this.applyStyle();
     this.applyClip();
     this.hover = null;
@@ -817,7 +1057,7 @@ export class Viewport {
   setZebra(on: boolean) {
     this.zebra = on;
     this.bodies.forEach((b, i) => (b.mesh.material = this.materialFor(i)));
-    this.invalidate();
+    this.markBatches();
   }
 
   setMaterialColor(color: string) {
@@ -832,7 +1072,10 @@ export class Viewport {
     const px = this.proxied.has(i);
     b.mesh.visible = on && !px && this.style !== "wireframe";
     b.edges.visible = on && !px && this.style !== "shaded";
-    this.invalidate();
+    if (this.bodyOn[i] !== on) {
+      this.bodyOn[i] = on;
+      this.markBatches();
+    }
   }
 
   setStyle(s: VisualStyle) {
@@ -850,7 +1093,7 @@ export class Viewport {
     this.edgeCullState = "";
     this.hiddenMaterial.depthTest = false;
     this.hiddenMaterial.opacity = this.style === "wireframe" ? 0.9 : 0.5;
-    this.invalidate();
+    this.markBatches();
   }
 
   setSection(plane: THREE.Plane | null) {
@@ -972,7 +1215,7 @@ export class Viewport {
     const cands: (Pick & { dist: number; prio: number })[] = [];
     const views = this.pickViews;
     const meshes = views.map((b) => b.mesh);
-    const meshHits = this.raycaster.intersectObjects(meshes, false).filter((h) => !this.clipPlane || this.clipPlane.distanceToPoint(h.point) >= 0);
+    const meshHits = this.intersectMeshes(meshes).filter((h) => !this.clipPlane || this.clipPlane.distanceToPoint(h.point) >= 0);
     const firstMesh = this.style === "wireframe" ? undefined : meshHits[0];
     const occl = firstMesh ? firstMesh.distance + ps * 2 : Infinity;
     if (kinds.has("face") && firstMesh) {
@@ -1016,11 +1259,46 @@ export class Viewport {
   /** World point on the model under the cursor (for zoom/orbit pivots). */
   surfacePoint(e: { clientX: number; clientY: number }): THREE.Vector3 | null {
     this.raycaster.setFromCamera(this.ndc(e), this.camera);
-    const hit = this.raycaster.intersectObjects(
-      this.bodies.map((b) => b.mesh),
-      false,
-    )[0];
+    const hit = this.intersectMeshes(this.bodies.map((b) => b.mesh))[0];
     return hit ? hit.point : null;
+  }
+
+  /** Triangle BVHs per position / index buffer (built on first pick). */
+  private bvhs = new WeakMap<ArrayLike<number>, { index: ArrayLike<number>; bvh: TriangleBVH }>();
+
+  /**
+   * Ray hits on body meshes (sorted by distance) like Raycaster.intersectObjects,
+   * but each mesh is tested through its bounding sphere and a triangle BVH.
+   */
+  private intersectMeshes(meshes: THREE.Mesh[]): THREE.Intersection[] {
+    const ray = this.raycaster.ray, near = this.raycaster.near, far = this.raycaster.far;
+    const out: THREE.Intersection[] = [];
+    const sph = new THREE.Sphere(), inv = new THREE.Matrix4(), lr = new THREE.Ray();
+    for (const mesh of meshes) {
+      const g = mesh.geometry;
+      const pos = g.getAttribute("position") as THREE.BufferAttribute | undefined;
+      if (!pos || !g.index || Array.isArray(mesh.material)) {
+        out.push(...this.raycaster.intersectObject(mesh, false));
+        continue;
+      }
+      if (!g.boundingSphere) g.computeBoundingSphere();
+      if (!ray.intersectsSphere(sph.copy(g.boundingSphere!).applyMatrix4(mesh.matrixWorld))) continue;
+      let e = this.bvhs.get(pos.array);
+      if (!e || e.index !== g.index.array) {
+        e = { index: g.index.array, bvh: new TriangleBVH(pos.array, g.index.array) };
+        this.bvhs.set(pos.array, e);
+      }
+      lr.copy(ray).applyMatrix4(inv.copy(mesh.matrixWorld).invert());
+      lr.direction.normalize();
+      const cull = (mesh.material as THREE.Material).side === THREE.FrontSide;
+      for (const h of e.bvh.raycast(lr.origin.toArray(), lr.direction.toArray(), 0, Infinity, cull)) {
+        const point = lr.at(h.t, new THREE.Vector3()).applyMatrix4(mesh.matrixWorld);
+        const distance = ray.origin.distanceTo(point);
+        if (distance < near || distance > far) continue;
+        out.push({ distance, point, object: mesh, faceIndex: h.tri, face: null });
+      }
+    }
+    return out.sort((a, b) => a.distance - b.distance);
   }
 
   private faceOfTriangle(bi: number, tri: number): number {

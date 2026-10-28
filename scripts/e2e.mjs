@@ -1,11 +1,12 @@
 // End-to-end smoke test: drives the built app in Chromium like a user.
 //   npm run build && npm run e2e
-// Set CHROMIUM_PATH to use a specific Chromium binary.
+// Set CHROMIUM_PATH to use a specific Chromium binary, E2E_PORT to change the preview port.
 import { preview } from "vite";
 import { chromium } from "playwright";
 
-const server = await preview({ preview: { port: 4174, strictPort: true }, logLevel: "error" });
-const url = "http://localhost:4174/";
+const port = +(process.env.E2E_PORT || 4174);
+const server = await preview({ preview: { port, strictPort: true }, logLevel: "error" });
+const url = `http://localhost:${port}/`;
 const browser = await chromium.launch({
   executablePath: process.env.CHROMIUM_PATH || undefined,
   args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
@@ -521,6 +522,21 @@ try {
     return { n: inst.length, dx: inst.map((c) => +(c.matrix[12] - src.matrix[12]).toFixed(3)), dof: window.cad.asm.dof.perComp.get(inst[0]?.id)?.dof };
   });
   check("component pattern", pat.n === 2 && pat.dx.join() === "30,60" && pat.dof === 0, JSON.stringify(pat));
+  // display performance: repeated pins are drawn instanced, yet each one is still picked as its own component
+  await page.evaluate(() => window.cad.asm.select([]));
+  await settle();
+  const inst = await page.evaluate(() => {
+    const vp = window.cad.vp, a = window.cad.asm;
+    const st = vp.stats();
+    const id = a.doc.components.find((c) => c.patternOf)?.id;
+    const bi = a.bodyMap.findIndex((m) => m.comp === id);
+    const THREE_V = vp.view.target.constructor;
+    const box = vp.bodies[bi].mesh.geometry.boundingSphere.center.clone().applyMatrix4(vp.bodies[bi].matrix);
+    const s = vp.toScreen(new THREE_V(box.x, box.y, box.z));
+    const p = vp.pick({ clientX: s.x, clientY: s.y }, new Set(["face"]));
+    return { batched: st.batchedBodies, calls: st.calls, bodies: st.bodies, picked: p ? a.bodyMap[p.body].comp === id : false };
+  });
+  check("instanced display + picking", inst.batched >= 2 && inst.calls < inst.bodies * 2 && inst.picked, JSON.stringify(inst));
   await page.evaluate(() => window.cad.openDrawingEnv());
   await page.waitForFunction(() => window.cad.env === "drawing" && document.querySelectorAll(".dw-stage .dview").length >= 4, null, { timeout: 60000 });
   await settle();

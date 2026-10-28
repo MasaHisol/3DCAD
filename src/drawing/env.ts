@@ -737,6 +737,7 @@ export class DrawingEnv {
     }
     if (!todo.length) return;
     try {
+      if (this.source === "assembly") await this.app.asm.ensureBrep(sheet.part ? [sheet.part] : undefined);
       const res = await this.app.kernel.drawViews(
         todo.map((v) => viewSpec(v, views.find((p) => p.id === v.parent))),
         placements,
