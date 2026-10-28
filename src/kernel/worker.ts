@@ -5,8 +5,17 @@ import wasmUrl from "replicad-opencascadejs/wasm?url";
 import { setOC } from "replicad";
 import { drawView, exportPlaced, GeometryEngine, interferences, placeShape } from "./geometry";
 import { buildRoutes, routeInterference, routeShapes } from "./route";
-import { exportStepXcaf, importStepAssembly } from "./exchange";
-import type { BodyMesh, Placement, ThreadInfo, WorkerRequest, WorkerResponse } from "./protocol";
+import { exportIgesNative, exportStepXcaf, importStepAssembly } from "./exchange";
+import { extKernel, extKernelError, extKernelIfLoaded, setExtLoader } from "./ext";
+import { hlrProject } from "./hlr";
+import type { BodyMesh, ExtKernelInfo, Placement, ThreadInfo, WorkerRequest, WorkerResponse } from "./protocol";
+
+// Extended kernel: the full opencascade.js build, fetched and compiled only when an
+// operation needs it (IGES, XCAF STEP read, ShapeFix_Shape healing). Bundled locally.
+setExtLoader(async () => {
+  const [{ default: init }, { default: url }] = await Promise.all([import("occt-full/opencascade.full.js"), import("occt-full/opencascade.full.wasm?url")]);
+  return init({ locateFile: (p: string) => (p.endsWith(".wasm") ? url : p) });
+});
 import type { Vec3 } from "../core/types";
 
 /** Threads of a placed part, in assembly coordinates (column-major matrix). */
@@ -86,6 +95,12 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
         blob = exportStepXcaf(parts, comps, req.name ?? "アセンブリ");
       } else {
         const colors = new Map(req.placements.map((p) => [p.name, p.color]));
+        const items = [...placed(req.placements).map((x) => ({ ...x, color: colors.get(x.name) })), ...(req.withRoutes ? routeShapes() : [])];
+        const iges = req.format === "iges" && items.length ? await exportIgesNative(items) : null;
+        if (iges) {
+          const buf = await new Blob([iges]).arrayBuffer();
+          return { result: buf, transfer: [buf] };
+        }
         blob = exportPlaced([...placed(req.placements).map((x) => ({ ...x, color: colors.get(x.name) })), ...(req.withRoutes ? routeShapes() : [])], req.format);
       }
       const buf = await blob.arrayBuffer();
@@ -114,7 +129,7 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
       return { result: res, transfer };
     }
     case "export": {
-      const blob = eng.exportFile(req.format, req.name, req.color);
+      const blob = await eng.exportFileAsync(req.format, req.name, req.color);
       const buf = await blob.arrayBuffer();
       return { result: buf, transfer: [buf] };
     }
@@ -122,6 +137,15 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
       return { result: eng.massProps(), transfer: [] };
     case "measure":
       return { result: eng.measure(req.a, req.b), transfer: [] };
+    case "hlr": {
+      const shapes = req.placements ? placed(req.placements).map((x) => x.shape) : eng.bodies;
+      return { result: req.views.map((v) => hlrProject(shapes, v)), transfer: [] };
+    }
+    case "extKernel": {
+      if (req.load) await extKernel();
+      const info: ExtKernelInfo = { available: !extKernelError(), loaded: !!extKernelIfLoaded(), error: extKernelError() || undefined };
+      return { result: info, transfer: [] };
+    }
     case "projection":
       return { result: req.placements ? eng.projection(req.views, placed(req.placements).map((x) => x.shape)) : eng.projection(req.views), transfer: [] };
   }

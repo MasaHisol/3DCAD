@@ -27,7 +27,7 @@ import type {
   ViewSpec,
 } from "./protocol";
 import { evalSurface, isSurfaceRFeature } from "./surface";
-import { bodyMeta, exportStepXcaf, healSummary, igesToShapes, importStepWithMeta, shapesToIges } from "./exchange";
+import { bodyMeta, exportIgesNative, exportStepXcaf, healSummary, igesToShapes, importIgesNative, importStepWithMeta, preciseProps, shapesToIges } from "./exchange";
 import { readIges, writeIges } from "../io/iges";
 import { RefBrokenError, edgeFaces, resolveNamed, type BrokenRef, type RefCandidate } from "../core/naming";
 import { installFastTopology } from "./topo";
@@ -737,6 +737,7 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
       const heal = f.heal !== false;
       const notes: string[] = [];
       let shapes: Shape[];
+      let nativeIges: Awaited<ReturnType<typeof importIgesNative>> = null;
       if (f.format === "step") {
         const r = await importStepWithMeta(f.data, heal);
         shapes = r.shapes;
@@ -744,13 +745,30 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
         if (r.products > 1) notes.push(`部品 ${r.products} 種類・${r.instances} 個 (名前と色を読み込み)`);
         if (r.heal) notes.push(healSummary(r.heal));
       } else if (f.format === "iges") {
-        const model = readIges(f.data);
-        const r = igesToShapes(model, 0.01);
-        shapes = r.shapes;
-        r.shapes.forEach((s, i) => bodyMeta.set(s, r.meta[i]));
-        if (r.failedFaces) notes.push(`作成できなかった面 ${r.failedFaces} 個`);
-        const skipped = Object.entries(model.skipped).map(([t, n]) => `${t}×${n}`);
-        if (skipped.length) notes.push(`未対応の要素を読み飛ばし (${skipped.join(", ")})`);
+        // the NURBS path rebuilds planes / cylinders / spheres as analytic surfaces (measurable);
+        // anything it cannot read completely goes to IGESCAFControl_Reader in the extended kernel
+        let model: ReturnType<typeof readIges> | null = null;
+        let r: ReturnType<typeof igesToShapes> | null = null;
+        try {
+          model = readIges(f.data);
+          r = igesToShapes(model, 0.01);
+        } catch {
+          r = null;
+        }
+        const complete = !!r && !!model && r.shapes.length > 0 && !r.failedFaces && !Object.keys(model.skipped).length;
+        if (!complete && (nativeIges = await importIgesNative(f.data, heal))?.shapes.length) {
+          shapes = nativeIges.shapes;
+          nativeIges.shapes.forEach((s, i) => bodyMeta.set(s, nativeIges!.meta[i]));
+          notes.push("IGES をカーネルの変換器で読み込みました");
+          if (nativeIges.heal) notes.push(healSummary(nativeIges.heal));
+        } else {
+          if (!r || !model) throw new Error("IGES を読み込めませんでした");
+          shapes = r.shapes;
+          r.shapes.forEach((s, i) => bodyMeta.set(s, r!.meta[i]));
+          if (r.failedFaces) notes.push(`作成できなかった面 ${r.failedFaces} 個`);
+          const skipped = Object.entries(model.skipped).map(([t, n]) => `${t}×${n}`);
+          if (skipped.length) notes.push(`未対応の要素を読み飛ばし (${skipped.join(", ")})`);
+        }
         if (!shapes.length) throw new Error("IGES から形状を作成できませんでした");
       } else {
         // meshes: sewn into a solid by the STL importer (face-by-face repair would be too slow for big meshes)
@@ -1229,6 +1247,23 @@ export class GeometryEngine {
     return res;
   }
 
+  /** Bodies and surface bodies (open shells) with names and colours from the import or the part. */
+  private exportItems(name: string, color?: string) {
+    return [
+      ...this.bodies.map((shape, i) => ({ shape, name: bodyMeta.get(shape)?.name ?? (this.bodies.length > 1 ? `${name}_${i + 1}` : name), color: bodyMeta.get(shape)?.color ?? color })),
+      ...this.surfaces.map((s, i) => ({ shape: s.shape, name: bodyMeta.get(s.shape)?.name ?? `${name}_surface${i + 1}`, color: bodyMeta.get(s.shape)?.color ?? color })),
+    ];
+  }
+
+  /** exportFile preferring the extended kernel (IGES through IGESCAFControl_Writer). */
+  async exportFileAsync(format: "step" | "stl" | "brep" | "iges", name: string, color?: string): Promise<Blob> {
+    if (format === "iges" && (this.bodies.length || this.surfaces.length)) {
+      const text = await exportIgesNative(this.exportItems(name, color));
+      if (text) return new Blob([text], { type: "model/iges" });
+    }
+    return this.exportFile(format, name, color);
+  }
+
   exportFile(format: "step" | "stl" | "brep" | "iges", name: string, color?: string): Blob {
     if (!this.bodies.length && !((format === "step" || format === "iges") && this.surfaces.length))
       throw new Error(this.surfaces.length ? "サーフェスには体積がないため STL / BREP に書き出せません。ステッチまたは厚み付けでソリッドにしてください (STEP ならサーフェスも書き出せます)" : "エクスポートするボディがありません");
@@ -1243,11 +1278,7 @@ export class GeometryEngine {
       return new Blob([data as BlobPart], { type: "application/octet-stream" });
     }
     if (format === "step" || format === "iges") {
-      // surface bodies are exported too (open shells); names and colours from the import or the part
-      const items = [
-        ...this.bodies.map((shape, i) => ({ shape, name: bodyMeta.get(shape)?.name ?? (this.bodies.length > 1 ? `${name}_${i + 1}` : name), color: bodyMeta.get(shape)?.color ?? color })),
-        ...this.surfaces.map((s, i) => ({ shape: s.shape, name: bodyMeta.get(s.shape)?.name ?? `${name}_surface${i + 1}`, color: bodyMeta.get(s.shape)?.color ?? color })),
-      ];
+      const items = this.exportItems(name, color);
       if (format === "iges") return new Blob([writeIges(shapesToIges(items), `${name}.igs`)], { type: "model/iges" });
       return exportStepXcaf(items.map((x) => ({ name: x.name, color: x.color, shapes: [x.shape] })), null, name);
     }
@@ -1261,12 +1292,12 @@ export class GeometryEngine {
     let com: Vec3 = [0, 0, 0];
     let lo: Vec3 = [0, 0, 0], hi: Vec3 = [0, 0, 0];
     this.bodies.forEach((b, i) => {
-      const vp = R.measureShapeVolumeProperties(b);
+      // adaptive Gauss-Kronrod integration: exact on rational B-spline faces (the default rule is off by up to 0.2 %)
+      const vp = preciseProps(b);
       const v = vp.volume;
-      const c = tuple(vp.centerOfMass as unknown as number[]);
-      com = add(com, scale(c, v));
+      com = add(com, scale(vp.centerOfMass, v));
       volume += v;
-      area += R.measureArea(b as never);
+      area += vp.area;
       const [a, z] = b.boundingBox.bounds as [Vec3, Vec3];
       if (i === 0) (lo = a), (hi = z);
       else {

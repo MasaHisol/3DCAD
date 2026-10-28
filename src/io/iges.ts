@@ -415,11 +415,12 @@ function f(x: number): string {
   return s.replace("e", "E");
 }
 /** Hollerith string; non-ASCII characters are escaped as &#xHHHH; (IGES is ASCII only). */
+export const escapeIgesName = (s: string) => s.replace(/[^\x20-\x7e]|&/g, (c) => `&#x${c.codePointAt(0)!.toString(16)};`);
 const H = (s: string) => {
-  const a = s.replace(/[^\x20-\x7e]|&/g, (c) => `&#x${c.codePointAt(0)!.toString(16)};`);
+  const a = escapeIgesName(s);
   return `${a.length}H${a}`;
 };
-const unescapeName = (s: string) => s.replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)));
+export const unescapeName = (s: string) => s.replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)));
 
 class Writer {
   private ents: { type: number; form: number; params: string[]; status: string; color: number; label: string }[] = [];

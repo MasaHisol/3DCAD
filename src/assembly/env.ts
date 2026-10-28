@@ -1012,7 +1012,9 @@ export class AssemblyEnv {
     const first = this.doc.components.length === 0;
     this.store.mutate("STEP アセンブリを配置", (d) => {
       r.parts.forEach((p, i) => d.parts.push({ id: ids[i], name: p.name, kind: "step", step: p.step, fileName, color: p.color }));
-      r.comps.forEach((c, i) => d.components.push({ id: uid("cm"), name: c.name, partId: ids[c.part], matrix: c.matrix, grounded: first && i === 0 }));
+      // instances inside sub-assemblies keep their path in the name (the assembly itself is flat)
+      const nameOf = (c: (typeof r.comps)[number]) => (c.path && c.path.length > 2 ? c.path.slice(1).join(" / ") : c.name);
+      r.comps.forEach((c, i) => d.components.push({ id: uid("cm"), name: nameOf(c), partId: ids[c.part], matrix: c.matrix, grounded: first && i === 0 }));
     });
     setTimeout(() => this.app.vp.fitAll(), 50);
     toast(`${fileName}: 部品 ${r.parts.length} 種類・コンポーネント ${r.comps.length} 個を配置しました (名前・色・位置を読み込み)`, "ok");

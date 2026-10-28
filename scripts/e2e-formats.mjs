@@ -134,6 +134,13 @@ try {
   const ig = await page.evaluate(async () => ({ bodies: window.cad.bodies.map((b) => [b.name, b.color]), volume: (await window.cad.kernel.massProps()).volume }));
   check("IGES: solid with name and colour", ig.bodies.length === 1 && ig.bodies[0][0] === "IGES-Block" && ig.bodies[0][1] === "#3a7bd5" && Math.abs(ig.volume - (8000 - Math.PI * 160)) < 1, JSON.stringify(ig));
   check("IGES: measure", Math.abs((await faceDistanceX()) - 40) < 1e-4, `${await faceDistanceX()} mm`);
+  // extended kernel (full OCCT build, loaded on demand from the bundle; IGES export goes through it)
+  const ext = await page.evaluate(() => window.cad.kernel.extKernel(true));
+  check("extended kernel loads from the bundle", ext.available && ext.loaded, JSON.stringify(ext));
+  const igesOut = await page.evaluate(async () => new TextDecoder().decode(await window.cad.kernel.exportFile("iges", "out")));
+  check("IGES export through the kernel", /IGES-Blo/.test(igesOut) && igesOut.split("\n")[0].replace(/\r$/, "").length === 80, `${igesOut.length} bytes`);
+  const hlr = await page.evaluate(() => window.cad.kernel.hlr([{ dir: [1, 1, 1], xAxis: [1, -1, 0] }]));
+  check("HLR projection", hlr.length === 1 && hlr[0].visible.sharp.length > 0 && hlr[0].hidden.sharp.length + hlr[0].hidden.outline.length > 0, `${hlr[0]?.visible.sharp.length} visible / ${hlr[0]?.hidden.sharp.length} hidden`);
 
   // glTF (text, embedded buffer) and GLB
   for (const f of ["sample.gltf", "sample.glb"]) {

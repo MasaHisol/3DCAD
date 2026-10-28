@@ -296,7 +296,7 @@ npm run build && npm run e2e   # ブラウザでの E2E (スケッチ→押し�
 
 ## ライセンス
 
-OpenCascade (replicad-opencascadejs) は LGPL-2.1、replicad は MIT、three.js は MIT ライセンスです。
+OpenCascade (replicad-opencascadejs) は LGPL-2.1、replicad は MIT、three.js は MIT ライセンスです。IGES・XCAF STEP 読み込み・形状修復に使う拡張カーネル (opencascade.js 2.0.0-beta.b5ff984、OCCT 7.6.2 の全機能ビルド) も LGPL-2.1 で、改変せずに別ファイルの WebAssembly として同梱し、必要時だけ読み込みます (ライセンス文は `licenses/opencascade.js_LGPL-2.1.txt`、ソースは https://github.com/donalffons/opencascade.js 。詳細は `docs/kernel-build.md`)。
 
 文字フィーチャ用に IPA P ゴシック (`src/assets/fonts/ipagp.ttf`) を同梱しています。IPA フォントライセンス v1.0 に従います (配布物の `licenses/IPA_Font_License_Agreement_v1.0.txt`)。工具経路のオフセット計算に clipper-lib (Boost Software License) を使用しています。IFC の表示に web-ifc (Mozilla Public License 2.0、改変なしで同梱。ライセンス文は `licenses/web-ifc_MPL-2.0.txt`、ソースは https://github.com/ThatOpen/engine_web-ifc) を使用しています。
 

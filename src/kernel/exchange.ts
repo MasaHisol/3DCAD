@@ -5,8 +5,9 @@
 
 import * as R from "replicad";
 import { chainLoops, curveRange, evalCurve, evalSurface, expandKnots, interpolate, knotMults, reverseCurve, revolveSurface, surfaceRange, type NurbsCurve, type NurbsSurface, type P3 } from "../io/nurbs";
-import type { IgesBody, IgesFace, IgesModel } from "../io/iges";
+import { escapeIgesName, unescapeName, type IgesBody, type IgesFace, type IgesModel } from "../io/iges";
 import { invRigid, matchSolids, readStepMeta, stepLeaves, type Mat4 } from "../io/stepmeta";
+import { extKernel, xdocLeaves, type ExtHealResult, type XDoc } from "./ext";
 
 type Shape = R.Shape3D;
 const oc = () => R.getOC() as any;
@@ -26,6 +27,8 @@ export const bodyMeta = new WeakMap<object, BodyMeta>();
 // ------------------------------------------------------------- healing ---
 
 export interface HealReport {
+  /** Repaired by the extended kernel (ShapeFix_Shape) instead of the TypeScript sequence. */
+  native?: boolean;
   /** Faces dropped because their area was below the tiny-face limit. */
   tinyFaces: number;
   /** Free (unshared) edges before and after sewing. */
@@ -208,6 +211,169 @@ export function healShape(input: any, tolerance = 0.01): { shapes: Shape[]; repo
   };
 }
 
+// ------------------------------------------------- extended kernel ---
+
+/** Main kernel shape -> OCCT text BRep (readable by the extended kernel). */
+export function toBrep(shape: any): string {
+  return oc().BRepToolsWrapper.Write((shape as { wrapped?: unknown }).wrapped ?? shape);
+}
+
+/** Text BRep -> main kernel shape. */
+export function fromBrep(text: string): Shape {
+  return R.cast(oc().BRepToolsWrapper.Read(text)) as Shape;
+}
+
+/** healShape through the extended kernel (ShapeFix_Shape); null when it is unavailable. */
+export async function healShapeNative(input: any, tolerance = 0.01): Promise<{ shapes: Shape[]; report: HealReport } | null> {
+  const ext = await extKernel();
+  if (!ext) return null;
+  const raw = (input as { wrapped?: unknown }).wrapped ?? input;
+  let r: ExtHealResult;
+  try {
+    r = ext.heal(toBrep(raw), tolerance);
+  } catch (e) {
+    console.warn("native healing failed, using the fallback", e);
+    return null;
+  }
+  const solids = r.solids.map(fromBrep);
+  const shells = r.shells.map(fromBrep);
+  const shapes = [...solids, ...shells];
+  const all = shapes.map((s) => (s as unknown as { wrapped: unknown }).wrapped);
+  const smallBefore = shortEdgeCount(raw, tolerance * 0.1);
+  const smallAfter = all.reduce<number>((n, s) => n + shortEdgeCount(s, tolerance * 0.1), 0);
+  return {
+    shapes,
+    report: {
+      native: true,
+      tinyFaces: r.tinyFaces,
+      freeEdgesBefore: freeEdgeCount(raw),
+      freeEdgesAfter: r.freeEdgesAfter,
+      solidsMade: solids.length,
+      openShells: shells.length,
+      smallEdges: Math.max(0, smallBefore - smallAfter),
+      validBefore: isValid(raw),
+      validAfter: all.length > 0 && all.every(isValid),
+      tolerance,
+    },
+  };
+}
+
+/** healIfNeeded preferring the extended kernel for the repair itself. */
+export async function healIfNeededNative(shape: Shape, tolerance: number): Promise<{ shapes: Shape[]; report?: HealReport }> {
+  const raw = (shape as unknown as { wrapped: unknown }).wrapped;
+  const solids = iter(raw, "solid");
+  const facesInSolids = solids.reduce((n, s) => n + iter(s, "face").length, 0);
+  const allFaces = iter(raw, "face").length;
+  if (solids.length && facesInSolids === allFaces && solids.every(isValid)) return { shapes: solids.map((s) => R.cast(s) as Shape) };
+  if (!allFaces) return { shapes: [shape] };
+  const good = solids.filter(isValid);
+  const b = new (oc().TopoDS_Builder)();
+  const c = new (oc().TopoDS_Compound)();
+  b.MakeCompound(c);
+  for (const s of solids.filter((s) => !isValid(s))) b.Add(c, s);
+  const inSolids = new Set(solids.flatMap((s) => iter(s, "face").map((f) => (R.cast(f) as any).hashCode)));
+  for (const f of iter(raw, "face")) if (!inSolids.has((R.cast(f) as any).hashCode)) b.Add(c, f);
+  const healed = (await healShapeNative(c, tolerance)) ?? healShape(c, tolerance);
+  return { shapes: [...good.map((s) => R.cast(s) as Shape), ...healed.shapes], report: healed.report };
+}
+
+/** Merges the reports of several healed products into one. */
+function mergeReports(rs: HealReport[]): HealReport | undefined {
+  if (!rs.length) return undefined;
+  const sum = (k: "tinyFaces" | "freeEdgesBefore" | "freeEdgesAfter" | "solidsMade" | "openShells" | "smallEdges") => rs.reduce((n, r) => n + r[k], 0);
+  return {
+    native: rs.every((r) => r.native),
+    tinyFaces: sum("tinyFaces"),
+    freeEdgesBefore: sum("freeEdgesBefore"),
+    freeEdgesAfter: sum("freeEdgesAfter"),
+    solidsMade: sum("solidsMade"),
+    openShells: sum("openShells"),
+    smallEdges: sum("smallEdges"),
+    validBefore: rs.every((r) => r.validBefore),
+    validAfter: rs.every((r) => r.validAfter),
+    tolerance: rs[0].tolerance,
+  };
+}
+
+/** Product shapes of an XCAF document in the main kernel, healed when needed. */
+async function xdocProducts(doc: XDoc, heal: boolean): Promise<{ shapes: Shape[][]; reports: HealReport[] }> {
+  const reports: HealReport[] = [];
+  const shapes: Shape[][] = [];
+  for (const text of doc.shapes) {
+    const s = fromBrep(text);
+    if (heal) {
+      const h = await healIfNeededNative(s, 0.01);
+      if (h.report) reports.push(h.report);
+      shapes.push(h.shapes);
+    } else shapes.push(s.solids?.length ? (s.solids as Shape[]) : [s]);
+  }
+  return { shapes, reports };
+}
+
+/** Instances of an XCAF document placed in the main kernel, with names / colours / paths. */
+function xdocPlaced(doc: XDoc, products: Shape[][]): { shapes: Shape[]; meta: BodyMeta[] } {
+  const shapes: Shape[] = [], meta: BodyMeta[] = [];
+  for (const l of xdocLeaves(doc)) {
+    const ss = products[l.node.shape!];
+    ss.forEach((s, i) => {
+      shapes.push(transformByMatrix(s, l.matrix));
+      meta.push({ name: (ss.length > 1 ? `${l.node.name}_${i + 1}` : l.node.name) || undefined, color: l.node.color, path: l.path });
+    });
+  }
+  return { shapes, meta };
+}
+
+/** STEP read by the extended kernel's XCAF reader; null when it is unavailable or fails. */
+export async function readStepNative(text: string): Promise<XDoc | null> {
+  const ext = await extKernel();
+  if (!ext) return null;
+  try {
+    return ext.readStepXcaf(text);
+  } catch (e) {
+    console.warn("XCAF STEP reader failed, using the fallback", e);
+    return null;
+  }
+}
+
+export interface IgesImport {
+  shapes: Shape[];
+  meta: BodyMeta[];
+  heal?: HealReport;
+}
+
+/** IGES through the extended kernel (IGESCAFControl_Reader + healing); null when unavailable. */
+export async function importIgesNative(text: string, heal = true): Promise<IgesImport | null> {
+  const ext = await extKernel();
+  if (!ext) return null;
+  let doc: XDoc;
+  try {
+    doc = ext.readIges(text);
+  } catch (e) {
+    console.warn("IGES reader failed, using the fallback", e);
+    return null;
+  }
+  const prod = await xdocProducts(doc, heal);
+  const placedShapes = xdocPlaced(doc, prod.shapes);
+  // IGES strings are ASCII: non-ASCII names travel as &#xHHHH; (as written by src/io/iges.ts)
+  for (const m of placedShapes.meta) {
+    if (m.name) m.name = unescapeName(m.name);
+    if (m.path) m.path = m.path.map(unescapeName);
+  }
+  return { ...placedShapes, heal: mergeReports(prod.reports) };
+}
+
+/** IGES export through the extended kernel; null when unavailable. */
+export async function exportIgesNative(bodies: { shape: Shape; name: string; color?: string }[], opts: { brep?: boolean } = {}): Promise<string | null> {
+  const ext = await extKernel();
+  if (!ext) return null;
+  try {
+    return ext.writeIges(bodies.map((b) => ({ brep: toBrep(b.shape), name: escapeIgesName(b.name), color: b.color })), opts);
+  } catch (e) {
+    console.warn("native IGES writer failed, using the fallback", e);
+    return null;
+  }
+}
+
 /** Heals only when needed: invalid shapes, or faces / shells that are not solids. */
 export function healIfNeeded(shape: Shape, tolerance: number): { shapes: Shape[]; report?: HealReport } {
   const raw = (shape as unknown as { wrapped: unknown }).wrapped;
@@ -258,10 +424,23 @@ export interface StepImport {
   products: number;
   instances: number;
   heal?: HealReport;
+  /** Read by the extended kernel's XCAF reader. */
+  native?: boolean;
 }
 
-/** STEP text -> solids with names, colours and assembly paths. */
+/** STEP text -> solids with names, colours and assembly paths (XCAF reader when available). */
 export async function importStepWithMeta(text: string, heal = true): Promise<StepImport> {
+  const doc = await readStepNative(text);
+  if (doc && doc.shapes.length) {
+    const prod = await xdocProducts(doc, heal);
+    const leaves = xdocLeaves(doc);
+    return { ...xdocPlaced(doc, prod.shapes), products: new Set(leaves.map((l) => l.node.shape)).size, instances: leaves.length, heal: mergeReports(prod.reports), native: true };
+  }
+  return importStepWithMetaTs(text, heal);
+}
+
+/** Stage 1 path: replicad's STEP reader plus the text metadata reader (src/io/stepmeta.ts). */
+export async function importStepWithMetaTs(text: string, heal = true): Promise<StepImport> {
   const shape = (await R.importSTEP(new Blob([text]))) as Shape;
   let shapes: Shape[];
   let report: HealReport | undefined;
@@ -291,8 +470,53 @@ export async function importStepWithMeta(text: string, heal = true): Promise<Ste
   return { shapes, meta, products, instances, heal: report };
 }
 
+export interface StepAssembly {
+  parts: { name: string; color?: string; step: string }[];
+  /** Placed instances; `path` = instance names from the root down (sub-assemblies included). */
+  comps: { part: number; name: string; matrix: Mat4; path?: string[] }[];
+  /** Full assembly tree (sub-assemblies with their own placements), when read natively. */
+  tree?: AsmNode[];
+  native?: boolean;
+}
+
+/** Assembly tree node: a sub-assembly (children) or an instance of a part. */
+export interface AsmNode {
+  name: string;
+  product: string;
+  /** Placement relative to the parent node (column-major). */
+  matrix: Mat4;
+  part?: number;
+  children: AsmNode[];
+}
+
 /** One part per distinct product with instances placed by their matrices (assembly import). */
-export async function importStepAssembly(text: string): Promise<{ parts: { name: string; color?: string; step: string }[]; comps: { part: number; name: string; matrix: Mat4 }[] }> {
+export async function importStepAssembly(text: string): Promise<StepAssembly> {
+  const doc = await readStepNative(text);
+  if (doc && doc.shapes.length) {
+    const prod = await xdocProducts(doc, true);
+    const parts: StepAssembly["parts"] = [];
+    const partOf = new Map<number, number>();
+    const comps: StepAssembly["comps"] = [];
+    for (const l of xdocLeaves(doc)) {
+      const si = l.node.shape!;
+      let pi = partOf.get(si);
+      if (pi === undefined) {
+        const name = l.node.product || l.node.name || `部品${parts.length + 1}`;
+        const blob = exportStepXcaf([{ name, color: l.node.color, shapes: prod.shapes[si] }], null, name);
+        pi = parts.length;
+        parts.push({ name, color: l.node.color, step: await blob.text() });
+        partOf.set(si, pi);
+      }
+      comps.push({ part: pi, name: l.node.name || parts[pi].name, matrix: l.matrix, path: l.path });
+    }
+    const conv = (n: XDoc["roots"][number]): AsmNode => ({ name: n.name, product: n.product, matrix: n.matrix, part: n.shape !== undefined ? partOf.get(n.shape) : undefined, children: n.children.map(conv) });
+    return { parts, comps, tree: doc.roots.map(conv), native: true };
+  }
+  return importStepAssemblyTs(text);
+}
+
+/** Stage 1 path (text metadata matched to replicad's flat import). */
+export async function importStepAssemblyTs(text: string): Promise<StepAssembly> {
   const shape = (await R.importSTEP(new Blob([text]))) as Shape;
   const solids = healIfNeeded(shape, 0.01).shapes;
   const sm = readStepMeta(text);
@@ -393,6 +617,51 @@ export function exportStepXcaf(parts: { name: string; color?: string; shapes: Sh
     }
     tool.UpdateAssemblies();
   }
+  return writeXcaf(doc, rootName);
+}
+
+/**
+ * STEP with a full assembly tree: sub-assemblies become their own products
+ * (named after `product`) placed in their parent, parts are shared by all
+ * their instances.
+ */
+export function exportStepTree(parts: { name: string; color?: string; shapes: Shape[] }[], tree: AsmNode[], rootName: string): Blob {
+  const O = oc();
+  const doc = new O.TDocStd_Document(ext("XmlOcaf"));
+  O.XCAFDoc_ShapeTool.SetAutoNaming(false);
+  const main = doc.Main();
+  const tool = O.XCAFDoc_DocumentTool.ShapeTool(main);
+  const ctool = O.XCAFDoc_DocumentTool.ColorTool(main);
+  const shapeOf = (ss: Shape[]) => (ss.length === 1 ? (ss[0] as any).wrapped : (R.makeCompound(ss as never) as any).wrapped);
+  const labels = parts.map((p) => {
+    if (!p.shapes.length) return null;
+    const l = tool.AddShape(shapeOf(p.shapes), false, false);
+    O.TDataStd_Name.Set(l, ext(p.name));
+    ctool.SetColor(l, hexColor(p.color), O.XCAFDoc_ColorType.XCAFDoc_ColorSurf);
+    return l;
+  });
+  const add = (parent: any, n: AsmNode, depth: number) => {
+    let target: any;
+    if (n.part !== undefined) target = labels[n.part];
+    else {
+      if (depth > 64) return;
+      target = tool.NewShape();
+      O.TDataStd_Name.Set(target, ext(n.product || n.name));
+      for (const c of n.children) add(target, c, depth + 1);
+    }
+    if (!target) return;
+    const cl = tool.AddComponent(parent, target, new O.TopLoc_Location(trsfOf(n.matrix)));
+    O.TDataStd_Name.Set(cl, ext(n.name));
+  };
+  const root = tool.NewShape();
+  O.TDataStd_Name.Set(root, ext(rootName));
+  for (const n of tree) add(root, n, 0);
+  tool.UpdateAssemblies();
+  return writeXcaf(doc, rootName);
+}
+
+function writeXcaf(doc: any, rootName: string): Blob {
+  const O = oc();
   O.Interface_Static.SetCVal("xstep.cascade.unit", "MM");
   O.Interface_Static.SetCVal("write.step.unit", "MM");
   const session = new O.XSControl_WorkSession();
@@ -420,6 +689,34 @@ export function preciseVolume(shape: Shape): number {
   const props = new O.GProp_GProps();
   O.BRepGProp.VolumePropertiesGK((shape as any).wrapped, props, 1e-7, false, true, false, false, false);
   return props.Mass();
+}
+
+/**
+ * Volume, area and centre of mass by error-controlled adaptive integration
+ * (relative error ~2e-7 on rational B-spline faces, where the fixed Gauss rule
+ * of stage 1 was off by up to 0.2 %). Falls back to the fixed
+ * Gauss rule if the adaptive one fails.
+ */
+export function preciseProps(shape: Shape, eps = 1e-7): { volume: number; area: number; centerOfMass: [number, number, number] } {
+  const O = oc();
+  const raw = (shape as any).wrapped ?? shape;
+  const vp = new O.GProp_GProps();
+  try {
+    O.BRepGProp.VolumeProperties(raw, vp, eps, false, false);
+  } catch {
+    O.BRepGProp.VolumeProperties(raw, vp, false, false, false);
+  }
+  const ap = new O.GProp_GProps();
+  try {
+    O.BRepGProp.SurfaceProperties(raw, ap, eps, false);
+  } catch {
+    O.BRepGProp.SurfaceProperties(raw, ap, false, false);
+  }
+  const c = vp.CentreOfMass();
+  const out = { volume: vp.Mass(), area: ap.Mass(), centerOfMass: [c.X(), c.Y(), c.Z()] as [number, number, number] };
+  vp.delete();
+  ap.delete();
+  return out;
 }
 
 function readBSplineCurve(bs: any): NurbsCurve {
