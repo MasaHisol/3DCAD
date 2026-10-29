@@ -32,7 +32,8 @@ async function session(webgpu) {
   const consoleErrors = [];
   page.on("console", (m) => m.type() === "error" && consoleErrors.push(m.text()));
   try {
-    await page.goto(`http://localhost:${port}/?renderer=auto`);
+    // the WebGPU session asks for WebGPU explicitly ("auto" keeps WebGL on software adapters)
+    await page.goto(`http://localhost:${port}/?renderer=${webgpu ? "webgpu" : "auto"}`);
     await page.evaluate(async () => {
       localStorage.clear();
       await new Promise((r) => {
@@ -87,6 +88,7 @@ async function session(webgpu) {
         pts.push(vp.worldToScreen(c));
       }
       const ev = (p) => ({ clientX: p.x, clientY: p.y });
+      vp.gpuPickMinCandidates = 0; // one body: force the ID buffer
       const run = (gpu) => {
         vp.gpuPicking = gpu;
         return pts.map((p) => {
@@ -174,6 +176,12 @@ async function session(webgpu) {
     check(`${tag} section view closes`, off === 0);
     const still = await page.evaluate(() => window.cad.vp.backend);
     if (webgpu) check(`${tag} still on WebGPU at the end`, still.kind === "webgpu", still.reason);
+    if (webgpu) {
+      // "auto" with a software WebGPU adapter keeps WebGL (faster there)
+      const auto = await page.evaluate(async () => await window.cad.vp.initBackend("auto"));
+      check(`${tag} auto prefers WebGL on a software adapter`, auto.kind === "webgl" && /ソフトウェア/.test(auto.reason), auto.reason);
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    }
     check(`${tag} no page errors`, errors.length === 0, errors.slice(0, 3).join(" | "));
     if (consoleErrors.length) console.log(`  console errors (${consoleErrors.length}):`, consoleErrors.slice(0, 5).join("\n   "));
   } finally {

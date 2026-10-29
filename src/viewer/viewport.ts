@@ -1644,7 +1644,9 @@ export class Viewport {
     const meshes = views.map((b) => b.mesh);
     const kept = (h: THREE.Intersection) => keptByPlanes(this.clipPlanes, h.point);
     let meshHits: THREE.Intersection[];
-    const gpu = this.style === "wireframe" ? undefined : this.gpuPick(e);
+    // the ID buffer pays off when the ray crosses many bodies' bounds (dense
+    // assemblies); a few candidates are tested faster by their BVHs directly
+    const gpu = this.style === "wireframe" || this.rayCandidates(meshes) < this.gpuPickMinCandidates ? undefined : this.gpuPick(e);
     if (gpu === null) meshHits = []; // background under the cursor
     else if (gpu) {
       // the ID buffer names the body: exact point from that body's BVH only
@@ -1714,6 +1716,20 @@ export class Viewport {
 
   /** Picks answered by the GPU ID buffer / ray-BVH fallback. */
   pickStats = { gpu: 0, fallback: 0 };
+  /** Use the ID buffer only when the cursor ray crosses at least this many bodies' bounding spheres. */
+  gpuPickMinCandidates = 6;
+
+  /** Number of meshes whose bounding sphere the current ray crosses (stops counting at the threshold). */
+  private rayCandidates(meshes: THREE.Mesh[]): number {
+    const ray = this.raycaster.ray, sph = new THREE.Sphere();
+    let n = 0;
+    for (const m of meshes) {
+      const g = m.geometry;
+      if (!g.boundingSphere) g.computeBoundingSphere();
+      if (ray.intersectsSphere(sph.copy(g.boundingSphere!).applyMatrix4(m.matrixWorld)) && ++n >= this.gpuPickMinCandidates) break;
+    }
+    return n;
+  }
 
   /**
    * Body and face under the cursor from the GPU ID buffer: null for
