@@ -1,10 +1,7 @@
 import type { App } from "../app";
 import type { SketchTool } from "../viewer/sketchEditor";
-import { openLibrary } from "../library/dialog";
-import { openFamily, openRules } from "../rules/ui";
-import { openFlatPattern, openSheetStyle } from "../sheetmetal/ui";
+import { openFamily, openFlatPattern, openLibrary, openRules, openSheetStyle, openToleranceStack } from "./lazyUi";
 import { openIProperties, openParameters, openShortcuts } from "./dialogs";
-import { openToleranceStack } from "../analysis/toleranceUi";
 import { openRevisions } from "./revisionsUi";
 import { exportPmiCsv, openPmiList, togglePmi } from "../mbd/commands";
 import type { RibbonButton, RibbonTab } from "./ribbon";

@@ -1,5 +1,6 @@
 import "./styles.css";
 import { App } from "./app";
+import { viewerRequested } from "./ui/viewerMode";
 
 // Toolbar-style buttons must not keep keyboard focus after a mouse click,
 // otherwise Enter (OK) / Space would re-trigger the last clicked command.
@@ -33,17 +34,27 @@ try {
 }
 // handy for debugging / automation
 (window as unknown as { cad: App }).cad = app;
+// viewer-only mode: ?viewer=1 (the desktop app adds it when a STEP / STL … was double-clicked)
+if (viewerRequested(location.search)) app.viewer.enter();
 
 // Desktop app: files opened from the OS (double-click a .3dcp / .3dca, "open with")
 interface DesktopBridge {
   platform: string;
-  onOpenFile(cb: (f: { name: string; data: string }) => void): void;
+  onOpenFile(cb: (f: { name: string; data: string; viewer?: boolean }) => void): void;
+  onViewerMode?(cb: (on: boolean) => void): void;
 }
 const desktop = (window as unknown as { desktop?: DesktopBridge }).desktop;
 if (desktop) {
   document.documentElement.classList.add("desktop", `os-${desktop.platform}`);
-  desktop.onOpenFile(({ name, data }) => {
+  desktop.onOpenFile(({ name, data, viewer }) => {
     const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
-    void app.openOrImport(new File([bytes], name));
+    const file = new File([bytes], name);
+    // a double-clicked STEP / STL …: view it, unless the user is editing (then import as before)
+    const editing = app.store.dirty || app.asm.store.dirty;
+    if (app.viewer.active || (viewer && !editing)) {
+      if (!app.viewer.active) app.viewer.enter();
+      void app.openForViewing(file);
+    } else void app.openOrImport(file);
   });
+  desktop.onViewerMode?.((on) => app.viewer.toggle(on));
 }
