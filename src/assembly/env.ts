@@ -17,7 +17,7 @@ import { analyzeDof, explodeOffsets, type DofReport } from "./motion";
 import { startDrive, startExplode } from "./motionUi";
 import { patternMatrices, type AsmPattern } from "./pattern";
 import { LIGHT_OPEN_COMPONENTS, boxMatrix, hashKey, isolateVisibility, matchesFilter, rebuildOrder, useProxy } from "./largeAsm";
-import { idbGet, idbSet } from "../core/idb";
+import { displayMeshCache } from "../core/meshCache";
 import { KernelClient } from "../kernel/client";
 import { KernelPool, poolSize } from "../kernel/pool";
 import { constraintError, solveAssembly, type SolverConstraint } from "./solver";
@@ -45,8 +45,8 @@ interface PartCache {
   brep?: boolean;
 }
 
-/** IndexedDB key of a part's cached display meshes. */
-const meshKey = (hash: string) => `asm-mesh:${hashKey(hash)}`;
+/** Cache key of a part's display meshes (versioned and LRU-capped in core/meshCache.ts). */
+const meshKey = (hash: string) => hashKey(hash);
 
 const key = (partId: string) => `asm:${partId}`;
 const m4 = (a: number[]) => new THREE.Matrix4().fromArray(a);
@@ -173,7 +173,7 @@ export class AssemblyEnv {
       await Promise.all(
         todo.map(async (id) => {
           const p = this.doc.parts.find((x) => x.id === id);
-          const c = p && (await idbGet<BodyMesh[]>(meshKey(hashOf(p))).catch(() => undefined));
+          const c = p && (await displayMeshCache.get(meshKey(hashOf(p))).catch(() => undefined));
           if (c?.length) cached.set(id, c);
         }),
       );
@@ -192,7 +192,7 @@ export class AssemblyEnv {
         const errs = Object.values(r.result.errors);
         const hash = hashes.get(r.id)!;
         this.parts.set(r.id, { hash, bodies: r.result.bodies, error: errs[0], brep: false });
-        if (large && !errs.length && r.result.bodies.length) void idbSet(meshKey(hash), r.result.bodies).catch(() => {});
+        if (large && !errs.length && r.result.bodies.length) void displayMeshCache.put(meshKey(hash), r.result.bodies).catch(() => {});
         pooled.add(r.id);
         if (this.loading) {
           this.loading.done++;
@@ -221,7 +221,7 @@ export class AssemblyEnv {
           const res = await this.app.kernel.rebuildKey(key(p.id), this.partFeatures(p.id));
           const errs = Object.values(res.errors);
           this.parts.set(p.id, { hash, bodies: res.bodies, error: errs[0], brep: true });
-          if (large && !errs.length && res.bodies.length) void idbSet(meshKey(hash), res.bodies).catch(() => {});
+          if (large && !errs.length && res.bodies.length) void displayMeshCache.put(meshKey(hash), res.bodies).catch(() => {});
         } catch (e) {
           this.parts.set(p.id, { hash, bodies: [], error: (e as Error).message });
         }

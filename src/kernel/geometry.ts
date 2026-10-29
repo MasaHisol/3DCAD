@@ -31,7 +31,8 @@ import { bodyMeta, exportIgesNative, exportStepXcaf, healSummary, igesToShapes, 
 import { readIges, writeIges } from "../io/iges";
 import { RefBrokenError, edgeFaces, resolveNamed, type BrokenRef, type RefCandidate } from "../core/naming";
 import { installFastTopology } from "./topo";
-import { StateCache, prefixKeys, resumeIndex, type CacheStats } from "./rebuildCache";
+import { StateCache, defaultCacheBudget, prefixKeys, resumeIndex, type CacheStats } from "./rebuildCache";
+import { MESH_CACHE_VERSION, PROGRESSIVE_FACES, tessParams, type TessParams, type TessQuality } from "./tessellation";
 import { verifyAgainstFull } from "./verifyRebuild";
 import { copyNames, nameFromSources, nameGenericTool, nameHoleTool, nameProfileTool, namesOf, setNames, type NameSource, type NamingHints } from "./naming";
 
@@ -1127,8 +1128,8 @@ function stateShapes(e: CacheEntry): Shape[] {
   return out;
 }
 
-/** Display meshes by shape and tolerance (a cached state shown again needs no tessellation). */
-const MESHES = new WeakMap<Shape, { diag: number; mesh: BodyMesh }>();
+/** Display meshes by shape, model size and quality (a cached state shown again needs no tessellation). */
+const MESHES = new WeakMap<Shape, Map<string, BodyMesh>>();
 
 function cloneMesh(m: BodyMesh): BodyMesh {
   return {
@@ -1143,12 +1144,47 @@ function cloneMesh(m: BodyMesh): BodyMesh {
 }
 
 /** meshBody with a per-shape cache; the result is a fresh copy (its buffers get transferred). */
-function meshCached(b: Shape, name: string, diag: number): BodyMesh {
-  const c = MESHES.get(b);
-  if (c && c.diag === diag) return { ...cloneMesh(c.mesh), name };
-  const m = meshBody(b, name, diag);
-  MESHES.set(b, { diag, mesh: cloneMesh(m) });
+function meshCached(b: Shape, name: string, diag: number, quality: TessQuality = "normal"): BodyMesh {
+  let c = MESHES.get(b);
+  const key = `${diag}|${quality}|${MESH_CACHE_VERSION}`;
+  const hit = c?.get(key);
+  if (hit) return { ...cloneMesh(hit), name };
+  const m = meshBody(b, name, diag, quality);
+  if (!c) MESHES.set(b, (c = new Map()));
+  // meshes of another model size are stale
+  for (const k of c.keys()) if (!k.startsWith(diag + "|")) c.delete(k);
+  c.set(key, cloneMesh(m));
   return m;
+}
+
+/** Approximate bytes of the cached display meshes of a shape. */
+function meshBytes(b: Shape): number {
+  let n = 0;
+  for (const m of MESHES.get(b)?.values() ?? []) n += m.positions.byteLength + m.normals.byteLength + m.indices.byteLength + m.edgePositions.byteLength + m.faceRanges.byteLength + m.edgeRanges.byteLength + 200 * (m.faces.length + m.edges.length);
+  return n;
+}
+
+const SHAPE_BYTES = new WeakMap<Shape, number>();
+
+/**
+ * Estimated memory of a kernel shape: B-rep topology and geometry (faces with
+ * their surfaces and p-curves, edges with curves, vertices) plus its cached
+ * display meshes. Counted once per shape (topology counting is cached).
+ */
+export function shapeBytes(b: Shape): number {
+  let t = SHAPE_BYTES.get(b);
+  if (t === undefined) {
+    let f = 0, e = 0;
+    try {
+      f = b.faces.length;
+      e = b.edges.length;
+    } catch {
+      /* deleted or empty shape */
+    }
+    t = 2048 + f * 3072 + e * 1024 + Math.round(e * 0.7) * 160;
+    SHAPE_BYTES.set(b, t);
+  }
+  return t + meshBytes(b);
 }
 
 /** Statistics of the last rebuild (see RebuildResult.stats). */
@@ -1168,10 +1204,19 @@ export class GeometryEngine {
   /** Unpinned cached states kept per engine (older versions of the model: undo, redo, suppress …). */
   static maxExtraStates = 160;
 
-  private cache = new StateCache<CacheEntry, Shape>(stateShapes, (s) => {
-    MESHES.delete(s);
-    s.delete();
-  }, GeometryEngine.maxExtraStates);
+  /** Memory budget of the incremental cache (bytes, estimated); derived from the available memory. */
+  static maxCacheBytes = defaultCacheBudget();
+
+  private cache = new StateCache<CacheEntry, Shape>(
+    stateShapes,
+    (s) => {
+      MESHES.delete(s);
+      s.delete();
+    },
+    GeometryEngine.maxExtraStates,
+    shapeBytes,
+    GeometryEngine.maxCacheBytes,
+  );
   bodies: Shape[] = [];
   threads: ThreadInfo[] = [];
   /** Surface bodies (open shells) after the last rebuild, in display order. */
@@ -1191,7 +1236,26 @@ export class GeometryEngine {
     this.cache.trim(0);
   }
 
-  async rebuild(features: RFeature[], captureBefore?: string): Promise<RebuildResult> {
+  /** Display meshes of the current bodies and surface bodies at a quality level. */
+  private meshes(diag: number, quality: TessQuality) {
+    const bodies = this.bodies.map((b, i) => ({ ...meshCached(b, bodyMeta.get(b)?.name ?? `ソリッド${i + 1}`, diag, quality), color: bodyMeta.get(b)?.color }));
+    const surfaces = this.surfaces.map((s, i) => ({ ...meshCached(s.shape, bodyMeta.get(s.shape)?.name ?? `サーフェス${i + 1}`, diag, quality), surface: s.id, color: bodyMeta.get(s.shape)?.color }));
+    return { bodies, surfaces };
+  }
+
+  /**
+   * Display meshes of the current model at another level (progressive
+   * refinement after a coarse first display, or view-dependent refinement).
+   * Face / edge indices are the same as the rebuild's.
+   */
+  remesh(quality: TessQuality): { bodies: BodyMesh[]; surfaces: BodyMesh[] } {
+    const diag = modelDiag([...this.bodies, ...this.surfaces.map((s) => s.shape)]);
+    const r = this.meshes(diag, quality);
+    this.cache.trim(GeometryEngine.maxExtraStates);
+    return r;
+  }
+
+  async rebuild(features: RFeature[], captureBefore?: string, opts: { quality?: TessQuality; progressive?: boolean } = {}): Promise<RebuildResult> {
     const t0 = performance.now();
     const keys = prefixKeys(features);
     const start = resumeIndex(keys, (k) => this.cache.has(k));
@@ -1232,17 +1296,26 @@ export class GeometryEngine {
     this.threads = state.threads ?? [];
     this.surfaces = [...(state.surfaces ?? new Map()).entries()].map(([id, shape]) => ({ id, shape }));
     // `before` shapes belong to pinned states; trimming never frees them
-    this.cache.trim(GeometryEngine.maxExtraStates);
+    const diag = modelDiag([...this.bodies, ...this.surfaces.map((s) => s.shape)]);
+    // progressive display: large models are shown coarse first, refined by remesh()
+    const fresh = [...this.bodies, ...this.surfaces.map((s) => s.shape)].filter((b) => !MESHES.get(b)?.has(`${diag}|${opts.quality ?? "normal"}|${MESH_CACHE_VERSION}`));
+    let quality: TessQuality = opts.quality ?? "normal";
+    if (!opts.quality && opts.progressive && fresh.length) {
+      let faces = 0;
+      for (const b of fresh) faces += b.faces.length;
+      if (faces >= PROGRESSIVE_FACES) quality = "coarse";
+    }
     const stats: RebuildStats = { features: features.length, reused: start, recomputed: features.length - start, first: start, cache: { ...this.cache.stats } };
     this.lastStats = stats;
-    const diag = modelDiag([...this.bodies, ...this.surfaces.map((s) => s.shape)]);
-    const bodies = this.bodies.map((b, i) => ({ ...meshCached(b, bodyMeta.get(b)?.name ?? `ソリッド${i + 1}`, diag), color: bodyMeta.get(b)?.color }));
-    const surfaces = this.surfaces.map((s, i) => ({ ...meshCached(s.shape, bodyMeta.get(s.shape)?.name ?? `サーフェス${i + 1}`, diag), surface: s.id, color: bodyMeta.get(s.shape)?.color }));
+    const { bodies, surfaces } = this.meshes(diag, quality);
+    // meshes count towards the memory budget: trim after meshing
+    this.cache.trim(GeometryEngine.maxExtraStates);
+    stats.cache = { ...this.cache.stats };
     // picking while editing: solids, then surfaces (same order as the display)
     const beforeMeshes = before
       ? [...before.map((b, i) => meshCached(b, `ソリッド${i + 1}`, diag)), ...beforeSurf.map(([id, b], i) => ({ ...meshCached(b, `サーフェス${i + 1}`, diag), surface: id }))]
       : undefined;
-    const res: RebuildResult = { bodies, surfaces, before: beforeMeshes, errors, notices, updatedRefs, brokenRefs, timeMs: performance.now() - t0, threads: this.threads, stats };
+    const res: RebuildResult = { bodies, surfaces, before: beforeMeshes, errors, notices, updatedRefs, brokenRefs, timeMs: performance.now() - t0, threads: this.threads, stats, ...(quality !== (opts.quality ?? "normal") ? { refine: true } : {}) };
     if (GeometryEngine.verify && start > 0) await verifyAgainstFull(this, features, res);
     return res;
   }
@@ -1736,9 +1809,36 @@ function errorMessage(e: unknown): string {
   return String(e);
 }
 
-export function meshBody(b: Shape, name: string, diag: number): BodyMesh {
-  const tol = Math.max(0.002, diag * 3e-4);
-  const m = b.mesh({ tolerance: tol, angularTolerance: 0.25 });
+/** Bounding-box diagonal of one shape. */
+function shapeDiag(b: Shape): number {
+  try {
+    const [a, c] = b.boundingBox.bounds as [Vec3, Vec3];
+    return dist(a, c);
+  } catch {
+    return 100;
+  }
+}
+
+/** Removes a shape's stored triangulation so it can be meshed again at another (coarser) level. */
+function cleanTriangulation(b: Shape) {
+  try {
+    const O = R.getOC() as any;
+    O.BRepTools.Clean(b.wrapped, true);
+  } catch {
+    /* binding without Clean(S, force) */
+  }
+}
+
+/**
+ * Display mesh of a body. `diag` is the model size; the deflections follow
+ * the tessellation policy (tessellation.ts) at `quality`, or explicit `params`.
+ */
+export function meshBody(b: Shape, name: string, diag: number, quality: TessQuality = "normal", params?: TessParams): BodyMesh {
+  const p = params ?? tessParams(diag, shapeDiag(b), quality);
+  const tol = p.linear;
+  // a stored finer triangulation would be reused as is: drop it first
+  cleanTriangulation(b);
+  const m = b.mesh({ tolerance: tol, angularTolerance: p.angular });
   const faces = b.faces;
   const faceIndex = new Map<number, number>();
   faces.forEach((f, i) => faceIndex.set(f.hashCode, i));
@@ -1749,7 +1849,7 @@ export function meshBody(b: Shape, name: string, diag: number): BodyMesh {
     faceRanges[i * 2] = g.start;
     faceRanges[i * 2 + 1] = g.count;
   }
-  const em = b.meshEdges({ tolerance: tol, angularTolerance: 0.25 });
+  const em = b.meshEdges({ tolerance: tol, angularTolerance: p.angular });
   const edges = b.edges;
   const edgeIndex = new Map<number, number>();
   edges.forEach((e, i) => edgeIndex.set(e.hashCode, i));
@@ -1771,6 +1871,7 @@ export function meshBody(b: Shape, name: string, diag: number): BodyMesh {
     edgePositions: new Float32Array(em.lines),
     edgeRanges,
     edges: edges.map(edgeInfo),
+    tess: { quality: p.quality, tolerance: p.tolerance, linear: p.linear, angular: p.angular, version: MESH_CACHE_VERSION },
     ...(namesOf(b) ? { faceNames: namesOf(b)!.faces, edgeNames: namesOf(b)!.edges } : {}),
   };
 }

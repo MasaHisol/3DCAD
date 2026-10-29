@@ -7,7 +7,8 @@
 // end up in the resolved features). A rebuild resumes from the longest prefix
 // whose states are all cached and evaluates only the rest. Older versions of
 // the model (before an edit, undo / redo, suppress / unsuppress, reorder) stay
-// cached until evicted (LRU), bounded by entry count; kernel shapes of an
+// cached until evicted (LRU), bounded by entry count and by an estimated
+// memory budget (bytes of the kernel shapes kept alive); kernel shapes of an
 // evicted entry are freed (`free`) as soon as no cached entry uses them.
 
 /** 64-bit (two 32-bit lanes) string hash, hex. Seeded so keys chain. */
@@ -56,6 +57,28 @@ export interface CacheStats {
   /** Kernel shapes freed by eviction. */
   freed: number;
   liveShapes: number;
+  /** Estimated bytes of the live shapes (when a size estimator is given). */
+  liveBytes: number;
+  /** Byte budget in force (Infinity = none). */
+  maxBytes: number;
+}
+
+const MB = 1024 * 1024;
+
+/**
+ * Memory budget of the rebuild cache, from the memory available to the page /
+ * worker: a tenth of the device memory (navigator.deviceMemory, Chromium;
+ * 4 GB assumed otherwise), bounded by the JS heap limit and by what the
+ * kernel's 32-bit WebAssembly heap can hold, clamped to 64 MB … 768 MB.
+ */
+export function defaultCacheBudget(env: { deviceMemoryGB?: number; heapLimit?: number } = {}): number {
+  const g = globalThis as unknown as { navigator?: { deviceMemory?: number }; performance?: { memory?: { jsHeapSizeLimit?: number } } };
+  const dev = env.deviceMemoryGB ?? g.navigator?.deviceMemory;
+  const heap = env.heapLimit ?? g.performance?.memory?.jsHeapSizeLimit;
+  let avail = (dev && dev > 0 ? dev : 4) * 1024 * MB;
+  if (heap && heap > 0) avail = Math.min(avail, heap * 2);
+  avail = Math.min(avail, 2048 * MB);
+  return Math.round(Math.min(768 * MB, Math.max(64 * MB, avail * 0.1)));
 }
 
 /**
@@ -70,14 +93,26 @@ export class StateCache<E, S extends object = object> {
   /** Per key: rebuild generation it was last used in, and its feature index. */
   private meta = new Map<string, { gen: number; idx: number }>();
   private gen = 0;
-  stats: CacheStats = { entries: 0, pinned: 0, hits: 0, misses: 0, evicted: 0, freed: 0, liveShapes: 0 };
+  stats: CacheStats = { entries: 0, pinned: 0, hits: 0, misses: 0, evicted: 0, freed: 0, liveShapes: 0, liveBytes: 0, maxBytes: Infinity };
 
   constructor(
     private shapesOf: (e: E) => Iterable<S>,
     private free: (s: S) => void,
     /** Unpinned entries kept besides the current model. */
     public maxExtra = 64,
+    /** Estimated bytes a shape keeps alive (re-evaluated on every trim: meshes grow). */
+    private sizeOf?: (s: S) => number,
+    /** Byte budget of all live shapes; unpinned entries are evicted (LRU) beyond it. */
+    public maxBytes = Infinity,
   ) {}
+
+  /** Estimated bytes of all shapes kept alive by the cache. */
+  liveBytes(): number {
+    if (!this.sizeOf) return 0;
+    let n = 0;
+    for (const s of this.refs.keys()) n += this.sizeOf(s);
+    return n;
+  }
 
   get size() {
     return this.map.size;
@@ -123,19 +158,37 @@ export class StateCache<E, S extends object = object> {
    * versions first and, within one version, its last features first (an
    * older version keeps its longest reusable prefix).
    */
-  trim(maxExtra = this.maxExtra) {
+  trim(maxExtra = this.maxExtra, maxBytes = this.maxBytes) {
     const extra = [...this.map.keys()].filter((k) => !this.pinned.has(k));
-    if (extra.length > maxExtra) {
-      const m = (k: string) => this.meta.get(k) ?? { gen: -1, idx: 0 };
-      extra.sort((a, b) => m(a).gen - m(b).gen || m(b).idx - m(a).idx);
-      for (const k of extra.slice(0, extra.length - maxExtra)) {
-        const e = this.map.get(k)!;
-        this.map.delete(k);
-        this.meta.delete(k);
-        this.release(e);
-        this.stats.evicted++;
+    const m = (k: string) => this.meta.get(k) ?? { gen: -1, idx: 0 };
+    extra.sort((a, b) => m(a).gen - m(b).gen || m(b).idx - m(a).idx);
+    let i = 0;
+    const evict = () => {
+      const k = extra[i++];
+      const e = this.map.get(k)!;
+      this.map.delete(k);
+      this.meta.delete(k);
+      this.release(e);
+      this.stats.evicted++;
+    };
+    while (extra.length - i > maxExtra) evict();
+    if (this.sizeOf && maxBytes < Infinity) {
+      // byte budget: per shape sizes once, then subtract what each eviction frees
+      const size = new Map<S, number>();
+      let bytes = 0;
+      for (const s of this.refs.keys()) {
+        const b = this.sizeOf(s);
+        size.set(s, b);
+        bytes += b;
       }
+      while (bytes > maxBytes && i < extra.length) {
+        const before = new Set(this.refs.keys());
+        evict();
+        for (const s of before) if (!this.refs.has(s)) bytes -= size.get(s) ?? 0;
+      }
+      this.stats.liveBytes = bytes;
     }
+    this.stats.maxBytes = maxBytes;
     this.updateStats();
   }
 

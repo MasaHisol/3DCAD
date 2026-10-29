@@ -196,9 +196,13 @@ export interface BodyMesh {
   /** Persistent topology names, index-aligned with `faces` / `edges` (core/naming.ts). */
   faceNames?: string[];
   edgeNames?: string[];
+  /** Tessellation it was made with (level, chordal / angular deflection, cache version). */
+  tess?: { quality: "coarse" | "normal" | "fine"; tolerance: number; linear: number; angular: number; version: string };
 }
 
 export interface RebuildResult {
+  /** True when the meshes are a coarse first display: ask for `remesh("normal")` in the background. */
+  refine?: boolean;
   bodies: BodyMesh[];
   /** Surface bodies (displayed after the solids, double sided). */
   surfaces?: BodyMesh[];
@@ -297,7 +301,9 @@ export interface Interference {
 /** `key` selects a geometry engine: "main" for the edited part, otherwise an assembly part id. */
 export type WorkerRequest =
   | { kind: "init" }
-  | { kind: "rebuild"; features: RFeature[]; captureBefore?: string; key?: string }
+  | { kind: "rebuild"; features: RFeature[]; captureBefore?: string; key?: string; quality?: "coarse" | "normal" | "fine"; progressive?: boolean }
+  /** Display meshes of the current model at another tessellation level (progressive / view-dependent refinement). */
+  | { kind: "remesh"; quality: "coarse" | "normal" | "fine"; key?: string }
   | { kind: "export"; format: "step" | "stl" | "brep" | "iges"; name: string; key?: string; color?: string }
   | { kind: "stepAssembly"; text: string }
   | { kind: "massProps"; key?: string }
@@ -312,7 +318,9 @@ export type WorkerRequest =
   /** Exact hidden-line removal per view (drawing engine input). */
   | { kind: "hlr"; views: import("./hlr").HlrView[]; key?: string; placements?: Placement[] }
   /** State of the extended kernel; `load` loads it now. */
-  | { kind: "extKernel"; load?: boolean };
+  | { kind: "extKernel"; load?: boolean }
+  /** Exact planar sections of the model (or placed components) with each plane (断面の DXF 出力). */
+  | { kind: "section"; planes: import("../core/types").PlaneDef[]; key?: string; placements?: Placement[]; deflection?: number };
 
 /** Extended OpenCascade kernel state (IGES / XCAF / ShapeFix, src/kernel/ext.ts). */
 export interface ExtKernelInfo {
