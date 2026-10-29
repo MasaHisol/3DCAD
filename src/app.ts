@@ -20,7 +20,7 @@ import { closeMenus, confirmDialog, contextMenu, download, h, iconEl, markingMen
 import { icon } from "./ui/icons";
 import { Ribbon } from "./ui/ribbon";
 import { buildRibbonTabs } from "./ui/ribbonTabs";
-import { SketchEditor, type SketchTool } from "./viewer/sketchEditor";
+import type { SketchEditor, SketchTool } from "./viewer/sketchEditor";
 import { SketchRenderer } from "./viewer/sketchRender";
 import { ViewCube } from "./viewer/viewcube";
 import { samePick, Viewport, type Pick, type ToolHandler, type VisualStyle } from "./viewer/viewport";
@@ -32,7 +32,9 @@ import { NAV_PRESETS, type NavPreset } from "./viewer/viewport";
 import { Timeline } from "./ui/timeline";
 import { openCommandSearch } from "./ui/commandSearch";
 import { AssemblyEnv } from "./assembly/env";
-import { openLibrary } from "./library/dialog";
+import { openLibrary, preloadEditingUi } from "./ui/lazyUi";
+import { ViewerMode, viewerAllowsKey } from "./ui/viewerMode";
+import { hoveredCommand, openHelp, trackHoveredCommand } from "./help";
 import { read3mf, readPly, trisToStl } from "./io/meshin";
 import { readGltf } from "./io/gltf";
 import { plyIsPointCloud, readPlyPoints } from "./io/pointcloud";
@@ -47,6 +49,12 @@ import { newAssembly, type AssemblyDocument } from "./assembly/types";
 import { shouldOpenLight } from "./assembly/largeAsm";
 import { openLearningCenter, startLessonById } from "./learn/lazy";
 import { listenForLessons, openTextbook } from "./learn/textbookLink";
+
+/** The sketch editor is loaded on demand (not needed to view a model). */
+let SketchEditorCtor: typeof import("./viewer/sketchEditor").SketchEditor | null = null;
+export function loadSketchEditor(): Promise<unknown> {
+  return import("./viewer/sketchEditor").then((m) => (SketchEditorCtor = m.SketchEditor));
+}
 
 const AUTOSAVE_KEY = "3dcad.autosave.v2";
 /** Snapshot history (newest first) for crash recovery, in IndexedDB. */
@@ -76,6 +84,8 @@ export class App {
   pmi!: PmiLayer;
   /** Measurement overlays and saved measurement annotations. */
   measure!: MeasureLayer;
+  /** Viewer-only mode (editing UI hidden). */
+  readonly viewer = new ViewerMode(this);
 
   /** Active environment: part modelling or assembly. */
   env: "part" | "assembly" | "drawing" = "part";
@@ -153,7 +163,7 @@ export class App {
         h("button", { class: "icon-btn", title: "オプション (マウス操作・表示)", onClick: () => this.openSettings() }, iconEl("settings")),
         h("button", { class: "icon-btn", title: "キーボード ショートカット", onClick: () => openShortcuts() }, iconEl("keyboard")),
         h("button", { class: "icon-btn", title: "テーマ切り替え", onClick: () => this.toggleTheme() }, iconEl("theme")),
-        h("button", { class: "icon-btn", title: "ヘルプ", onClick: () => openShortcuts() }, iconEl("help")),
+        h("button", { class: "icon-btn tb-help", title: "使い方ヘルプ (F1)", onClick: () => void openHelp(this, this.command?.id) }, iconEl("help")),
       ),
     );
     const ribbonHost = h("div", { class: "ribbon-host" });
@@ -238,6 +248,8 @@ export class App {
       }
     };
     this.ribbon = new Ribbon(ribbonHost, [...buildRibbonTabs(this), this.drawing.ribbonTab()], (a) => this.fileMenu(a));
+    this.ribbon.onHelp = (id) => void openHelp(this, id);
+    trackHoveredCommand();
 
     this.store.on((reason) => this.onDocChanged(reason));
     const dwChange = (r: string) => {
@@ -276,10 +288,18 @@ export class App {
         this.status("準備完了 — 「2D スケッチを作成」(S) から始めましょう");
         this.regenNow();
         // fetch the code-split analysis / CAM modules while the user starts modelling
-        setTimeout(preloadLazyCommands, 1500);
+        // (not in the viewer mode: they are fetched when switching to the editing mode)
+        if (!this.viewer.active) setTimeout(() => this.preloadEditing(), 1500);
       })
       .catch((e) => toast(`ジオメトリ カーネルの初期化に失敗しました: ${e.message}`, "error", 10000));
     this.kernel.onRestart = (reason) => this.onKernelRestart(reason);
+  }
+
+  /** Fetches the editing modules (sketch editor, CAM / analysis commands, dialogs) in the background. */
+  preloadEditing() {
+    void loadSketchEditor().catch(() => undefined);
+    preloadLazyCommands();
+    preloadEditingUi();
   }
 
   private qatBtn(ic: string, title: string, fn: () => void, id?: string) {
@@ -744,6 +764,7 @@ export class App {
   }
 
   editFeature(id: string) {
+    if (this.viewer.active) return;
     const f = this.store.feature(id);
     if (!f) return;
     if (f.type === "sketch") this.enterSketch(id);
@@ -772,6 +793,7 @@ export class App {
   }
 
   enterSketch(id: string) {
+    if (!SketchEditorCtor) return void loadSketchEditor().then(() => this.enterSketch(id));
     if (this.command) this.finishCommand(this.command, false);
     if (this.sketchEditor) this.exitSketch(true);
     const sk = this.store.feature<SketchFeature>(id);
@@ -779,7 +801,7 @@ export class App {
     this.mode = "sketch";
     this.vp.setSelection([]);
     this.vp.setHover(null);
-    this.sketchEditor = new SketchEditor(this.store, id, this.vp, {
+    this.sketchEditor = new SketchEditorCtor(this.store, id, this.vp, {
       status: (m) => this.status(m),
       toast: (m, k) => toast(m, k),
       dofChanged: (dof, ok) => {
@@ -1070,7 +1092,7 @@ export class App {
     this.asm.store.fileHandleName = name ?? null;
     this.asm.selected.clear();
     // 軽量表示で開く: large assemblies show cached display meshes and load B-rep on demand
-    this.asm.lightOpen = shouldOpenLight(doc.components.length);
+    this.asm.lightOpen = shouldOpenLight(doc.components.length, this.viewer.active ? "on" : "auto");
     if (this.asm.lightOpen) this.status(`軽量表示で開きます (${doc.components.length} コンポーネント): 詳細形状は測定・干渉・書き出し時に読み込みます`);
     this.firstFit = true;
     this.vp.setStandardView([1, 1, 1], false);
@@ -1162,6 +1184,7 @@ export class App {
   }
 
   featureContextMenu(id: string, x: number, y: number) {
+    if (this.viewer.active) return;
     if (id === "__eop") {
       contextMenu(x, y, [{ label: "パーツの終わりを最後に移動", icon: "endOfPart", action: () => this.moveEndOfPart(this.store.doc.features.length) }]);
       return;
@@ -1236,6 +1259,8 @@ export class App {
       { label: "標準部品ライブラリ…", icon: "library", action: () => openLibrary(this) },
       { label: "iProperties…", icon: "iprops", action: () => openIProperties(this) },
       { separator: true, label: "" },
+      { label: this.viewer.active ? "編集モードで開く" : "閲覧モードに切り替え", icon: this.viewer.active ? "edit" : "eye", shortcut: "Ctrl+Shift+V", action: () => this.viewer.toggle() },
+      { label: "使い方ヘルプ…", icon: "help", shortcut: "F1", action: () => void openHelp(this) },
       { label: "学習センター (3D 設計を学ぶ)…", icon: "learn", action: () => openLearningCenter(this) },
       { label: "座学テキスト (設計の基礎・構造力学・デザイン)", icon: "open", action: () => openTextbook() },
     ]);
@@ -1459,6 +1484,25 @@ export class App {
   async importFile() {
     const f = await pickFile(IMPORT_EXTS);
     if (f) this.openOrImport(f);
+  }
+
+  /**
+   * Viewer mode: shows a file on its own (a STEP / mesh replaces the viewed model instead of
+   * being imported into it) and keeps it unmodified (no save prompt).
+   */
+  async openForViewing(f: File) {
+    const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
+    if (!["3dcp", "3dca", "json"].includes(ext)) {
+      this.leaveAssembly();
+      this.resetForLoad();
+      for (const r of [...this.vp.refModels]) this.vp.removeRefModel(r.id);
+      this.store.load(newDocument());
+      this.store.doc.name = f.name.replace(/\.[^.]+$/, "");
+    }
+    await this.openOrImport(f);
+    this.store.dirty = false;
+    this.asm.store.dirty = false;
+    this.titleEl.textContent = f.name;
   }
 
   async openOrImport(f: File) {
@@ -1761,6 +1805,8 @@ export class App {
   private readonly sessionId = Math.random().toString(36).slice(2, 10);
 
   private scheduleAutosave(delay = 800) {
+    // the viewer mode does not modify documents: keep the editing session's autosave history
+    if (this.viewer.active) return;
     clearTimeout(this.autosaveTimer);
     this.autosaveTimer = window.setTimeout(() => this.writeAutosave(), delay);
   }
@@ -1855,6 +1901,8 @@ export class App {
     this.historyLoaded = true;
     this.opLog.add({ kind: "info", id: "session-start", params: prev?.running ? "previous session ended abnormally" : undefined });
     if (!untouched(gen0)) return;
+    // viewer mode: neither the recovery dialog nor the welcome card (the user opens a file to view)
+    if (this.viewer.active) return;
     const decision = recoveryDecision(prev, snaps, this.postponed);
     if (decision === "none") return this.showWelcome();
     if (decision === "silent") {
@@ -2054,6 +2102,16 @@ export class App {
       if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement) return;
       if (document.querySelector(".modal-back")) return;
       const k = e.key;
+      // F1 / ?: help on the command under the mouse, the running command, or the index
+      if (k === "F1" || (k === "?" && !e.ctrlKey && !e.metaKey && !this.sketchEditor)) {
+        e.preventDefault();
+        if (document.querySelector(".help-back")) return;
+        return void openHelp(this, hoveredCommand() ?? this.command?.id ?? (this.viewer.active ? "help:viewer" : null));
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && k.toLowerCase() === "v") return void (e.preventDefault(), this.viewer.toggle());
+      if (this.viewer.active && !viewerAllowsKey(e)) return;
+      if (this.viewer.active && (e.ctrlKey || e.metaKey) && k.toLowerCase() === "p") return void (e.preventDefault(), this.viewer.print());
+      if (this.viewer.active && (e.ctrlKey || e.metaKey) && k.toLowerCase() === "o") return void (e.preventDefault(), this.viewer.pickAndOpen());
       const ctrl = e.ctrlKey || e.metaKey;
       const kl = k.toLowerCase();
       // Ctrl+Shift combinations first (Inventor defaults)

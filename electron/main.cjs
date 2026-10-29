@@ -4,6 +4,7 @@
 const { app, BrowserWindow, Menu, dialog, ipcMain, protocol, shell } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
+const { fileArgs, isOpenable, isViewerFile, launchMode } = require("./fileRouting.cjs");
 
 const DIST = path.join(__dirname, "..", "dist");
 const MIME = {
@@ -18,12 +19,9 @@ const MIME = {
   ".ico": "image/x-icon",
   ".woff2": "font/woff2",
 };
-// files the app opens from the OS (double-click / "open with" / command line);
-// keep in sync with build.fileAssociations in package.json and IMPORT_EXTS in src/app.ts
-const OPENABLE = new Set([
-  ".3dcp", ".3dca", ".json",
-  ".stp", ".step", ".igs", ".iges", ".stl", ".obj", ".3mf", ".glb", ".gltf", ".ply", ".e57", ".ifc", ".dxf",
-]);
+// files the app opens from the OS (double-click / "open with" / command line): see
+// fileRouting.cjs (kept in sync with build.fileAssociations in package.json and IMPORT_EXTS
+// in src/app.ts). Other formats (STEP, STL …) open in the viewer-only mode ("3DCAD Viewer").
 
 // CAD needs WebGL even on blocklisted / virtual GPUs (VMs, remote desktop):
 // allow the GPU anyway and fall back to software rendering when there is none.
@@ -39,7 +37,7 @@ let pendingFiles = [];
 let rendererReady = false;
 
 function filesFromArgv(argv) {
-  return argv.slice(app.isPackaged ? 1 : 2).filter((a) => !a.startsWith("-") && OPENABLE.has(path.extname(a).toLowerCase()) && fs.existsSync(a));
+  return fileArgs(argv, app.isPackaged).filter((a) => isOpenable(a) && fs.existsSync(a));
 }
 
 function sendFile(file) {
@@ -49,7 +47,8 @@ function sendFile(file) {
   }
   try {
     const data = fs.readFileSync(file);
-    win.webContents.send("open-file", { name: path.basename(file), data: data.toString("base64") });
+    // viewer: a non-native format, the renderer opens it in the viewer mode unless the user is editing
+    win.webContents.send("open-file", { name: path.basename(file), data: data.toString("base64"), viewer: isViewerFile(file) });
     if (win.isMinimized()) win.restore();
     win.focus();
   } catch (e) {
@@ -78,6 +77,13 @@ function buildMenu() {
     {
       label: "表示",
       submenu: [
+        {
+          label: "閲覧モード",
+          type: "checkbox",
+          accelerator: "CmdOrCtrl+Shift+V",
+          click: (item) => win && win.webContents.send("viewer-mode", item.checked),
+        },
+        { type: "separator" },
         { role: "togglefullscreen", label: "全画面表示" },
         { role: "resetZoom", label: "実際のサイズ" },
         { role: "zoomIn", label: "拡大" },
@@ -158,7 +164,7 @@ function windowOpenHandler({ url }) {
   return { action: "deny" };
 }
 
-function createWindow() {
+function createWindow(mode = "edit") {
   win = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -242,7 +248,8 @@ function createWindow() {
     }
   });
 
-  win.loadURL("app://cad/index.html");
+  // viewer mode: lighter start (editing modules are not loaded until "編集モードで開く")
+  win.loadURL(mode === "viewer" ? "app://cad/index.html?viewer=1" : "app://cad/index.html");
 }
 
 if (!app.requestSingleInstanceLock()) {
@@ -308,7 +315,8 @@ if (!app.requestSingleInstanceLock()) {
     });
     buildMenu();
     pendingFiles.push(...filesFromArgv(process.argv));
-    createWindow();
+    // double-clicked STEP / STL … (or --viewer): start in the viewer mode
+    createWindow(launchMode(process.argv, pendingFiles));
   });
 
   app.on("window-all-closed", () => app.quit());

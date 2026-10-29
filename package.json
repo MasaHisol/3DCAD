@@ -15,13 +15,15 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "e2e": "node scripts/e2e.mjs && node scripts/e2e-recovery.mjs && node scripts/e2e-formats.mjs && node scripts/e2e-naming.mjs && node scripts/e2e-rebuild.mjs && node scripts/e2e-measure.mjs",
+    "e2e": "node scripts/e2e.mjs && node scripts/e2e-recovery.mjs && node scripts/e2e-formats.mjs && node scripts/e2e-naming.mjs && node scripts/e2e-rebuild.mjs && node scripts/e2e-measure.mjs && node scripts/e2e-viewer.mjs",
     "e2e:measure": "node scripts/e2e-measure.mjs",
     "e2e:rebuild": "node scripts/e2e-rebuild.mjs",
     "bench:rebuild": "node scripts/bench-rebuild.mjs",
     "e2e:naming": "node scripts/e2e-naming.mjs",
     "e2e:recovery": "node scripts/e2e-recovery.mjs",
-    "e2e:formats": "node scripts/e2e-formats.mjs"
+    "e2e:formats": "node scripts/e2e-formats.mjs",
+    "e2e:viewer": "node scripts/e2e-viewer.mjs",
+    "bench:startup": "node scripts/bench-startup.mjs"
   },
   "devDependencies": {
     "@types/three": "^0.186.0",
@@ -76,83 +78,93 @@
           "stp",
           "step"
         ],
-        "name": "STEP",
-        "description": "STEP 3D モデル",
-        "role": "Viewer"
+        "name": "3DCAD Viewer STEP",
+        "description": "STEP 3D モデル (3DCAD Viewer で表示)",
+        "role": "Viewer",
+        "icon": "icon"
       },
       {
         "ext": [
           "igs",
           "iges"
         ],
-        "name": "IGES",
-        "description": "IGES 3D モデル",
-        "role": "Viewer"
+        "name": "3DCAD Viewer IGES",
+        "description": "IGES 3D モデル (3DCAD Viewer で表示)",
+        "role": "Viewer",
+        "icon": "icon"
       },
       {
         "ext": [
           "stl"
         ],
-        "name": "STL",
-        "description": "STL メッシュ",
-        "role": "Viewer"
+        "name": "3DCAD Viewer STL",
+        "description": "STL メッシュ (3DCAD Viewer で表示)",
+        "role": "Viewer",
+        "icon": "icon"
       },
       {
         "ext": [
           "obj"
         ],
-        "name": "OBJ",
-        "description": "OBJ メッシュ",
-        "role": "Viewer"
+        "name": "3DCAD Viewer OBJ",
+        "description": "OBJ メッシュ (3DCAD Viewer で表示)",
+        "role": "Viewer",
+        "icon": "icon"
       },
       {
         "ext": [
           "3mf"
         ],
-        "name": "3MF",
-        "description": "3MF 3D プリント モデル",
-        "role": "Viewer"
+        "name": "3DCAD Viewer 3MF",
+        "description": "3MF 3D プリント モデル (3DCAD Viewer で表示)",
+        "role": "Viewer",
+        "icon": "icon"
       },
       {
         "ext": [
           "glb",
           "gltf"
         ],
-        "name": "glTF",
-        "description": "glTF 3D モデル",
-        "role": "Viewer"
+        "name": "3DCAD Viewer glTF",
+        "description": "glTF 3D モデル (3DCAD Viewer で表示)",
+        "role": "Viewer",
+        "icon": "icon"
       },
       {
         "ext": [
           "ply"
         ],
-        "name": "PLY",
-        "description": "PLY 点群 / メッシュ",
-        "role": "Viewer"
+        "name": "3DCAD Viewer PLY",
+        "description": "PLY 点群 / メッシュ (3DCAD Viewer で表示)",
+        "role": "Viewer",
+        "icon": "icon"
       },
       {
         "ext": [
           "e57"
         ],
-        "name": "E57",
-        "description": "E57 点群",
-        "role": "Viewer"
+        "name": "3DCAD Viewer E57",
+        "description": "E57 点群 (3DCAD Viewer で表示)",
+        "role": "Viewer",
+        "icon": "icon"
       },
       {
         "ext": [
           "ifc"
         ],
-        "name": "IFC",
-        "description": "IFC 建築モデル",
-        "role": "Viewer"
+        "name": "3DCAD Viewer IFC",
+        "description": "IFC 建築モデル (3DCAD Viewer で表示)",
+        "role": "Viewer",
+        "icon": "icon"
       },
       {
         "ext": [
           "dxf"
         ],
-        "name": "DXF",
-        "description": "DXF 図面",
-        "role": "Viewer"
+        "name": "3DCAD Viewer DXF",
+        "description": "DXF 図面 (3DCAD Viewer で表示)",
+        "role": "Viewer",
+        "icon": "icon"
       }
     ],
     "win": {

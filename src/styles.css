@@ -2965,3 +2965,55 @@ kbd {
 .measure-list tr.sel td { background: var(--surface-3); }
 .measure-list tr.lost td { color: #c62828; }
 .measure-notes .mn-btns { white-space: nowrap; }
+/* tooltip link to the command's help page */
+.rb-tip.show {
+  pointer-events: auto;
+}
+.rb-tip-help {
+  margin-top: 6px;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+.rb-tip-key {
+  color: var(--text-3);
+}
+
+/* ------------------------------------------------- viewer-only mode --- */
+.tb-edit-mode {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 12px 0 8px;
+  margin-right: 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tb-edit-mode .ico {
+  width: 16px;
+  height: 16px;
+}
+.viewer-mode .tb-edit-mode {
+  display: inline-flex;
+}
+.viewer-mode .qat > :not(.app-logo),
+.viewer-mode .tb-learn,
+.viewer-mode .timeline,
+.viewer-mode .br-resizer,
+.viewer-no-tree .browser {
+  display: none !important;
+}
+.viewer-mode .doc-title::before {
+  content: "閲覧モード — ";
+  opacity: 0.7;
+}

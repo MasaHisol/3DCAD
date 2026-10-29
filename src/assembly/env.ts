@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type { App } from "../app";
-import { openLibrary } from "../library/dialog";
+import { openLibrary } from "../ui/lazyUi";
 import { MATERIALS, newDocument, uid } from "../core/document";
 import { formatNumber } from "../core/expr";
 import { evalWith, evaluateParams } from "../core/params";
