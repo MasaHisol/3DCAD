@@ -40,15 +40,18 @@ export function setBackendPref(p: BackendPref) {
   }
 }
 
-/** Whether a WebGPU adapter and device can be obtained (and a description of it). */
+const keepAlive: unknown[] = [];
+
+/** Whether a WebGPU adapter can be obtained (and a description of it). */
 export async function probeWebGPU(): Promise<{ ok: boolean; reason: string; adapter?: string }> {
   const gpu = (globalThis.navigator as unknown as { gpu?: { requestAdapter(o?: object): Promise<unknown> } } | undefined)?.gpu;
   if (!gpu) return { ok: false, reason: "navigator.gpu がありません (WebGPU 非対応)" };
   try {
-    const a = (await gpu.requestAdapter({ powerPreference: "high-performance" })) as { info?: { vendor?: string; architecture?: string; description?: string }; requestDevice(): Promise<{ destroy(): void }> } | null;
+    const a = (await gpu.requestAdapter({ powerPreference: "high-performance" })) as { info?: { vendor?: string; architecture?: string; description?: string } } | null;
     if (!a) return { ok: false, reason: "WebGPU アダプタがありません" };
-    const d = await a.requestDevice();
-    d.destroy();
+    // no device here: the renderer creates the only one (a second, destroyed
+    // device can take the GPU instance down with it on some drivers)
+    keepAlive.push(a);
     const i = a.info ?? {};
     return { ok: true, reason: "WebGPU", adapter: [i.vendor, i.architecture, i.description].filter(Boolean).join(" ") || "WebGPU" };
   } catch (e) {
@@ -62,4 +65,25 @@ export async function chooseBackend(pref = backendPref()): Promise<BackendInfo &
   const p = await probeWebGPU();
   if (p.ok) return { kind: "webgpu", reason: pref === "webgpu" ? "設定で WebGPU を選択" : "WebGPU を自動選択", adapter: p.adapter };
   return { kind: "webgl", reason: `WebGL に自動切替 (${p.reason})` };
+}
+
+/**
+ * Compatibility shim: three.js r18x passes `swizzle: "rgba"` (identity) in
+ * every texture view descriptor; Chromium builds that predate the
+ * texture-component-swizzle feature reject the member's type. The identity
+ * swizzle is the default, so it is dropped before calling the browser.
+ */
+export function installWebGPUShims() {
+  const proto = (globalThis as unknown as { GPUTexture?: { prototype: { createView(d?: object): unknown; __cadShim?: boolean } } }).GPUTexture?.prototype;
+  if (!proto || proto.__cadShim) return;
+  const orig = proto.createView;
+  proto.createView = function (this: unknown, d?: { swizzle?: unknown }) {
+    if (d && d.swizzle === "rgba") {
+      const { swizzle: _s, ...rest } = d;
+      void _s;
+      return orig.call(this, rest);
+    }
+    return orig.call(this, d);
+  };
+  proto.__cadShim = true;
 }

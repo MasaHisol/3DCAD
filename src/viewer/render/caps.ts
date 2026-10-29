@@ -48,6 +48,11 @@ export class SectionCaps {
   /** Cut faces drawn (statistics / tests). */
   stats = { planes: 0, groups: 0, stencilMeshes: 0 };
   private textures = new Map<string, THREE.Texture>();
+  /**
+   * WebGPU: clipping is per group (ClippingGroup), not per material; set to a
+   * factory of clipping groups. WebGL: null (materials carry the planes).
+   */
+  makeClipGroup: ((planes: THREE.Plane[]) => THREE.Group) | null = null;
   private mats: THREE.Material[] = [];
   private geoms: THREE.BufferGeometry[] = [];
 
@@ -117,6 +122,8 @@ export class SectionCaps {
         if (!cut.length) continue;
         const back = this.stencilMat(THREE.BackSide, THREE.IncrementWrapStencilOp, plane);
         const front = this.stencilMat(THREE.FrontSide, THREE.DecrementWrapStencilOp, plane);
+        const stencilParent = this.makeClipGroup ? this.makeClipGroup([plane]) : this.group;
+        if (stencilParent !== this.group) this.group.add(stencilParent);
         for (const it of cut) {
           for (const [m, o] of [
             [back, order],
@@ -128,7 +135,7 @@ export class SectionCaps {
             s.matrixWorldNeedsUpdate = true;
             s.renderOrder = o;
             s.frustumCulled = false;
-            this.group.add(s);
+            stencilParent.add(s);
             this.stats.stencilMeshes++;
           }
         }
@@ -153,11 +160,22 @@ export class SectionCaps {
         const quad = new THREE.Mesh(geom, capMat);
         const at = plane.projectPoint(center, new THREE.Vector3());
         quad.position.copy(at);
-        quad.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), plane.normal.clone().negate());
+        // quad frame: x along the projected world X (Y for planes normal to X), like the section DXF
+        // (viewed from the + side of the axis: same 2D frame as planeDefOf / the DXF)
+        const n = plane.normal.clone().normalize();
+        if (n.x + n.y + n.z < 0) n.negate();
+        const ref = Math.abs(n.x) > 0.9 ? new THREE.Vector3(0, 1, 0) : Math.abs(n.y) > 0.9 ? new THREE.Vector3(-1, 0, 0) : new THREE.Vector3(1, 0, 0);
+        const ux = ref.sub(n.clone().multiplyScalar(ref.dot(n))).normalize();
+        const uy = n.clone().cross(ux);
+        quad.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(ux, uy, n));
         quad.renderOrder = order + 2;
         quad.frustumCulled = false;
         quad.userData.sectionCap = { plane: pi, pattern: pk };
-        this.group.add(quad);
+        if (this.makeClipGroup && others.length) {
+          const g = this.makeClipGroup(others);
+          g.add(quad);
+          this.group.add(g);
+        } else this.group.add(quad);
         this.stats.groups++;
         order += 3;
       }

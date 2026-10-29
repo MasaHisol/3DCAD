@@ -24,7 +24,7 @@ const port = +(process.env.BENCH_PORT || 4180);
 const server = await preview({ preview: { port, strictPort: true }, logLevel: "error" });
 const browser = await chromium.launch({
   executablePath: process.env.CHROMIUM_PATH || undefined,
-  args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", ...(RENDERER !== "webgl" ? ["--enable-unsafe-webgpu"] : [])],
+  args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", ...(RENDERER !== "webgl" ? ["--enable-unsafe-webgpu", "--enable-features=Vulkan", "--use-vulkan=swiftshader", "--use-webgpu-adapter=swiftshader", "--disable-vulkan-surface"] : [])],
 });
 const page = await browser.newPage({ viewport: { width: 1400, height: 860 } });
 const errors = [];

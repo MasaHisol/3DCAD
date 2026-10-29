@@ -9,7 +9,7 @@ import { clusterSimplify, decimateEdges } from "./simplify";
 import { GpuPicker } from "./render/gpuPick";
 import { TransparencyPass, type TransparentItem } from "./render/oit";
 import { SectionCaps } from "./render/caps";
-import { backendPref, chooseBackend, type BackendInfo, type BackendPref } from "./render/backend";
+import { backendPref, chooseBackend, installWebGPUShims, type BackendInfo, type BackendPref } from "./render/backend";
 import { keptByPlanes, sectionPlanes, type SectionState } from "./section";
 
 export type PickKind = "face" | "edge" | "plane" | "axis" | "point" | "ref";
@@ -178,6 +178,12 @@ export class Viewport {
   /** Hatch pattern key per displayed body (part id / material); default: the body index. */
   sectionPatternOf: ((body: number) => number | string | undefined) | null = null;
   readonly caps = new SectionCaps();
+  /**
+   * Parent of the clipped content (bodies, batches, transparent proxies). With
+   * WebGPU it is a ClippingGroup: that renderer clips per group, not per material.
+   */
+  private clipGroup: THREE.Group = new THREE.Group();
+  private ClippingGroup: (new () => THREE.Group & { clippingPlanes: THREE.Plane[] }) | null = null;
   private capsDirty = false;
   /** GPU ID-buffer picking (WebGL); falls back to the BVH ray test. */
   gpuPicking = true;
@@ -253,7 +259,8 @@ export class Viewport {
     });
     this.backMaterial = new THREE.MeshBasicMaterial({ color: "#e0a458", side: THREE.BackSide });
 
-    this.scene.add(this.model, this.threadLayer, this.trailLayer, this.refLayer, this.refModelLayer, this.sketchLayer, this.overlay, this.caps.group, this.transparency.sortedGroup);
+    this.clipGroup.add(this.model, this.transparency.sortedGroup);
+    this.scene.add(this.clipGroup, this.threadLayer, this.trailLayer, this.refLayer, this.refModelLayer, this.sketchLayer, this.overlay, this.caps.group);
     this.overlay.add(this.tagObj, this.hoverObj, this.selectObj);
     this.buildTriad();
     this.setStandardView([1, 1, 1], false);
@@ -325,15 +332,22 @@ export class Viewport {
     oldEnv?.dispose();
     this.gpuPicker?.dispose();
     this.gpuPicker = kind === "webgl" ? new GpuPicker(r) : null;
-    this.scene.remove(this.transparency.sortedGroup);
+    this.clipGroup.remove(this.transparency.sortedGroup);
     this.transparency.dispose();
     this.transparency = new TransparencyPass(r, kind);
-    this.scene.add(this.transparency.sortedGroup);
+    // clipping per group (WebGPU) or per material (WebGL)
+    const g = kind === "webgpu" && this.ClippingGroup ? new this.ClippingGroup() : new THREE.Group();
+    g.add(...this.clipGroup.children, this.transparency.sortedGroup);
+    this.scene.remove(this.clipGroup);
+    this.scene.add(g);
+    this.clipGroup = g;
+    this.caps.makeClipGroup = kind === "webgpu" && this.ClippingGroup ? this.clipGroupFactory(this.ClippingGroup) : null;
     this.applyTransparency();
     if (this.zebra) this.setZebra(true);
     try {
+      // no forceContextLoss(): losing a WebGL context can reset the GPU
+      // process channel and take the new WebGPU device down with it
       old.dispose();
-      (old as unknown as { forceContextLoss?: () => void }).forceContextLoss?.();
     } catch {
       /* already gone */
     }
@@ -372,6 +386,7 @@ export class Viewport {
   }
 
   private async switchToWebGPU() {
+    installWebGPUShims();
     const W = await import("three/webgpu");
     const r = new W.WebGPURenderer({ antialias: true, alpha: true, stencil: true });
     await r.init();
@@ -381,6 +396,7 @@ export class Viewport {
       throw new Error("WebGPU バックエンドを使用できません");
     }
     const gr = r as unknown as THREE.WebGLRenderer;
+    this.ClippingGroup = W.ClippingGroup as unknown as new () => THREE.Group & { clippingPlanes: THREE.Plane[] };
     this.configureRenderer(gr);
     const env = this.environmentFor(gr, W.PMREMGenerator as unknown as typeof THREE.PMREMGenerator);
     this.installRenderer(gr, "webgpu", env);
@@ -402,6 +418,14 @@ export class Viewport {
     // one frame now: errors surface here, not in the render loop
     this.needsRender = true;
     this.tick(performance.now());
+  }
+
+  private clipGroupFactory(C: new () => THREE.Group & { clippingPlanes: THREE.Plane[] }) {
+    return (planes: THREE.Plane[]) => {
+      const g = new C();
+      g.clippingPlanes = planes;
+      return g;
+    };
   }
 
   /** Back to WebGL (WebGPU unavailable, failed or lost). */
@@ -506,8 +530,10 @@ export class Viewport {
     const size = r.getDrawingBufferSize(new THREE.Vector2());
     r.clearDepth();
     r.setScissorTest(true);
-    r.setScissor(0, 0, s, s);
-    r.setViewport(0, 0, s, s);
+    // WebGPU viewports count from the top
+    const ty = this.backend.kind === "webgpu" ? size.y / r.getPixelRatio() - s : 0;
+    r.setScissor(0, ty, s, s);
+    r.setViewport(0, ty, s, s);
     this.triadCam.quaternion.copy(this.view.quat);
     this.triadCam.position.set(0, 0, 5).applyQuaternion(this.view.quat);
     this.triadCam.updateMatrixWorld();
@@ -848,7 +874,7 @@ export class Viewport {
   }
 
   private rebuildBatches() {
-    if (!this.batchLayer.parent) this.scene.add(this.batchLayer);
+    if (!this.batchLayer.parent) this.clipGroup.add(this.batchLayer);
     const L = Viewport.OFFSCREEN;
     if (this.meshBatchDirty) {
       this.meshBatchDirty = false;
@@ -1314,6 +1340,7 @@ export class Viewport {
 
   private applyClip() {
     const planes = this.clipPlanes;
+    if ("clippingPlanes" in this.clipGroup) (this.clipGroup as THREE.Group & { clippingPlanes: THREE.Plane[] }).clippingPlanes = planes;
     this.material.clippingPlanes = planes;
     for (const m of this.colorMats.values()) m.clippingPlanes = planes;
     for (const m of this.surfaceMats.values()) m.clippingPlanes = planes;

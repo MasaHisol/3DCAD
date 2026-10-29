@@ -11,6 +11,9 @@ import { preview } from "vite";
 import { chromium } from "playwright";
 
 const port = Number(process.env.E2E_PORT || 4174);
+// SwiftShader WebGPU through Vulkan without a presentation surface: the default
+// headless WebGPU path loses its device as soon as a canvas is presented.
+const WEBGPU_FLAGS = ["--enable-unsafe-webgpu", "--enable-features=Vulkan", "--use-vulkan=swiftshader", "--use-webgpu-adapter=swiftshader", "--disable-vulkan-surface"];
 const server = await preview({ preview: { port, strictPort: true }, logLevel: "error" });
 let failed = 0;
 const check = (name, ok, extra = "") => {
@@ -21,11 +24,13 @@ const check = (name, ok, extra = "") => {
 async function session(webgpu) {
   const browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH || undefined,
-    args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", ...(webgpu ? ["--enable-unsafe-webgpu"] : [])],
+    args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", ...(webgpu ? WEBGPU_FLAGS : [])],
   });
   const page = await browser.newPage({ viewport: { width: 1280, height: 820 }, acceptDownloads: true });
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  const consoleErrors = [];
+  page.on("console", (m) => m.type() === "error" && consoleErrors.push(m.text()));
   try {
     await page.goto(`http://localhost:${port}/?renderer=auto`);
     await page.evaluate(async () => {
@@ -158,14 +163,19 @@ async function session(webgpu) {
       return { d, n: r.map((x) => x.entities.length), area: r.map((x) => x.area), len: r.map((x) => x.length) };
     });
     const file = await dl;
-    check(`${tag} DXF downloaded`, /\.dxf$/.test(file.suggestedFilename()), file.suggestedFilename());
+    const { readFileSync } = await import("node:fs");
+    const saved = readFileSync(await file.path());
+    check(`${tag} DXF downloaded`, saved.length > 1000 && saved.includes("ENTITIES"), `${saved.length} bytes`);
     check(`${tag} DXF has outlines of all three sections`, dxf.d && dxf.n.length === 3 && dxf.n.every((k) => k > 0) && /X = /.test(dxf.d) && /Y = /.test(dxf.d) && /Z = /.test(dxf.d), `entities ${dxf.n.join("/")}`);
     check(`${tag} DXF hatch on HATCH layer, outline on VISIBLE`, /\r\n8\r\nHATCH\r\n/.test(dxf.d) && /\r\n8\r\nVISIBLE\r\n/.test(dxf.d));
     check(`${tag} section areas positive`, dxf.area.every((a) => a > 0), dxf.area.map((a) => a.toFixed(1)).join("/"));
     await page.evaluate(() => window.cad.toggleSectionView());
     const off = await page.evaluate(() => window.cad.vp.clipPlanes.length);
     check(`${tag} section view closes`, off === 0);
+    const still = await page.evaluate(() => window.cad.vp.backend);
+    if (webgpu) check(`${tag} still on WebGPU at the end`, still.kind === "webgpu", still.reason);
     check(`${tag} no page errors`, errors.length === 0, errors.slice(0, 3).join(" | "));
+    if (consoleErrors.length) console.log(`  console errors (${consoleErrors.length}):`, consoleErrors.slice(0, 5).join("\n   "));
   } finally {
     await browser.close();
   }
