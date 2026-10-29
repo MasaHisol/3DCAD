@@ -26,8 +26,14 @@ const accumVS = /* glsl */ `
   #include <common>
   #include <clipping_planes_pars_vertex>
   void main() {
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    vN = normalMatrix * normal;
+    vec4 p = vec4(position, 1.0);
+    vec3 nrm = normal;
+    #ifdef USE_INSTANCING
+      p = instanceMatrix * p;
+      nrm = mat3(instanceMatrix) * nrm;
+    #endif
+    vec4 mvPosition = modelViewMatrix * p;
+    vN = normalMatrix * nrm;
     vV = -mvPosition.xyz;
     vZ = -mvPosition.z;
     gl_Position = projectionMatrix * mvPosition;
@@ -161,12 +167,33 @@ export class TransparencyPass {
       o.renderOrder = order;
       return o;
     };
+    // repeated bodies (assembly instances: same geometry, colour and opacity)
+    // are drawn as one InstancedMesh, like the opaque batches
+    const groups = new Map<string, TransparentItem[]>();
     for (const it of this.items) {
-      if (this.mode === "oit") this.scene.add(proxy(it.mesh, this.material(it.color, it.opacity, THREE.DoubleSide)));
+      const k = `${it.mesh.geometry.uuid}|${new THREE.Color(it.color).getHexString()}|${it.opacity}`;
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k)!.push(it);
+    }
+    const make = (list: TransparentItem[], mat: THREE.Material, order: number): THREE.Mesh => {
+      if (list.length === 1) return proxy(list[0].mesh, mat, order);
+      const im = new THREE.InstancedMesh(list[0].mesh.geometry, mat, list.length);
+      list.forEach((it, i) => {
+        it.mesh.updateWorldMatrix(true, false);
+        im.setMatrixAt(i, it.mesh.matrixWorld);
+      });
+      im.instanceMatrix.needsUpdate = true;
+      im.computeBoundingSphere();
+      im.renderOrder = order;
+      return im;
+    };
+    for (const list of groups.values()) {
+      const it = list[0];
+      if (this.mode === "oit") this.scene.add(make(list, this.material(it.color, it.opacity, THREE.DoubleSide), 0));
       else {
         // back faces first, then front faces: the closest approximation without OIT
-        this.sortedGroup.add(proxy(it.mesh, this.material(it.color, it.opacity, THREE.BackSide), 10));
-        this.sortedGroup.add(proxy(it.mesh, this.material(it.color, it.opacity, THREE.FrontSide), 11));
+        this.sortedGroup.add(make(list, this.material(it.color, it.opacity, THREE.BackSide), 10));
+        this.sortedGroup.add(make(list, this.material(it.color, it.opacity, THREE.FrontSide), 11));
       }
     }
   }
@@ -180,8 +207,13 @@ export class TransparencyPass {
    * Weighted blended OIT on top of the frame already drawn: accumulate the
    * transparent bodies (depth tested against `opaque`) and composite.
    */
-  render(camera: THREE.Camera, opaque: THREE.Mesh[], depthRange: [number, number]) {
-    if (this.mode !== "oit" || !this.items.length) return;
+  render(camera: THREE.Camera, opaque: THREE.Mesh[], depthRange: [number, number]): { calls: number; triangles: number } {
+    const info = { calls: 0, triangles: 0 };
+    if (this.mode !== "oit" || !this.items.length) return info;
+    const count = () => {
+      info.calls += this.renderer.info.render.calls;
+      info.triangles += this.renderer.info.render.triangles;
+    };
     if (this.dirty) this.rebuild();
     const r = this.renderer;
     const size = r.getDrawingBufferSize(new THREE.Vector2());
@@ -210,16 +242,20 @@ export class TransparencyPass {
         this.depthScene.add(o);
       }
       r.render(this.depthScene, camera);
+      count();
       this.depthScene.clear();
     }
     r.render(this.scene, camera);
+    count();
     r.setRenderTarget(prev);
     r.setClearColor(prevClear, prevAlpha);
     const qm = this.quad.material as THREE.ShaderMaterial;
     qm.uniforms.tAccum.value = this.target.textures[0];
     qm.uniforms.tReveal.value = this.target.textures[1];
     r.render(this.quadScene, this.quadCam);
+    count();
     r.setScissorTest(prevScissor);
+    return info;
   }
 
   dispose() {

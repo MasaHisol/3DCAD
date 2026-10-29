@@ -357,14 +357,14 @@ export class Viewport {
     this.markBatches();
   }
 
+  /** Resolves once initBackend() settled (tests / benchmarks). */
+  backendReady: Promise<BackendInfo> = Promise.resolve(this.backend);
+
   /**
    * Chooses the render backend (preference "auto" | "webgpu" | "webgl"):
    * WebGPU when an adapter / device is available and the renderer initialises,
    * otherwise (or when the GPU device is lost later) WebGL.
    */
-  /** Resolves once initBackend() settled (tests / benchmarks). */
-  backendReady: Promise<BackendInfo> = Promise.resolve(this.backend);
-
   async initBackend(pref: BackendPref = backendPref()): Promise<BackendInfo> {
     return (this.backendReady = this.initBackendNow(pref));
   }
@@ -399,6 +399,7 @@ export class Viewport {
     this.ClippingGroup = W.ClippingGroup as unknown as new () => THREE.Group & { clippingPlanes: THREE.Plane[] };
     this.configureRenderer(gr);
     const env = this.environmentFor(gr, W.PMREMGenerator as unknown as typeof THREE.PMREMGenerator);
+    this.backend = { kind: "webgpu", reason: "WebGPU" };
     this.installRenderer(gr, "webgpu", env);
     // a lost device (driver reset, GPU process crash) falls back to WebGL
     void be.device?.lost?.then((info) => {
@@ -519,9 +520,9 @@ export class Viewport {
     r.render(this.scene, this.camera);
     let calls = r.info.render.calls, triangles = r.info.render.triangles;
     if (this.transparency.active && this.transparency.mode === "oit") {
-      this.renderOIT();
-      calls += r.info.render.calls;
-      triangles += r.info.render.triangles;
+      const o = this.renderOIT();
+      calls += o.calls;
+      triangles += o.triangles;
     }
     this.frameInfo = { calls, triangles };
     if (this.capturing) return;
@@ -1434,7 +1435,7 @@ export class Viewport {
     });
   }
 
-  private renderOIT() {
+  private renderOIT(): { calls: number; triangles: number } {
     const cam = this.camera;
     const opaque = this.bodies.flatMap((b, i) => (!this.transparentBodies.has(i) && b.mesh.visible && this.bodyOn[i] !== false && !this.proxied.has(i) ? [b.mesh] : []));
     const box = this.modelBounds();
@@ -1446,7 +1447,7 @@ export class Viewport {
       const d = s.center.clone().sub(camPos).dot(dir);
       range = [d - s.radius, d + s.radius];
     }
-    this.transparency.render(cam, opaque, range);
+    return this.transparency.render(cam, opaque, range);
   }
 
   // ----------------------------------------------------- reference data ---
