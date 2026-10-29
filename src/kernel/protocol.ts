@@ -302,6 +302,8 @@ export type WorkerRequest =
   | { kind: "stepAssembly"; text: string }
   | { kind: "massProps"; key?: string }
   | { kind: "measure"; a: PickRef; b?: PickRef; key?: string }
+  /** Exact measurements of stage 2 (src/measure/kernel.ts). */
+  | { kind: "measureX"; op: import("../measure/types").MeasureOp; key?: string }
   | { kind: "projection"; views: { name: string; dir: Vec3; xAxis: Vec3 }[]; key?: string; placements?: Placement[] }
   | { kind: "exportAssembly"; format: "step" | "stl" | "iges"; placements: Placement[]; withRoutes?: boolean; name?: string }
   | { kind: "interference"; placements: Placement[] }

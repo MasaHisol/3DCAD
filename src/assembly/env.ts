@@ -1307,6 +1307,7 @@ export class AssemblyEnv {
           title: "検査",
           items: [
             { id: "asm-interf", label: "干渉解析", icon: "intersect", tip: "コンポーネント同士の干渉 (重なり) 体積を計算します。", action: () => this.checkInterference() },
+            { id: "measure-clearance", label: "クリアランス", icon: "measure", tip: "コンポーネント間の最小距離がしきい値未満の組を一覧します (最近点を表示、測定注記として保存)。", action: () => this.app.commands.run("measure-clearance") },
             { id: "asm-route", label: "配線・配管", icon: "sweep", tip: "電線・ケーブル / ホース / パイプの経路を部品の面・円の中心・コネクタ点で定義し、曲げ R 付きのチューブを作成します (長さ・曲げ・干渉チェック、切断リスト)。", action: () => this.routes.open(), active: () => this.command?.id === "routes" || this.command?.id === "route" },
             { id: "asm-bom", label: "部品表", icon: "iprops", tip: "部品表 (BOM) を表示し CSV に書き出します。", action: () => this.openBom() },
           ],

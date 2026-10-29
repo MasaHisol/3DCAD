@@ -2950,3 +2950,18 @@ kbd {
   font-size: 11px;
   opacity: 0.75;
 }
+
+/* measurements (stage 2, src/measure) */
+.measure-note { font: 600 12px/1.15 system-ui, sans-serif; color: #00796b; background: rgba(255, 255, 255, 0.88); border: 1px solid rgba(0, 121, 107, 0.5); border-radius: 3px; padding: 1px 4px; white-space: nowrap; pointer-events: none; user-select: none; transform: translate(8px, -14px); }
+.measure-note.hi, .measure-note.temp { color: #e8710a; border-color: rgba(232, 113, 10, 0.6); }
+.measure-note.lost { color: #c62828; border: 1px dashed #c62828; }
+.measure-legend { position: absolute; right: 12px; bottom: 44px; background: var(--surface); color: var(--text, #222); border: 1px solid var(--border, #ccd); border-radius: 6px; padding: 6px 8px; font-size: 11px; z-index: 5; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); }
+.measure-legend .ml-title { font-weight: 600; margin-bottom: 4px; }
+.measure-legend .ml-row { display: flex; align-items: center; gap: 6px; line-height: 16px; }
+.measure-legend .ml-sw { width: 14px; height: 10px; border-radius: 2px; display: inline-block; }
+.measure-legend .ml-foot { margin-top: 4px; opacity: 0.8; }
+.measure-kv td:last-child { width: 24px; }
+.measure-list tr { cursor: pointer; }
+.measure-list tr.sel td { background: var(--surface-3); }
+.measure-list tr.lost td { color: #c62828; }
+.measure-notes .mn-btns { white-space: nowrap; }

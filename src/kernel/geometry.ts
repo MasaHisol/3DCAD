@@ -201,7 +201,7 @@ type OcAx = { Location(): OcXYZ; Direction(): OcXYZ };
 type OcXYZ = { X(): number; Y(): number; Z(): number };
 const xyz = (p: OcXYZ): Vec3 => [p.X(), p.Y(), p.Z()];
 
-function edgeInfo(e: R.Edge): EdgeInfo {
+export function edgeInfo(e: R.Edge): EdgeInfo {
   const a = tuple(e.startPoint), b = tuple(e.endPoint);
   let mid: Vec3;
   try {
@@ -288,7 +288,7 @@ function resolveEdges(bodies: Shape[], refs: EdgeRef[], diag: number): { perBody
   return { perBody, updated };
 }
 
-function faceInfo(f: R.Face): FaceInfo {
+export function faceInfo(f: R.Face): FaceInfo {
   const center = tuple(f.center);
   let normal: Vec3 = [0, 0, 1];
   try {

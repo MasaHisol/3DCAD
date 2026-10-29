@@ -8,6 +8,7 @@ import { FEATURE_LABELS, MATERIALS } from "./document";
 import type { PartDocument } from "./types";
 import { surfaceBase } from "./surfaceResolve";
 import { cleanPmi } from "../mbd/pmi";
+import { cleanNotes } from "../measure/notes";
 
 export const FILE_VERSION = 1;
 
@@ -71,6 +72,11 @@ export function validatePart(raw: unknown, where = "パーツ"): Checked<PartDoc
   warnings.push(...checkSurfaceFeatures(doc, ids));
   if (!Array.isArray(doc.revisions)) delete doc.revisions;
   warnings.push(...cleanPmi(doc));
+  if ("measureNotes" in doc) {
+    const notes = cleanNotes(doc.measureNotes);
+    if (notes) doc.measureNotes = notes;
+    else delete doc.measureNotes;
+  }
   return { doc, warnings };
 }
 

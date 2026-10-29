@@ -70,6 +70,8 @@ export interface AssemblyDocument {
   drawing?: import("../drawing/types").DrawingDoc;
   /** Wire / cable, hose and pipe routes (配線・配管); absent in older files. */
   routes?: import("../routing/types").AsmRoute[];
+  /** Measurements saved as annotations (stage 2, src/measure). */
+  measureNotes?: import("../measure/types").MeasureNote[];
 }
 
 export function newAssembly(name = "アセンブリ1"): AssemblyDocument {

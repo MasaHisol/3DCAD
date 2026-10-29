@@ -174,6 +174,10 @@ export class KernelClient {
   massProps(): Promise<MassProps> {
     return this.call({ kind: "massProps" });
   }
+  /** Exact measurement (hole, thickness, distance, clearance, properties). */
+  measureX<T>(op: import("../measure/types").MeasureOp): Promise<T> {
+    return this.call({ kind: "measureX", op });
+  }
   measure(a: PickRef, b?: PickRef): Promise<MeasureResult> {
     return this.call({ kind: "measure", a, b });
   }

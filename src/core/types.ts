@@ -600,4 +600,6 @@ export interface PartDocument {
   revisions?: import("./revisions").Revision[];
   /** MBD: 3D annotations (PMI) attached to model faces / edges. */
   pmi?: import("../mbd/pmi").PmiAnno[];
+  /** Measurements saved as annotations (stage 2, src/measure). */
+  measureNotes?: import("../measure/types").MeasureNote[];
 }

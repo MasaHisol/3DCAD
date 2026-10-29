@@ -8,6 +8,7 @@ import { buildRoutes, routeInterference, routeShapes } from "./route";
 import { exportIgesNative, exportStepXcaf, importStepAssembly } from "./exchange";
 import { extKernel, extKernelError, extKernelIfLoaded, setExtLoader } from "./ext";
 import { hlrProject } from "./hlr";
+import { runMeasure } from "../measure/kernel";
 import type { BodyMesh, ExtKernelInfo, Placement, ThreadInfo, WorkerRequest, WorkerResponse } from "./protocol";
 
 // Extended kernel: the full opencascade.js build, fetched and compiled only when an
@@ -137,6 +138,11 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
       return { result: eng.massProps(), transfer: [] };
     case "measure":
       return { result: eng.measure(req.a, req.b), transfer: [] };
+    case "measureX": {
+      const ps = "placements" in req.op ? req.op.placements : undefined;
+      const ctx = { bodies: [...eng.bodies, ...eng.surfaces.map((s) => s.shape)], threads: eng.threads, placed: ps ? placed(ps) : undefined };
+      return { result: runMeasure(ctx as never, req.op), transfer: [] };
+    }
     case "hlr": {
       const shapes = req.placements ? placed(req.placements).map((x) => x.shape) : eng.bodies;
       return { result: req.views.map((v) => hlrProject(shapes, v)), transfer: [] };

@@ -41,6 +41,7 @@ import { openNativeInfo } from "./io/nativeDialog";
 import type { Rule, RuleContext, RuleResult } from "./rules/engine";
 import { DrawingEnv } from "./drawing/env";
 import { PmiLayer } from "./mbd/layer";
+import { MeasureLayer } from "./viewer/annotations";
 import { editPmi } from "./mbd/commands";
 import { newAssembly, type AssemblyDocument } from "./assembly/types";
 import { shouldOpenLight } from "./assembly/largeAsm";
@@ -73,6 +74,8 @@ export class App {
   commands!: CommandRegistry;
   /** MBD: 3D annotations (PMI) display. */
   pmi!: PmiLayer;
+  /** Measurement overlays and saved measurement annotations. */
+  measure!: MeasureLayer;
 
   /** Active environment: part modelling or assembly. */
   env: "part" | "assembly" | "drawing" = "part";
@@ -210,6 +213,7 @@ export class App {
 
     this.vp = new Viewport(vpEl);
     this.pmi = new PmiLayer(this);
+    this.measure = new MeasureLayer(this);
     this.pmi.onLabelDblClick = (id) => editPmi(this, id);
     this.loadSettings();
     this.timeline = new Timeline(vpEl, this);
@@ -381,7 +385,7 @@ export class App {
     this.opLog.add({ kind: "edit", id: reason });
     this.watchRules(reason);
     this.scheduleAutosave();
-    if (reason.startsWith("PMI")) return void this.refreshUI(); // annotations only: no rebuild
+    if (reason.startsWith("PMI") || reason.startsWith("測定注記")) return void this.refreshUI(); // annotations only: no rebuild
     if (this.mode === "sketch" && this.sketchEditor) {
       if (!this.store.feature(this.sketchEditor.sketchId)) {
         // sketch removed by undo
@@ -2172,6 +2176,7 @@ export class App {
     this.ribbon.refresh();
     this.timeline?.render();
     this.pmi?.refresh();
+    this.measure?.refresh();
   }
 
   private syncMaterial() {

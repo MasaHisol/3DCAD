@@ -256,7 +256,18 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
       panels: [
         {
           title: "測定",
-          items: [cmd("measure", "測定", "measure", "M", "距離・角度・長さ・面積を測定します。")],
+          items: [
+            cmd("measure", "測定", "measure", "M", "距離 (最近点)・角度・半径・長さ・面積・周長・体積を測定します。"),
+            cmd("measure-hole", "穴", "hole", undefined, "穴径・深さ・座ぐり・皿・ねじを認識して測定します。"),
+            cmd("measure-pcd", "ピッチ円", "circPattern", undefined, "複数の穴からピッチ円直径・中心・角度間隔・ずれを求めます。"),
+            {
+              stack: [
+                cmd("measure-thickness", "肉厚", "shell", undefined, "ボディの肉厚分布を色で表示し、薄肉部を警告します。", "small"),
+                cmd("measure-clearance", "クリアランス", "intersect", undefined, "ボディ間 (アセンブリではコンポーネント間) の最小距離がしきい値未満の組を一覧します。", "small"),
+                cmd("measure-notes", "測定注記", "iprops", undefined, "保存した測定注記の一覧 (表示切替・名前変更・削除・修復・CSV)。", "small"),
+              ],
+            },
+          ],
         },
         {
           title: "解析",
