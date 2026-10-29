@@ -10,6 +10,7 @@ import { extKernel, extKernelError, extKernelIfLoaded, setExtLoader } from "./ex
 import { hlrProject } from "./hlr";
 import { runMeasure } from "../measure/kernel";
 import { interferenceEx } from "./interferenceK";
+import { sectionShapes } from "./section";
 import type { BodyMesh, ExtKernelInfo, Placement, ThreadInfo, WorkerRequest, WorkerResponse } from "./protocol";
 
 // Extended kernel: the full opencascade.js build, fetched and compiled only when an
@@ -130,10 +131,16 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
     case "routeInterference":
       return { result: routeInterference(placed(req.placements)), transfer: [] };
     case "rebuild": {
-      const res = await eng.rebuild(req.features, req.captureBefore);
+      const res = await eng.rebuild(req.features, req.captureBefore, { quality: req.quality, progressive: req.progressive });
       const transfer: Transferable[] = [];
       for (const b of [...res.bodies, ...(res.before ?? [])] as BodyMesh[])
         transfer.push(b.positions.buffer, b.normals.buffer, b.indices.buffer, b.faceRanges.buffer, b.edgePositions.buffer, b.edgeRanges.buffer);
+      return { result: res, transfer };
+    }
+    case "remesh": {
+      const res = eng.remesh(req.quality);
+      const transfer: Transferable[] = [];
+      for (const b of [...res.bodies, ...res.surfaces]) transfer.push(b.positions.buffer, b.normals.buffer, b.indices.buffer, b.faceRanges.buffer, b.edgePositions.buffer, b.edgeRanges.buffer);
       return { result: res, transfer };
     }
     case "export": {
@@ -158,6 +165,16 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
       if (req.load) await extKernel();
       const info: ExtKernelInfo = { available: !extKernelError(), loaded: !!extKernelIfLoaded(), error: extKernelError() || undefined };
       return { result: info, transfer: [] };
+    }
+    case "section": {
+      // sources: components (placements) or the part's bodies
+      const items = req.placements ? placed(req.placements) : eng.bodies.map((shape, index) => ({ shape, index }));
+      const res = req.planes.map((pl) => {
+        const r = sectionShapes(items.map((x) => x.shape), pl, req.deflection);
+        // report component / body indices instead of shape indices
+        return { ...r, source: r.source.map((i) => items[i].index), loopSource: r.loopSource.map((i) => items[i].index) };
+      });
+      return { result: res, transfer: [] };
     }
     case "projection":
       return { result: req.placements ? eng.projection(req.views, placed(req.placements).map((x) => x.shape)) : eng.projection(req.views), transfer: [] };

@@ -133,6 +133,10 @@ export class KernelClient {
   interference(placements: Placement[]): Promise<Interference[]> {
     return this.call({ kind: "interference", placements });
   }
+  /** Exact planar sections (kernel BRepAlgoAPI_Section) of the part or the placed components. */
+  section(planes: import("../core/types").PlaneDef[], placements?: Placement[]): Promise<import("./section").SectionResult[]> {
+    return this.call({ kind: "section", planes, placements });
+  }
   drawViews(views: ViewSpec[], placements?: Placement[]): Promise<ViewGeometry[]> {
     return this.call({ kind: "drawViews", views, placements });
   }
@@ -141,6 +145,14 @@ export class KernelClient {
   }
   projectionPlaced(views: { name: string; dir: [number, number, number]; xAxis: [number, number, number] }[], placements: Placement[]): Promise<ProjectionView[]> {
     return this.call({ kind: "projection", views, placements });
+  }
+
+  /** Progressive display: large models come back coarse first (`refine` set; then call remesh). */
+  progressive = true;
+
+  /** Display meshes of the current model at another tessellation level. */
+  remesh(quality: "coarse" | "normal" | "fine"): Promise<{ bodies: import("./protocol").BodyMesh[]; surfaces: import("./protocol").BodyMesh[] }> {
+    return this.call({ kind: "remesh", quality });
   }
 
   rebuild(features: RFeature[], captureBefore?: string): Promise<RebuildResult> {
@@ -159,7 +171,7 @@ export class KernelClient {
   private async runRebuild(features: RFeature[], captureBefore: string | undefined, waiters: { resolve: (v: RebuildResult) => void; reject: (e: Error) => void }[]) {
     this.rebuildRunning = true;
     try {
-      const r = await this.call<RebuildResult>({ kind: "rebuild", features, captureBefore }, this.rebuildTimeoutMs);
+      const r = await this.call<RebuildResult>({ kind: "rebuild", features, captureBefore, progressive: this.progressive }, this.rebuildTimeoutMs);
       waiters.forEach((w) => w.resolve(r));
     } catch (e) {
       waiters.forEach((w) => w.reject(e as Error));

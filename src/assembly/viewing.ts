@@ -81,7 +81,7 @@ export class AsmViewing {
   /** Applies per-body opacity after the bodies were (re)built. */
   applyDisplay() {
     const op = this.env.bodyMap.map((m) => (this.transparent.has(m.comp) ? GHOST_OPACITY : undefined));
-    this.app.vp.setBodyOpacity(op);
+    this.app.vp.setBodyOpacities(op);
   }
 
   private setHidden(hidden: Set<string>, label: string) {

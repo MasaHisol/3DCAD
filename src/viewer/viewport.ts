@@ -6,6 +6,11 @@ import type { PlaneDef, Vec3 } from "../core/types";
 import { DEFAULT_LOD, batchGroups, boxMatrix, edgeVisibleAtZoom, lodLevel, projectedDiameter, spatialChunks, type LodOptions } from "../assembly/largeAsm";
 import { TriangleBVH } from "./bvh";
 import { clusterSimplify, decimateEdges } from "./simplify";
+import { GpuPicker } from "./render/gpuPick";
+import { TransparencyPass, type TransparentItem } from "./render/oit";
+import { SectionCaps } from "./render/caps";
+import { backendPref, chooseBackend, installWebGPUShims, type BackendInfo, type BackendPref } from "./render/backend";
+import { keptByPlanes, sectionPlanes, type SectionState } from "./section";
 
 export type PickKind = "face" | "edge" | "plane" | "axis" | "point" | "ref";
 
@@ -122,7 +127,17 @@ function zebraMaterial(): THREE.ShaderMaterial {
 
 export class Viewport {
   readonly el: HTMLElement;
-  readonly renderer: THREE.WebGLRenderer;
+  /**
+   * The renderer: a WebGLRenderer, or a WebGPURenderer after initBackend()
+   * chose WebGPU (it offers the same drawing API used here; WebGL-only paths
+   * check `backend.kind`).
+   */
+  renderer: THREE.WebGLRenderer;
+  /** Render backend in use and why (WebGPU / WebGL fallback). */
+  backend: BackendInfo = { kind: "webgl", reason: "WebGL" };
+  onBackendChange: ((b: BackendInfo) => void) | null = null;
+  /** Called on every camera change (in addition to onViewChange). */
+  readonly viewListeners = new Set<() => void>();
   readonly labels: CSS2DRenderer;
   readonly scene = new THREE.Scene();
   readonly ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, -1e5, 1e5);
@@ -151,7 +166,35 @@ export class Viewport {
   backMaterial: THREE.MeshBasicMaterial;
   edgeMaterial = new THREE.LineBasicMaterial({ color: COLORS.edge });
   hiddenMaterial = new THREE.LineDashedMaterial({ color: 0x6b7280, dashSize: 1.5, gapSize: 1.2, depthTest: false, transparent: true, opacity: 0.6 });
-  clipPlane: THREE.Plane | null = null;
+  /** Active section (clipping) planes; material is kept where every plane's distance is ≥ 0. */
+  clipPlanes: THREE.Plane[] = [];
+  /** First clipping plane (single-section API of stage 1). */
+  get clipPlane(): THREE.Plane | null {
+    return this.clipPlanes[0] ?? null;
+  }
+  /** Fill the cut faces of section planes (stencil caps) and hatch them. */
+  sectionCaps = false;
+  sectionHatch = true;
+  /** Hatch pattern key per displayed body (part id / material); default: the body index. */
+  sectionPatternOf: ((body: number) => number | string | undefined) | null = null;
+  readonly caps = new SectionCaps();
+  /**
+   * Parent of the clipped content (bodies, batches, transparent proxies). With
+   * WebGPU it is a ClippingGroup: that renderer clips per group, not per material.
+   */
+  private clipGroup: THREE.Group = new THREE.Group();
+  private ClippingGroup: (new () => THREE.Group & { clippingPlanes: THREE.Plane[] }) | null = null;
+  private capsDirty = false;
+  /** GPU ID-buffer picking (WebGL); falls back to the BVH ray test. */
+  gpuPicking = true;
+  private gpuPicker: GpuPicker | null = null;
+  private pickVersion = 0;
+  /** Transparency (X-ray / per-body opacity) with order-independent blending. */
+  transparency!: TransparencyPass;
+  xray = false;
+  xrayOpacity = 0.28;
+  private bodyOpacity = new Map<number, number>();
+  private transparentBodies = new Set<number>();
 
   hover: Pick | null = null;
   selection: Pick[] = [];
@@ -184,22 +227,17 @@ export class Viewport {
 
   constructor(el: HTMLElement) {
     this.el = el;
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.localClippingEnabled = true;
-    this.renderer.toneMapping = THREE.NeutralToneMapping;
-    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.autoClear = false;
+    this.renderer = this.createWebGL();
     el.appendChild(this.renderer.domElement);
-    this.renderer.domElement.classList.add("vp-canvas");
 
     this.labels = new CSS2DRenderer();
     this.labels.domElement.classList.add("vp-labels");
     el.appendChild(this.labels.domElement);
 
-    const pmrem = new THREE.PMREMGenerator(this.renderer);
-    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.scene.environment = this.environmentFor(this.renderer);
     this.scene.environmentIntensity = 0.45;
+    this.gpuPicker = new GpuPicker(this.renderer);
+    this.transparency = new TransparencyPass(this.renderer, "webgl");
     this.scene.add(new THREE.HemisphereLight(0xf4f7ff, 0x5c6470, 0.55));
     // camera-attached lights: key from upper left, soft fill from the right
     for (const cam of [this.ortho, this.persp]) {
@@ -222,23 +260,13 @@ export class Viewport {
     });
     this.backMaterial = new THREE.MeshBasicMaterial({ color: "#e0a458", side: THREE.BackSide });
 
-    this.scene.add(this.model, this.threadLayer, this.trailLayer, this.refLayer, this.refModelLayer, this.sketchLayer, this.overlay);
+    this.clipGroup.add(this.model, this.transparency.sortedGroup);
+    this.scene.add(this.clipGroup, this.threadLayer, this.trailLayer, this.refLayer, this.refModelLayer, this.sketchLayer, this.overlay, this.caps.group);
     this.overlay.add(this.tagObj, this.hoverObj, this.selectObj);
     this.buildTriad();
     this.setStandardView([1, 1, 1], false);
 
-    const c = this.renderer.domElement;
-    c.addEventListener("pointerdown", (e) => this.onPointerDown(e));
-    c.addEventListener("pointermove", (e) => this.onPointerMove(e));
-    c.addEventListener("pointerup", (e) => this.onPointerUp(e));
-    c.addEventListener("pointerleave", () => {
-      this.setHover(null);
-      this.onCursorWorld?.(null);
-    });
-    c.addEventListener("wheel", (e) => this.onWheel(e), { passive: false });
-    c.addEventListener("dblclick", (e) => this.tool?.onDblClick?.(e, this));
-    c.addEventListener("contextmenu", (e) => e.preventDefault());
-    c.addEventListener("auxclick", (e) => e.preventDefault());
+    this.bindCanvas(this.renderer.domElement);
     window.addEventListener("keydown", (e) => this.keysDown.add(e.key));
     window.addEventListener("keyup", (e) => this.keysDown.delete(e.key));
     window.addEventListener("blur", () => this.keysDown.clear());
@@ -251,6 +279,162 @@ export class Viewport {
       requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
+  }
+
+  // ------------------------------------------------------------ backends ---
+
+  private createWebGL(): THREE.WebGLRenderer {
+    // stencil: section caps
+    const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true, stencil: true });
+    this.configureRenderer(r);
+    return r;
+  }
+
+  private configureRenderer(r: THREE.WebGLRenderer) {
+    r.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    r.localClippingEnabled = true;
+    r.toneMapping = THREE.NeutralToneMapping;
+    r.outputColorSpace = THREE.SRGBColorSpace;
+    r.autoClear = false;
+    r.domElement.classList.add("vp-canvas");
+  }
+
+  private environmentFor(r: THREE.WebGLRenderer, PM: typeof THREE.PMREMGenerator = THREE.PMREMGenerator): THREE.Texture {
+    const pmrem = new PM(r);
+    const t = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    pmrem.dispose();
+    return t;
+  }
+
+  private bindCanvas(c: HTMLCanvasElement) {
+    c.addEventListener("pointerdown", (e) => this.onPointerDown(e));
+    c.addEventListener("pointermove", (e) => this.onPointerMove(e));
+    c.addEventListener("pointerup", (e) => this.onPointerUp(e));
+    c.addEventListener("pointerleave", () => {
+      this.setHover(null);
+      this.onCursorWorld?.(null);
+    });
+    c.addEventListener("wheel", (e) => this.onWheel(e), { passive: false });
+    c.addEventListener("dblclick", (e) => this.tool?.onDblClick?.(e, this));
+    c.addEventListener("contextmenu", (e) => e.preventDefault());
+    c.addEventListener("auxclick", (e) => e.preventDefault());
+  }
+
+  /** Replaces the renderer (backend switch): canvas, events, environment, GPU helpers. */
+  private installRenderer(r: THREE.WebGLRenderer, kind: "webgl" | "webgpu", env: THREE.Texture) {
+    const old = this.renderer;
+    const style = old.domElement.style.cssText;
+    this.renderer = r;
+    r.domElement.style.cssText = style;
+    old.domElement.replaceWith(r.domElement);
+    this.bindCanvas(r.domElement);
+    const oldEnv = this.scene.environment;
+    this.scene.environment = env;
+    oldEnv?.dispose();
+    this.gpuPicker?.dispose();
+    this.gpuPicker = kind === "webgl" ? new GpuPicker(r) : null;
+    this.clipGroup.remove(this.transparency.sortedGroup);
+    this.transparency.dispose();
+    this.transparency = new TransparencyPass(r, kind);
+    // clipping per group (WebGPU) or per material (WebGL)
+    const g = kind === "webgpu" && this.ClippingGroup ? new this.ClippingGroup() : new THREE.Group();
+    g.add(...this.clipGroup.children, this.transparency.sortedGroup);
+    this.scene.remove(this.clipGroup);
+    this.scene.add(g);
+    this.clipGroup = g;
+    this.caps.makeClipGroup = kind === "webgpu" && this.ClippingGroup ? this.clipGroupFactory(this.ClippingGroup) : null;
+    this.applyTransparency();
+    if (this.zebra) this.setZebra(true);
+    try {
+      // no forceContextLoss(): losing a WebGL context can reset the GPU
+      // process channel and take the new WebGPU device down with it
+      old.dispose();
+    } catch {
+      /* already gone */
+    }
+    this.resize();
+    this.capsDirty = true;
+    this.pickVersion++;
+    this.markBatches();
+  }
+
+  /** Resolves once initBackend() settled (tests / benchmarks). */
+  backendReady: Promise<BackendInfo> = Promise.resolve(this.backend);
+
+  /**
+   * Chooses the render backend (preference "auto" | "webgpu" | "webgl"):
+   * WebGPU when an adapter / device is available and the renderer initialises,
+   * otherwise (or when the GPU device is lost later) WebGL.
+   */
+  async initBackend(pref: BackendPref = backendPref()): Promise<BackendInfo> {
+    return (this.backendReady = this.initBackendNow(pref));
+  }
+
+  private async initBackendNow(pref: BackendPref): Promise<BackendInfo> {
+    const choice = await chooseBackend(pref);
+    if (choice.kind === "webgpu") {
+      try {
+        await this.switchToWebGPU();
+        this.backend = choice;
+      } catch (e) {
+        if (this.backend.kind === "webgpu") this.fallbackToWebGL("");
+        this.backend = { kind: "webgl", reason: `WebGL に自動切替 (WebGPU の初期化に失敗: ${e instanceof Error ? e.message : String(e)})` };
+      }
+    } else if (this.backend.kind === "webgpu") this.fallbackToWebGL(choice.reason);
+    else this.backend = choice;
+    this.onBackendChange?.(this.backend);
+    return this.backend;
+  }
+
+  private async switchToWebGPU() {
+    installWebGPUShims();
+    const W = await import("three/webgpu");
+    const r = new W.WebGPURenderer({ antialias: true, alpha: true, stencil: true });
+    await r.init();
+    const be = r.backend as unknown as { isWebGPUBackend?: boolean; device?: { lost?: Promise<{ message?: string }>; addEventListener?(t: string, f: (e: { error?: { message?: string } }) => void): void } };
+    if (!be.isWebGPUBackend) {
+      r.dispose();
+      throw new Error("WebGPU バックエンドを使用できません");
+    }
+    const gr = r as unknown as THREE.WebGLRenderer;
+    this.ClippingGroup = W.ClippingGroup as unknown as new () => THREE.Group & { clippingPlanes: THREE.Plane[] };
+    this.configureRenderer(gr);
+    const env = this.environmentFor(gr, W.PMREMGenerator as unknown as typeof THREE.PMREMGenerator);
+    this.backend = { kind: "webgpu", reason: "WebGPU" };
+    this.installRenderer(gr, "webgpu", env);
+    // a lost device (driver reset, GPU process crash) falls back to WebGL
+    void be.device?.lost?.then((info) => {
+      if (this.renderer === gr) {
+        this.fallbackToWebGL(`GPU デバイスが失われました${info?.message ? `: ${info.message}` : ""}`);
+        this.onBackendChange?.(this.backend);
+      }
+    });
+    // repeated validation errors (unsupported material / driver bug): back to WebGL
+    let errors = 0;
+    be.device?.addEventListener?.("uncapturederror", (ev) => {
+      if (this.renderer === gr && ++errors === 3) {
+        this.fallbackToWebGL(`WebGPU のエラー: ${ev.error?.message ?? ""}`.slice(0, 200));
+        this.onBackendChange?.(this.backend);
+      }
+    });
+    // one frame now: errors surface here, not in the render loop
+    this.needsRender = true;
+    this.tick(performance.now());
+  }
+
+  private clipGroupFactory(C: new () => THREE.Group & { clippingPlanes: THREE.Plane[] }) {
+    return (planes: THREE.Plane[]) => {
+      const g = new C();
+      g.clippingPlanes = planes;
+      return g;
+    };
+  }
+
+  /** Back to WebGL (WebGPU unavailable, failed or lost). */
+  fallbackToWebGL(reason: string) {
+    const r = this.createWebGL();
+    this.installRenderer(r, "webgl", this.environmentFor(r));
+    this.backend = { kind: "webgl", reason: reason ? `WebGL に自動切替 (${reason})` : "WebGL" };
   }
 
   // ------------------------------------------------------------ rendering ---
@@ -310,6 +494,7 @@ export class Viewport {
     this.hiddenMaterial.gapSize = this.pixelSize * 4;
     this.invalidate();
     this.onViewChange?.();
+    for (const f of this.viewListeners) f();
   }
 
   private tick(t: number) {
@@ -328,19 +513,29 @@ export class Viewport {
     this.cullEdges();
     if (this.meshBatchDirty || this.edgeBatchDirty) this.rebuildBatches();
     this.updateLod();
+    if (this.capsDirty) this.rebuildCaps();
+    this.transparency.prepare();
     const r = this.renderer;
     r.setScissorTest(false);
     r.clear();
     r.render(this.scene, this.camera);
-    this.frameInfo = { calls: r.info.render.calls, triangles: r.info.render.triangles };
+    let calls = r.info.render.calls, triangles = r.info.render.triangles;
+    if (this.transparency.active && this.transparency.mode === "oit") {
+      const o = this.renderOIT();
+      calls += o.calls;
+      triangles += o.triangles;
+    }
+    this.frameInfo = { calls, triangles };
     if (this.capturing) return;
     // axis triad (bottom-left)
     const s = 90 * r.getPixelRatio();
     const size = r.getDrawingBufferSize(new THREE.Vector2());
     r.clearDepth();
     r.setScissorTest(true);
-    r.setScissor(0, 0, s, s);
-    r.setViewport(0, 0, s, s);
+    // WebGPU viewports count from the top
+    const ty = this.backend.kind === "webgpu" ? size.y / r.getPixelRatio() - s : 0;
+    r.setScissor(0, ty, s, s);
+    r.setViewport(0, ty, s, s);
     this.triadCam.quaternion.copy(this.view.quat);
     this.triadCam.position.set(0, 0, 5).applyQuaternion(this.view.quat);
     this.triadCam.updateMatrixWorld();
@@ -391,10 +586,15 @@ export class Viewport {
   /** Zebra-stripe display (surface continuity check). */
   zebra = false;
   private zebraMat: THREE.Material | null = null;
+  private zebraGpuMat: THREE.Material | null = null;
   private surfaceMats = new Map<string, THREE.MeshStandardMaterial>();
 
   private materialFor(bi: number): THREE.MeshStandardMaterial {
-    if (this.zebra) return (this.zebraMat ??= zebraMaterial()) as unknown as THREE.MeshStandardMaterial;
+    if (this.zebra) {
+      // the zebra shader is GLSL: WebGPU shows a normal-shaded fallback
+      if (this.backend.kind === "webgpu") return (this.zebraGpuMat ??= new THREE.MeshNormalMaterial({ side: THREE.DoubleSide })) as unknown as THREE.MeshStandardMaterial;
+      return (this.zebraMat ??= zebraMaterial()) as unknown as THREE.MeshStandardMaterial;
+    }
     if (this.surfaceBodies.has(bi)) {
       // surfaces: own colour, both sides lit and pickable
       const hl = this.highlighted.has(bi);
@@ -410,19 +610,12 @@ export class Viewport {
     }
     const color = this.bodyColors[bi];
     const hl = this.highlighted.has(bi);
-    const op = this.bodyOpacity[bi];
-    const tr = op !== undefined && op < 1;
-    if (!color && !hl && !tr) return this.material;
-    const key = `${color ?? "base"}|${hl ? 1 : 0}${tr ? `|${op}` : ""}`;
+    if (!color && !hl) return this.material;
+    const key = `${color ?? "base"}|${hl ? 1 : 0}`;
     let m = this.colorMats.get(key);
     if (!m) {
       m = this.material.clone();
       if (color) m.color.set(color);
-      if (tr) {
-        m.transparent = true;
-        m.opacity = op!;
-        m.depthWrite = false;
-      }
       m.metalness = this.material.metalness;
       m.roughness = this.material.roughness;
       if (hl) {
@@ -435,19 +628,15 @@ export class Viewport {
     return m;
   }
 
-  /** Per-body opacity (assembly "transparent others"); undefined / 1 = opaque. */
-  bodyOpacity: (number | undefined)[] = [];
-
-  /** Sets body opacities (index -> 0..1; missing = opaque). Transparent bodies keep instanced batching per material. */
-  setBodyOpacity(op: (number | undefined)[]) {
-    this.bodyOpacity = op;
+  /** Sets all body opacities at once (index -> 0..1; missing = opaque), drawn with the transparency pass. */
+  setBodyOpacities(op: (number | undefined)[]) {
+    this.bodyOpacity = new Map(op.flatMap((o, i) => (o !== undefined && o < 1 ? [[i, Math.max(0.02, o)] as [number, number]] : [])));
     this.bodies.forEach((b, i) => {
-      b.mesh.material = this.materialFor(i);
       const o = op[i];
       // edges of see-through bodies would clutter the view: fade them out with the body
       b.edges.visible = (o === undefined || o >= 0.5) && b.mesh.visible !== false && this.style !== "shaded" && !this.proxied.has(i) && this.bodyOn[i] !== false;
     });
-    this.markBatches();
+    this.applyTransparency();
   }
 
   private overlays: THREE.Group | null = null;
@@ -511,7 +700,7 @@ export class Viewport {
       const mesh = new THREE.Mesh(s.geom, this.materialFor(bi));
       mesh.userData.body = bi;
       const back = new THREE.Mesh(s.geom, this.backMaterial);
-      back.visible = !!this.clipPlane;
+      back.visible = this.clipPlanes.length > 0 && !this.sectionCaps;
       const edges = new THREE.LineSegments(s.edges, this.edgeMaterial);
       const hidden = new THREE.LineSegments(s.edges, this.hiddenMaterial);
       hidden.renderOrder = -1;
@@ -526,7 +715,7 @@ export class Viewport {
     const mesh = new THREE.Mesh(geom, forPick ? this.pickMaterial : this.materialFor(bi));
     mesh.userData.body = bi;
     const back = new THREE.Mesh(geom, this.backMaterial);
-    back.visible = !forPick && !!this.clipPlane;
+    back.visible = !forPick && this.clipPlanes.length > 0 && !this.sectionCaps;
     // convert edge polylines into segments, remembering which edge each belongs to
     const segs: number[] = [];
     const segEdge: number[] = [];
@@ -582,6 +771,9 @@ export class Viewport {
       this.markBatches();
     }
     if (this.pickViews !== this.bodies && this.pickViews[i]) this.placeView(this.pickViews[i], m.clone());
+    this.pickVersion++;
+    if (this.clipPlanes.length && this.sectionCaps) this.capsDirty = true;
+    if (this.transparentBodies.has(i)) this.applyTransparency();
     this.refreshHighlights();
   }
 
@@ -724,11 +916,11 @@ export class Viewport {
 
   private batchable(i: number): boolean {
     const b = this.bodies[i];
-    return !!b?.shared && this.batching && !this.zebra && this.bodyOn[i] !== false && !this.proxied.has(i) && !this.unbatched.has(i);
+    return !!b?.shared && this.batching && !this.zebra && this.bodyOn[i] !== false && !this.proxied.has(i) && !this.unbatched.has(i) && !this.transparentBodies.has(i);
   }
 
   private rebuildBatches() {
-    if (!this.batchLayer.parent) this.scene.add(this.batchLayer);
+    if (!this.batchLayer.parent) this.clipGroup.add(this.batchLayer);
     const L = Viewport.OFFSCREEN;
     if (this.meshBatchDirty) {
       this.meshBatchDirty = false;
@@ -773,6 +965,7 @@ export class Viewport {
         }
         this.batches.push({ items, mesh, coarse, box, mats, boxMats, centers, radius });
       }
+      this.hideTransparentMeshes();
     }
     if (this.edgeBatchDirty) {
       this.edgeBatchDirty = false;
@@ -1087,7 +1280,6 @@ export class Viewport {
 
   setBodies(bodies: BodyMesh[], pickBodies?: BodyMesh[], colors?: (string | undefined)[], matrices?: THREE.Matrix4[]) {
     this.bodyColors = colors ?? [];
-    this.bodyOpacity = [];
     this.surfaceBodies = new Set(bodies.flatMap((b, i) => (b.surface ? [i] : [])));
     this.highlighted = new Set([...this.highlighted].filter((i) => i < bodies.length));
     const sharedPick = this.pickViews === this.bodies;
@@ -1120,6 +1312,7 @@ export class Viewport {
     this.proxied = new Set([...this.proxied].filter((i) => i < this.bodies.length));
     this.bodyOn = [];
     this.unbatched.clear();
+    this.bodyOpacity = new Map([...this.bodyOpacity].filter(([i]) => i < this.bodies.length));
     this.applyStyle();
     this.applyClip();
     this.hover = null;
@@ -1149,6 +1342,8 @@ export class Viewport {
     if (this.bodyOn[i] !== on) {
       this.bodyOn[i] = on;
       this.markBatches();
+      this.capsDirty = true;
+      if (this.xray || this.bodyOpacity.has(i)) this.applyTransparency();
     }
   }
 
@@ -1167,23 +1362,147 @@ export class Viewport {
     this.edgeCullState = "";
     this.hiddenMaterial.depthTest = false;
     this.hiddenMaterial.opacity = this.style === "wireframe" ? 0.9 : 0.5;
+    this.pickVersion++;
+    this.capsDirty = true;
+    this.applyTransparency();
     this.markBatches();
   }
 
+  /** Single section plane (stage 1 API: back faces shown inside, no caps). */
   setSection(plane: THREE.Plane | null) {
-    this.clipPlane = plane;
+    this.setSections(plane ? [plane] : [], { caps: false });
+  }
+
+  /**
+   * Section planes (up to three; material kept where all distances are ≥ 0)
+   * with optional filled, hatched caps.
+   */
+  setSections(planes: THREE.Plane[], opts: { caps?: boolean; hatch?: boolean } = {}) {
+    this.clipPlanes = planes;
+    if (opts.caps !== undefined) this.sectionCaps = opts.caps;
+    if (opts.hatch !== undefined) this.sectionHatch = opts.hatch;
     this.applyClip();
   }
 
   private applyClip() {
-    const planes = this.clipPlane ? [this.clipPlane] : [];
+    const planes = this.clipPlanes;
+    if ("clippingPlanes" in this.clipGroup) (this.clipGroup as THREE.Group & { clippingPlanes: THREE.Plane[] }).clippingPlanes = planes;
     this.material.clippingPlanes = planes;
     for (const m of this.colorMats.values()) m.clippingPlanes = planes;
+    for (const m of this.surfaceMats.values()) m.clippingPlanes = planes;
     this.backMaterial.clippingPlanes = planes;
     this.edgeMaterial.clippingPlanes = planes;
     this.hiddenMaterial.clippingPlanes = planes;
-    for (const b of this.bodies) b.back.visible = !!this.clipPlane;
+    this.resultMaterial.clippingPlanes = planes;
+    const back = planes.length > 0 && !this.sectionCaps;
+    for (const b of this.bodies) b.back.visible = back;
+    this.capsDirty = true;
+    this.pickVersion++;
+    this.applyTransparency();
+    this.refreshHighlights();
+    this.refreshTags();
     this.invalidate();
+  }
+
+  /** Current section planes (copies), for saved views. */
+  sectionPlanes(): THREE.Plane[] {
+    return this.clipPlanes.map((p) => p.clone());
+  }
+
+  /** Restores section planes (saved views); keeps the current caps / hatch settings. */
+  setSectionPlanes(planes: THREE.Plane[]) {
+    this.setSections(planes);
+  }
+
+  /** Section planes from the X / Y / Z section state (on/off, offset, flip, caps, hatch). */
+  setSectionState(s: SectionState) {
+    this.setSections(sectionPlanes(s), { caps: s.caps, hatch: s.hatch });
+  }
+
+  /** Whether a world point is kept by the section planes. */
+  keptBySection(p: THREE.Vector3): boolean {
+    return keptByPlanes(this.clipPlanes, p);
+  }
+
+  private rebuildCaps() {
+    this.capsDirty = false;
+    if (!this.sectionCaps || !this.clipPlanes.length) {
+      this.caps.clear();
+      return;
+    }
+    this.model.updateMatrixWorld(true);
+    const items = this.bodies.flatMap((b, i) =>
+      this.bodyOn[i] === false || this.proxied.has(i) || this.surfaceBodies.has(i) ? [] : [{ mesh: b.mesh, pattern: this.sectionPatternOf?.(i) ?? i, color: this.bodyColors[i] }],
+    );
+    this.caps.update(this.clipPlanes, items, this.modelBounds(), this.sectionHatch);
+  }
+
+  // ------------------------------------------------------- transparency ---
+
+  /** X-ray: every body drawn transparent with order-independent blending. */
+  setXRay(on: boolean, opacity = this.xrayOpacity) {
+    this.xray = on;
+    this.xrayOpacity = opacity;
+    this.applyTransparency();
+  }
+
+  /** Per-body opacity (null = opaque again). */
+  setBodyOpacity(i: number, opacity: number | null) {
+    if (opacity === null || opacity >= 1) this.bodyOpacity.delete(i);
+    else this.bodyOpacity.set(i, Math.max(0.02, opacity));
+    this.applyTransparency();
+  }
+
+  /** Transparency method in use: weighted blended OIT, sorted fallback, or none. */
+  get transparencyMode(): "oit" | "sorted" | "off" {
+    return this.transparency.active ? this.transparency.mode : "off";
+  }
+
+  private applyTransparency() {
+    if (!this.transparency) return;
+    const items: TransparentItem[] = [];
+    const set = new Set<number>();
+    this.model.updateMatrixWorld(true);
+    if (this.style !== "wireframe")
+      this.bodies.forEach((b, i) => {
+        const op = this.xray ? Math.min(this.xrayOpacity, this.bodyOpacity.get(i) ?? 1) : this.bodyOpacity.get(i);
+        if (op === undefined || this.bodyOn[i] === false || this.proxied.has(i)) return;
+        set.add(i);
+        items.push({ mesh: b.mesh, color: this.bodyColors[i] ?? (this.surfaceBodies.has(i) ? SURFACE_COLOR : `#${this.material.color.getHexString()}`), opacity: op });
+      });
+    const changed = set.size !== this.transparentBodies.size || [...set].some((i) => !this.transparentBodies.has(i));
+    this.transparentBodies = set;
+    this.transparency.setItems(items, this.clipPlanes);
+    if (changed) this.markBatches(false);
+    this.hideTransparentMeshes();
+    this.invalidate();
+  }
+
+  /** Transparent bodies are drawn by the transparency pass, not by the main render. */
+  private hideTransparentMeshes() {
+    const L = Viewport.OFFSCREEN;
+    this.bodies.forEach((b, i) => {
+      const t = this.transparentBodies.has(i);
+      if (t) {
+        b.mesh.layers.set(L);
+        b.back.layers.set(L);
+      } else if (b.back.layers.mask !== 1) b.back.layers.set(0);
+    });
+  }
+
+  private renderOIT(): { calls: number; triangles: number } {
+    const cam = this.camera;
+    const opaque = this.bodies.flatMap((b, i) => (!this.transparentBodies.has(i) && b.mesh.visible && this.bodyOn[i] !== false && !this.proxied.has(i) ? [b.mesh] : []));
+    const box = this.modelBounds();
+    let range: [number, number] = [0, 1];
+    if (!box.isEmpty()) {
+      const s = box.getBoundingSphere(new THREE.Sphere());
+      const camPos = cam.getWorldPosition(new THREE.Vector3());
+      const dir = cam.getWorldDirection(new THREE.Vector3());
+      const d = s.center.clone().sub(camPos).dot(dir);
+      range = [d - s.radius, d + s.radius];
+    }
+    return this.transparency.render(cam, opaque, range);
   }
 
   // ----------------------------------------------------- reference data ---
@@ -1378,7 +1697,17 @@ export class Viewport {
     const cands: (Pick & { dist: number; prio: number })[] = [];
     const views = this.pickViews;
     const meshes = views.map((b) => b.mesh);
-    const meshHits = this.intersectMeshes(meshes).filter((h) => !this.clipPlane || this.clipPlane.distanceToPoint(h.point) >= 0);
+    const kept = (h: THREE.Intersection) => keptByPlanes(this.clipPlanes, h.point);
+    let meshHits: THREE.Intersection[];
+    // the ID buffer pays off when the ray crosses many bodies' bounds (dense
+    // assemblies); a few candidates are tested faster by their BVHs directly
+    const gpu = this.style === "wireframe" || this.rayCandidates(meshes) < this.gpuPickMinCandidates ? undefined : this.gpuPick(e);
+    if (gpu === null) meshHits = []; // background under the cursor
+    else if (gpu) {
+      // the ID buffer names the body: exact point from that body's BVH only
+      meshHits = this.intersectMeshes([meshes[gpu.body]]).filter(kept);
+      if (!meshHits.length) meshHits = this.intersectMeshes(meshes).filter(kept);
+    } else meshHits = this.intersectMeshes(meshes).filter(kept);
     const firstMesh = this.style === "wireframe" ? undefined : meshHits[0];
     const occl = firstMesh ? firstMesh.distance + ps * 2 : Infinity;
     if (kinds.has("face") && firstMesh) {
@@ -1423,7 +1752,7 @@ export class Viewport {
             cands.push({ kind: "ref", body: -1, index: h.index, key: r.id, point: pt.toArray() as Vec3, dist: h.distance - ps * 6, prio: 0 });
           }
         } else {
-          const h = this.raycaster.intersectObject(r.object, true).filter((x) => !this.clipPlane || this.clipPlane.distanceToPoint(x.point) >= 0)[0];
+          const h = this.raycaster.intersectObject(r.object, true).filter((x) => keptByPlanes(this.clipPlanes, x.point))[0];
           if (h && h.distance <= occl + ps * 2) cands.push({ kind: "ref", body: -1, index: -1, key: r.id, point: h.point.toArray() as Vec3, dist: h.distance, prio: 2 });
         }
       }
@@ -1438,6 +1767,54 @@ export class Viewport {
     void _d;
     void _p;
     return pick;
+  }
+
+  /** Picks answered by the GPU ID buffer / ray-BVH fallback. */
+  pickStats = { gpu: 0, fallback: 0 };
+  /** Use the ID buffer only when the cursor ray crosses at least this many bodies' bounding spheres. */
+  gpuPickMinCandidates = 6;
+
+  /** Number of meshes whose bounding sphere the current ray crosses (stops counting at the threshold). */
+  private rayCandidates(meshes: THREE.Mesh[]): number {
+    const ray = this.raycaster.ray, sph = new THREE.Sphere();
+    let n = 0;
+    for (const m of meshes) {
+      const g = m.geometry;
+      if (!g.boundingSphere) g.computeBoundingSphere();
+      if (ray.intersectsSphere(sph.copy(g.boundingSphere!).applyMatrix4(m.matrixWorld)) && ++n >= this.gpuPickMinCandidates) break;
+    }
+    return n;
+  }
+
+  /**
+   * Body and face under the cursor from the GPU ID buffer: null for
+   * background, undefined when unavailable (WebGPU, no float buffers).
+   */
+  gpuPick(e: { clientX: number; clientY: number }): { body: number; face: number; depth: number } | null | undefined {
+    if (!this.gpuPicking || !this.gpuPicker?.supported || this.backend.kind !== "webgl") {
+      this.pickStats.fallback++;
+      return undefined;
+    }
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const cam = this.camera;
+    cam.updateMatrixWorld();
+    const key = `${this.pickVersion}|${cam.matrixWorld.elements.join(",")}|${(cam as THREE.OrthographicCamera).projectionMatrix.elements.join(",")}`;
+    this.model.updateMatrixWorld(true);
+    const views = this.pickViews;
+    const res = this.gpuPicker.pick(
+      views.map((v) => v.mesh),
+      (i) => views[i]?.data.faceRanges,
+      cam,
+      rect.width,
+      rect.height,
+      e.clientX - rect.left,
+      e.clientY - rect.top,
+      this.clipPlanes,
+      key,
+    );
+    if (res === undefined) this.pickStats.fallback++;
+    else this.pickStats.gpu++;
+    return res;
   }
 
   /** World point on the model under the cursor (for zoom/orbit pivots). */
@@ -1532,7 +1909,7 @@ export class Viewport {
             polygonOffset: true,
             polygonOffsetFactor: -1,
             polygonOffsetUnits: -1,
-            clippingPlanes: this.clipPlane ? [this.clipPlane] : [],
+            clippingPlanes: this.clipPlanes,
           }),
         );
         this.applyBodyMatrix(m, p.body);
@@ -1568,7 +1945,7 @@ export class Viewport {
             polygonOffset: true,
             polygonOffsetFactor: -1,
             polygonOffsetUnits: -2,
-            clippingPlanes: this.clipPlane ? [this.clipPlane] : [],
+            clippingPlanes: this.clipPlanes,
           }),
         );
         this.applyBodyMatrix(m, p.body);

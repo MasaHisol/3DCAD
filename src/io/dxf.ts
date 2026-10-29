@@ -360,6 +360,12 @@ export class DxfWriter {
   arc(x: number, y: number, r: number, a0: number, a1: number, layer = "0") {
     this.add(0, "ARC", 8, layer, 10, x, 20, y, 30, 0, 40, r, 50, a0, 51, a1);
   }
+  /** 2D polyline (R12 POLYLINE / VERTEX / SEQEND). */
+  polyline(pts: [number, number][], closed = false, layer = "0") {
+    this.add(0, "POLYLINE", 8, layer, 66, 1, 10, 0, 20, 0, 30, 0, 70, closed ? 1 : 0);
+    for (const [x, y] of pts) this.add(0, "VERTEX", 8, layer, 10, x, 20, y, 30, 0);
+    this.add(0, "SEQEND", 8, layer);
+  }
   text(x: number, y: number, h: number, s: string, rot = 0, layer = "TEXT") {
     this.add(0, "TEXT", 8, layer, 10, x, 20, y, 30, 0, 40, h, 1, s, 50, rot);
   }

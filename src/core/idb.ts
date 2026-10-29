@@ -24,6 +24,27 @@ export async function idbSet(key: string, value: unknown): Promise<void> {
   });
 }
 
+export async function idbDelete(key: string): Promise<void> {
+  const d = await db();
+  await new Promise<void>((resolve, reject) => {
+    const tx = d.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+}
+
+/** Keys starting with `prefix`. */
+export async function idbKeys(prefix: string): Promise<string[]> {
+  const d = await db();
+  return new Promise<string[]>((resolve, reject) => {
+    const req = d.transaction(STORE, "readonly").objectStore(STORE).getAllKeys(IDBKeyRange.bound(prefix, prefix + "￿"));
+    req.onsuccess = () => resolve((req.result as IDBValidKey[]).map(String));
+    req.onerror = () => reject(req.error);
+  });
+}
+
 export async function idbGet<T>(key: string): Promise<T | undefined> {
   const d = await db();
   return new Promise<T | undefined>((resolve, reject) => {
