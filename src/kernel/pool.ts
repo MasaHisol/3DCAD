@@ -17,6 +17,8 @@ export interface PoolWorker {
   init(): Promise<boolean>;
   rebuildKey(key: string, features: RFeature[], timeoutMs?: number): Promise<RebuildResult>;
   dropEngine(key: string): Promise<boolean>;
+  /** Assembly interference on parts this worker has built (optional: KernelClient). */
+  interferenceEx?(placements: import("./protocol").Placement[], opts: import("./interferenceK").InterferenceExOptions): Promise<import("./interferenceK").InterferenceExHit[]>;
   dispose(): void;
 }
 
@@ -86,6 +88,32 @@ export class KernelPool {
     const n = Math.max(1, Math.min(this.size, jobs.length));
     await Promise.all(Array.from({ length: n }, (_, i) => lane(i)));
     this.scheduleIdle();
+    return results;
+  }
+
+  /**
+   * Generic tasks on the pool workers (at most `size` at a time); each task gets
+   * a ready worker and its lane number. Used e.g. by the assembly interference check.
+   */
+  async runTasks<T>(tasks: ((w: PoolWorker, lane: number) => Promise<T>)[]): Promise<T[]> {
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    const results: T[] = new Array(tasks.length);
+    let next = 0;
+    const lane = async (i: number) => {
+      for (;;) {
+        const j = next++;
+        if (j >= tasks.length) return;
+        const { w, ready } = this.worker(i);
+        await ready;
+        results[j] = await tasks[j](w, i);
+      }
+    };
+    const n = Math.max(1, Math.min(this.size, tasks.length));
+    try {
+      await Promise.all(Array.from({ length: n }, (_, i) => lane(i)));
+    } finally {
+      this.scheduleIdle();
+    }
     return results;
   }
 

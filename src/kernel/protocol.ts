@@ -309,6 +309,8 @@ export type WorkerRequest =
   | { kind: "drawViews"; key?: string; placements?: Placement[]; views: ViewSpec[] }
   | { kind: "routeBuild"; routes: import("./route").RouteSolidSpec[] }
   | { kind: "routeInterference"; placements: Placement[] }
+  /** Pairwise interference with touch detection and overlap meshes (assembly viewer). */
+  | { kind: "interferenceEx"; placements: Placement[]; opts: import("./interferenceK").InterferenceExOptions }
   /** Exact hidden-line removal per view (drawing engine input). */
   | { kind: "hlr"; views: import("./hlr").HlrView[]; key?: string; placements?: Placement[] }
   /** State of the extended kernel; `load` loads it now. */

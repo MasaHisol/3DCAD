@@ -334,7 +334,7 @@ export const CURRICULUM2: Chapter[] = [
           { text: "<b>メイト</b> 拘束で、ブラケットの<b>底面</b>とプレートの<b>上面</b>を順にクリックして OK。ブラケットがプレートに載ります。", tab: "assemble", ui: "asm-mate", check: (s) => activeAsm(s, "mate") || activeAsm(s, "flush"), hint: "ビューを回して、ブラケットの底面を選びます。" },
           { text: "<b>挿入</b> 拘束で、ブラケットのボスの穴の円形エッジと、ローラ軸の段の円形エッジを選んで OK。", tab: "assemble", ui: "asm-insert", check: (s) => activeAsm(s, "insert") },
           { text: "<b>標準部品</b> から <b>六角穴付きボルト</b> M8 や <b>軸受</b> を選んで、2 個以上配置します。", tab: "assemble", ui: "asm-library", check: (s) => s.asm.components.length >= 5, hint: "種類と呼び径を選んで「配置」を押します。" },
-          { text: "<b>干渉解析</b> で、部品同士がめり込んでいないか確認します。", tab: "assemble", ui: "asm-interf" },
+          { text: "<b>干渉解析</b> で、部品同士がめり込んでいないか確認します。", tab: "assemble", ui: "asm-interference" },
           { text: "<b>部品表</b> を開き、部品番号 (CNV-…) と数量を確認します。レッスン完了です。", tab: "assemble", ui: "asm-bom" },
         ],
         summary: ["基準部品を接地し、ほかは拘束で位置決め", "回転する部品は回転の自由度を残す", "ボルト・軸受は標準部品を使い、干渉と部品表で確認"],
@@ -632,7 +632,7 @@ export const CURRICULUM2: Chapter[] = [
         steps: [
           { text: "<b>メイト</b> でブラケットの底面をプレートの上面に合わせます。", tab: "assemble", ui: "asm-mate", check: (s) => activeAsm(s, "mate") || activeAsm(s, "flush") },
           { text: "<b>挿入</b> でローラ軸をブラケットの穴に組み付けます。", tab: "assemble", ui: "asm-insert", check: (s) => activeAsm(s, "insert") },
-          { text: "<b>干渉解析</b> を実行し、干渉があれば位置や寸法を見直します。", tab: "assemble", ui: "asm-interf" },
+          { text: "<b>干渉解析</b> を実行し、干渉があれば位置や寸法を見直します。", tab: "assemble", ui: "asm-interference" },
           { text: "<b>部品表</b> で部品番号と数量を確認します。レッスン完了です。", tab: "assemble", ui: "asm-bom" },
         ],
         summary: ["組立後は必ず干渉チェック", "はめあい部の意図した重なりと誤りを区別する", "部品表で部品番号・数量の抜けを確認"],

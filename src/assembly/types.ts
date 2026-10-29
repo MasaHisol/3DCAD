@@ -70,6 +70,10 @@ export interface AssemblyDocument {
   drawing?: import("../drawing/types").DrawingDoc;
   /** Wire / cable, hose and pipe routes (配線・配管); absent in older files. */
   routes?: import("../routing/types").AsmRoute[];
+  /** Saved display states (表示状態 / ビュー); absent in older files. */
+  views?: import("./views").SavedView[];
+  /** Interference pairs to ignore (press fits…), as pairKey(a, b). */
+  interferenceIgnore?: string[];
 }
 
 export function newAssembly(name = "アセンブリ1"): AssemblyDocument {

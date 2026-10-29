@@ -5,6 +5,7 @@
 
 import type { AssemblyDocument } from "../assembly/types";
 import { FEATURE_LABELS, MATERIALS } from "./document";
+import { parseViews } from "../assembly/views";
 import type { PartDocument } from "./types";
 import { surfaceBase } from "./surfaceResolve";
 import { cleanPmi } from "../mbd/pmi";
@@ -84,6 +85,9 @@ export function validateAssembly(raw: unknown): Checked<AssemblyDocument> {
   if (!Array.isArray(doc.params)) doc.params = [];
   if (!isObj(doc.iprops)) doc.iprops = {};
   if (typeof doc.name !== "string" || !doc.name) doc.name = "アセンブリ";
+  // saved views / interference ignore list (stage 2 assembly viewing)
+  if (doc.views !== undefined) doc.views = parseViews(doc.views);
+  if (doc.interferenceIgnore !== undefined) doc.interferenceIgnore = Array.isArray(doc.interferenceIgnore) ? doc.interferenceIgnore.filter((x) => typeof x === "string") : [];
   // embedded parts
   doc.parts = doc.parts.filter((p) => {
     if (!isObj(p) || typeof p.id !== "string") return (warnings.push("不正な部品定義を削除しました"), false);

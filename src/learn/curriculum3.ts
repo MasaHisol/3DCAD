@@ -161,7 +161,7 @@ export const CURRICULUM3: Chapter[] = [
         steps: [
           { text: "<b>挿入</b> 拘束で、ブラケットのボス穴の円形エッジと軸の段の円形エッジを選んで OK。", tab: "assemble", ui: "asm-insert", check: (s) => activeAsm(s, "insert"), hint: "ビューを回して、穴の縁と軸の段の縁を選びます。" },
           { text: "<b>標準部品</b> から <b>六角穴付きボルト</b> M8 を選んで 2 個以上配置します。", tab: "assemble", ui: "asm-library", check: (s) => s.asm.components.length >= 4 },
-          { text: "<b>干渉解析</b> で、部品同士がめり込んでいないか確認します。", tab: "assemble", ui: "asm-interf" },
+          { text: "<b>干渉解析</b> で、部品同士がめり込んでいないか確認します。", tab: "assemble", ui: "asm-interference" },
           { text: "<b>部品表</b> で部品番号 (MU-…) と数量、購入品のボルトを確認します。", tab: "assemble", ui: "asm-bom" },
           { text: "<b>分解</b> を押して、部品を組立方向に引き離した分解図を表示します。", tab: "assemble", ui: "asm-explode", check: (s) => !!s.exploded },
           { text: "パネルの OK で分解表示を確定します。レッスン完了です。", tab: "assemble", check: (s) => !s.asmCommand },

@@ -127,6 +127,9 @@ export class KernelClient {
   routeInterference(placements: Placement[]): Promise<{ route: string; comp: number; volume: number }[]> {
     return this.call({ kind: "routeInterference", placements });
   }
+  interferenceEx(placements: Placement[], opts: import("./interferenceK").InterferenceExOptions): Promise<import("./interferenceK").InterferenceExHit[]> {
+    return this.call({ kind: "interferenceEx", placements, opts });
+  }
   interference(placements: Placement[]): Promise<Interference[]> {
     return this.call({ kind: "interference", placements });
   }

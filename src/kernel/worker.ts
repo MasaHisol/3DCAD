@@ -8,6 +8,7 @@ import { buildRoutes, routeInterference, routeShapes } from "./route";
 import { exportIgesNative, exportStepXcaf, importStepAssembly } from "./exchange";
 import { extKernel, extKernelError, extKernelIfLoaded, setExtLoader } from "./ext";
 import { hlrProject } from "./hlr";
+import { interferenceEx } from "./interferenceK";
 import type { BodyMesh, ExtKernelInfo, Placement, ThreadInfo, WorkerRequest, WorkerResponse } from "./protocol";
 
 // Extended kernel: the full opencascade.js build, fetched and compiled only when an
@@ -112,6 +113,12 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
       const shapes = placed(req.placements);
       const hits = interferences(shapes.map((x) => x.shape)).map((h) => ({ a: shapes[h.a].index, b: shapes[h.b].index, volume: h.volume }));
       return { result: hits.filter((h) => h.a !== h.b), transfer: [] };
+    }
+    case "interferenceEx": {
+      const hits = interferenceEx(placed(req.placements), req.opts);
+      const transfer: Transferable[] = [];
+      for (const h of hits) if (h.mesh) transfer.push(h.mesh.positions.buffer, h.mesh.indices.buffer);
+      return { result: hits, transfer };
     }
     case "routeBuild": {
       const res = buildRoutes(req.routes);
