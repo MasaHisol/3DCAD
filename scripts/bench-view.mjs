@@ -5,6 +5,11 @@
 // and measures: open time (cold and warm), orbit frame rate, draw calls,
 // triangles and pick latency. Set CHROMIUM_PATH for a specific Chromium and
 // BENCH_PORT to change the preview port.
+//   --renderer=webgl|webgpu|auto   render backend (default webgl; webgpu needs a
+//                                  WebGPU adapter: SwiftShader's is enabled here)
+//   --gpupick=0                    disable GPU ID-buffer picking (BVH only)
+//   --xray=1                       measure with X-ray (order-independent transparency)
+//   --section=1                    measure with three section planes and caps
 import { writeFileSync } from "node:fs";
 import { preview } from "vite";
 import { chromium } from "playwright";
@@ -14,18 +19,19 @@ const arg = (n, d) => {
   return a ? a.split("=")[1] : d;
 };
 const BRACKETS = +arg("brackets", 200), PINS = +arg("pins", 1000), VARIANTS = +arg("variants", 8), FRAMES = +arg("frames", 20);
+const RENDERER = arg("renderer", "webgl"), GPUPICK = arg("gpupick", "1") !== "0", XRAY = arg("xray", "0") === "1", SECTION = arg("section", "0") === "1";
 const port = +(process.env.BENCH_PORT || 4180);
 const server = await preview({ preview: { port, strictPort: true }, logLevel: "error" });
 const browser = await chromium.launch({
   executablePath: process.env.CHROMIUM_PATH || undefined,
-  args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
+  args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", ...(RENDERER !== "webgl" ? ["--enable-unsafe-webgpu"] : [])],
 });
 const page = await browser.newPage({ viewport: { width: 1400, height: 860 } });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 
 try {
-  await page.goto(`http://localhost:${port}/`);
+  await page.goto(`http://localhost:${port}/?renderer=${RENDERER}`);
   await page.evaluate(async () => {
     localStorage.clear();
     await new Promise((r) => {
@@ -35,6 +41,12 @@ try {
   });
   await page.reload();
   await page.waitForFunction(() => window.cad);
+  const backend = await page.evaluate(async () => {
+    const b = await window.cad.vp.backendReady;
+    return b;
+  });
+  console.log("backend:", backend.kind, "-", backend.reason, backend.adapter ?? "");
+  await page.evaluate((g) => (window.cad.vp.gpuPicking = g), GPUPICK);
   await page.mouse.click(5, 5);
   await page.evaluate(() => window.cad.loadSampleAssembly());
   await page.waitForFunction(() => window.cad.asm.bodyMap.length >= 3, null, { timeout: 60000 });
@@ -96,13 +108,22 @@ try {
   // new session (page reload): only persistent caches help
   await page.reload();
   await page.waitForFunction(() => window.cad);
+  await page.evaluate(async (g) => {
+    await window.cad.vp.backendReady;
+    window.cad.vp.gpuPicking = g;
+  }, GPUPICK);
   await page.evaluate((d) => (window.__benchDoc = d), benchDoc);
   const reloadMs = await open();
   await page.waitForTimeout(1000);
 
-  const m = await page.evaluate(async (FRAMES) => {
+  const m = await page.evaluate(async ([FRAMES, XRAY, SECTION]) => {
     const vp = window.cad.vp;
     const frame = () => new Promise((r) => requestAnimationFrame(() => r()));
+    if (XRAY) vp.setXRay(true);
+    if (SECTION) {
+      const b = vp.modelBounds(), c = b.getCenter(b.min.clone());
+      vp.setSectionState({ caps: true, hatch: true, planes: ["X", "Y", "Z"].map((axis, i) => ({ axis, enabled: true, value: c.getComponent(i), flip: false })) });
+    }
     vp.fitAll(false);
     vp.invalidate();
     await frame();
@@ -112,13 +133,15 @@ try {
     const pivot = vp.modelBounds().getCenter(new (vp.view.target.constructor)());
     const frames = FRAMES;
     await frame();
-    const gl = vp.renderer.getContext(), px = new Uint8Array(4);
+    const gpu = vp.backend.kind === "webgpu" ? vp.renderer.backend.device : null;
+    const gl = gpu ? null : vp.renderer.getContext(), px = new Uint8Array(4);
     const t0 = performance.now();
     for (let i = 0; i < frames; i++) {
       vp.orbit(6, 2, pivot);
       await frame();
       // wait until the GPU has really drawn the frame (software GL queues work asynchronously)
-      gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      if (gpu) await gpu.queue.onSubmittedWorkDone();
+      else gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
     }
     const fps = (frames * 1000) / (performance.now() - t0);
     const st2 = vp.stats();
@@ -139,9 +162,9 @@ try {
       return { ms: (performance.now() - t) / pts.length, n };
     };
     const cold = pass(), warm = pass();
-    return { fps, calls: st.calls, triangles: st.triangles, callsOrbit: st2.calls, trianglesOrbit: st2.triangles, geometries: st.geometries, pickMs: warm.ms, pickColdMs: cold.ms, pickHits: warm.n, picks: pts.length };
-  }, FRAMES);
-  const res = { instances: N, coldOpenMs: Math.round(coldMs), warmOpenMs: Math.round(warmMs), reloadOpenMs: Math.round(reloadMs), orbitFps: +m.fps.toFixed(2), drawCalls: m.calls, triangles: m.triangles, drawCallsOrbit: m.callsOrbit, trianglesOrbit: m.trianglesOrbit, gpuGeometries: m.geometries, pickMs: +m.pickMs.toFixed(2), pickColdMs: +m.pickColdMs.toFixed(2), pickHits: `${m.pickHits}/${m.picks}`, pageErrors: errors.length };
+    return { transparency: vp.transparencyMode, pickGpu: vp.pickStats.gpu, fps, calls: st.calls, triangles: st.triangles, callsOrbit: st2.calls, trianglesOrbit: st2.triangles, geometries: st.geometries, pickMs: warm.ms, pickColdMs: cold.ms, pickHits: warm.n, picks: pts.length };
+  }, [FRAMES, XRAY, SECTION]);
+  const res = { backend: backend.kind, transparency: m.transparency, gpuPicks: m.pickGpu, instances: N, coldOpenMs: Math.round(coldMs), warmOpenMs: Math.round(warmMs), reloadOpenMs: Math.round(reloadMs), orbitFps: +m.fps.toFixed(2), drawCalls: m.calls, triangles: m.triangles, drawCallsOrbit: m.callsOrbit, trianglesOrbit: m.trianglesOrbit, gpuGeometries: m.geometries, pickMs: +m.pickMs.toFixed(2), pickColdMs: +m.pickColdMs.toFixed(2), pickHits: `${m.pickHits}/${m.picks}`, pageErrors: errors.length };
   console.table(res);
   const out = arg("json", "");
   if (out) writeFileSync(out, JSON.stringify(res, null, 2));

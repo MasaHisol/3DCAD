@@ -1106,6 +1106,32 @@ kbd {
   font-variant-numeric: tabular-nums;
   color: var(--text-2);
 }
+/* three-plane section panel (ui/sectionPanel.ts) */
+.section-panel.section-panel3 {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+.section-panel3 .sec-head,
+.section-panel3 .sec-row,
+.section-panel3 .sec-opts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-panel3 .sec-gap {
+  flex: 1;
+}
+.section-panel3 .sec-axis {
+  min-width: 42px;
+  font-weight: 600;
+}
+.section-panel3 input[type="range"] {
+  width: 200px;
+}
+.section-panel3 .sec-dxf {
+  margin-left: auto;
+}
 
 /* ------------------------------------------------------- status bar --- */
 .statusbar {

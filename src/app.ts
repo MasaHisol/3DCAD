@@ -30,6 +30,8 @@ import { SURFACE_ONLY_MSG } from "./core/surfaceResolve";
 import { decodeDxf, encodeDxf, exportMeshes, objToStl, parseDxf, sketchToDxf, type MeshFormat } from "./io/formats";
 import { NAV_PRESETS, type NavPreset } from "./viewer/viewport";
 import { Timeline } from "./ui/timeline";
+import { SectionPanel } from "./ui/sectionPanel";
+import { MeshRefiner } from "./viewer/render/refine";
 import { openCommandSearch } from "./ui/commandSearch";
 import { AssemblyEnv } from "./assembly/env";
 import { openLibrary } from "./library/dialog";
@@ -116,6 +118,11 @@ export class App {
   private titleEl!: HTMLElement;
   private busyEl!: HTMLElement;
   private sectionPanel: HTMLElement | null = null;
+  /** Section view (3 planes, caps, DXF); null when off. */
+  sectionView: SectionPanel | null = null;
+  /** Progressive (coarse first) and view-dependent display mesh refinement of the part. */
+  refiner!: MeshRefiner;
+  private lastBefore: BodyMesh[] | undefined;
   sliceGraphics = false;
   showPlanePicker = false;
 
@@ -209,6 +216,26 @@ export class App {
     main.appendChild(vpEl);
 
     this.vp = new Viewport(vpEl);
+    // render backend: WebGPU when available, WebGL otherwise (automatic fallback)
+    void this.vp.initBackend().catch(() => undefined);
+    this.refiner = new MeshRefiner({
+      remesh: (q) => this.kernel.remesh(q),
+      pixelSize: () => this.vp.pixelSize,
+      token: () => this.regenSeq,
+      apply: (r, _q, token) => {
+        if (this.env !== "part" || token !== this.regenSeq) return false;
+        this.bodies = r.bodies;
+        this.surfaces = r.surfaces;
+        const shown = r.surfaces.length ? [...r.bodies, ...r.surfaces] : r.bodies;
+        if (!this.lastBefore) this.pickBodies = shown;
+        this.vp.setBodies(shown, this.lastBefore, shown.some((b) => b.color) ? shown.map((b) => b.color) : undefined);
+        refreshCurvature(this);
+        return true;
+      },
+    });
+    this.vp.viewListeners.add(() => {
+      if (this.env === "part") this.refiner.onView();
+    });
     this.pmi = new PmiLayer(this);
     this.pmi.onLabelDblClick = (id) => editPmi(this, id);
     this.loadSettings();
@@ -438,6 +465,8 @@ export class App {
     const shown = this.surfaces.length ? [...res.bodies, ...this.surfaces] : res.bodies;
     this.pickBodies = res.before ?? shown;
     this.vp.setBodies(shown, res.before, shown.some((b) => b.color) ? shown.map((b) => b.color) : undefined);
+    this.lastBefore = res.before;
+    this.refiner.afterRebuild(!!res.refine, shown);
     for (const [id, msg] of Object.entries(res.notices ?? {}))
       if (!this.shownNotices.has(id + msg)) {
         this.shownNotices.add(id + msg);
@@ -877,57 +906,18 @@ export class App {
   // ------------------------------------------------------------ section ---
 
   toggleSectionView() {
-    if (this.sectionPanel) {
-      this.sectionPanel.remove();
+    if (this.sectionView) {
+      this.sectionView.dispose();
+      this.sectionView = null;
       this.sectionPanel = null;
-      this.vp.setSection(null);
+      this.applySlice();
       this.ribbon.refresh();
       return;
     }
-    let axis: "X" | "Y" | "Z" = "Z";
-    let flip = false;
-    const box = this.vp.modelBounds();
-    const range = box.isEmpty() ? new THREE.Box3(new THREE.Vector3(-50, -50, -50), new THREE.Vector3(50, 50, 50)) : box;
-    const slider = h("input", { type: "range", min: "0", max: "1000", value: "500", "aria-label": "断面位置" });
-    const valEl = h("span", { class: "sec-val" });
-    const apply = () => {
-      const i = { X: 0, Y: 1, Z: 2 }[axis];
-      const lo = range.min.getComponent(i), hi = range.max.getComponent(i);
-      const v = lo + ((hi - lo) * Number(slider.value)) / 1000;
-      const n = new THREE.Vector3().setComponent(i, flip ? 1 : -1);
-      this.vp.setSection(new THREE.Plane(n, flip ? -v : v));
-      valEl.textContent = `${axis} = ${formatNumber(v, 2)} mm`;
-    };
-    const axisSel = h("div", { class: "toggle-group" });
-    for (const a of ["X", "Y", "Z"] as const) {
-      const b = h(
-        "button",
-        {
-          class: "tg txt" + (a === axis ? " on" : ""),
-          onClick: () => {
-            axis = a;
-            axisSel.querySelectorAll(".tg").forEach((x) => x.classList.toggle("on", x === b));
-            apply();
-          },
-        },
-        `${a}`,
-      );
-      axisSel.appendChild(b);
-    }
-    slider.addEventListener("input", apply);
-    this.sectionPanel = h(
-      "div",
-      { class: "section-panel" },
-      iconEl("section"),
-      h("strong", {}, "断面図"),
-      axisSel,
-      slider,
-      valEl,
-      h("button", { class: "icon-btn", title: "反転", onClick: () => ((flip = !flip), apply()) }, iconEl("flip")),
-      h("button", { class: "icon-btn", title: "断面図を終了", onClick: () => this.toggleSectionView() }, iconEl("close")),
-    );
+    // three planes X / Y / Z with caps, hatching, sweep and DXF output (ui/sectionPanel.ts)
+    this.sectionView = new SectionPanel(this);
+    this.sectionPanel = this.sectionView.el;
     this.vp.el.appendChild(this.sectionPanel);
-    apply();
     this.ribbon.refresh();
   }
 
