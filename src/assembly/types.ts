@@ -72,6 +72,10 @@ export interface AssemblyDocument {
   routes?: import("../routing/types").AsmRoute[];
   /** Measurements saved as annotations (stage 2, src/measure). */
   measureNotes?: import("../measure/types").MeasureNote[];
+  /** Saved display states (表示状態 / ビュー); absent in older files. */
+  views?: import("./views").SavedView[];
+  /** Interference pairs to ignore (press fits…), as pairKey(a, b). */
+  interferenceIgnore?: string[];
 }
 
 export function newAssembly(name = "アセンブリ1"): AssemblyDocument {

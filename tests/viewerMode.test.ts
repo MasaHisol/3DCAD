@@ -85,14 +85,14 @@ describe("viewer command list", () => {
     const before = viewerCommandIds().length;
     registerViewerCommand("saved-views", "ビュー");
     registerViewerCommand("saved-views", "ビュー");
-    registerViewerCommand("measure-clearance");
+    registerViewerCommand("demo-extra-tool");
     expect(viewerCommandIds().length).toBe(before + 2);
     expect(VIEWER_PANELS.find((p) => p.title === "ビュー")!.ids).toEqual(["saved-views"]);
     expect(VIEWER_PANELS.at(-1)!.title).toBe("モード"); // the edit-mode button stays last
     // undo
     VIEWER_PANELS.splice(VIEWER_PANELS.findIndex((p) => p.title === "ビュー"), 1);
     const m = VIEWER_PANELS.find((p) => p.title === "測定・断面")!;
-    m.ids.splice(m.ids.indexOf("measure-clearance"), 1);
+    m.ids.splice(m.ids.indexOf("demo-extra-tool"), 1);
   });
 
   it("blocks editing shortcuts", () => {

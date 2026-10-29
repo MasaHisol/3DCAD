@@ -7,7 +7,7 @@ import { evalWith, evaluateParams } from "../core/params";
 import { prepareDocument, resolveDocument } from "../core/resolve";
 import { Store } from "../core/store";
 import type { PartDocument, Vec3 } from "../core/types";
-import type { BodyMesh, MassProps, Placement, RFeature } from "../kernel/protocol";
+import type { BodyMesh, Placement, RFeature } from "../kernel/protocol";
 import { confirmDialog, contextMenu, download, h, iconEl, markingMenu, modal, pickFile, toast, type MenuItem } from "../ui/dom";
 import { PropertyPanel } from "../ui/panel";
 import type { RibbonTab } from "../ui/ribbon";
@@ -16,12 +16,15 @@ import { lazyCommand, loadLazyCommand } from "../commands/features";
 import { analyzeDof, explodeOffsets, type DofReport } from "./motion";
 import { startDrive, startExplode } from "./motionUi";
 import { patternMatrices, type AsmPattern } from "./pattern";
-import { LIGHT_OPEN_COMPONENTS, boxMatrix, hashKey, isolateVisibility, matchesFilter, rebuildOrder, useProxy } from "./largeAsm";
+import { LIGHT_OPEN_COMPONENTS, boxMatrix, hashKey, matchesFilter, rebuildOrder, useProxy } from "./largeAsm";
 import { idbGet, idbSet } from "../core/idb";
 import { KernelClient } from "../kernel/client";
 import { KernelPool, poolSize } from "../kernel/pool";
 import { constraintError, solveAssembly, type SolverConstraint } from "./solver";
 import { RouteManager } from "../routing/ui";
+import { AsmViewing } from "./viewing";
+import { BomPanel } from "../ui/bomPanel";
+import { colorMenu, openInterferencePanel, openViewsPanel, renderLegend, visibilityMenu } from "../ui/asmViewUi";
 import { edgeGeo, faceGeo, geoFromRef, meshEdgeRef, meshFaceRef } from "./toporef";
 import { IDENTITY, newAssembly, type AsmComponent, type AsmConstraint, type AsmConstraintType, type AssemblyDocument, type GeoRef } from "./types";
 
@@ -95,9 +98,18 @@ export class AssemblyEnv {
 
   /** Wire / pipe routes (配線・配管). */
   readonly routes: RouteManager = new RouteManager(this);
+  /** Viewing: visibility, transparency, colour modes, saved views, interference (stage 2). */
+  readonly viewing: AsmViewing = new AsmViewing(this);
+  /** Called after the selection changed (BOM panel). */
+  readonly selectionListeners = new Set<() => void>();
+
+  /** BOM panel (部品表), synced with the 3D selection. */
+  readonly bom: BomPanel;
 
   constructor(readonly app: App) {
     this.store.on((r) => this.onChange(r));
+    this.bom = new BomPanel(app);
+    this.viewing.listeners.add(() => renderLegend(app));
   }
 
   get doc() {
@@ -107,6 +119,7 @@ export class AssemblyEnv {
   // ------------------------------------------------------------- update ---
 
   private onChange(reason: string) {
+    if (reason === "load") this.viewing.reset();
     if (this.app.env !== "assembly" || reason === "solve") return;
     void this.update();
     this.app.refreshUI();
@@ -135,7 +148,7 @@ export class AssemblyEnv {
     return this.updating;
   }
 
-  private partFeatures(partId: string): RFeature[] {
+  partFeatures(partId: string): RFeature[] {
     const p = this.doc.parts.find((x) => x.id === partId)!;
     if (p.kind === "step") return [{ id: "import", type: "import", format: "step", data: p.step ?? "" }];
     const doc = p.doc!;
@@ -184,10 +197,10 @@ export class AssemblyEnv {
     const poolIds = todo.filter((id) => !cached.has(id));
     const n = this.parallel && poolIds.length >= 2 ? poolSize() : 0;
     if (n > 0) {
-      this.pool ??= new KernelPool(() => new KernelClient(), n);
+      this.kernelPool();
       const jobs = poolIds.map((id) => ({ id, features: this.partFeatures(id) }));
       const hashes = new Map(poolIds.map((id) => [id, hashOf(this.doc.parts.find((x) => x.id === id)!)]));
-      await this.pool.run(jobs, (r) => {
+      await this.kernelPool().run(jobs, (r) => {
         if (!r.result) return; // failed in the pool: built in the main worker below
         const errs = Object.values(r.result.errors);
         const hash = hashes.get(r.id)!;
@@ -245,6 +258,11 @@ export class AssemblyEnv {
     }
     // normal open: load the B-rep of pool-built parts in the background
     if (pooled.size && !this.lightOpen) void this.ensureBrep([...pooled], true).catch(() => {});
+  }
+
+  /** The worker pool (created on demand). */
+  kernelPool(): KernelPool {
+    return (this.pool ??= new KernelPool(() => new KernelClient(), Math.max(1, poolSize())));
   }
 
   /**
@@ -447,6 +465,7 @@ export class AssemblyEnv {
     const colors: (string | undefined)[] = [];
     const mats: THREE.Matrix4[] = [];
     this.bodyMap = [];
+    this.viewing.refreshColors();
     const ex = this.explodeMap();
     const trails: [Vec3, Vec3][] = [];
     const placeholders: { matrix: number[]; color?: string }[] = [];
@@ -458,7 +477,7 @@ export class AssemblyEnv {
         placeholders.push({ matrix: m4(c.matrix).multiply(m4(boxMatrix([-10, -10, -10], [10, 10, 10]))).toArray(), color: "#b8c0cc" });
         return;
       }
-      const color = this.partColor(c.partId);
+      const color = this.viewing.colorOf(c.id) ?? this.partColor(c.partId);
       const off = ex.get(c.id);
       const m = m4(c.matrix);
       if (off && Math.hypot(...off) > 1e-9) {
@@ -474,6 +493,9 @@ export class AssemblyEnv {
       });
     });
     vp.setBodies(bodies, undefined, colors, mats);
+    this.viewing.applyDisplay();
+    renderLegend(this.app);
+    this.bom.refresh();
     this.placeholders = placeholders;
     this.applyLight();
     if (this.motionTrace) for (let i = 1; i < this.motionTrace.length; i++) trails.push([this.motionTrace[i - 1], this.motionTrace[i]]);
@@ -500,7 +522,7 @@ export class AssemblyEnv {
       const v = vp.bodies[i];
       if (!b || !v) return;
       const m = (v.matrix ?? new THREE.Matrix4()).clone().multiply(m4(boxMatrix(b.bbox[0], b.bbox[1])));
-      boxes.push({ matrix: m.toArray(), color: this.partColor(c.partId) });
+      boxes.push({ matrix: m.toArray(), color: this.viewing.colorOf(c.id) ?? this.partColor(c.partId) });
     });
     vp.setBodyProxied(proxied);
     vp.setProxyBoxes(boxes);
@@ -530,14 +552,13 @@ export class AssemblyEnv {
 
   /** Isolate: only the selected components stay visible. */
   isolateSelection() {
-    const sel = new Set(this.doc.components.filter((c) => this.selected.has(c.id)).map((c) => c.id));
-    if (!sel.size) return void toast("分離するコンポーネントを選択してください", "warn");
-    const vis = isolateVisibility(this.doc.components.map((c) => c.id), sel);
-    this.store.mutate("分離", (d) => d.components.forEach((c) => (c.visible = vis.get(c.id)!)));
+    const sel = this.doc.components.filter((c) => this.selected.has(c.id)).map((c) => c.id);
+    if (!sel.length) return void toast("分離するコンポーネントを選択してください", "warn");
+    this.viewing.isolate(sel);
   }
 
   showAll() {
-    this.store.mutate("すべて表示", (d) => d.components.forEach((c) => (c.visible = true)));
+    this.viewing.showAll();
   }
 
   partColor(partId: string): string {
@@ -731,6 +752,7 @@ export class AssemblyEnv {
     this.highlightSelection();
     this.app.browser.render();
     this.app.ribbon.refresh();
+    for (const l of this.selectionListeners) l();
   }
 
   private markingMenu(x: number, y: number) {
@@ -1110,88 +1132,14 @@ export class AssemblyEnv {
 
   // ---------------------------------------------------------------- BOM ---
 
-  async openBom() {
-    const doc = this.doc;
-    const rows: HTMLElement[] = [];
-    let totalMass = 0;
-    let i = 0;
-    for (const p of doc.parts) {
-      const qty = doc.components.filter((c) => c.partId === p.id).length;
-      if (!qty) continue;
-      let mp: MassProps | null = null;
-      try {
-        await this.ensureBrep([p.id]);
-        mp = await this.app.kernel.massPropsKey(key(p.id));
-      } catch {
-        /* no solid */
-      }
-      const mat = p.doc?.material ?? MATERIALS[0];
-      const mass = mp ? (mp.volume / 1000) * mat.density : 0;
-      totalMass += mass * qty;
-      rows.push(
-        h(
-          "tr",
-          {},
-          h("td", { class: "num" }, String(++i)),
-          h("td", {}, p.doc?.iprops["パーツ番号"] || p.name),
-          h("td", { class: "num" }, String(qty)),
-          h("td", {}, p.kind === "step" ? "(STEP)" : mat.name),
-          h("td", { class: "num" }, mass ? `${formatNumber(mass, 2)} g` : "—"),
-          h("td", {}, p.doc?.iprops["説明"] ?? ""),
-        ),
-      );
-    }
-    rows.push(...this.routes.bomRows(i));
-    const table = h(
-      "table",
-      { class: "ptable" },
-      h("thead", {}, h("tr", {}, h("th", {}, "項目"), h("th", {}, "パーツ番号"), h("th", {}, "数量"), h("th", {}, "材質"), h("th", {}, "単体質量"), h("th", {}, "説明"))),
-      h("tbody", {}, ...rows),
-    );
-    const csv = () => {
-      const lines = [["項目", "パーツ番号", "数量", "材質", "単体質量(g)", "説明"].join(",")];
-      table.querySelectorAll("tbody tr").forEach((tr) => lines.push([...tr.children].map((td) => `"${(td.textContent ?? "").replace(/ g$/, "")}"`).join(",")));
-      download(`${doc.name}_部品表.csv`, "﻿" + lines.join("\n"), "text/csv");
-    };
-    modal({
-      title: `部品表 — ${doc.name}`,
-      icon: "iprops",
-      width: 760,
-      body: h("div", {}, h("div", { class: "ptable-wrap" }, table), h("p", { class: "muted" }, `コンポーネント数 ${doc.components.length} / 総質量 ${formatNumber(totalMass, 2)} g`)),
-      buttons: [{ label: "CSV を書き出し", onClick: () => (csv(), false) }, { label: "閉じる", primary: true }],
-    });
+  /** BOM panel (tree / quantity, synced selection, CSV). */
+  openBom() {
+    this.bom.open();
   }
 
-  async checkInterference() {
-    if (this.doc.components.length < 2) {
-      toast("2 つ以上のコンポーネントが必要です", "info");
-      return;
-    }
-    this.app.status("干渉を計算中…");
-    try {
-      await this.ensureBrep();
-      const ps = this.placements();
-      const comps = this.doc.components.filter((c) => c.visible !== false);
-      const hits = await this.app.kernel.interference(ps);
-      this.app.status("準備完了");
-      if (!hits.length) {
-        toast("干渉は検出されませんでした", "ok");
-        return;
-      }
-      this.select([...new Set(hits.flatMap((x) => [comps[x.a].id, comps[x.b].id]))]);
-      modal({
-        title: "干渉解析",
-        icon: "intersect",
-        width: 520,
-        body: h(
-          "table",
-          { class: "kv" },
-          ...hits.map((x) => h("tr", {}, h("th", {}, `${comps[x.a].name} ⟷ ${comps[x.b].name}`), h("td", {}, `${formatNumber(x.volume, 3)} mm³`))),
-        ),
-      });
-    } catch (e) {
-      toast((e as Error).message, "error");
-    }
+  /** Interference check panel (all / selected pairs, touch, ignore list, 3D overlap). */
+  checkInterference() {
+    openInterferencePanel(this.app);
   }
 
   async exportStep() {
@@ -1297,19 +1245,48 @@ export class AssemblyEnv {
             {
               stack: [
                 { id: "asm-simplify", label: "パターンの簡略表示", icon: "rectPattern", size: "small", tip: "パターン インスタンス (サブアセンブリ相当) を境界ボックスで表示します。", action: () => this.setSimplifyPatterns(!this.simplifyPatterns), active: () => this.simplifyPatterns },
-                { id: "asm-isolate", label: "分離", icon: "eye", size: "small", tip: "選択したコンポーネント以外を非表示にします。", action: () => this.isolateSelection() },
-                { id: "asm-showall", label: "すべて表示", icon: "eyeOff", size: "small", tip: "非表示のコンポーネントをすべて表示します。", action: () => this.showAll() },
+                { id: "asm-isolate", label: "分離", icon: "eye", size: "small", tip: "選択したコンポーネント以外を非表示にします (選択のみ表示)。", action: () => this.isolateSelection() },
+                { id: "asm-showall", label: "すべて表示", icon: "eyeOff", size: "small", tip: "非表示・透明のコンポーネントをすべて元に戻します。", action: () => this.showAll() },
               ],
             },
+            {
+              stack: [
+                {
+                  id: "asm-visibility",
+                  label: "表示/非表示",
+                  icon: "eyeOff",
+                  size: "small",
+                  tip: "選択の非表示・他を透明に・締結部品や同じ部品をまとめて非表示などの表示切り替えです。",
+                  action: () => {
+                    const b = document.querySelector('[data-cmd="asm-visibility"]')?.getBoundingClientRect();
+                    visibilityMenu(this.app, b?.left ?? 200, (b?.bottom ?? 120) + 2);
+                  },
+                },
+                { id: "asm-transparent", label: "他を透明に", icon: "shaded", size: "small", tip: "選択したコンポーネント以外を半透明で表示します。", action: () => (this.selected.size ? this.viewing.transparentOthers([...this.selected]) : toast("コンポーネントを選択してください", "warn")) },
+                {
+                  id: "asm-colorby",
+                  label: "色分け",
+                  icon: "material",
+                  size: "small",
+                  tip: "コンポーネント・部品・材質・ランダム・階層ごとに色分けし、凡例を表示します。",
+                  action: () => {
+                    const b = document.querySelector('[data-cmd="asm-colorby"]')?.getBoundingClientRect();
+                    colorMenu(this.app, b?.left ?? 200, (b?.bottom ?? 120) + 2);
+                  },
+                  active: () => this.viewing.colorMode !== "default",
+                },
+              ],
+            },
+            { id: "asm-views", label: "表示状態", icon: "screenshot", tip: "カメラ・表示/非表示・透明・分解・断面・表示スタイル・色分けを名前付きビューとして保存し、呼び出します。", action: () => openViewsPanel(this.app) },
           ],
         },
         {
           title: "検査",
           items: [
-            { id: "asm-interf", label: "干渉解析", icon: "intersect", tip: "コンポーネント同士の干渉 (重なり) 体積を計算します。", action: () => this.checkInterference() },
+            { id: "asm-interference", label: "干渉解析", icon: "intersect", tip: "すべて (または選択) の組み合わせの干渉体積と接触を計算し、重なりを 3D で表示します (除外リスト・締結部品の扱い・大規模時は並列計算)。", action: () => this.checkInterference() },
             { id: "measure-clearance", label: "クリアランス", icon: "measure", tip: "コンポーネント間の最小距離がしきい値未満の組を一覧します (最近点を表示、測定注記として保存)。", action: () => this.app.commands.run("measure-clearance") },
             { id: "asm-route", label: "配線・配管", icon: "sweep", tip: "電線・ケーブル / ホース / パイプの経路を部品の面・円の中心・コネクタ点で定義し、曲げ R 付きのチューブを作成します (長さ・曲げ・干渉チェック、切断リスト)。", action: () => this.routes.open(), active: () => this.command?.id === "routes" || this.command?.id === "route" },
-            { id: "asm-bom", label: "部品表", icon: "iprops", tip: "部品表 (BOM) を表示し CSV に書き出します。", action: () => this.openBom() },
+            { id: "asm-bom", label: "部品表", icon: "iprops", tip: "部品表 (BOM) を構成 / 数量で表示します。行を選ぶと 3D と連動して選択されます (検索・CSV 書き出し)。", action: () => this.openBom() },
           ],
         },
         {

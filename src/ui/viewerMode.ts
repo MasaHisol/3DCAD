@@ -35,8 +35,8 @@ export const VIEWER_PANELS: ViewerPanel[] = [
   { title: "ファイル", ids: ["vw-open", "vw-print", "shot", "save-image"] },
   { title: "ナビゲート", ids: ["home", "fit", "look", "ortho", "persp"] },
   { title: "表示スタイル", ids: ["st-se", "st-s", "st-h", "st-w", "realistic"] },
-  { title: "測定・断面", ids: ["measure", "section"] },
-  { title: "アセンブリ", ids: ["asm-explode", "asm-isolate", "asm-showall", "asm-bom", "asm-light"] },
+  { title: "測定・断面", ids: ["measure", "measure-hole", "measure-pcd", "measure-thickness", "measure-clearance", "measure-notes", "section"] },
+  { title: "アセンブリ", ids: ["asm-explode", "asm-isolate", "asm-showall", "asm-visibility", "asm-transparent", "asm-bom", "asm-colorby", "asm-views", "asm-interference", "asm-light"] },
   { title: "情報", ids: ["vw-tree", "iprops", "pmi-toggle", "vw-help"] },
   { title: "モード", ids: ["vw-edit"] },
 ];

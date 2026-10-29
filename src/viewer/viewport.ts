@@ -173,7 +173,8 @@ export class Viewport {
     return r;
   })();
   private needsRender = true;
-  private anim: { from: ViewState; to: ViewState; t0: number; dur: number } | null = null;
+  /** Camera animation in progress (animateTo); public so saved views can read the target state. */
+  anim: { from: ViewState; to: ViewState; t0: number; dur: number } | null = null;
   private drag: { mode: "orbit" | "pan" | "zoom"; x: number; y: number; pivot: THREE.Vector3; button: number; moved: boolean; down: PointerEvent } | null = null;
   /** Mouse mapping familiar from other CAD systems. */
   navPreset: NavPreset = "inventor";
@@ -409,12 +410,19 @@ export class Viewport {
     }
     const color = this.bodyColors[bi];
     const hl = this.highlighted.has(bi);
-    if (!color && !hl) return this.material;
-    const key = `${color ?? "base"}|${hl ? 1 : 0}`;
+    const op = this.bodyOpacity[bi];
+    const tr = op !== undefined && op < 1;
+    if (!color && !hl && !tr) return this.material;
+    const key = `${color ?? "base"}|${hl ? 1 : 0}${tr ? `|${op}` : ""}`;
     let m = this.colorMats.get(key);
     if (!m) {
       m = this.material.clone();
       if (color) m.color.set(color);
+      if (tr) {
+        m.transparent = true;
+        m.opacity = op!;
+        m.depthWrite = false;
+      }
       m.metalness = this.material.metalness;
       m.roughness = this.material.roughness;
       if (hl) {
@@ -425,6 +433,54 @@ export class Viewport {
       this.colorMats.set(key, m);
     }
     return m;
+  }
+
+  /** Per-body opacity (assembly "transparent others"); undefined / 1 = opaque. */
+  bodyOpacity: (number | undefined)[] = [];
+
+  /** Sets body opacities (index -> 0..1; missing = opaque). Transparent bodies keep instanced batching per material. */
+  setBodyOpacity(op: (number | undefined)[]) {
+    this.bodyOpacity = op;
+    this.bodies.forEach((b, i) => {
+      b.mesh.material = this.materialFor(i);
+      const o = op[i];
+      // edges of see-through bodies would clutter the view: fade them out with the body
+      b.edges.visible = (o === undefined || o >= 0.5) && b.mesh.visible !== false && this.style !== "shaded" && !this.proxied.has(i) && this.bodyOn[i] !== false;
+    });
+    this.markBatches();
+  }
+
+  private overlays: THREE.Group | null = null;
+
+  /** Extra see-through meshes drawn on top (e.g. interference volumes, world mm); empty clears. */
+  setOverlayMeshes(list: { positions: Float32Array; indices: Uint32Array; color: string; opacity?: number }[]) {
+    if (this.overlays) {
+      this.scene.remove(this.overlays);
+      this.overlays.traverse((o) => {
+        if (o instanceof THREE.Mesh) (o.geometry.dispose(), (o.material as THREE.Material).dispose());
+      });
+      this.overlays = null;
+    }
+    if (list.length) {
+      this.overlays = new THREE.Group();
+      this.overlays.name = "overlays";
+      for (const m of list) {
+        const g = new THREE.BufferGeometry();
+        g.setAttribute("position", new THREE.BufferAttribute(m.positions, 3));
+        g.setIndex(new THREE.BufferAttribute(m.indices, 1));
+        g.computeVertexNormals();
+        const mesh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: m.color, transparent: true, opacity: m.opacity ?? 0.75, depthTest: false, side: THREE.DoubleSide }));
+        mesh.renderOrder = 10;
+        this.overlays.add(mesh);
+      }
+      this.scene.add(this.overlays);
+    }
+    this.invalidate();
+  }
+
+  /** Number of overlay meshes shown (tests). */
+  overlayCount(): number {
+    return this.overlays?.children.length ?? 0;
   }
 
   /** Tint whole bodies (e.g. the selected assembly component). */
@@ -1031,6 +1087,7 @@ export class Viewport {
 
   setBodies(bodies: BodyMesh[], pickBodies?: BodyMesh[], colors?: (string | undefined)[], matrices?: THREE.Matrix4[]) {
     this.bodyColors = colors ?? [];
+    this.bodyOpacity = [];
     this.surfaceBodies = new Set(bodies.flatMap((b, i) => (b.surface ? [i] : [])));
     this.highlighted = new Set([...this.highlighted].filter((i) => i < bodies.length));
     const sharedPick = this.pickViews === this.bodies;
