@@ -65,7 +65,12 @@ try {
   const vol0 = (await page.evaluate(() => window.cad.kernel.massProps())).volume;
   await page.evaluate(() => {
     window.cad.kernel.rebuildTimeoutMs = 1;
-    window.cad.store.mutate("rename", (d) => (d.name = "壊れる変更"));
+    // a geometry change (not just a rename): unchanged models come straight from the rebuild cache
+    // and could finish within the 1 ms watchdog
+    window.cad.store.mutate("rename", (d) => {
+      d.name = "壊れる変更";
+      d.params.find((x) => x.name === "板厚").expr = "17";
+    });
   });
   await page.waitForTimeout(300);
   await page.evaluate(() => (window.cad.kernel.rebuildTimeoutMs = 180000));
