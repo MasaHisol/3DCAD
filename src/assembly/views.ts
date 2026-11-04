@@ -33,6 +33,8 @@ export interface SavedView {
   sections: SavedSection[];
   style: string;
   colorMode: ColorMode;
+  /** Colour overrides (「色を変える」) by component; absent in older files. */
+  colors?: Record<string, string>;
   /** ISO date of the last save. */
   saved: string;
 }
@@ -46,6 +48,7 @@ export interface DisplayState {
   sections: SavedSection[];
   style: string;
   colorMode: ColorMode;
+  colors?: Record<string, string>;
 }
 
 const num = (v: unknown, d = 0) => (typeof v === "number" && Number.isFinite(v) ? v : d);
@@ -64,6 +67,7 @@ export function captureView(id: string, name: string, s: DisplayState, compIds?:
     sections: s.sections.map((p) => ({ normal: [...p.normal] as Vec3, constant: p.constant })),
     style: s.style,
     colorMode: s.colorMode,
+    ...(s.colors && Object.keys(s.colors).length ? { colors: Object.fromEntries(Object.entries(s.colors).filter(([k]) => !keep || keep.has(k))) } : {}),
     saved: new Date().toISOString(),
   };
 }
@@ -79,6 +83,7 @@ export function viewState(v: SavedView, compIds: string[]): DisplayState {
     sections: v.sections.map((p) => ({ ...p })),
     style: v.style,
     colorMode: v.colorMode,
+    colors: Object.fromEntries(Object.entries(v.colors ?? {}).filter(([k]) => live.has(k))),
   };
 }
 
@@ -100,6 +105,7 @@ export function parseView(raw: unknown): SavedView | null {
     sections: Array.isArray(r.sections) ? r.sections.map((s) => ({ normal: vec((s as SavedSection).normal, [0, 0, 1]), constant: num((s as SavedSection).constant) })) : [],
     style: typeof r.style === "string" ? r.style : "shadedEdges",
     colorMode: (typeof r.colorMode === "string" ? r.colorMode : "default") as ColorMode,
+    ...(r.colors && typeof r.colors === "object" ? { colors: Object.fromEntries(Object.entries(r.colors as Record<string, unknown>).filter((e): e is [string, string] => typeof e[1] === "string")) } : {}),
     saved: typeof r.saved === "string" ? r.saved : "",
   };
 }
@@ -131,7 +137,8 @@ export function sameState(a: DisplayState, b: DisplayState, tol = 1e-6): boolean
     a.sections.length === b.sections.length &&
     a.sections.every((s, i) => close([...s.normal, s.constant], [...b.sections[i].normal, b.sections[i].constant])) &&
     a.style === b.style &&
-    a.colorMode === b.colorMode
+    a.colorMode === b.colorMode &&
+    JSON.stringify(Object.entries(a.colors ?? {}).sort()) === JSON.stringify(Object.entries(b.colors ?? {}).sort())
   );
 }
 

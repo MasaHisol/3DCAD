@@ -672,6 +672,20 @@ export class Viewport {
     return this.overlays?.children.length ?? 0;
   }
 
+  /** Whether a body is shown (setBodyVisible). */
+  isBodyOn(i: number): boolean {
+    return this.bodyOn[i] !== false;
+  }
+
+  /** Replaces the body colours (colour overrides of the view menu); undefined = default colour. */
+  setBodyColors(colors: (string | undefined)[]) {
+    this.bodyColors = colors;
+    this.bodies.forEach((b, i) => (b.mesh.material = this.materialFor(i)));
+    this.markBatches(false);
+    if (this.bodyOpacity.size) this.applyTransparency();
+    this.invalidate();
+  }
+
   /** Tint whole bodies (e.g. the selected assembly component). */
   setBodyHighlight(indices: Set<number>) {
     this.highlighted = indices;
@@ -1697,7 +1711,8 @@ export class Viewport {
     const cands: (Pick & { dist: number; prio: number })[] = [];
     const views = this.pickViews;
     const meshes = views.map((b) => b.mesh);
-    const kept = (h: THREE.Intersection) => keptByPlanes(this.clipPlanes, h.point);
+    // hidden bodies (and the ones Alt+click hid for the moment) are not picked
+    const kept = (h: THREE.Intersection) => this.bodyOn[h.object.userData.body as number] !== false && keptByPlanes(this.clipPlanes, h.point);
     let meshHits: THREE.Intersection[];
     // the ID buffer pays off when the ray crosses many bodies' bounds (dense
     // assemblies); a few candidates are tested faster by their BVHs directly
@@ -1720,6 +1735,7 @@ export class Viewport {
       for (const h of this.raycaster.intersectObjects(lines, false)) {
         if (h.distance > occl) continue;
         const bi = views.findIndex((b) => b.edges === h.object);
+        if (this.bodyOn[bi] === false) continue;
         const seg = Math.floor((h.index ?? 0) / 2);
         const ei = views[bi].segEdge[seg];
         const pt = (h.pointOnLine ?? h.point).toArray() as Vec3;

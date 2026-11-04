@@ -547,6 +547,7 @@ export class AssemblyEnv {
   setVisible(ids: string[], on: boolean) {
     const set = new Set(ids);
     if (!set.size) return;
+    if (this.viewing.viewOp) return void (on ? this.viewing.show(ids) : this.viewing.hide(ids));
     this.store.mutate(on ? "表示" : "非表示", (d) => d.components.forEach((c) => set.has(c.id) && (c.visible = on)));
   }
 
@@ -655,10 +656,14 @@ export class AssemblyEnv {
     },
     onPointerDown: (e, vp) => {
       if (e.button !== 0) return;
+      // Alt+click: hide the front-most component for the moment and select the one behind
+      if (e.altKey && this.app.viewCtx.altPick(e)) return;
+      if (!e.altKey) this.app.viewCtx.restoreAlt();
       const p = vp.pick(e);
       const comp = p ? this.compOfBody(p.body) : undefined;
       if (!comp) {
         if (!e.shiftKey && !e.ctrlKey) this.select([]);
+        this.app.viewCtx.beginBox(e);
         return;
       }
       if (e.shiftKey || e.ctrlKey) {
@@ -676,6 +681,9 @@ export class AssemblyEnv {
       if (comp) this.app.editAssemblyPart(comp.partId);
     },
     onContextMenu: (e) => {
+      // viewer mode: the view menu replaces the editing marking menu
+      if (this.app.viewer.active) return this.app.viewCtx.open3D(e), true;
+      this.app.viewCtx.prepare(e);
       this.markingMenu(e.clientX, e.clientY);
       return true;
     },
@@ -769,7 +777,7 @@ export class AssemblyEnv {
           { label: "干渉解析", icon: "intersect", action: () => this.checkInterference() },
           { label: "全体表示", icon: "zoomFit", action: () => this.app.vp.fitAll() },
         ],
-        this.selectionMenu(),
+        this.app.viewCtx.withView(this.selectionMenu()),
     );
   }
 
@@ -825,12 +833,16 @@ export class AssemblyEnv {
     }
     const q = this.app.browser.query;
     let shown = 0;
-    for (const c of doc.components) {
+    const matching = doc.components.filter((c) => {
       const part = doc.parts.find((p) => p.id === c.partId);
-      if (!matchesFilter(q, c.name, part?.name, part?.doc?.iprops?.["パーツ番号"])) continue;
+      return matchesFilter(q, c.name, part?.name, part?.doc?.iprops?.["パーツ番号"]);
+    });
+    // grouped by sub-assembly (STEP product structure), eye icon per row and per level
+    this.app.viewCtx.renderAsmTree(list, matching, (c, depth) => {
+      const part = doc.parts.find((p) => p.id === c.partId);
       if (++shown > 2000) {
         if (shown === 2001) row("__more", "dot", `… 他 ${doc.components.length - 2000} 個 (検索で絞り込み)`, 1, "dimmed");
-        continue;
+        return;
       }
       const err = this.parts.get(c.partId)?.error;
       const vis = c.visible !== false;
@@ -847,7 +859,8 @@ export class AssemblyEnv {
             title: vis ? "非表示にする" : "表示する",
             onClick: (e: MouseEvent) => {
               e.stopPropagation();
-              this.store.mutate("表示切替", (d) => (d.components.find((x) => x.id === c.id)!.visible = !vis));
+              if (vis) this.viewing.hide([c.id]);
+              else this.viewing.show([c.id]);
             },
           },
           iconEl(vis ? "eye" : "eyeOff"),
@@ -857,13 +870,13 @@ export class AssemblyEnv {
         c.id,
         part?.kind === "step" ? "import" : "part",
         c.name,
-        1,
-        [this.selected.has(c.id) ? "selected" : "", vis ? "" : "dimmed", err ? "error" : ""].join(" "),
+        depth,
+        [this.selected.has(c.id) ? "selected" : "", vis ? "" : "dimmed", err ? "error" : "", this.viewing.transparent.has(c.id) ? "ghost" : ""].join(" "),
         trailing,
         err,
       );
       this.rowEvents(el, c.id, "component");
-    }
+    });
     this.routes.renderBrowser(list);
   }
 
@@ -883,7 +896,8 @@ export class AssemblyEnv {
     el.addEventListener("contextmenu", (e) => {
       e.preventDefault();
       if (!this.selected.has(id)) this.select([id]);
-      contextMenu(e.clientX, e.clientY, this.selectionMenu());
+      if (kind === "component") this.app.viewCtx.openFor([...this.selected], e.clientX, e.clientY, this.selectionMenu());
+      else contextMenu(e.clientX, e.clientY, this.selectionMenu());
     });
   }
 
@@ -907,15 +921,7 @@ export class AssemblyEnv {
         { label: c.suppressed ? "抑制を解除" : "抑制", action: () => this.store.mutate("抑制", (d) => (d.constraints.find((x) => x.id === c.id)!.suppressed = !c.suppressed)) },
       );
     }
-    if (comps.length) {
-      const anyHidden = comps.some((c) => c.visible === false);
-      items.push(
-        { separator: true, label: "" },
-        anyHidden ? { label: "表示", icon: "eye", action: () => this.setVisible(comps.map((c) => c.id), true) } : { label: "非表示", icon: "eyeOff", action: () => this.setVisible(comps.map((c) => c.id), false) },
-        { label: "分離 (他を非表示)", icon: "eye", action: () => this.isolateSelection() },
-      );
-    }
-    if (this.doc.components.some((c) => c.visible === false)) items.push({ label: "すべて表示", icon: "eye", action: () => this.showAll() });
+    // hide / isolate / transparency / colour: the 「表示」 section of the view menu (ui/viewContextMenu.ts)
     if (comps.length || cons.length) items.push({ separator: true, label: "" }, { label: "削除", icon: "trash", shortcut: "Delete", danger: true, action: () => this.deleteSelection() });
     return items;
   }
@@ -1085,7 +1091,8 @@ export class AssemblyEnv {
       r.parts.forEach((p, i) => d.parts.push({ id: ids[i], name: p.name, kind: "step", step: p.step, fileName, color: p.color }));
       // instances inside sub-assemblies keep their path in the name (the assembly itself is flat)
       const nameOf = (c: (typeof r.comps)[number]) => (c.path && c.path.length > 2 ? c.path.slice(1).join(" / ") : c.name);
-      r.comps.forEach((c, i) => d.components.push({ id: uid("cm"), name: nameOf(c), partId: ids[c.part], matrix: c.matrix, grounded: first && i === 0 }));
+      // the sub-assembly levels (without the root product and the instance) group the browser tree
+      r.comps.forEach((c, i) => d.components.push({ id: uid("cm"), name: nameOf(c), partId: ids[c.part], matrix: c.matrix, grounded: first && i === 0, ...(c.path && c.path.length > 2 ? { path: c.path.slice(1, -1) } : {}) }));
     });
     setTimeout(() => this.app.vp.fitAll(), 50);
     toast(`${fileName}: 部品 ${r.parts.length} 種類・コンポーネント ${r.comps.length} 個を配置しました (名前・色・位置を読み込み)`, "ok");

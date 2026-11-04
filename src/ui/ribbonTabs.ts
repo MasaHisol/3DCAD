@@ -389,6 +389,13 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
             { id: "section", label: "断面図", icon: "section", tip: "X/Y/Z 方向の断面でモデルを切断表示します。", action: () => app.toggleSectionView(), active: () => app.sectionActive },
             {
               stack: [
+                { id: "view-showall", label: "すべて表示", icon: "eye", size: "small", shortcut: "Shift+H", tip: "非表示・半透明にしたボディ / コンポーネントをすべて元に戻します (元に戻す で取り消せます)。", action: () => app.viewCtx.showAll() },
+                { id: "view-hidden", label: "非表示の一覧", icon: "eyeOff", size: "small", tip: "非表示にしたボディ / コンポーネントの一覧を表示し、個別またはまとめて表示に戻します。", action: () => void import("./hiddenPanel").then((m) => m.openHiddenPanel(app)) },
+                { id: "view-states", label: "表示状態", icon: "screenshot", size: "small", tip: "カメラ・表示 / 非表示・半透明・色・断面・表示スタイルを名前を付けて保存し、呼び出します。", action: () => void import("./hiddenPanel").then((m) => m.openViewStates(app)) },
+              ],
+            },
+            {
+              stack: [
                 { id: "ortho", label: "平行投影", icon: "ortho", size: "small", action: () => app.vp.setPerspective(false), active: () => !app.vp.perspective },
                 { id: "persp", label: "透視投影", icon: "perspective", size: "small", action: () => app.vp.setPerspective(true), active: () => app.vp.perspective },
               ],

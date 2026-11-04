@@ -36,6 +36,7 @@ import { openCommandSearch } from "./ui/commandSearch";
 import { AssemblyEnv } from "./assembly/env";
 import { openLibrary, preloadEditingUi } from "./ui/lazyUi";
 import { ViewerMode, viewerAllowsKey } from "./ui/viewerMode";
+import { ViewController } from "./ui/viewContextMenu";
 import { hoveredCommand, openHelp, trackHoveredCommand } from "./help";
 import { read3mf, readPly, trisToStl } from "./io/meshin";
 import { readGltf } from "./io/gltf";
@@ -88,6 +89,8 @@ export class App {
   measure!: MeasureLayer;
   /** Viewer-only mode (editing UI hidden). */
   readonly viewer = new ViewerMode(this);
+  /** Display operations (hide / isolate / transparency / colour) with their undo stack, menus and tree. */
+  viewCtx!: ViewController;
 
   /** Active environment: part modelling or assembly. */
   env: "part" | "assembly" | "drawing" = "part";
@@ -189,6 +192,7 @@ export class App {
     root.append(titlebar, ribbonHost, main, status);
 
     this.asm = new AssemblyEnv(this);
+    this.viewCtx = new ViewController(this);
     this.drawing = new DrawingEnv(this);
     this.browser = new ModelBrowser(main, {
       customRender: (list) => {
@@ -203,6 +207,7 @@ export class App {
       doc: () => this.store.doc,
       errors: () => this.featureErrors,
       bodyCount: () => this.bodies.length,
+      bodyTree: (list, filter) => (this.viewCtx.renderPartBodies(list, filter), true),
       surfaceCount: () => this.surfaces.length,
       activeSketch: () => this.sketchEditor?.sketchId ?? null,
       selected: () => this.browserSelection,
@@ -242,6 +247,7 @@ export class App {
         const shown = r.surfaces.length ? [...r.bodies, ...r.surfaces] : r.bodies;
         if (!this.lastBefore) this.pickBodies = shown;
         this.vp.setBodies(shown, this.lastBefore, shown.some((b) => b.color) ? shown.map((b) => b.color) : undefined);
+        this.viewCtx.afterPartBodies();
         refreshCurvature(this);
         return true;
       },
@@ -489,6 +495,7 @@ export class App {
     const shown = this.surfaces.length ? [...res.bodies, ...this.surfaces] : res.bodies;
     this.pickBodies = res.before ?? shown;
     this.vp.setBodies(shown, res.before, shown.some((b) => b.color) ? shown.map((b) => b.color) : undefined);
+    this.viewCtx.afterPartBodies();
     this.lastBefore = res.before;
     this.refiner.afterRebuild(!!res.refine, shown);
     for (const [id, msg] of Object.entries(res.notices ?? {}))
@@ -668,13 +675,18 @@ export class App {
     onPointerMove: (e, vp) => vp.setHover(vp.pick(e)),
     onPointerDown: (e, vp) => {
       if (e.button !== 0) return;
+      // Alt+click: hide the front-most body for the moment and select the one behind
+      if (e.altKey && this.viewCtx.altPick(e)) return;
+      if (!e.altKey) this.viewCtx.restoreAlt();
       const p = vp.pick(e);
       if (!p) {
         if (!e.shiftKey && !e.ctrlKey) vp.setSelection([]);
+        this.viewCtx.beginBox(e);
       } else if (e.shiftKey || e.ctrlKey) {
         const has = vp.selection.some((s) => samePick(s, p));
         vp.setSelection(has ? vp.selection.filter((s) => !samePick(s, p)) : [...vp.selection, p]);
       } else vp.setSelection([p]);
+      this.viewCtx.syncFromPicks();
       this.browserSelection.clear();
       this.browser.render();
       this.statusSel.textContent = this.selectionText();
@@ -688,6 +700,9 @@ export class App {
       }
     },
     onContextMenu: (e) => {
+      // viewer mode: the view menu replaces the editing marking menu
+      if (this.viewer.active) return this.viewCtx.open3D(e), true;
+      this.viewCtx.prepare(e);
       this.modelMarkingMenu(e.clientX, e.clientY);
       return true;
     },
@@ -718,6 +733,8 @@ export class App {
         { label: "測定", icon: "measure", shortcut: "M", action: () => c.run("measure") },
         { label: "iProperties", icon: "iprops", action: () => openIProperties(this) },
         { label: "パラメータ", icon: "params", action: () => openParameters(this) },
+        { separator: true, label: "" },
+        ...this.viewCtx.withView([]),
       ],
     );
   }
@@ -959,6 +976,7 @@ export class App {
   // ------------------------------------------------------------- editing ---
 
   undo() {
+    if (this.env !== "drawing" && this.viewCtx.undoStep()) return;
     if (this.env === "drawing") return void (this.drawing.store.canUndo() && this.drawing.store.undo());
     if (this.env === "assembly") {
       this.cancelAsmCommand();
@@ -970,6 +988,7 @@ export class App {
   }
 
   redo() {
+    if (this.env !== "drawing" && this.viewCtx.redoStep()) return;
     if (this.env === "drawing") return void this.drawing.store.redo();
     if (this.env === "assembly") {
       this.cancelAsmCommand();
@@ -2102,6 +2121,8 @@ export class App {
       if (this.viewer.active && !viewerAllowsKey(e)) return;
       if (this.viewer.active && (e.ctrlKey || e.metaKey) && k.toLowerCase() === "p") return void (e.preventDefault(), this.viewer.print());
       if (this.viewer.active && (e.ctrlKey || e.metaKey) && k.toLowerCase() === "o") return void (e.preventDefault(), this.viewer.pickAndOpen());
+      // H / Shift+H / I (display), Esc ends an Alt+click
+      if (!this.sketchEditor && this.viewCtx.key(e)) return void e.preventDefault();
       const ctrl = e.ctrlKey || e.metaKey;
       const kl = k.toLowerCase();
       // Ctrl+Shift combinations first (Inventor defaults)

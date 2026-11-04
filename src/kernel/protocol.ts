@@ -193,6 +193,8 @@ export interface BodyMesh {
   surface?: string;
   /** Colour read from the file (STEP / IGES). */
   color?: string;
+  /** STEP assembly path of the instance the body came from (root … instance). */
+  path?: string[];
   /** Persistent topology names, index-aligned with `faces` / `edges` (core/naming.ts). */
   faceNames?: string[];
   edgeNames?: string[];

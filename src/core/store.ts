@@ -62,6 +62,11 @@ export class Store<T> {
     this.dirty = true;
   }
 
+  /** Number of undo steps (the view undo stack interleaves with it). */
+  get depth() {
+    return this.undoStack.length;
+  }
+
   canUndo() {
     return this.undoStack.length > 0;
   }

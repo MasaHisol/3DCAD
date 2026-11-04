@@ -11,6 +11,7 @@ import { isFastener } from "./bom";
 import { assignColors, type ColorAssignment, type ColorMode } from "./colorBy";
 import type { AssemblyEnv } from "./env";
 import { candidatePairs, exactCheck, finishResults, pairKey, toggleIgnore, type CompBox, type InterferenceOptions, type InterferenceResult } from "./interference";
+import * as VS from "../core/viewState";
 import { HOME_VIEW_ID, captureView, deleteView, nextViewName, renameView, upsertView, viewState, type DisplayState, type SavedSection, type SavedView } from "./views";
 
 /** Opacity of components drawn transparent. */
@@ -24,6 +25,8 @@ export class AsmViewing {
   /** Components drawn see-through. */
   transparent = new Set<string>();
   colorMode: ColorMode = "default";
+  /** Colour overrides of the view menu (「色を変える」), by component. */
+  overrides = new Map<string, string>();
   colorSeed = 1;
   private assignment: ColorAssignment | null = null;
   /** Called when visibility / colours / views change (panels refresh). */
@@ -31,6 +34,13 @@ export class AsmViewing {
   /** Last interference results (for the dialog and tests). */
   lastInterference: InterferenceResult[] = [];
   lastInterferenceStats = { candidates: 0, pairs: 0, pooled: false, ms: 0 };
+
+  /**
+   * Set by the view controller (ui/viewContextMenu.ts): visibility / transparency
+   * changes go through its undo stack (viewer mode: without marking the file
+   * modified). Returns true when it handled the change.
+   */
+  viewOp: ((label: string, next: (s: VS.ViewSt, all: string[]) => VS.ViewSt) => boolean) | null = null;
 
   constructor(readonly env: AssemblyEnv) {}
 
@@ -41,6 +51,7 @@ export class AsmViewing {
   /** A new document was loaded: back to the plain display. */
   reset() {
     this.transparent.clear();
+    this.overrides.clear();
     this.colorMode = "default";
     this.assignment = null;
     this.lastInterference = [];
@@ -56,7 +67,7 @@ export class AsmViewing {
 
   /** Display colour of a component (colour mode), or undefined for the normal colour. */
   colorOf(compId: string): string | undefined {
-    return this.assignment?.colors.get(compId);
+    return this.overrides.get(compId) ?? this.assignment?.colors.get(compId);
   }
 
   legend(): ColorAssignment["legend"] {
@@ -95,6 +106,7 @@ export class AsmViewing {
   }
 
   hide(ids: string[]) {
+    if (this.viewOp?.("非表示", (s) => VS.hideItems(s, ids))) return;
     const h = this.hiddenIds();
     ids.forEach((id) => h.add(id));
     this.setHidden(h, "非表示");
@@ -102,6 +114,7 @@ export class AsmViewing {
   }
 
   show(ids: string[]) {
+    if (this.viewOp?.("表示", (s) => VS.showItems(s, ids))) return;
     const h = this.hiddenIds();
     ids.forEach((id) => h.delete(id));
     this.setHidden(h, "表示");
@@ -111,6 +124,7 @@ export class AsmViewing {
   /** Only the given components stay visible ("選択のみ表示" / 分離). */
   isolate(ids: string[]) {
     if (!ids.length) return;
+    if (this.viewOp?.("分離", (s, all) => VS.isolateItems(s, all, ids))) return;
     const keep = new Set(ids);
     this.transparent.clear();
     this.setHidden(new Set(this.env.doc.components.filter((c) => !keep.has(c.id)).map((c) => c.id)), "分離");
@@ -120,6 +134,7 @@ export class AsmViewing {
 
   /** Everything visible and opaque. */
   showAll() {
+    if (this.viewOp?.("すべて表示", (s) => VS.showAllItems(s))) return;
     this.transparent.clear();
     this.setHidden(new Set(), "すべて表示");
     this.applyDisplay();
@@ -128,6 +143,7 @@ export class AsmViewing {
 
   /** The given components opaque, every other one see-through. */
   transparentOthers(ids: string[]) {
+    if (this.viewOp?.("他を半透明に", (s, all) => VS.transparentOthers(s, all, ids))) return;
     const keep = new Set(ids);
     this.transparent = new Set(this.env.doc.components.filter((c) => !keep.has(c.id)).map((c) => c.id));
     this.applyDisplay();
@@ -135,12 +151,14 @@ export class AsmViewing {
   }
 
   setTransparent(ids: string[], on: boolean) {
+    if (this.viewOp?.(on ? "半透明" : "不透明", (s) => VS.setTransparentItems(s, ids, on))) return;
     ids.forEach((id) => (on ? this.transparent.add(id) : this.transparent.delete(id)));
     this.applyDisplay();
     this.notify();
   }
 
   clearTransparency() {
+    if (this.viewOp?.("不透明", (s) => ({ ...s, transparent: [] }))) return;
     this.transparent.clear();
     this.applyDisplay();
     this.notify();
@@ -194,6 +212,7 @@ export class AsmViewing {
       sections: this.sectionPlanes(),
       style: vp.style,
       colorMode: this.colorMode,
+      colors: Object.fromEntries(this.overrides),
     };
   }
 
@@ -202,6 +221,7 @@ export class AsmViewing {
     const vp = this.app.vp;
     this.transparent = new Set(s.transparent);
     this.colorMode = s.colorMode;
+    this.overrides = new Map(Object.entries(s.colors ?? {}));
     this.refreshColors();
     this.env.explode = s.explode;
     this.setHidden(s.hidden, label);

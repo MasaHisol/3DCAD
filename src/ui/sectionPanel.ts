@@ -95,6 +95,22 @@ export class SectionPanel {
     this.sweepAxis = null;
   }
 
+  /** Only the `axis` plane, through `value` (「断面をここで切る」 of the view menu). */
+  cutAt(axis: SectionAxis, value: number, flip = false) {
+    this.stopSweep();
+    for (const p of this.state.planes) {
+      p.enabled = p.axis === axis;
+      if (p.axis === axis) (p.value = value), (p.flip = flip);
+      const r = this.rows.get(p.axis);
+      if (!r) continue;
+      r.on.checked = p.enabled;
+      const k = axisIndex(p.axis);
+      const lo = this.range.min.getComponent(k), hi = this.range.max.getComponent(k);
+      r.slider.value = String(Math.round(((p.value - lo) / Math.max(1e-9, hi - lo)) * 1000));
+    }
+    this.apply();
+  }
+
   /** Applies the state to the viewport and the labels. */
   apply() {
     for (const p of this.state.planes) {

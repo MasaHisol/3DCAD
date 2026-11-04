@@ -1238,7 +1238,7 @@ export class GeometryEngine {
 
   /** Display meshes of the current bodies and surface bodies at a quality level. */
   private meshes(diag: number, quality: TessQuality) {
-    const bodies = this.bodies.map((b, i) => ({ ...meshCached(b, bodyMeta.get(b)?.name ?? `ソリッド${i + 1}`, diag, quality), color: bodyMeta.get(b)?.color }));
+    const bodies = this.bodies.map((b, i) => ({ ...meshCached(b, bodyMeta.get(b)?.name ?? `ソリッド${i + 1}`, diag, quality), color: bodyMeta.get(b)?.color, ...(bodyMeta.get(b)?.path ? { path: bodyMeta.get(b)!.path } : {}) }));
     const surfaces = this.surfaces.map((s, i) => ({ ...meshCached(s.shape, bodyMeta.get(s.shape)?.name ?? `サーフェス${i + 1}`, diag, quality), surface: s.id, color: bodyMeta.get(s.shape)?.color }));
     return { bodies, surfaces };
   }

@@ -3,8 +3,9 @@
 // component tree.
 import type { App } from "../app";
 import { formatNumber } from "../core/expr";
-import { bomCsv, buildBom, filterBom, flattenRows, rowSelection, totalMass, type BomMode, type BomRow } from "../assembly/bom";
+import { bomCsv, buildBom, filterBom, flattenRows, routeBomRows, rowSelection, totalMass, type BomMode, type BomRow } from "../assembly/bom";
 import type { MassProps } from "../kernel/protocol";
+import { cutRows } from "../routing/geom";
 import { download, h, iconEl } from "./dom";
 
 /** Non-modal panel floating over the viewport (stays open while working in 3D). */
@@ -34,6 +35,10 @@ export function floatPanel(app: App, id: string, title: string, icon: string, bo
   });
   app.vp.el.appendChild(el);
   return { el, close };
+}
+
+function cutRowsOf(env: App["asm"]) {
+  return cutRows(env.routes.list(), env.routes.lookup);
 }
 
 export class BomPanel {
@@ -170,6 +175,24 @@ export class BomPanel {
       if (r.children && !this.collapsed.has(r.key)) r.children.forEach(add);
     };
     shown.forEach(add);
+    // wire / pipe routes (配線・配管): one row per route with its length
+    const routes = routeBomRows(env.routes.list().length ? cutRowsOf(env) : [], this.query);
+    if (routes.length) {
+      this.table.appendChild(h("tr", { class: "bom-group bom-routes-head" }, h("td", { colspan: "6" }, `配線・配管 (${routes.length})`)));
+      for (const r of routes)
+        this.table.appendChild(
+          h(
+            "tr",
+            { class: "bom-route", "data-route": r.name },
+            h("td", { class: "num" }, r.no),
+            h("td", {}, r.name),
+            h("td", {}, r.spec),
+            h("td", {}, "—"),
+            h("td", { class: "num" }, "1"),
+            h("td", { class: "num", title: `切断長 ${r.cut} mm` }, `${formatNumber(r.length, 1)} mm`),
+          ),
+        );
+    }
     const n = flattenRows(shown).filter((r) => !r.children).reduce((s, r) => s + r.qty, 0);
     this.foot.textContent = `${this.mode === "flat" ? `部品 ${shown.length} 種` : `行 ${flattenRows(shown).length}`} / コンポーネント ${n} / 総質量 ${formatNumber(totalMass(shown), 2)} g`;
     this.syncSelection();

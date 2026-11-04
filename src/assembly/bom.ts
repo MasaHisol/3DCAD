@@ -141,3 +141,25 @@ export function rowSelection(r: BomRow, selected: Set<string>): "all" | "some" |
   const n = r.compIds.filter((id) => selected.has(id)).length;
   return n === 0 ? "none" : n === r.compIds.length ? "all" : "some";
 }
+
+// ------------------------------------------------- wire / pipe routes ---
+
+/** Row of the 「配線・配管」 group of the BOM (one per route, with its length). */
+export interface RouteBomRow {
+  no: string;
+  name: string;
+  /** Kind and size, e.g. 「電線 AWG18」. */
+  spec: string;
+  /** Route length (mm). */
+  length: number;
+  /** Cut length incl. the margin (mm). */
+  cut: number;
+}
+
+/** BOM rows of the routes (cut list rows), numbered R1, R2 … and filtered by the search text. */
+export function routeBomRows(rows: import("../routing/geom").CutRow[], query = ""): RouteBomRow[] {
+  const q = query.trim().toLowerCase();
+  return rows
+    .map((r, i) => ({ no: `R${i + 1}`, name: r.name, spec: `${r.kind} ${r.size}`.trim(), length: r.length, cut: Math.ceil(r.cut) }))
+    .filter((r) => !q || [r.no, r.name, r.spec, "配線", "配管"].some((s) => s.toLowerCase().includes(q)));
+}

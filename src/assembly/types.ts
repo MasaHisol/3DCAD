@@ -21,6 +21,8 @@ export interface AsmComponent {
   matrix: number[];
   grounded: boolean;
   visible?: boolean;
+  /** Sub-assemblies the component sits in (STEP product structure, top first); absent = top level. */
+  path?: string[];
   /** Instance of a component pattern (placed from the pattern's source). */
   patternOf?: { pattern: string; index: number };
 }

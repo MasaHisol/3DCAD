@@ -37,6 +37,7 @@ export const VIEWER_PANELS: ViewerPanel[] = [
   { title: "表示スタイル", ids: ["st-se", "st-s", "st-h", "st-w", "realistic"] },
   { title: "測定・断面", ids: ["measure", "measure-hole", "measure-pcd", "measure-thickness", "measure-clearance", "measure-notes", "section"] },
   { title: "アセンブリ", ids: ["asm-explode", "asm-isolate", "asm-showall", "asm-visibility", "asm-transparent", "asm-bom", "asm-colorby", "asm-views", "asm-interference", "asm-light"] },
+  { title: "部品の表示", ids: ["view-showall", "view-hidden", "view-states"] },
   { title: "情報", ids: ["vw-tree", "iprops", "pmi-toggle", "vw-help"] },
   { title: "モード", ids: ["vw-edit"] },
 ];
@@ -59,8 +60,10 @@ export const EDIT_ONLY = /^(sketch|extrude|revolve|sk-|sm-|surf|pmi-(dim|diamete
 /** Keys that stay active in the viewer mode (navigation, measure, help, open). */
 export function viewerAllowsKey(e: { key: string; ctrlKey: boolean; metaKey: boolean; shiftKey: boolean; altKey: boolean }): boolean {
   const k = e.key.toLowerCase();
-  if (e.ctrlKey || e.metaKey) return k === "o" || k === "k" || k === "p";
-  if (e.key.length === 1) return k === "m" || k === "?";
+  // Ctrl+Z / Ctrl+Y undo display operations only (view undo stack)
+  if (e.ctrlKey || e.metaKey) return k === "o" || k === "k" || k === "p" || k === "z" || k === "y";
+  // H / Shift+H / I: hide, show all, isolate
+  if (e.key.length === 1) return k === "m" || k === "?" || k === "h" || k === "i";
   return !["Delete", "Backspace"].includes(e.key);
 }
 

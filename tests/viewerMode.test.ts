@@ -102,9 +102,12 @@ describe("viewer command list", () => {
     expect(k("Home")).toBe(true);
     expect(k("F6")).toBe(true);
     expect(k("o", { ctrlKey: true })).toBe(true);
-    for (const key of ["e", "s", "f", "h", "q"]) expect(k(key), key).toBe(false);
+    for (const key of ["e", "s", "f", "q"]) expect(k(key), key).toBe(false);
+    // display shortcuts: H / Shift+H / I and the view undo
+    for (const key of ["h", "H", "i"]) expect(k(key, { shiftKey: key === "H" }), key).toBe(true);
     expect(k("Delete")).toBe(false);
-    expect(k("z", { ctrlKey: true })).toBe(false);
+    expect(k("z", { ctrlKey: true })).toBe(true);
+    expect(k("y", { ctrlKey: true })).toBe(true);
     expect(k("s", { ctrlKey: true })).toBe(false);
   });
 });

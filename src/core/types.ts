@@ -602,4 +602,6 @@ export interface PartDocument {
   pmi?: import("../mbd/pmi").PmiAnno[];
   /** Measurements saved as annotations (stage 2, src/measure). */
   measureNotes?: import("../measure/types").MeasureNote[];
+  /** Saved display states (表示状態) of the bodies; absent in older files. */
+  views?: import("./viewState").PartView[];
 }
