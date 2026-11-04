@@ -83,7 +83,7 @@ try {
 
   const pin = await bodyId("Pin-M6:1");
   const plate = await bodyId("プレート:1");
-  const pinPt = await topPoint("Pin-M6:1");
+  let pinPt = await topPoint("Pin-M6:1");
   check("pin top face pickable in the top view", pinPt.ok, JSON.stringify(pinPt));
 
   // ---------------------------------------------------------- right-click → 非表示 ---
@@ -196,10 +196,13 @@ try {
     check("Esc shows the front part again", s.on[layered.front] === true);
   }
   await page.evaluate(() => {
+    window.cad.vp.anim = null;
     window.cad.vp.setStandardView([0, 0, 1], false);
     window.cad.vp.fitAll(false);
   });
   await page.waitForTimeout(200);
+  pinPt = await topPoint("Pin-M6:1");
+  check("pin pickable again after the view change", pinPt.ok);
 
   // ---------------------------------------------------------- hidden-items panel ---
   await page.mouse.click(pinPt.x, pinPt.y, { button: "right" });
@@ -213,6 +216,7 @@ try {
   const rows2 = await page.$$eval("#hidden-panel .hidden-row", (e) => e.length);
   check("restore from the panel", s.hidden.length === 0 && s.on[pinPt.bi] && rows2 === 0);
   await page.click("#hidden-panel .fp-close");
+  pinPt = await topPoint("Pin-M6:1");
 
   // ---------------------------------------------------------- transparency / colour ---
   await page.mouse.click(pinPt.x, pinPt.y, { button: "right" });
@@ -282,7 +286,8 @@ try {
   await page.waitForSelector(".marking .mk-overflow", { timeout: 5000 });
   const ov = await page.$$eval(".marking .mk-overflow .ctx-label", (e) => e.map((x) => x.textContent));
   check("editing mode: marking menu keeps the editing items and adds a 「表示」 section", ov.includes("iProperties") && ov.includes("表示") && ov.includes("非表示") && ov.includes("この部品だけ表示 (分離)"), ov.join(","));
-  await page.click('.marking .mk-overflow .ctx-item:has(.ctx-label:text-is("非表示"))');
+  // the overflow list may extend below the window at this cursor position: click it directly
+  await page.$eval('.marking .mk-overflow .ctx-item:has(.ctx-label:text-is("非表示"))', (b) => b.click());
   s = await st();
   check("editing mode: 非表示 from the marking menu", s.hidden.join() === pin && s.on[pinPt2.bi] === false, JSON.stringify(s.hidden));
   await key("Control+z");
