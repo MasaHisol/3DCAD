@@ -54,7 +54,8 @@ function polyline(edge: any, deflection: number): Polyline2 {
         out.push([p.X(), p.Y()]);
       }
     } else {
-      const d = new O.GCPnts_TangentialDeflection(c, 0.1, deflection, 2, 1e-9, 1e-7);
+      // pass the curve's own range: the 6-argument overload samples the wrong parameter interval
+      const d = new O.GCPnts_TangentialDeflection(c, c.FirstParameter(), c.LastParameter(), 0.1, deflection, 2, 1e-9, 1e-7);
       for (let i = 1; i <= d.NbPoints(); i++) {
         const p = d.Value(i);
         out.push([p.X(), p.Y()]);

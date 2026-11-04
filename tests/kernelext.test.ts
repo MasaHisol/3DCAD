@@ -209,6 +209,19 @@ describe("HLR projection", { timeout: 60000 }, () => {
     const vertical = hid.filter((pl) => Math.abs(pl[0][0] - pl[pl.length - 1][0]) < 1e-6 && Math.abs(Math.abs(pl[0][0]) - 4) < 1e-6);
     expect(vertical.length).toBe(2);
   });
+
+  it("circular edges are sampled over their whole range (every point on the circle)", () => {
+    const cyl = R.makeCylinder(7, 5) as unknown as R.Shape3D;
+    const r = hlrProject([cyl], { dir: [0, 0, 1], xAxis: [1, 0, 0] });
+    const pts = [...r.visible.sharp, ...r.visible.outline, ...r.visible.smooth].flat();
+    expect(pts.length).toBeGreaterThan(8);
+    for (const [x, y] of pts) expect(Math.hypot(x, y)).toBeCloseTo(7, 4);
+    // the samples go all the way round: they reach both x = ±7 and y = ±7
+    expect(Math.max(...pts.map((p) => p[0]))).toBeCloseTo(7, 1);
+    expect(Math.min(...pts.map((p) => p[0]))).toBeCloseTo(-7, 1);
+    expect(Math.max(...pts.map((p) => p[1]))).toBeCloseTo(7, 1);
+    expect(Math.min(...pts.map((p) => p[1]))).toBeCloseTo(-7, 1);
+  });
 });
 
 describe("mass properties on rational B-spline faces", { timeout: 60000 }, () => {
