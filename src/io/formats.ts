@@ -1,10 +1,10 @@
 // Interchange formats beyond STEP / STL: DXF (AutoCAD 2D), OBJ, 3MF, GLB, PLY.
 
 import * as THREE from "three";
-import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
 import { OBJExporter } from "three/examples/jsm/exporters/OBJExporter.js";
 import { PLYExporter } from "three/examples/jsm/exporters/PLYExporter.js";
 import type { BodyMesh } from "../kernel/protocol";
+import { writeGlb, writeGltf } from "./gltf";
 
 export * from "./dxf";
 
@@ -66,19 +66,20 @@ function meshGroup(bodies: { mesh: BodyMesh; matrix?: THREE.Matrix4; color?: str
   return g;
 }
 
-export type MeshFormat = "obj" | "3mf" | "glb" | "ply";
+export type MeshFormat = "obj" | "3mf" | "glb" | "gltf" | "ply";
 
 export async function exportMeshes(format: MeshFormat, bodies: { mesh: BodyMesh; matrix?: THREE.Matrix4; color?: string; name: string }[]): Promise<Blob> {
+  if (format === "glb" || format === "gltf") {
+    // names, colours and placements per body (glTF nodes), metres
+    const items = bodies.map((b) => ({ name: b.name, positions: b.mesh.positions, normals: b.mesh.normals, indices: b.mesh.indices, color: b.color, matrix: b.matrix?.toArray() }));
+    return format === "glb" ? new Blob([writeGlb(items) as BlobPart], { type: "model/gltf-binary" }) : new Blob([writeGltf(items)], { type: "model/gltf+json" });
+  }
   const g = meshGroup(bodies);
   switch (format) {
     case "obj":
       return new Blob([new OBJExporter().parse(g)], { type: "text/plain" });
     case "ply":
       return new Blob([new PLYExporter().parse(g, () => {}, { binary: true }) as ArrayBuffer], { type: "application/octet-stream" });
-    case "glb": {
-      const res = await new GLTFExporter().parseAsync(g, { binary: true });
-      return new Blob([res as ArrayBuffer], { type: "model/gltf-binary" });
-    }
     case "3mf":
       return new Blob([threeMf(g) as BlobPart], { type: "model/3mf" });
   }

@@ -4,6 +4,7 @@ import { featureSketchRefs, ORIGIN_PLANES, uid } from "../core/document";
 import { formatNumber } from "../core/expr";
 import { holeCenterPoints, planeToWorld, worldToPlane } from "../core/resolve";
 import { PMI_COMMANDS, startPmiCommand } from "../mbd/commands";
+import { MEASURE_COMMAND_INFO, makeMeasureCommand } from "../measure/ui";
 import { ensureSheetStyle, matchEdge, outerEdges, segPointDist, type SheetEdge } from "../sheetmetal/sheet";
 import { clearanceHole, counterbore, countersink, FAMILY_LABEL, FIT_LABEL, tapDrill, threadByName, threadsOf, type Fit, type ThreadFamily } from "../core/threads";
 import type {
@@ -46,12 +47,12 @@ import type {
   WorkPointFeature,
 } from "../core/types";
 import { pointInRegion, type Region } from "../sketch/profiles";
-import { download, h, iconEl, toast } from "../ui/dom";
+import { download, h, toast } from "../ui/dom";
 import { cutList, findSize, sectionShape, STEEL, unitMass, type SectionKind } from "../library/steel";
 import { PropertyPanel, type ExprField } from "../ui/panel";
 import { PrintCheckCommand } from "../analysis/printui";
 import { pointMap } from "../viewer/sketchRender";
-import { samePick, type Pick, type ToolHandler } from "../viewer/viewport";
+import type { Pick, ToolHandler } from "../viewer/viewport";
 import { FeatureCommand, type Command } from "./command";
 import { makeSurfaceCommand, pickedSurface, SURFACE_COMMAND_INFO, surfaceChoices, surfaceLabel, surfacePicks } from "./surface";
 import { isSurfaceFeature } from "../core/surfaceResolve";
@@ -1657,6 +1658,7 @@ class HoleCommand extends FeatureCommand<HoleFeature> {
           name: this.app.store.nextFeatureName("sketch"),
           plane: pl.plane,
           planeLabel: pl.label,
+          ...(pl.face ? { faceRef: pl.face } : {}),
           entities: [
             { id: "origin", type: "point", x: origin[0], y: origin[1], fixed: true, ref: true },
             { id: uid("p"), type: "point", x: uv[0], y: uv[1] },
@@ -2317,7 +2319,7 @@ class SketchCommand implements Command {
         const pl = p ? app.planeOf(p) : null;
         if (!pl) return;
         app.finishCommand(this, false);
-        app.createSketch(pl.plane, pl.label, pl.ref);
+        app.createSketch(pl.plane, pl.label, pl.ref, pl.face);
       },
     };
     app.status("スケッチ平面 (原点平面、作業平面、またはモデルの平らな面) を選択");
@@ -2329,71 +2331,7 @@ class SketchCommand implements Command {
   }
 }
 
-// --------------------------------------------------------------- measure ---
-
-class MeasureCommand implements Command {
-  readonly id = "measure";
-  handler: ToolHandler;
-  private picks: Pick[] = [];
-  private out: HTMLElement;
-  private panel: PropertyPanel;
-  constructor(private app: App) {
-    app.vp.pickKinds = new Set(["face", "edge"]);
-    this.panel = new PropertyPanel(app.panelHost, "測定", "measure", { onOk: () => app.finishCommand(this, true), onCancel: () => app.finishCommand(this, false) }, () => app.values());
-    const s = this.panel.section("結果");
-    this.out = h("div", { class: "measure-out" }, "面またはエッジを選択してください (2 つ選ぶと距離・角度)");
-    s.appendChild(this.out);
-    s.appendChild(h("button", { class: "btn", onClick: () => this.reset() }, iconEl("trash"), "クリア"));
-    this.handler = {
-      cursor: "crosshair",
-      onPointerMove: (e, vp) => vp.setHover(vp.pick(e)),
-      onPointerDown: (e, vp) => {
-        if (e.button !== 0) return;
-        const p = vp.pick(e);
-        if (!p) return;
-        if (this.picks.length >= 2 || this.picks.some((x) => samePick(x, p))) this.picks = [];
-        this.picks.push(p);
-        vp.setSelection([...this.picks]);
-        void this.compute();
-      },
-    };
-    app.status("測定する面・エッジをクリック");
-  }
-  private reset() {
-    this.picks = [];
-    this.app.vp.setSelection([]);
-    this.out.textContent = "面またはエッジを選択してください";
-  }
-  private async compute() {
-    const [a, b] = this.picks;
-    try {
-      const r = await this.app.kernel.measure(
-        { body: a.body, kind: a.kind as "face", index: a.index },
-        b ? { body: b.body, kind: b.kind as "face", index: b.index } : undefined,
-      );
-      const rows: [string, string][] = [];
-      if (r.length !== undefined) rows.push(["長さ", `${formatNumber(r.length, 4)} mm`]);
-      if (r.radius) rows.push(["半径", `${formatNumber(r.radius, 4)} mm`], ["直径", `${formatNumber(r.radius * 2, 4)} mm`]);
-      if (r.area !== undefined) rows.push(["面積", `${formatNumber(r.area, 4)} mm²`]);
-      if (r.distance !== undefined) rows.push(["最小距離", `${formatNumber(r.distance, 4)} mm`]);
-      if (r.angle !== undefined) rows.push(["角度", `${formatNumber(r.angle, 3)}°`]);
-      if (a.kind === "face" && !b) {
-        const f = this.app.pickBodies[a.body].faces[a.index];
-        rows.push(["法線", f.normal.map((v) => formatNumber(v, 3)).join(", ")]);
-      }
-      this.out.innerHTML = "";
-      this.out.appendChild(h("table", { class: "kv" }, ...rows.map(([k, v]) => h("tr", {}, h("th", {}, k), h("td", {}, v)))));
-    } catch (e) {
-      this.out.textContent = (e as Error).message;
-    }
-  }
-  ok() {
-    this.panel.close();
-  }
-  cancel() {
-    this.panel.close();
-  }
-}
+// measure commands: src/measure/ui.ts
 
 // -------------------------------------------------------------- registry ---
 
@@ -2431,7 +2369,7 @@ export function buildCommands(app: App): CommandRegistry {
     workaxis: { id: "workaxis", label: "作業軸", icon: "workaxis" },
     workpoint: { id: "workpoint", label: "作業点", icon: "workpoint" },
     move: { id: "move", label: "ボディを移動", icon: "move" },
-    measure: { id: "measure", label: "測定", icon: "measure" },
+    ...MEASURE_COMMAND_INFO,
     stress: { id: "stress", label: "応力解析", icon: "stress" },
     cam: { id: "cam", label: "CAM", icon: "cam" },
     printcheck: { id: "printcheck", label: "3D プリント チェック", icon: "printcheck" },
@@ -2506,11 +2444,10 @@ export function buildCommands(app: App): CommandRegistry {
         return new WorkPlaneCommand(app, f as WorkPlaneFeature | null);
       case "move":
         return new MoveCommand(app, f as MoveFeature | null);
-      case "measure":
-        return new MeasureCommand(app);
       case "printcheck":
         return new PrintCheckCommand(app);
     }
+    if (id in MEASURE_COMMAND_INFO) return makeMeasureCommand(app, id);
     if (id in PMI_COMMANDS) return startPmiCommand(app, id);
     if (id in SURFACE_COMMAND_INFO) return makeSurfaceCommand(app, id, f);
     return null;
@@ -2540,7 +2477,7 @@ export function buildCommands(app: App): CommandRegistry {
       }
       const cmd = make(id, null);
       if (!cmd) return;
-      if (id !== "measure" && id !== "sketch") app.lastCommand = id;
+      if (!id.startsWith("measure") && id !== "sketch") app.lastCommand = id;
       app.startCommand(cmd);
     },
     edit: (f) => {

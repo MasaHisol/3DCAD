@@ -8,6 +8,8 @@ export interface AsmPart {
   doc?: PartDocument;
   /** STEP text for imported parts. */
   step?: string;
+  /** Colour read from the STEP file. */
+  color?: string;
   fileName?: string;
 }
 
@@ -19,6 +21,8 @@ export interface AsmComponent {
   matrix: number[];
   grounded: boolean;
   visible?: boolean;
+  /** Sub-assemblies the component sits in (STEP product structure, top first); absent = top level. */
+  path?: string[];
   /** Instance of a component pattern (placed from the pattern's source). */
   patternOf?: { pattern: string; index: number };
 }
@@ -68,6 +72,12 @@ export interface AssemblyDocument {
   drawing?: import("../drawing/types").DrawingDoc;
   /** Wire / cable, hose and pipe routes (配線・配管); absent in older files. */
   routes?: import("../routing/types").AsmRoute[];
+  /** Measurements saved as annotations (stage 2, src/measure). */
+  measureNotes?: import("../measure/types").MeasureNote[];
+  /** Saved display states (表示状態 / ビュー); absent in older files. */
+  views?: import("./views").SavedView[];
+  /** Interference pairs to ignore (press fits…), as pairKey(a, b). */
+  interferenceIgnore?: string[];
 }
 
 export function newAssembly(name = "アセンブリ1"): AssemblyDocument {

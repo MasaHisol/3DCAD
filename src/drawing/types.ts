@@ -53,6 +53,8 @@ export interface GRef {
   p: Vec2;
   p2?: Vec2;
   r?: number;
+  /** 3D edge the reference was drawn on (persistent topology name, part drawings). */
+  topo?: { name: string; at: "line" | "circle" | "center" | "a" | "b"; body?: number };
 }
 
 export type Tolerance =

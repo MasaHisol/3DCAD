@@ -1,0 +1,158 @@
+.help-back {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(15, 23, 42, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.help-win {
+  width: min(980px, calc(100vw - 32px));
+  height: min(720px, calc(100vh - 32px));
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.help-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.help-search {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.help-main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+.help-index {
+  width: 240px;
+  flex: none;
+  overflow: auto;
+  border-right: 1px solid var(--border);
+  padding: 6px 0;
+}
+.help-cat {
+  font-size: 11px;
+  color: var(--text-3);
+  padding: 8px 12px 2px;
+  font-weight: 600;
+}
+.help-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: none;
+  color: var(--text);
+  padding: 4px 12px 4px 18px;
+  font: inherit;
+  cursor: pointer;
+}
+.help-item:hover {
+  background: var(--hover);
+}
+.help-item.on {
+  background: var(--accent-2);
+  color: var(--accent);
+  font-weight: 600;
+}
+.help-empty {
+  padding: 12px;
+  color: var(--text-3);
+}
+.help-page {
+  flex: 1;
+  overflow: auto;
+  padding: 16px 24px 24px;
+  line-height: 1.65;
+}
+.help-page h1 {
+  font-size: 20px;
+  margin: 4px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.help-page h1 kbd {
+  font-size: 12px;
+}
+.help-page h2 {
+  font-size: 14px;
+  margin: 18px 0 6px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 3px;
+}
+.help-crumb {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.help-purpose {
+  font-size: 14px;
+}
+.help-fig {
+  margin: 10px 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  max-width: 480px;
+  color: var(--text-2);
+}
+.help-fig svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.help-fig figcaption {
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-3);
+}
+.help-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.help-chip,
+.help-link {
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--accent);
+  border-radius: 12px;
+  padding: 2px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+.help-link {
+  border: 0;
+  padding: 0;
+  text-align: left;
+  text-decoration: underline;
+  background: none;
+}
+.help-run {
+  margin-top: 18px;
+}
+@media (max-width: 640px) {
+  .help-index {
+    width: 140px;
+  }
+}

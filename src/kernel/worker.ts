@@ -5,7 +5,20 @@ import wasmUrl from "replicad-opencascadejs/wasm?url";
 import { setOC } from "replicad";
 import { drawView, exportPlaced, GeometryEngine, interferences, placeShape } from "./geometry";
 import { buildRoutes, routeInterference, routeShapes } from "./route";
-import type { BodyMesh, Placement, ThreadInfo, WorkerRequest, WorkerResponse } from "./protocol";
+import { exportIgesNative, exportStepXcaf, importStepAssembly } from "./exchange";
+import { extKernel, extKernelError, extKernelIfLoaded, setExtLoader } from "./ext";
+import { hlrProject } from "./hlr";
+import { runMeasure } from "../measure/kernel";
+import { interferenceEx } from "./interferenceK";
+import { sectionShapes } from "./section";
+import type { BodyMesh, ExtKernelInfo, Placement, ThreadInfo, WorkerRequest, WorkerResponse } from "./protocol";
+
+// Extended kernel: the full opencascade.js build, fetched and compiled only when an
+// operation needs it (IGES, XCAF STEP read, ShapeFix_Shape healing). Bundled locally.
+setExtLoader(async () => {
+  const [{ default: init }, { default: url }] = await Promise.all([import("occt-full/opencascade.full.js"), import("occt-full/opencascade.full.wasm?url")]);
+  return init({ locateFile: (p: string) => (p.endsWith(".wasm") ? url : p) });
+});
 import type { Vec3 } from "../core/types";
 
 /** Threads of a placed part, in assembly coordinates (column-major matrix). */
@@ -16,6 +29,9 @@ function placedThreads(ps: Placement[]): ThreadInfo[] {
     return engineFor(p.key).threads.map((t) => ({ ...t, origin: pt(t.origin, 1), dir: pt(t.dir, 0) }));
   });
 }
+
+// debug: compare every incremental rebuild with a full one (VITE_VERIFY_REBUILD=1)
+GeometryEngine.verify = import.meta.env?.VITE_VERIFY_REBUILD === "1";
 
 const engines = new Map<string, GeometryEngine>();
 let ready: Promise<void> | null = null;
@@ -54,6 +70,7 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
     case "init":
       return { result: true, transfer: [] };
     case "dropEngine":
+      engines.get(req.key)?.dispose();
       engines.delete(req.key);
       return { result: true, transfer: [] };
     case "drawViews": {
@@ -64,13 +81,46 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
       return { result: req.views.map((v) => drawView(items, v, threads)), transfer: [] };
     }
     case "exportAssembly": {
-      const buf = await exportPlaced([...placed(req.placements), ...(req.withRoutes ? routeShapes() : [])], req.format).arrayBuffer();
+      let blob: Blob;
+      if (req.format === "step") {
+        // assembly structure: one product per part (shared by its instances), placed components
+        const keys = [...new Set(req.placements.map((p) => p.key))];
+        const parts = keys.map((k) => {
+          const p = req.placements.find((x) => x.key === k)!;
+          return { name: p.part ?? p.name, color: p.color, shapes: engineFor(k).bodies };
+        });
+        const comps = req.placements.map((p) => ({ part: keys.indexOf(p.key), name: p.name, matrix: p.matrix }));
+        const routes = req.withRoutes ? routeShapes() : [];
+        if (routes.length) {
+          parts.push({ name: "配管・配線", color: "#8a96a8", shapes: routes.map((r) => r.shape) });
+          comps.push({ part: parts.length - 1, name: "配管・配線", matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] });
+        }
+        blob = exportStepXcaf(parts, comps, req.name ?? "アセンブリ");
+      } else {
+        const colors = new Map(req.placements.map((p) => [p.name, p.color]));
+        const items = [...placed(req.placements).map((x) => ({ ...x, color: colors.get(x.name) })), ...(req.withRoutes ? routeShapes() : [])];
+        const iges = req.format === "iges" && items.length ? await exportIgesNative(items) : null;
+        if (iges) {
+          const buf = await new Blob([iges]).arrayBuffer();
+          return { result: buf, transfer: [buf] };
+        }
+        blob = exportPlaced([...placed(req.placements).map((x) => ({ ...x, color: colors.get(x.name) })), ...(req.withRoutes ? routeShapes() : [])], req.format);
+      }
+      const buf = await blob.arrayBuffer();
       return { result: buf, transfer: [buf] };
     }
+    case "stepAssembly":
+      return { result: await importStepAssembly(req.text), transfer: [] };
     case "interference": {
       const shapes = placed(req.placements);
       const hits = interferences(shapes.map((x) => x.shape)).map((h) => ({ a: shapes[h.a].index, b: shapes[h.b].index, volume: h.volume }));
       return { result: hits.filter((h) => h.a !== h.b), transfer: [] };
+    }
+    case "interferenceEx": {
+      const hits = interferenceEx(placed(req.placements), req.opts);
+      const transfer: Transferable[] = [];
+      for (const h of hits) if (h.mesh) transfer.push(h.mesh.positions.buffer, h.mesh.indices.buffer);
+      return { result: hits, transfer };
     }
     case "routeBuild": {
       const res = buildRoutes(req.routes);
@@ -81,14 +131,20 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
     case "routeInterference":
       return { result: routeInterference(placed(req.placements)), transfer: [] };
     case "rebuild": {
-      const res = await eng.rebuild(req.features, req.captureBefore);
+      const res = await eng.rebuild(req.features, req.captureBefore, { quality: req.quality, progressive: req.progressive });
       const transfer: Transferable[] = [];
       for (const b of [...res.bodies, ...(res.before ?? [])] as BodyMesh[])
         transfer.push(b.positions.buffer, b.normals.buffer, b.indices.buffer, b.faceRanges.buffer, b.edgePositions.buffer, b.edgeRanges.buffer);
       return { result: res, transfer };
     }
+    case "remesh": {
+      const res = eng.remesh(req.quality);
+      const transfer: Transferable[] = [];
+      for (const b of [...res.bodies, ...res.surfaces]) transfer.push(b.positions.buffer, b.normals.buffer, b.indices.buffer, b.faceRanges.buffer, b.edgePositions.buffer, b.edgeRanges.buffer);
+      return { result: res, transfer };
+    }
     case "export": {
-      const blob = eng.exportFile(req.format, req.name);
+      const blob = await eng.exportFileAsync(req.format, req.name, req.color);
       const buf = await blob.arrayBuffer();
       return { result: buf, transfer: [buf] };
     }
@@ -96,6 +152,30 @@ async function handle(req: WorkerRequest): Promise<{ result: unknown; transfer: 
       return { result: eng.massProps(), transfer: [] };
     case "measure":
       return { result: eng.measure(req.a, req.b), transfer: [] };
+    case "measureX": {
+      const ps = "placements" in req.op ? req.op.placements : undefined;
+      const ctx = { bodies: [...eng.bodies, ...eng.surfaces.map((s) => s.shape)], threads: eng.threads, placed: ps ? placed(ps) : undefined };
+      return { result: runMeasure(ctx as never, req.op), transfer: [] };
+    }
+    case "hlr": {
+      const shapes = req.placements ? placed(req.placements).map((x) => x.shape) : eng.bodies;
+      return { result: req.views.map((v) => hlrProject(shapes, v)), transfer: [] };
+    }
+    case "extKernel": {
+      if (req.load) await extKernel();
+      const info: ExtKernelInfo = { available: !extKernelError(), loaded: !!extKernelIfLoaded(), error: extKernelError() || undefined };
+      return { result: info, transfer: [] };
+    }
+    case "section": {
+      // sources: components (placements) or the part's bodies
+      const items = req.placements ? placed(req.placements) : eng.bodies.map((shape, index) => ({ shape, index }));
+      const res = req.planes.map((pl) => {
+        const r = sectionShapes(items.map((x) => x.shape), pl, req.deflection);
+        // report component / body indices instead of shape indices
+        return { ...r, source: r.source.map((i) => items[i].index), loopSource: r.loopSource.map((i) => items[i].index) };
+      });
+      return { result: res, transfer: [] };
+    }
     case "projection":
       return { result: req.placements ? eng.projection(req.views, placed(req.placements).map((x) => x.shape)) : eng.projection(req.views), transfer: [] };
   }

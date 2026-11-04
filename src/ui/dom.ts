@@ -295,6 +295,19 @@ export function markingMenu(x: number, y: number, ring: (MarkingItem | null)[], 
     root.appendChild(list);
   }
   document.body.appendChild(root);
+  // keep the overflow list inside the window: scroll it, or put it above the ring when there is no room below
+  const list = root.querySelector<HTMLElement>(".mk-overflow");
+  if (list) {
+    const below = window.innerHeight - (y + R + 40) - 8;
+    const above = y - (R + 40) - 8;
+    const need = list.scrollHeight;
+    if (need > below && above > below) {
+      const h = Math.min(need, above);
+      list.style.top = `${-(R + 40) - h}px`;
+      list.style.maxHeight = `${h}px`;
+    } else list.style.maxHeight = `${Math.max(120, below)}px`;
+    list.style.overflowY = "auto";
+  }
   openMenu = root;
   // gesture: releasing over an item picks it (flick)
   setTimeout(() => {

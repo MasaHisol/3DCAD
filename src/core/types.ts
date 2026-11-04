@@ -114,12 +114,16 @@ export interface EdgeRef {
   /** Mid point normalised to the owning body's bounding box (0..1). */
   n?: Vec3;
   type?: string;
+  /** Persistent topology name (see core/naming.ts); absent in documents saved before stage 1.5. */
+  name?: string;
 }
 export interface FaceRef {
   center: Vec3;
   normal: Vec3;
   n?: Vec3;
   type?: string;
+  /** Persistent topology name (see core/naming.ts). */
+  name?: string;
 }
 
 export interface FeatureBase {
@@ -135,6 +139,8 @@ export interface SketchFeature extends FeatureBase {
   planeLabel: string;
   /** Work plane feature the sketch lives on (plane follows it). */
   planeRef?: string;
+  /** Model face the sketch was placed on: the plane follows that face after upstream edits. */
+  faceRef?: FaceRef;
   entities: SkEntity[];
   constraints: SkConstraint[];
   dimensions: SkDimension[];
@@ -429,7 +435,7 @@ export interface WorkPointFeature extends FeatureBase {
 
 export interface ImportFeature extends FeatureBase {
   type: "import";
-  format: "step" | "stl";
+  format: "step" | "stl" | "iges";
   fileName: string;
   /** File contents (STEP text, or base64 for binary STL). */
   data: string;
@@ -594,4 +600,8 @@ export interface PartDocument {
   revisions?: import("./revisions").Revision[];
   /** MBD: 3D annotations (PMI) attached to model faces / edges. */
   pmi?: import("../mbd/pmi").PmiAnno[];
+  /** Measurements saved as annotations (stage 2, src/measure). */
+  measureNotes?: import("../measure/types").MeasureNote[];
+  /** Saved display states (表示状態) of the bodies; absent in older files. */
+  views?: import("./viewState").PartView[];
 }

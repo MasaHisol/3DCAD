@@ -1,10 +1,7 @@
 import type { App } from "../app";
 import type { SketchTool } from "../viewer/sketchEditor";
-import { openLibrary } from "../library/dialog";
-import { openFamily, openRules } from "../rules/ui";
-import { openFlatPattern, openSheetStyle } from "../sheetmetal/ui";
+import { openFamily, openFlatPattern, openLibrary, openRules, openSheetStyle, openToleranceStack } from "./lazyUi";
 import { openIProperties, openParameters, openShortcuts } from "./dialogs";
-import { openToleranceStack } from "../analysis/toleranceUi";
 import { openRevisions } from "./revisionsUi";
 import { exportPmiCsv, openPmiList, togglePmi } from "../mbd/commands";
 import type { RibbonButton, RibbonTab } from "./ribbon";
@@ -256,7 +253,18 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
       panels: [
         {
           title: "測定",
-          items: [cmd("measure", "測定", "measure", "M", "距離・角度・長さ・面積を測定します。")],
+          items: [
+            cmd("measure", "測定", "measure", "M", "距離 (最近点)・角度・半径・長さ・面積・周長・体積を測定します。"),
+            cmd("measure-hole", "穴", "hole", undefined, "穴径・深さ・座ぐり・皿・ねじを認識して測定します。"),
+            cmd("measure-pcd", "ピッチ円", "circPattern", undefined, "複数の穴からピッチ円直径・中心・角度間隔・ずれを求めます。"),
+            {
+              stack: [
+                cmd("measure-thickness", "肉厚", "shell", undefined, "ボディの肉厚分布を色で表示し、薄肉部を警告します。", "small"),
+                cmd("measure-clearance", "クリアランス", "intersect", undefined, "ボディ間 (アセンブリではコンポーネント間) の最小距離がしきい値未満の組を一覧します。", "small"),
+                cmd("measure-notes", "測定注記", "iprops", undefined, "保存した測定注記の一覧 (表示切替・名前変更・削除・修復・CSV)。", "small"),
+              ],
+            },
+          ],
         },
         {
           title: "解析",
@@ -379,6 +387,13 @@ export function buildRibbonTabs(app: App): RibbonTab[] {
           title: "外観",
           items: [
             { id: "section", label: "断面図", icon: "section", tip: "X/Y/Z 方向の断面でモデルを切断表示します。", action: () => app.toggleSectionView(), active: () => app.sectionActive },
+            {
+              stack: [
+                { id: "view-showall", label: "すべて表示", icon: "eye", size: "small", shortcut: "Shift+H", tip: "非表示・半透明にしたボディ / コンポーネントをすべて元に戻します (元に戻す で取り消せます)。", action: () => app.viewCtx.showAll() },
+                { id: "view-hidden", label: "非表示の一覧", icon: "eyeOff", size: "small", tip: "非表示にしたボディ / コンポーネントの一覧を表示し、個別またはまとめて表示に戻します。", action: () => void import("./hiddenPanel").then((m) => m.openHiddenPanel(app)) },
+                { id: "view-states", label: "表示状態", icon: "screenshot", size: "small", tip: "カメラ・表示 / 非表示・半透明・色・断面・表示スタイルを名前を付けて保存し、呼び出します。", action: () => void import("./hiddenPanel").then((m) => m.openViewStates(app)) },
+              ],
+            },
             {
               stack: [
                 { id: "ortho", label: "平行投影", icon: "ortho", size: "small", action: () => app.vp.setPerspective(false), active: () => !app.vp.perspective },

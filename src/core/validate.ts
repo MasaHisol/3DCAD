@@ -5,9 +5,11 @@
 
 import type { AssemblyDocument } from "../assembly/types";
 import { FEATURE_LABELS, MATERIALS } from "./document";
+import { parseViews } from "../assembly/views";
 import type { PartDocument } from "./types";
 import { surfaceBase } from "./surfaceResolve";
 import { cleanPmi } from "../mbd/pmi";
+import { cleanNotes } from "../measure/notes";
 
 export const FILE_VERSION = 1;
 
@@ -71,6 +73,11 @@ export function validatePart(raw: unknown, where = "パーツ"): Checked<PartDoc
   warnings.push(...checkSurfaceFeatures(doc, ids));
   if (!Array.isArray(doc.revisions)) delete doc.revisions;
   warnings.push(...cleanPmi(doc));
+  if ("measureNotes" in doc) {
+    const notes = cleanNotes(doc.measureNotes);
+    if (notes) doc.measureNotes = notes;
+    else delete doc.measureNotes;
+  }
   return { doc, warnings };
 }
 
@@ -84,6 +91,9 @@ export function validateAssembly(raw: unknown): Checked<AssemblyDocument> {
   if (!Array.isArray(doc.params)) doc.params = [];
   if (!isObj(doc.iprops)) doc.iprops = {};
   if (typeof doc.name !== "string" || !doc.name) doc.name = "アセンブリ";
+  // saved views / interference ignore list (stage 2 assembly viewing)
+  if (doc.views !== undefined) doc.views = parseViews(doc.views);
+  if (doc.interferenceIgnore !== undefined) doc.interferenceIgnore = Array.isArray(doc.interferenceIgnore) ? doc.interferenceIgnore.filter((x) => typeof x === "string") : [];
   // embedded parts
   doc.parts = doc.parts.filter((p) => {
     if (!isObj(p) || typeof p.id !== "string") return (warnings.push("不正な部品定義を削除しました"), false);

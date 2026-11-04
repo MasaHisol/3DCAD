@@ -431,7 +431,7 @@ export const CURRICULUM4: Chapter[] = [
         steps: [
           { text: "<b>メイト</b> 拘束で、ステージプレートの下面と架台フレームの上面を選んで OK。", tab: "assemble", ui: "asm-mate", check: (s) => asmConstraints(s, "mate").length + asmConstraints(s, "flush").length >= 1 && !s.asmCommand },
           { text: "もう一度 <b>メイト</b> で、センサブラケットの底面とステージプレートの上面を選んで OK。", tab: "assemble", ui: "asm-mate", check: (s) => asmConstraints(s, "mate").length + asmConstraints(s, "flush").length >= 2 && !s.asmCommand },
-          { text: "<b>干渉解析</b> と <b>部品表</b> で、めり込みがないこと・品番 (EQ-…) と数量を確認したら「次へ」。", tab: "assemble", ui: ["asm-interf", "asm-bom"] },
+          { text: "<b>干渉解析</b> と <b>部品表</b> で、めり込みがないこと・品番 (EQ-…) と数量を確認したら「次へ」。", tab: "assemble", ui: ["asm-interference", "asm-bom"] },
           { text: "<b>構造解析</b> で架台の底面を固定、ブラケットの上面に荷重をかけて <b>解析を実行</b> します。", tab: "assemble", ui: "asm-analysis", check: asmStaticDone, hint: "条件のボタンを押してアクティブにしてから、モデルの面をクリックします。" },
           { text: "最大応力の位置と安全率を確認してパネルを閉じます。レッスン完了です。", tab: "assemble", check: (s) => s.command === null },
         ],

@@ -341,6 +341,7 @@ export async function openDrawing(app: App) {
   };
   try {
     const specs = VIEWS.map(({ name, dir, xAxis }) => ({ name, dir, xAxis }));
+    if (asm) await app.asm.ensureBrep();
     const views = asm ? await app.kernel.projectionPlaced(specs, app.asm.placements()) : await app.kernel.projection(specs);
     const doc = asm
       ? { name: app.asm.doc.name, iprops: app.asm.doc.iprops, material: { name: "—", density: 0, color: "" } }

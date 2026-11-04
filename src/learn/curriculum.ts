@@ -710,7 +710,7 @@ d2 = d0 * 0.2    (穴の直径は幅の 20 %)</pre>
           { text: "ステータスバーの<b>自由度</b>を確認しましょう。ピンは挿入拘束の後も<b>軸まわりの回転</b>だけ自由に残っています (自由回転 <kbd>G</kbd> で回してみましょう)。", tab: "assemble", ui: "asm-rotate" },
           { text: "<b>標準部品</b> から <b>六角ナット</b> や <b>平座金</b> を選んで配置します。", tab: "assemble", ui: "asm-library", check: (s) => s.asm.components.length >= 3 },
           { text: "<b>部品表</b> を開き、部品ごとの数量・材質を確認します。", tab: "assemble", ui: "asm-bom" },
-          { text: "<b>干渉解析</b> で部品同士が重なっていないか確認しましょう。レッスン完了です。", tab: "assemble", ui: "asm-interf" },
+          { text: "<b>干渉解析</b> で部品同士が重なっていないか確認しましょう。レッスン完了です。", tab: "assemble", ui: "asm-interference" },
         ],
         summary: ["自由な部品は 6 自由度 (移動 3 + 回転 3)", "挿入拘束 = 軸合わせ + 面の接触 (ボルト・ピンの組付けに最適)", "動く部品は自由度を残す。部品表と干渉解析で組立を検証する"],
         quiz: [
@@ -764,7 +764,7 @@ d2 = d0 * 0.2    (穴の直径は幅の 20 %)</pre>
         setup: { kind: "assembly", make: pinAssemblyStarter },
         steps: [
           { text: "<b>挿入</b> 拘束でピンをブラケットの穴に組み付けます (レッスン 5-1 と同じ手順)。", tab: "assemble", ui: "asm-insert", check: (s) => s.asm.constraints.some((c) => c.type === "insert" && !c.suppressed) },
-          { text: "<b>干渉解析</b> を押して、部品同士が重なっていないか確認します。", tab: "assemble", ui: "asm-interf" },
+          { text: "<b>干渉解析</b> を押して、部品同士が重なっていないか確認します。", tab: "assemble", ui: "asm-interference" },
           { text: "<b>分解</b> を押して、部品を組立方向に引き離した分解図を表示します。距離のスライダーを動かしてみましょう。", tab: "assemble", ui: "asm-explode", check: (s) => !!s.exploded },
           { text: "パネルの OK で分解表示を確定します (このまま図面ビューに使えます)。レッスン完了です。", tab: "assemble", check: (s) => !s.asmCommand },
         ],

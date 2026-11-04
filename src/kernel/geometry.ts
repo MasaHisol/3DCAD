@@ -13,6 +13,7 @@ import type {
   MassProps,
   MeasureResult,
   PickRef,
+  PlaneFaceRef,
   ProjectionView,
   RebuildResult,
   RFeature,
@@ -26,8 +27,18 @@ import type {
   ViewSpec,
 } from "./protocol";
 import { evalSurface, isSurfaceRFeature } from "./surface";
+import { bodyMeta, exportIgesNative, exportStepXcaf, healSummary, igesToShapes, importIgesNative, importStepWithMeta, preciseProps, shapesToIges } from "./exchange";
+import { readIges, writeIges } from "../io/iges";
+import { RefBrokenError, edgeFaces, resolveNamed, type BrokenRef, type RefCandidate } from "../core/naming";
+import { installFastTopology } from "./topo";
+import { StateCache, defaultCacheBudget, prefixKeys, resumeIndex, type CacheStats } from "./rebuildCache";
+import { MESH_CACHE_VERSION, PROGRESSIVE_FACES, tessParams, type TessParams, type TessQuality } from "./tessellation";
+import { verifyAgainstFull } from "./verifyRebuild";
+import { copyNames, nameFromSources, nameGenericTool, nameHoleTool, nameProfileTool, namesOf, setNames, type NameSource, type NamingHints } from "./naming";
 
 type Shape = R.Shape3D;
+
+installFastTopology();
 
 interface State {
   bodies: Shape[];
@@ -43,6 +54,12 @@ interface CacheEntry {
   state: State;
   error?: string;
   refs?: { edges?: EdgeRef[]; faces?: FaceRef[] };
+  /** Sketch placed on a model face: the re-resolved face and plane (keyed by sketch id). */
+  sketchRefs?: { id: string; faces: FaceRef[]; plane: PlaneDef };
+  /** References that could not be resolved (with candidates). */
+  broken?: BrokenRef[];
+  /** Information for the user (e.g. what the import repair did). */
+  notice?: string;
 }
 
 const tuple = (v: R.Vector | number[]): Vec3 => (Array.isArray(v) ? [v[0], v[1], v[2]] : (v.toTuple() as Vec3));
@@ -185,7 +202,7 @@ type OcAx = { Location(): OcXYZ; Direction(): OcXYZ };
 type OcXYZ = { X(): number; Y(): number; Z(): number };
 const xyz = (p: OcXYZ): Vec3 => [p.X(), p.Y(), p.Z()];
 
-function edgeInfo(e: R.Edge): EdgeInfo {
+export function edgeInfo(e: R.Edge): EdgeInfo {
   const a = tuple(e.startPoint), b = tuple(e.endPoint);
   let mid: Vec3;
   try {
@@ -232,38 +249,47 @@ function resolveEdges(bodies: Shape[], refs: EdgeRef[], diag: number): { perBody
   const updated: EdgeRef[] = [];
   const infos = bodies.map((b) => {
     const box = bodyBox(b);
-    return b.edges.map((e) => {
+    const names = namesOf(b)?.edges;
+    const list = b.edges;
+    return list.map((e, i) => {
       const info = edgeInfo(e);
-      return { e, info, n: normInBox(info.mid, box), box };
+      return { e, info, n: normInBox(info.mid, box), name: names?.[i] };
     });
   });
-  const taken = new Set<R.Edge>();
-  for (const ref of refs) {
-    let best: { bi: number; e: R.Edge; info: EdgeInfo; n: Vec3; score: number } | null = null;
+  const taken = new Set<string>();
+  const broken: BrokenRef[] = [];
+  refs.forEach((ref, slot) => {
     const refDir = ref.a && ref.b ? normalize(sub(ref.b, ref.a)) : null;
+    const cands: RefCandidate[] = [];
     infos.forEach((list, bi) =>
-      list.forEach(({ e, info, n }) => {
-        if (taken.has(e)) return;
+      list.forEach(({ info, n, name }, index) => {
         let score = matchScore(info.mid, n, ref.mid, ref.n, diag);
         if (ref.type && ref.type !== info.type) score += diag * 0.3;
         if (refDir && info.type === "LINE") {
           const d = normalize(sub(info.b, info.a));
           score += (1 - Math.abs(dot(d, refDir))) * diag * 0.5;
         }
-        if (!best || score < best.score) best = { bi, e, info, n, score };
+        cands.push({ body: bi, index, name, score });
       }),
     );
-    if (!best || (best as { score: number }).score > diag * 0.2 + 1e-3) throw new Error("参照エッジが見つかりません (形状が大きく変化しました)");
-    const b = best as { bi: number; e: R.Edge; info: EdgeInfo; n: Vec3 };
-    taken.add(b.e);
-    if (!perBody.has(b.bi)) perBody.set(b.bi, []);
-    perBody.get(b.bi)!.push(b.e);
-    updated.push({ mid: b.info.mid, a: b.info.a, b: b.info.b, n: b.n, type: b.info.type });
-  }
+    const res = resolveNamed("edge", ref.name, cands, diag * 0.2 + 1e-3, taken);
+    if ("broken" in res) {
+      broken.push({ ...res.broken, slot });
+      updated.push(ref);
+      return;
+    }
+    const { body: bi, index } = res.ok;
+    const b = infos[bi][index];
+    taken.add(`${bi}:${index}`);
+    if (!perBody.has(bi)) perBody.set(bi, []);
+    perBody.get(bi)!.push(b.e);
+    updated.push({ mid: b.info.mid, a: b.info.a, b: b.info.b, n: b.n, type: b.info.type, ...(b.name ? { name: b.name } : {}) });
+  });
+  if (broken.length) throw new RefBrokenError(broken);
   return { perBody, updated };
 }
 
-function faceInfo(f: R.Face): FaceInfo {
+export function faceInfo(f: R.Face): FaceInfo {
   const center = tuple(f.center);
   let normal: Vec3 = [0, 0, 1];
   try {
@@ -312,28 +338,37 @@ function resolveFaces(bodies: Shape[], refs: FaceRef[], diag: number): { perBody
   const updated: FaceRef[] = [];
   const infos = bodies.map((b) => {
     const box = bodyBox(b);
-    return b.faces.map((f) => {
+    const names = namesOf(b)?.faces;
+    return b.faces.map((f, i) => {
       const info = faceInfo(f);
-      return { f, info, n: normInBox(info.center, box) };
+      return { f, info, n: normInBox(info.center, box), name: names?.[i] };
     });
   });
-  for (const ref of refs) {
-    let best: { bi: number; f: R.Face; info: FaceInfo; n: Vec3; score: number } | null = null;
+  const broken: BrokenRef[] = [];
+  refs.forEach((ref, slot) => {
+    const cands: RefCandidate[] = [];
     infos.forEach((list, bi) =>
-      list.forEach(({ f, info, n }) => {
+      list.forEach(({ info, n, name }, index) => {
         // a full cylinder's "normal at centre" is ill-defined: match those by position only
         const nTerm = ref.type === "CYLINDRE" && info.type === "CYLINDRE" ? 0 : (1 - dot(info.normal, ref.normal)) * diag;
         let score = matchScore(info.center, n, ref.center, ref.n, diag) + nTerm;
         if (ref.type && ref.type !== info.type) score += diag * 0.3;
-        if (!best || score < best.score) best = { bi, f, info, n, score };
+        cands.push({ body: bi, index, name, score });
       }),
     );
-    if (!best || (best as { score: number }).score > diag * 0.25 + 1e-3) throw new Error("参照面が見つかりません");
-    const b = best as { bi: number; f: R.Face; info: FaceInfo; n: Vec3 };
-    if (!perBody.has(b.bi)) perBody.set(b.bi, []);
-    perBody.get(b.bi)!.push(b.f);
-    updated.push({ center: b.info.center, normal: b.info.normal, n: b.n, type: b.info.type });
-  }
+    const res = resolveNamed("face", ref.name, cands, diag * 0.25 + 1e-3);
+    if ("broken" in res) {
+      broken.push({ ...res.broken, slot });
+      updated.push(ref);
+      return;
+    }
+    const { body: bi, index } = res.ok;
+    const b = infos[bi][index];
+    if (!perBody.has(bi)) perBody.set(bi, []);
+    perBody.get(bi)!.push(b.f);
+    updated.push({ center: b.info.center, normal: b.info.normal, n: b.n, type: b.info.type, ...(b.name ? { name: b.name } : {}) });
+  });
+  if (broken.length) throw new RefBrokenError(broken);
   return { perBody, updated };
 }
 
@@ -398,7 +433,60 @@ function buildPrimitive(f: Extract<RFeature, { type: "primitive" }>): Shape {
   }
 }
 
+// ----------------------------------------------------- topology naming ---
+
+/** Extra naming sources / hints produced by the feature being evaluated. */
+let stepSources: NameSource[] = [];
+let stepHints: NamingHints = {};
+
+/** Plane of a sketch placed on a model face, following that face. */
+function followFace(pf: PlaneFaceRef, st: State, entry: CacheEntry, old: PlaneDef): PlaneDef {
+  const diag = modelDiag(st.bodies);
+  const { updated } = resolveFaces(st.bodies, [pf.face], diag);
+  const fr = updated[0];
+  if (fr.type !== "PLANE") throw new Error("スケッチを配置した面が平面ではなくなりました");
+  let n = normalize(fr.normal);
+  if (dot(n, old.normal) < 0) n = scale(n, -1);
+  const origin = add(old.origin, scale(n, dot(sub(fr.center, old.origin), n)));
+  let x = sub(old.xDir, scale(n, dot(old.xDir, n)));
+  if (Math.hypot(...x) < 1e-9) x = perp(n);
+  const plane: PlaneDef = { origin, xDir: normalize(x), normal: n };
+  entry.sketchRefs = { id: pf.sketch, faces: updated, plane };
+  return plane;
+}
+
+function nameStep(f: RFeature, st: State, out: State) {
+  const fresh = out.bodies.filter((b) => !namesOf(b));
+  if (!fresh.length) return;
+  const diag = modelDiag(out.bodies);
+  const tool = out.tools.get(f.id)?.shape;
+  const newTool = tool && tool !== st.tools.get(f.id)?.shape ? tool : undefined;
+  if (newTool && !namesOf(newTool)) setNames(newTool, nameGenericTool(f.id, newTool));
+  const sources: NameSource[] = [];
+  for (const b of st.bodies) {
+    const n = namesOf(b);
+    if (n) sources.push({ shape: b, names: n, priority: 0 });
+  }
+  if (newTool) sources.push({ shape: newTool, names: namesOf(newTool)!, priority: 1 });
+  sources.push(...stepSources);
+  for (const b of fresh) setNames(b, nameFromSources(b, sources, f.id, diag, stepHints));
+}
+
 async function evalFeature(f: RFeature, st: State, entry: CacheEntry): Promise<State> {
+  const pf = (f as { planeFace?: PlaneFaceRef }).planeFace;
+  if (pf && "plane" in f && f.plane) f = { ...f, plane: followFace(pf, st, entry, f.plane as PlaneDef) } as RFeature;
+  stepSources = [];
+  stepHints = {};
+  const out = await evalFeatureRaw(f, st, entry);
+  try {
+    nameStep(f, st, out);
+  } catch {
+    /* naming is best effort: references fall back to geometry */
+  }
+  return out;
+}
+
+async function evalFeatureRaw(f: RFeature, st: State, entry: CacheEntry): Promise<State> {
   if (isSurfaceRFeature(f)) {
     const res = evalSurface(f, {
       bodies: st.bodies,
@@ -527,6 +615,7 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
       if (f.flip) [from, to] = [-to, -from];
       const start = { ...f.plane, origin: add(f.plane.origin, scale(n, from)) };
       const tool = profileSolid(start, f.regions, (sk) => sk.extrude(to - from));
+      setNames(tool, nameProfileTool(f.id, tool, start, f.regions, "extrude", diag));
       tools.set(f.id, { shape: tool, op: f.op });
       return { bodies: applyOp(bodies, tool, f.op), tools };
     }
@@ -535,6 +624,7 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
       const y = cross(f.plane.normal, f.plane.xDir);
       const axis = add(scale(f.plane.xDir, f.axisDir[0]), scale(y, f.axisDir[1]));
       const tool = profileSolid(f.plane, f.regions, (sk) => sk.revolve(axis, { origin: o, angle: f.angle }));
+      setNames(tool, nameProfileTool(f.id, tool, f.plane, f.regions, "revolve", diag));
       tools.set(f.id, { shape: tool, op: f.op });
       return { bodies: applyOp(bodies, tool, f.op), tools };
     }
@@ -561,6 +651,7 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
         return solid;
       });
       const tool = fuseAll(parts);
+      setNames(tool, nameProfileTool(f.id, tool, f.plane, f.regions, "sweep", diag));
       tools.set(f.id, { shape: tool, op: f.op });
       return { bodies: applyOp(bodies, tool, f.op), tools };
     }
@@ -582,6 +673,7 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
     case "chamfer": {
       const { perBody, updated } = resolveEdges(bodies, f.edges, diag);
       entry.refs = { edges: updated };
+      stepHints = { blends: updated.filter((u) => u.name).map((u) => ({ edge: u.name!, faces: edgeFaces(u.name!) })) };
       const out = bodies.map((b, i) => {
         const edges = perBody.get(i);
         if (!edges) return b;
@@ -594,6 +686,7 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
     case "shell": {
       const { perBody, updated } = resolveFaces(bodies, f.faces, diag);
       entry.refs = { faces: updated };
+      stepHints = { offset: Math.abs(f.thickness) };
       if (!bodies.length) throw new Error("ボディがありません");
       const out = bodies.map((b, i) => {
         const faces = perBody.get(i) ?? [];
@@ -606,6 +699,7 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
     }
     case "hole": {
       const tool = buildHole(f, diag);
+      setNames(tool, nameHoleTool(f.id, tool, f.plane, f.points, f.diameter));
       tools.set(f.id, { shape: tool, op: "cut" });
       return { bodies: applyOp(bodies, tool, "cut"), tools };
     }
@@ -617,7 +711,12 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
       for (const src of f.sources) {
         const t = tools.get(src);
         if (t) {
-          for (const tr of f.transforms) out = applyOp(out, transformShape(t.shape, tr), t.op === "new" ? "join" : t.op);
+          const tn = namesOf(t.shape);
+          f.transforms.forEach((tr, k) => {
+            const copy = transformShape(t.shape, tr);
+            if (tn) stepSources.push({ shape: copy, names: copyNames(tn, `${f.id}.${k + 1}`), priority: 2 });
+            out = applyOp(out, copy, t.op === "new" ? "join" : t.op);
+          });
           continue;
         }
         // surface bodies: each copy becomes a new surface keyed "<pattern id>#<n>"
@@ -635,17 +734,67 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
       return { bodies: applyOp(bodies, tool, f.op), tools };
     }
     case "import": {
-      let shape: Shape;
+      // solids join the bodies; open shells left after repair become surface bodies
+      const heal = f.heal !== false;
+      const notes: string[] = [];
+      let shapes: Shape[];
+      let nativeIges: Awaited<ReturnType<typeof importIgesNative>> = null;
       if (f.format === "step") {
-        shape = (await R.importSTEP(new Blob([f.data]))) as Shape;
+        const r = await importStepWithMeta(f.data, heal);
+        shapes = r.shapes;
+        r.shapes.forEach((s, i) => bodyMeta.set(s, r.meta[i]));
+        if (r.products > 1) notes.push(`部品 ${r.products} 種類・${r.instances} 個 (名前と色を読み込み)`);
+        if (r.heal) notes.push(healSummary(r.heal));
+      } else if (f.format === "iges") {
+        // the NURBS path rebuilds planes / cylinders / spheres as analytic surfaces (measurable);
+        // anything it cannot read completely goes to IGESCAFControl_Reader in the extended kernel
+        let model: ReturnType<typeof readIges> | null = null;
+        let r: ReturnType<typeof igesToShapes> | null = null;
+        try {
+          model = readIges(f.data);
+          r = igesToShapes(model, 0.01);
+        } catch {
+          r = null;
+        }
+        const complete = !!r && !!model && r.shapes.length > 0 && !r.failedFaces && !Object.keys(model.skipped).length;
+        if (!complete && (nativeIges = await importIgesNative(f.data, heal))?.shapes.length) {
+          shapes = nativeIges.shapes;
+          nativeIges.shapes.forEach((s, i) => bodyMeta.set(s, nativeIges!.meta[i]));
+          notes.push("IGES をカーネルの変換器で読み込みました");
+          if (nativeIges.heal) notes.push(healSummary(nativeIges.heal));
+        } else {
+          if (!r || !model) throw new Error("IGES を読み込めませんでした");
+          shapes = r.shapes;
+          r.shapes.forEach((s, i) => bodyMeta.set(s, r!.meta[i]));
+          if (r.failedFaces) notes.push(`作成できなかった面 ${r.failedFaces} 個`);
+          const skipped = Object.entries(model.skipped).map(([t, n]) => `${t}×${n}`);
+          if (skipped.length) notes.push(`未対応の要素を読み飛ばし (${skipped.join(", ")})`);
+        }
+        if (!shapes.length) throw new Error("IGES から形状を作成できませんでした");
       } else {
-        shape = importStl(Uint8Array.from(atob(f.data), (c) => c.charCodeAt(0)));
+        // meshes: sewn into a solid by the STL importer (face-by-face repair would be too slow for big meshes)
+        const shape = importStl(Uint8Array.from(atob(f.data), (c) => c.charCodeAt(0)));
+        shapes = shape.solids?.length ? (shape.solids as Shape[]) : [shape];
       }
-      const solids = shape.solids?.length ? (shape.solids as Shape[]) : [shape];
-      return { bodies: [...bodies, ...solids], tools };
+      const isSolid = (s: Shape) => (s as unknown as { wrapped: { ShapeType(): string } }).wrapped.ShapeType() === "TopAbs_SOLID" || !!(s as Shape).solids?.length;
+      const solids = shapes.filter(isSolid);
+      const open = shapes.filter((s) => !isSolid(s));
+      if (notes.filter(Boolean).length) entry.notice = notes.filter(Boolean).join("。");
+      if (!open.length) return { bodies: [...bodies, ...solids], tools };
+      const surfaces = new Map(st.surfaces ?? []);
+      open.forEach((s, i) => surfaces.set(`${f.id}#${i + 1}`, s));
+      return { bodies: [...bodies, ...solids], tools, surfaces };
     }
     case "move": {
-      const moved = f.solids === false ? bodies : bodies.map((b) => transformShape(b, f.transform));
+      const moved =
+        f.solids === false
+          ? bodies
+          : bodies.map((b) => {
+              const m = transformShape(b, f.transform);
+              const n = namesOf(b);
+              if (n) setNames(m, n);
+              return m;
+            });
       if (!f.surfaces?.length) return { bodies: moved, tools };
       // surfaces keep their key so later surface features still find them
       const surfaces = new Map(st.surfaces ?? []);
@@ -970,65 +1119,226 @@ async function evalShape(f: Exclude<RFeature, { type: `surf${string}` }>, st: St
 
 // ------------------------------------------------------------ the engine ---
 
+/** Kernel objects a cached state keeps alive (bodies, feature tools, surfaces). */
+function stateShapes(e: CacheEntry): Shape[] {
+  const st = e.state;
+  const out: Shape[] = [...st.bodies];
+  for (const t of st.tools.values()) out.push(t.shape);
+  if (st.surfaces) out.push(...st.surfaces.values());
+  return out;
+}
+
+/** Display meshes by shape, model size and quality (a cached state shown again needs no tessellation). */
+const MESHES = new WeakMap<Shape, Map<string, BodyMesh>>();
+
+function cloneMesh(m: BodyMesh): BodyMesh {
+  return {
+    ...m,
+    positions: m.positions.slice(),
+    normals: m.normals.slice(),
+    indices: m.indices.slice(),
+    faceRanges: m.faceRanges.slice(),
+    edgePositions: m.edgePositions.slice(),
+    edgeRanges: m.edgeRanges.slice(),
+  };
+}
+
+/** meshBody with a per-shape cache; the result is a fresh copy (its buffers get transferred). */
+function meshCached(b: Shape, name: string, diag: number, quality: TessQuality = "normal"): BodyMesh {
+  let c = MESHES.get(b);
+  const key = `${diag}|${quality}|${MESH_CACHE_VERSION}`;
+  const hit = c?.get(key);
+  if (hit) return { ...cloneMesh(hit), name };
+  const m = meshBody(b, name, diag, quality);
+  if (!c) MESHES.set(b, (c = new Map()));
+  // meshes of another model size are stale
+  for (const k of c.keys()) if (!k.startsWith(diag + "|")) c.delete(k);
+  c.set(key, cloneMesh(m));
+  return m;
+}
+
+/** Approximate bytes of the cached display meshes of a shape. */
+function meshBytes(b: Shape): number {
+  let n = 0;
+  for (const m of MESHES.get(b)?.values() ?? []) n += m.positions.byteLength + m.normals.byteLength + m.indices.byteLength + m.edgePositions.byteLength + m.faceRanges.byteLength + m.edgeRanges.byteLength + 200 * (m.faces.length + m.edges.length);
+  return n;
+}
+
+const SHAPE_BYTES = new WeakMap<Shape, number>();
+
+/**
+ * Estimated memory of a kernel shape: B-rep topology and geometry (faces with
+ * their surfaces and p-curves, edges with curves, vertices) plus its cached
+ * display meshes. Counted once per shape (topology counting is cached).
+ */
+export function shapeBytes(b: Shape): number {
+  let t = SHAPE_BYTES.get(b);
+  if (t === undefined) {
+    let f = 0, e = 0;
+    try {
+      f = b.faces.length;
+      e = b.edges.length;
+    } catch {
+      /* deleted or empty shape */
+    }
+    t = 2048 + f * 3072 + e * 1024 + Math.round(e * 0.7) * 160;
+    SHAPE_BYTES.set(b, t);
+  }
+  return t + meshBytes(b);
+}
+
+/** Statistics of the last rebuild (see RebuildResult.stats). */
+export interface RebuildStats {
+  features: number;
+  /** Features taken from the cache / evaluated. */
+  reused: number;
+  recomputed: number;
+  /** Index of the first evaluated feature (= features when nothing was). */
+  first: number;
+  cache: CacheStats;
+}
+
 export class GeometryEngine {
-  private cache: CacheEntry[] = [];
+  /** Debug / verify mode: every incremental rebuild is compared with a full one (throws on mismatch). */
+  static verify = false;
+  /** Unpinned cached states kept per engine (older versions of the model: undo, redo, suppress …). */
+  static maxExtraStates = 160;
+
+  /** Memory budget of the incremental cache (bytes, estimated); derived from the available memory. */
+  static maxCacheBytes = defaultCacheBudget();
+
+  private cache = new StateCache<CacheEntry, Shape>(
+    stateShapes,
+    (s) => {
+      MESHES.delete(s);
+      s.delete();
+    },
+    GeometryEngine.maxExtraStates,
+    shapeBytes,
+    GeometryEngine.maxCacheBytes,
+  );
   bodies: Shape[] = [];
   threads: ThreadInfo[] = [];
   /** Surface bodies (open shells) after the last rebuild, in display order. */
   surfaces: { id: string; shape: Shape }[] = [];
+  lastStats: RebuildStats | null = null;
 
-  async rebuild(features: RFeature[], captureBefore?: string): Promise<RebuildResult> {
+  /** Free every cached kernel shape (engine dropped). */
+  dispose() {
+    this.cache.clear();
+    this.bodies = [];
+    this.surfaces = [];
+  }
+
+  /** Clear the incremental cache: the next rebuild evaluates every feature. */
+  resetCache() {
+    this.cache.pin([]);
+    this.cache.trim(0);
+  }
+
+  /** Display meshes of the current bodies and surface bodies at a quality level. */
+  private meshes(diag: number, quality: TessQuality) {
+    const bodies = this.bodies.map((b, i) => ({ ...meshCached(b, bodyMeta.get(b)?.name ?? `ソリッド${i + 1}`, diag, quality), color: bodyMeta.get(b)?.color, ...(bodyMeta.get(b)?.path ? { path: bodyMeta.get(b)!.path } : {}) }));
+    const surfaces = this.surfaces.map((s, i) => ({ ...meshCached(s.shape, bodyMeta.get(s.shape)?.name ?? `サーフェス${i + 1}`, diag, quality), surface: s.id, color: bodyMeta.get(s.shape)?.color }));
+    return { bodies, surfaces };
+  }
+
+  /**
+   * Display meshes of the current model at another level (progressive
+   * refinement after a coarse first display, or view-dependent refinement).
+   * Face / edge indices are the same as the rebuild's.
+   */
+  remesh(quality: TessQuality): { bodies: BodyMesh[]; surfaces: BodyMesh[] } {
+    const diag = modelDiag([...this.bodies, ...this.surfaces.map((s) => s.shape)]);
+    const r = this.meshes(diag, quality);
+    this.cache.trim(GeometryEngine.maxExtraStates);
+    return r;
+  }
+
+  async rebuild(features: RFeature[], captureBefore?: string, opts: { quality?: TessQuality; progressive?: boolean } = {}): Promise<RebuildResult> {
     const t0 = performance.now();
+    const keys = prefixKeys(features);
+    const start = resumeIndex(keys, (k) => this.cache.has(k));
     let state: State = { bodies: [], tools: new Map(), threads: [] };
     const errors: Record<string, string> = {};
+    const notices: Record<string, string> = {};
     const updatedRefs: RebuildResult["updatedRefs"] = {};
-    const next: CacheEntry[] = [];
-    let prefix = "";
-    let valid = true;
+    const brokenRefs: Record<string, BrokenRef[]> = {};
     let before: Shape[] | null = null;
     let beforeSurf: [string, Shape][] = [];
     for (let i = 0; i < features.length; i++) {
       const f = features[i];
       if (f.id === captureBefore) (before = state.bodies), (beforeSurf = [...(state.surfaces?.entries() ?? [])]);
-      prefix += JSON.stringify(f).length + ":" + JSON.stringify(f);
-      const key = prefix;
-      const cached = this.cache[i];
-      let entry: CacheEntry;
-      if (valid && cached && cached.key === key) {
-        entry = cached;
-      } else {
-        valid = false;
+      const key = keys[i];
+      let entry: CacheEntry | undefined = i < start ? this.cache.get(key, i) : undefined;
+      if (!entry) {
         entry = { key, state };
         try {
           entry.state = await evalFeature(f, state, entry);
         } catch (e) {
+          if (e instanceof RefBrokenError) entry.broken = e.broken;
           // surface stitching that could not close keeps its sewn surface
           const partial = (e as { partial?: { bodies: Shape[]; surfaces: Map<string, Shape> } })?.partial;
           entry.state = partial ? { ...state, bodies: partial.bodies, surfaces: partial.surfaces } : state;
           entry.error = errorMessage(e);
         }
+        this.cache.set(key, entry, i);
       }
-      next.push(entry);
       state = entry.state;
       if (entry.error) errors[f.id] = entry.error;
+      if (entry.notice) notices[f.id] = entry.notice;
       if (entry.refs) updatedRefs[f.id] = entry.refs;
+      if (entry.sketchRefs) updatedRefs[entry.sketchRefs.id] = { faces: entry.sketchRefs.faces, plane: entry.sketchRefs.plane };
+      if (entry.broken) brokenRefs[f.id] = entry.broken;
     }
-    this.cache = next;
+    this.cache.pin(keys);
     this.bodies = state.bodies;
     this.threads = state.threads ?? [];
     this.surfaces = [...(state.surfaces ?? new Map()).entries()].map(([id, shape]) => ({ id, shape }));
+    // `before` shapes belong to pinned states; trimming never frees them
     const diag = modelDiag([...this.bodies, ...this.surfaces.map((s) => s.shape)]);
-    const bodies = this.bodies.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag));
-    const surfaces = this.surfaces.map((s, i) => ({ ...meshBody(s.shape, `サーフェス${i + 1}`, diag), surface: s.id }));
+    // progressive display: large models are shown coarse first, refined by remesh()
+    const fresh = [...this.bodies, ...this.surfaces.map((s) => s.shape)].filter((b) => !MESHES.get(b)?.has(`${diag}|${opts.quality ?? "normal"}|${MESH_CACHE_VERSION}`));
+    let quality: TessQuality = opts.quality ?? "normal";
+    if (!opts.quality && opts.progressive && fresh.length) {
+      let faces = 0;
+      for (const b of fresh) faces += b.faces.length;
+      if (faces >= PROGRESSIVE_FACES) quality = "coarse";
+    }
+    const stats: RebuildStats = { features: features.length, reused: start, recomputed: features.length - start, first: start, cache: { ...this.cache.stats } };
+    this.lastStats = stats;
+    const { bodies, surfaces } = this.meshes(diag, quality);
+    // meshes count towards the memory budget: trim after meshing
+    this.cache.trim(GeometryEngine.maxExtraStates);
+    stats.cache = { ...this.cache.stats };
     // picking while editing: solids, then surfaces (same order as the display)
     const beforeMeshes = before
-      ? [...before.map((b, i) => meshBody(b, `ソリッド${i + 1}`, diag)), ...beforeSurf.map(([id, b], i) => ({ ...meshBody(b, `サーフェス${i + 1}`, diag), surface: id }))]
+      ? [...before.map((b, i) => meshCached(b, `ソリッド${i + 1}`, diag)), ...beforeSurf.map(([id, b], i) => ({ ...meshCached(b, `サーフェス${i + 1}`, diag), surface: id }))]
       : undefined;
-    return { bodies, surfaces, before: beforeMeshes, errors, updatedRefs, timeMs: performance.now() - t0, threads: this.threads };
+    const res: RebuildResult = { bodies, surfaces, before: beforeMeshes, errors, notices, updatedRefs, brokenRefs, timeMs: performance.now() - t0, threads: this.threads, stats, ...(quality !== (opts.quality ?? "normal") ? { refine: true } : {}) };
+    if (GeometryEngine.verify && start > 0) await verifyAgainstFull(this, features, res);
+    return res;
   }
 
-  exportFile(format: "step" | "stl" | "brep", name: string): Blob {
-    if (!this.bodies.length && !(format === "step" && this.surfaces.length))
+  /** Bodies and surface bodies (open shells) with names and colours from the import or the part. */
+  private exportItems(name: string, color?: string) {
+    return [
+      ...this.bodies.map((shape, i) => ({ shape, name: bodyMeta.get(shape)?.name ?? (this.bodies.length > 1 ? `${name}_${i + 1}` : name), color: bodyMeta.get(shape)?.color ?? color })),
+      ...this.surfaces.map((s, i) => ({ shape: s.shape, name: bodyMeta.get(s.shape)?.name ?? `${name}_surface${i + 1}`, color: bodyMeta.get(s.shape)?.color ?? color })),
+    ];
+  }
+
+  /** exportFile preferring the extended kernel (IGES through IGESCAFControl_Writer). */
+  async exportFileAsync(format: "step" | "stl" | "brep" | "iges", name: string, color?: string): Promise<Blob> {
+    if (format === "iges" && (this.bodies.length || this.surfaces.length)) {
+      const text = await exportIgesNative(this.exportItems(name, color));
+      if (text) return new Blob([text], { type: "model/iges" });
+    }
+    return this.exportFile(format, name, color);
+  }
+
+  exportFile(format: "step" | "stl" | "brep" | "iges", name: string, color?: string): Blob {
+    if (!this.bodies.length && !((format === "step" || format === "iges") && this.surfaces.length))
       throw new Error(this.surfaces.length ? "サーフェスには体積がないため STL / BREP に書き出せません。ステッチまたは厚み付けでソリッドにしてください (STEP ならサーフェスも書き出せます)" : "エクスポートするボディがありません");
     if (format === "brep") {
       // OpenCascade native B-rep (FreeCAD, Salome, CAD Exchanger, OCCT tools)
@@ -1040,12 +1350,10 @@ export class GeometryEngine {
       oc.FS.unlink(file);
       return new Blob([data as BlobPart], { type: "application/octet-stream" });
     }
-    if (format === "step") {
-      // surface bodies are exported too (open shells)
-      return R.exportSTEP(
-        [...this.bodies.map((shape, i) => ({ shape, name: this.bodies.length > 1 ? `${name}_${i + 1}` : name })), ...this.surfaces.map((s, i) => ({ shape: s.shape, name: `${name}_surface${i + 1}` }))],
-        { unit: "MM" } as never,
-      );
+    if (format === "step" || format === "iges") {
+      const items = this.exportItems(name, color);
+      if (format === "iges") return new Blob([writeIges(shapesToIges(items), `${name}.igs`)], { type: "model/iges" });
+      return exportStepXcaf(items.map((x) => ({ name: x.name, color: x.color, shapes: [x.shape] })), null, name);
     }
     const shape = this.bodies.length === 1 ? this.bodies[0] : (R.makeCompound(this.bodies) as unknown as Shape);
     const diag = modelDiag(this.bodies);
@@ -1057,12 +1365,12 @@ export class GeometryEngine {
     let com: Vec3 = [0, 0, 0];
     let lo: Vec3 = [0, 0, 0], hi: Vec3 = [0, 0, 0];
     this.bodies.forEach((b, i) => {
-      const vp = R.measureShapeVolumeProperties(b);
+      // adaptive Gauss-Kronrod integration: exact on rational B-spline faces (the default rule is off by up to 0.2 %)
+      const vp = preciseProps(b);
       const v = vp.volume;
-      const c = tuple(vp.centerOfMass as unknown as number[]);
-      com = add(com, scale(c, v));
+      com = add(com, scale(vp.centerOfMass, v));
       volume += v;
-      area += R.measureArea(b as never);
+      area += vp.area;
       const [a, z] = b.boundingBox.bounds as [Vec3, Vec3];
       if (i === 0) (lo = a), (hi = z);
       else {
@@ -1463,9 +1771,10 @@ export function placeShape(s: Shape, m: number[]): Shape {
   return out;
 }
 
-export function exportPlaced(shapes: { shape: Shape; name: string }[], format: "step" | "stl"): Blob {
+export function exportPlaced(shapes: { shape: Shape; name: string; color?: string }[], format: "step" | "stl" | "iges"): Blob {
   if (!shapes.length) throw new Error("エクスポートするボディがありません");
   if (format === "step") return R.exportSTEP(shapes.map((x) => ({ shape: x.shape, name: x.name })), { unit: "MM" } as never);
+  if (format === "iges") return new Blob([writeIges(shapesToIges(shapes))], { type: "model/iges" });
   const comp = R.makeCompound(shapes.map((x) => x.shape)) as unknown as Shape;
   const diag = modelDiag(shapes.map((x) => x.shape));
   return comp.blobSTL({ tolerance: Math.max(0.005, diag * 2e-4), angularTolerance: 0.1, binary: true });
@@ -1500,9 +1809,36 @@ function errorMessage(e: unknown): string {
   return String(e);
 }
 
-export function meshBody(b: Shape, name: string, diag: number): BodyMesh {
-  const tol = Math.max(0.002, diag * 3e-4);
-  const m = b.mesh({ tolerance: tol, angularTolerance: 0.25 });
+/** Bounding-box diagonal of one shape. */
+function shapeDiag(b: Shape): number {
+  try {
+    const [a, c] = b.boundingBox.bounds as [Vec3, Vec3];
+    return dist(a, c);
+  } catch {
+    return 100;
+  }
+}
+
+/** Removes a shape's stored triangulation so it can be meshed again at another (coarser) level. */
+function cleanTriangulation(b: Shape) {
+  try {
+    const O = R.getOC() as any;
+    O.BRepTools.Clean(b.wrapped, true);
+  } catch {
+    /* binding without Clean(S, force) */
+  }
+}
+
+/**
+ * Display mesh of a body. `diag` is the model size; the deflections follow
+ * the tessellation policy (tessellation.ts) at `quality`, or explicit `params`.
+ */
+export function meshBody(b: Shape, name: string, diag: number, quality: TessQuality = "normal", params?: TessParams): BodyMesh {
+  const p = params ?? tessParams(diag, shapeDiag(b), quality);
+  const tol = p.linear;
+  // a stored finer triangulation would be reused as is: drop it first
+  cleanTriangulation(b);
+  const m = b.mesh({ tolerance: tol, angularTolerance: p.angular });
   const faces = b.faces;
   const faceIndex = new Map<number, number>();
   faces.forEach((f, i) => faceIndex.set(f.hashCode, i));
@@ -1513,7 +1849,7 @@ export function meshBody(b: Shape, name: string, diag: number): BodyMesh {
     faceRanges[i * 2] = g.start;
     faceRanges[i * 2 + 1] = g.count;
   }
-  const em = b.meshEdges({ tolerance: tol, angularTolerance: 0.25 });
+  const em = b.meshEdges({ tolerance: tol, angularTolerance: p.angular });
   const edges = b.edges;
   const edgeIndex = new Map<number, number>();
   edges.forEach((e, i) => edgeIndex.set(e.hashCode, i));
@@ -1535,5 +1871,7 @@ export function meshBody(b: Shape, name: string, diag: number): BodyMesh {
     edgePositions: new Float32Array(em.lines),
     edgeRanges,
     edges: edges.map(edgeInfo),
+    tess: { quality: p.quality, tolerance: p.tolerance, linear: p.linear, angular: p.angular, version: MESH_CACHE_VERSION },
+    ...(namesOf(b) ? { faceNames: namesOf(b)!.faces, edgeNames: namesOf(b)!.edges } : {}),
   };
 }

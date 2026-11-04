@@ -6,9 +6,13 @@ import { DocumentStore, FEATURE_LABELS, MATERIALS, ORIGIN_PLANES, featureSketchR
 import { formatNumber } from "./core/expr";
 import { evaluateParams } from "./core/params";
 import { planeToWorld, prepareDocument, resolveDocument, worldToPlane, type Resolved, type SketchState } from "./core/resolve";
+import type { BrokenRef } from "./core/naming";
+import { RepairRefCommand } from "./commands/repairRef";
 import type { EdgeRef, FaceRef, Feature, PartDocument, PlaneDef, SketchFeature, Vec3, WorkPlaneFeature } from "./core/types";
 import { KernelClient } from "./kernel/client";
 import type { BodyMesh, RebuildResult } from "./kernel/protocol";
+import { KernelCrashError } from "./kernel/client";
+import { hasContent, MAX_SNAPSHOTS, OpLog, parseSession, parseSnapshots, pushSnapshot, recoveryDecision, type Snapshot } from "./core/recovery";
 import type { Command } from "./commands/command";
 import { buildCommands, preloadLazyCommands, type CommandRegistry } from "./commands/features";
 import { ModelBrowser } from "./ui/browser";
@@ -16,7 +20,7 @@ import { closeMenus, confirmDialog, contextMenu, download, h, iconEl, markingMen
 import { icon } from "./ui/icons";
 import { Ribbon } from "./ui/ribbon";
 import { buildRibbonTabs } from "./ui/ribbonTabs";
-import { SketchEditor, type SketchTool } from "./viewer/sketchEditor";
+import type { SketchEditor, SketchTool } from "./viewer/sketchEditor";
 import { SketchRenderer } from "./viewer/sketchRender";
 import { ViewCube } from "./viewer/viewcube";
 import { samePick, Viewport, type Pick, type ToolHandler, type VisualStyle } from "./viewer/viewport";
@@ -26,20 +30,43 @@ import { SURFACE_ONLY_MSG } from "./core/surfaceResolve";
 import { decodeDxf, encodeDxf, exportMeshes, objToStl, parseDxf, sketchToDxf, type MeshFormat } from "./io/formats";
 import { NAV_PRESETS, type NavPreset } from "./viewer/viewport";
 import { Timeline } from "./ui/timeline";
+import { SectionPanel } from "./ui/sectionPanel";
+import { MeshRefiner } from "./viewer/render/refine";
 import { openCommandSearch } from "./ui/commandSearch";
 import { AssemblyEnv } from "./assembly/env";
-import { openLibrary } from "./library/dialog";
-import { read3mf, readGlb, readPly } from "./io/meshin";
+import { openLibrary, preloadEditingUi } from "./ui/lazyUi";
+import { ViewerMode, viewerAllowsKey } from "./ui/viewerMode";
+import { ViewController } from "./ui/viewContextMenu";
+import { hoveredCommand, openHelp, trackHoveredCommand } from "./help";
+import { read3mf, readPly, trisToStl } from "./io/meshin";
+import { readGltf } from "./io/gltf";
+import { plyIsPointCloud, readPlyPoints } from "./io/pointcloud";
+import { openRefModels } from "./ui/refModels";
 import { openNativeInfo } from "./io/nativeDialog";
 import type { Rule, RuleContext, RuleResult } from "./rules/engine";
 import { DrawingEnv } from "./drawing/env";
 import { PmiLayer } from "./mbd/layer";
+import { MeasureLayer } from "./viewer/annotations";
 import { editPmi } from "./mbd/commands";
 import { newAssembly, type AssemblyDocument } from "./assembly/types";
+import { shouldOpenLight } from "./assembly/largeAsm";
 import { openLearningCenter, startLessonById } from "./learn/lazy";
 import { listenForLessons, openTextbook } from "./learn/textbookLink";
 
+/** The sketch editor is loaded on demand (not needed to view a model). */
+let SketchEditorCtor: typeof import("./viewer/sketchEditor").SketchEditor | null = null;
+export function loadSketchEditor(): Promise<unknown> {
+  return import("./viewer/sketchEditor").then((m) => (SketchEditorCtor = m.SketchEditor));
+}
+
 const AUTOSAVE_KEY = "3dcad.autosave.v2";
+/** Snapshot history (newest first) for crash recovery, in IndexedDB. */
+const HISTORY_KEY = "3dcad.autosave.history.v1";
+/** Session flag: `running` stays true when the app did not exit cleanly. */
+const SESSION_KEY = "3dcad.session.v1";
+
+/** Formats that can be imported (file dialogs; the desktop app opens the same list). */
+export const IMPORT_EXTS = ".step,.stp,.igs,.iges,.stl,.obj,.3mf,.glb,.gltf,.ply,.e57,.ifc,.dxf";
 
 export interface SketchOverlay {
   sketchId: string;
@@ -58,6 +85,12 @@ export class App {
   commands!: CommandRegistry;
   /** MBD: 3D annotations (PMI) display. */
   pmi!: PmiLayer;
+  /** Measurement overlays and saved measurement annotations. */
+  measure!: MeasureLayer;
+  /** Viewer-only mode (editing UI hidden). */
+  readonly viewer = new ViewerMode(this);
+  /** Display operations (hide / isolate / transparency / colour) with their undo stack, menus and tree. */
+  viewCtx!: ViewController;
 
   /** Active environment: part modelling or assembly. */
   env: "part" | "assembly" | "drawing" = "part";
@@ -74,12 +107,22 @@ export class App {
   bodies: BodyMesh[] = [];
   /** Bodies used for picking: the state before the edited feature while a command needs it. */
   pickBodies: BodyMesh[] = [];
+  /** Topology references the last rebuild could not resolve (per feature), with candidates. */
+  brokenRefs: Record<string, BrokenRef[]> = {};
+  private shownBroken = new Set<string>();
   /** Surface bodies (open shells) of the last rebuild; displayed after `bodies`. */
   surfaces: BodyMesh[] = [];
   featureErrors: Record<string, string> = {};
+  /** Incremental rebuild statistics of the last part rebuild (features reused / evaluated). */
+  lastRebuildStats: import("./kernel/protocol").RebuildResult["stats"] | null = null;
   browserSelection = new Set<string>();
   originVis = new Set<string>();
   private kernelReady = false;
+  /** User operations and errors (exported for bug reports, saved with the autosave). */
+  readonly opLog = new OpLog(500);
+  /** Last part document that rebuilt without a kernel exception (rollback target). */
+  private lastGood: string | null = null;
+  private crashRestarts: number[] = [];
   private regenTimer = 0;
   private regenSeq = 0;
   private sketchRenderers: SketchRenderer[] = [];
@@ -91,6 +134,11 @@ export class App {
   private titleEl!: HTMLElement;
   private busyEl!: HTMLElement;
   private sectionPanel: HTMLElement | null = null;
+  /** Section view (3 planes, caps, DXF); null when off. */
+  sectionView: SectionPanel | null = null;
+  /** Progressive (coarse first) and view-dependent display mesh refinement of the part. */
+  refiner!: MeshRefiner;
+  private lastBefore: BodyMesh[] | undefined;
   sliceGraphics = false;
   showPlanePicker = false;
 
@@ -125,7 +173,7 @@ export class App {
         h("button", { class: "icon-btn", title: "オプション (マウス操作・表示)", onClick: () => this.openSettings() }, iconEl("settings")),
         h("button", { class: "icon-btn", title: "キーボード ショートカット", onClick: () => openShortcuts() }, iconEl("keyboard")),
         h("button", { class: "icon-btn", title: "テーマ切り替え", onClick: () => this.toggleTheme() }, iconEl("theme")),
-        h("button", { class: "icon-btn", title: "ヘルプ", onClick: () => openShortcuts() }, iconEl("help")),
+        h("button", { class: "icon-btn tb-help", title: "使い方ヘルプ (F1)", onClick: () => void openHelp(this, this.command?.id) }, iconEl("help")),
       ),
     );
     const ribbonHost = h("div", { class: "ribbon-host" });
@@ -144,6 +192,7 @@ export class App {
     root.append(titlebar, ribbonHost, main, status);
 
     this.asm = new AssemblyEnv(this);
+    this.viewCtx = new ViewController(this);
     this.drawing = new DrawingEnv(this);
     this.browser = new ModelBrowser(main, {
       customRender: (list) => {
@@ -158,6 +207,7 @@ export class App {
       doc: () => this.store.doc,
       errors: () => this.featureErrors,
       bodyCount: () => this.bodies.length,
+      bodyTree: (list, filter) => (this.viewCtx.renderPartBodies(list, filter), true),
       surfaceCount: () => this.surfaces.length,
       activeSketch: () => this.sketchEditor?.sketchId ?? null,
       selected: () => this.browserSelection,
@@ -184,7 +234,29 @@ export class App {
     main.appendChild(vpEl);
 
     this.vp = new Viewport(vpEl);
+    // render backend: WebGPU when available, WebGL otherwise (automatic fallback)
+    void this.vp.initBackend().catch(() => undefined);
+    this.refiner = new MeshRefiner({
+      remesh: (q) => this.kernel.remesh(q),
+      pixelSize: () => this.vp.pixelSize,
+      token: () => this.regenSeq,
+      apply: (r, _q, token) => {
+        if (this.env !== "part" || token !== this.regenSeq) return false;
+        this.bodies = r.bodies;
+        this.surfaces = r.surfaces;
+        const shown = r.surfaces.length ? [...r.bodies, ...r.surfaces] : r.bodies;
+        if (!this.lastBefore) this.pickBodies = shown;
+        this.vp.setBodies(shown, this.lastBefore, shown.some((b) => b.color) ? shown.map((b) => b.color) : undefined);
+        this.viewCtx.afterPartBodies();
+        refreshCurvature(this);
+        return true;
+      },
+    });
+    this.vp.viewListeners.add(() => {
+      if (this.env === "part") this.refiner.onView();
+    });
     this.pmi = new PmiLayer(this);
+    this.measure = new MeasureLayer(this);
     this.pmi.onLabelDblClick = (id) => editPmi(this, id);
     this.loadSettings();
     this.timeline = new Timeline(vpEl, this);
@@ -198,7 +270,19 @@ export class App {
     this.buildNavBar(vpEl);
 
     this.commands = buildCommands(this);
+    const run = this.commands.run.bind(this.commands);
+    this.commands.run = (id: string) => {
+      this.opLog.add({ kind: "command", id, params: this.env });
+      try {
+        run(id);
+      } catch (e) {
+        this.opLog.add({ kind: "error", id, result: (e as Error).message });
+        throw e;
+      }
+    };
     this.ribbon = new Ribbon(ribbonHost, [...buildRibbonTabs(this), this.drawing.ribbonTab()], (a) => this.fileMenu(a));
+    this.ribbon.onHelp = (id) => void openHelp(this, id);
+    trackHoveredCommand();
 
     this.store.on((reason) => this.onDocChanged(reason));
     const dwChange = (r: string) => {
@@ -214,6 +298,12 @@ export class App {
     window.addEventListener("beforeunload", (e) => {
       if (this.store.dirty) e.preventDefault();
     });
+    this.asm.store.on((r) => {
+      if (r === "refs") return;
+      this.opLog.add({ kind: "edit", id: `asm:${r}` });
+      this.scheduleAutosave();
+    });
+    this.installRecoveryHooks();
     vpEl.addEventListener("dragover", (e) => e.preventDefault());
     vpEl.addEventListener("drop", (e) => {
       e.preventDefault();
@@ -231,9 +321,18 @@ export class App {
         this.status("準備完了 — 「2D スケッチを作成」(S) から始めましょう");
         this.regenNow();
         // fetch the code-split analysis / CAM modules while the user starts modelling
-        setTimeout(preloadLazyCommands, 1500);
+        // (not in the viewer mode: they are fetched when switching to the editing mode)
+        if (!this.viewer.active) setTimeout(() => this.preloadEditing(), 1500);
       })
       .catch((e) => toast(`ジオメトリ カーネルの初期化に失敗しました: ${e.message}`, "error", 10000));
+    this.kernel.onRestart = (reason) => this.onKernelRestart(reason);
+  }
+
+  /** Fetches the editing modules (sketch editor, CAM / analysis commands, dialogs) in the background. */
+  preloadEditing() {
+    void loadSketchEditor().catch(() => undefined);
+    preloadLazyCommands();
+    preloadEditingUi();
   }
 
   private qatBtn(ic: string, title: string, fn: () => void, id?: string) {
@@ -336,9 +435,10 @@ export class App {
 
   private onDocChanged(reason: string) {
     if (reason === "refs") return;
+    this.opLog.add({ kind: "edit", id: reason });
     this.watchRules(reason);
     this.scheduleAutosave();
-    if (reason.startsWith("PMI")) return void this.refreshUI(); // annotations only: no rebuild
+    if (reason.startsWith("PMI") || reason.startsWith("測定注記")) return void this.refreshUI(); // annotations only: no rebuild
     if (this.mode === "sketch" && this.sketchEditor) {
       if (!this.store.feature(this.sketchEditor.sketchId)) {
         // sketch removed by undo
@@ -349,7 +449,7 @@ export class App {
         return;
       }
     }
-    if (reason === "load" || reason === "undo" || reason === "redo") this.syncMaterial();
+    if (reason === "load" || reason === "undo" || reason === "redo" || reason === "rollback") this.syncMaterial();
     this.scheduleRegen();
     this.refreshUI();
   }
@@ -372,6 +472,8 @@ export class App {
       return;
     }
     const seq = ++this.regenSeq;
+    const gen = this.store.generation;
+    const docJson = this.store.snapshot();
     const busyTimer = setTimeout(() => this.busyEl.classList.add("show"), 250);
     let res: RebuildResult;
     try {
@@ -379,9 +481,10 @@ export class App {
     } catch (e) {
       clearTimeout(busyTimer);
       this.busyEl.classList.remove("show");
-      toast(`再計算エラー: ${(e as Error).message}`, "error");
+      this.onRebuildFailed(e as Error, seq, gen, docJson);
       return;
     }
+    if (this.store.generation === gen) this.lastGood = docJson;
     clearTimeout(busyTimer);
     this.busyEl.classList.remove("show");
     if (seq !== this.regenSeq) return; // a newer regen superseded this one
@@ -391,11 +494,29 @@ export class App {
     this.surfaces = res.surfaces ?? [];
     const shown = this.surfaces.length ? [...res.bodies, ...this.surfaces] : res.bodies;
     this.pickBodies = res.before ?? shown;
-    this.vp.setBodies(shown, res.before);
+    this.vp.setBodies(shown, res.before, shown.some((b) => b.color) ? shown.map((b) => b.color) : undefined);
+    this.viewCtx.afterPartBodies();
+    this.lastBefore = res.before;
+    this.refiner.afterRebuild(!!res.refine, shown);
+    for (const [id, msg] of Object.entries(res.notices ?? {}))
+      if (!this.shownNotices.has(id + msg)) {
+        this.shownNotices.add(id + msg);
+        toast(msg, "info", 8000);
+      }
     refreshCurvature(this);
     this.vp.setThreads(res.threads ?? []);
     this.vp.setMaterialColor(doc.material.color);
-    this.statusRegen.textContent = `${Math.round(res.timeMs)} ms`;
+    this.statusRegen.textContent = `${Math.round(res.timeMs)} ms` + (res.stats ? ` (${res.stats.recomputed}/${res.stats.features})` : "");
+    this.lastRebuildStats = res.stats ?? null;
+    // broken topology references: tell the user once, repair from the feature's menu
+    this.brokenRefs = res.brokenRefs ?? {};
+    for (const [id, list] of Object.entries(this.brokenRefs)) {
+      const key = id + list.map((b) => b.name ?? b.message).join();
+      if (this.shownBroken.has(key) || this.command?.id === "repairRef") continue;
+      this.shownBroken.add(key);
+      const f = this.store.feature(id);
+      toast(`${f?.name ?? id}: ${list[0].message} (右クリック →「参照を修復」)`, "warn", 10000);
+    }
     // keep topology references tracking the edited geometry
     const upd = res.updatedRefs;
     if (Object.keys(upd).length) {
@@ -404,6 +525,17 @@ export class App {
         const f = this.store.feature(id) as (Feature & { edges?: EdgeRef[]; faces?: FaceRef[] }) | undefined;
         if (!f) continue;
         if (r.edges && JSON.stringify(f.edges) !== JSON.stringify(r.edges)) (f.edges = r.edges), (changed = true);
+        if (f.type === "sketch") {
+          // sketch on a model face: the plane follows the face
+          if (r.plane && JSON.stringify(f.plane) !== JSON.stringify(r.plane)) (f.plane = r.plane), (changed = true);
+          if (r.faces?.[0] && JSON.stringify(f.faceRef) !== JSON.stringify(r.faces[0])) (f.faceRef = r.faces[0]), (changed = true);
+          continue;
+        }
+        const single = f as Feature & { face?: FaceRef | null };
+        if (r.faces?.length === 1 && "face" in single && !Array.isArray(f.faces)) {
+          if (JSON.stringify(single.face) !== JSON.stringify(r.faces[0])) (single.face = r.faces[0]), (changed = true);
+          continue;
+        }
         if (r.faces && JSON.stringify(f.faces) !== JSON.stringify(r.faces)) (f.faces = r.faces), (changed = true);
       }
       if (changed) this.store.emit("refs");
@@ -493,18 +625,20 @@ export class App {
     const b = this.pickBodies[p.body];
     const e = b?.edges[p.index];
     if (!e) return null;
-    return { mid: e.mid, a: e.a, b: e.b, n: normInBox(e.mid, b.bbox), type: e.type };
+    const name = b.edgeNames?.[p.index];
+    return { mid: e.mid, a: e.a, b: e.b, n: normInBox(e.mid, b.bbox), type: e.type, ...(name ? { name } : {}) };
   }
 
   faceRef(p: Pick): FaceRef | null {
     const b = this.pickBodies[p.body];
     const f = b?.faces[p.index];
     if (!f) return null;
-    return { center: f.center, normal: f.normal, n: normInBox(f.center, b.bbox), type: f.type };
+    const name = b.faceNames?.[p.index];
+    return { center: f.center, normal: f.normal, n: normInBox(f.center, b.bbox), type: f.type, ...(name ? { name } : {}) };
   }
 
   /** Plane definition for a picked plane / planar face. */
-  planeOf(p: Pick): { plane: PlaneDef; label: string; ref?: string } | null {
+  planeOf(p: Pick): { plane: PlaneDef; label: string; ref?: string; face?: FaceRef } | null {
     if (p.kind === "plane" && p.key) {
       if (p.key in ORIGIN_PLANES) return { plane: ORIGIN_PLANES[p.key as "XY"], label: `${p.key} 平面` };
       const wp = this.store.feature<WorkPlaneFeature>(p.key);
@@ -512,7 +646,7 @@ export class App {
     }
     if (p.kind === "face") {
       const f = this.pickBodies[p.body]?.faces[p.index];
-      if (f?.plane) return { plane: f.plane, label: "面" };
+      if (f?.plane) return { plane: f.plane, label: "面", face: this.faceRef(p) ?? undefined };
     }
     return null;
   }
@@ -541,13 +675,18 @@ export class App {
     onPointerMove: (e, vp) => vp.setHover(vp.pick(e)),
     onPointerDown: (e, vp) => {
       if (e.button !== 0) return;
+      // Alt+click: hide the front-most body for the moment and select the one behind
+      if (e.altKey && this.viewCtx.altPick(e)) return;
+      if (!e.altKey) this.viewCtx.restoreAlt();
       const p = vp.pick(e);
       if (!p) {
         if (!e.shiftKey && !e.ctrlKey) vp.setSelection([]);
+        this.viewCtx.beginBox(e);
       } else if (e.shiftKey || e.ctrlKey) {
         const has = vp.selection.some((s) => samePick(s, p));
         vp.setSelection(has ? vp.selection.filter((s) => !samePick(s, p)) : [...vp.selection, p]);
       } else vp.setSelection([p]);
+      this.viewCtx.syncFromPicks();
       this.browserSelection.clear();
       this.browser.render();
       this.statusSel.textContent = this.selectionText();
@@ -561,6 +700,9 @@ export class App {
       }
     },
     onContextMenu: (e) => {
+      // viewer mode: the view menu replaces the editing marking menu
+      if (this.viewer.active) return this.viewCtx.open3D(e), true;
+      this.viewCtx.prepare(e);
       this.modelMarkingMenu(e.clientX, e.clientY);
       return true;
     },
@@ -591,6 +733,8 @@ export class App {
         { label: "測定", icon: "measure", shortcut: "M", action: () => c.run("measure") },
         { label: "iProperties", icon: "iprops", action: () => openIProperties(this) },
         { label: "パラメータ", icon: "params", action: () => openParameters(this) },
+        { separator: true, label: "" },
+        ...this.viewCtx.withView([]),
       ],
     );
   }
@@ -619,6 +763,13 @@ export class App {
   }
 
   // ---------------------------------------------------------- commands ---
+
+  /** Repair the broken topology references of a feature by picking among the proposed candidates. */
+  repairRefs(id: string) {
+    const cmd = new RepairRefCommand(this, id);
+    this.startCommand(cmd);
+    void this.regenNow().then(() => cmd.show());
+  }
 
   startCommand(cmd: Command) {
     if (this.command) this.finishCommand(this.command, false);
@@ -659,6 +810,7 @@ export class App {
   }
 
   editFeature(id: string) {
+    if (this.viewer.active) return;
     const f = this.store.feature(id);
     if (!f) return;
     if (f.type === "sketch") this.enterSketch(id);
@@ -667,7 +819,7 @@ export class App {
 
   // -------------------------------------------------------------- sketch ---
 
-  createSketch(plane: PlaneDef, label: string, planeRef?: string) {
+  createSketch(plane: PlaneDef, label: string, planeRef?: string, faceRef?: FaceRef) {
     const id = uid("sk");
     const origin = worldToPlane(plane, [0, 0, 0]);
     const sk: SketchFeature = {
@@ -677,6 +829,7 @@ export class App {
       plane,
       planeLabel: label,
       planeRef,
+      ...(faceRef && !planeRef ? { faceRef } : {}),
       entities: [{ id: "origin", type: "point", x: origin[0], y: origin[1], fixed: true, ref: true }],
       constraints: [],
       dimensions: [],
@@ -686,6 +839,7 @@ export class App {
   }
 
   enterSketch(id: string) {
+    if (!SketchEditorCtor) return void loadSketchEditor().then(() => this.enterSketch(id));
     if (this.command) this.finishCommand(this.command, false);
     if (this.sketchEditor) this.exitSketch(true);
     const sk = this.store.feature<SketchFeature>(id);
@@ -693,7 +847,7 @@ export class App {
     this.mode = "sketch";
     this.vp.setSelection([]);
     this.vp.setHover(null);
-    this.sketchEditor = new SketchEditor(this.store, id, this.vp, {
+    this.sketchEditor = new SketchEditorCtor(this.store, id, this.vp, {
       status: (m) => this.status(m),
       toast: (m, k) => toast(m, k),
       dofChanged: (dof, ok) => {
@@ -795,57 +949,18 @@ export class App {
   // ------------------------------------------------------------ section ---
 
   toggleSectionView() {
-    if (this.sectionPanel) {
-      this.sectionPanel.remove();
+    if (this.sectionView) {
+      this.sectionView.dispose();
+      this.sectionView = null;
       this.sectionPanel = null;
-      this.vp.setSection(null);
+      this.applySlice();
       this.ribbon.refresh();
       return;
     }
-    let axis: "X" | "Y" | "Z" = "Z";
-    let flip = false;
-    const box = this.vp.modelBounds();
-    const range = box.isEmpty() ? new THREE.Box3(new THREE.Vector3(-50, -50, -50), new THREE.Vector3(50, 50, 50)) : box;
-    const slider = h("input", { type: "range", min: "0", max: "1000", value: "500", "aria-label": "断面位置" });
-    const valEl = h("span", { class: "sec-val" });
-    const apply = () => {
-      const i = { X: 0, Y: 1, Z: 2 }[axis];
-      const lo = range.min.getComponent(i), hi = range.max.getComponent(i);
-      const v = lo + ((hi - lo) * Number(slider.value)) / 1000;
-      const n = new THREE.Vector3().setComponent(i, flip ? 1 : -1);
-      this.vp.setSection(new THREE.Plane(n, flip ? -v : v));
-      valEl.textContent = `${axis} = ${formatNumber(v, 2)} mm`;
-    };
-    const axisSel = h("div", { class: "toggle-group" });
-    for (const a of ["X", "Y", "Z"] as const) {
-      const b = h(
-        "button",
-        {
-          class: "tg txt" + (a === axis ? " on" : ""),
-          onClick: () => {
-            axis = a;
-            axisSel.querySelectorAll(".tg").forEach((x) => x.classList.toggle("on", x === b));
-            apply();
-          },
-        },
-        `${a}`,
-      );
-      axisSel.appendChild(b);
-    }
-    slider.addEventListener("input", apply);
-    this.sectionPanel = h(
-      "div",
-      { class: "section-panel" },
-      iconEl("section"),
-      h("strong", {}, "断面図"),
-      axisSel,
-      slider,
-      valEl,
-      h("button", { class: "icon-btn", title: "反転", onClick: () => ((flip = !flip), apply()) }, iconEl("flip")),
-      h("button", { class: "icon-btn", title: "断面図を終了", onClick: () => this.toggleSectionView() }, iconEl("close")),
-    );
+    // three planes X / Y / Z with caps, hatching, sweep and DXF output (ui/sectionPanel.ts)
+    this.sectionView = new SectionPanel(this);
+    this.sectionPanel = this.sectionView.el;
     this.vp.el.appendChild(this.sectionPanel);
-    apply();
     this.ribbon.refresh();
   }
 
@@ -861,6 +976,7 @@ export class App {
   // ------------------------------------------------------------- editing ---
 
   undo() {
+    if (this.env !== "drawing" && this.viewCtx.undoStep()) return;
     if (this.env === "drawing") return void (this.drawing.store.canUndo() && this.drawing.store.undo());
     if (this.env === "assembly") {
       this.cancelAsmCommand();
@@ -872,6 +988,7 @@ export class App {
   }
 
   redo() {
+    if (this.env !== "drawing" && this.viewCtx.redoStep()) return;
     if (this.env === "drawing") return void this.drawing.store.redo();
     if (this.env === "assembly") {
       this.cancelAsmCommand();
@@ -983,6 +1100,9 @@ export class App {
     this.asm.store.reset(doc, "load");
     this.asm.store.fileHandleName = name ?? null;
     this.asm.selected.clear();
+    // 軽量表示で開く: large assemblies show cached display meshes and load B-rep on demand
+    this.asm.lightOpen = shouldOpenLight(doc.components.length, this.viewer.active ? "on" : "auto");
+    if (this.asm.lightOpen) this.status(`軽量表示で開きます (${doc.components.length} コンポーネント): 詳細形状は測定・干渉・書き出し時に読み込みます`);
     this.firstFit = true;
     this.vp.setStandardView([1, 1, 1], false);
     this.activateAssembly();
@@ -1073,6 +1193,7 @@ export class App {
   }
 
   featureContextMenu(id: string, x: number, y: number) {
+    if (this.viewer.active) return;
     if (id === "__eop") {
       contextMenu(x, y, [{ label: "パーツの終わりを最後に移動", icon: "endOfPart", action: () => this.moveEndOfPart(this.store.doc.features.length) }]);
       return;
@@ -1095,6 +1216,7 @@ export class App {
     const items: MenuItem[] = [];
     if (f.type === "sketch") items.push({ label: "スケッチを編集", icon: "edit", action: () => this.enterSketch(id) });
     else items.push({ label: "フィーチャを編集", icon: "edit", action: () => this.editFeature(id) });
+    if (this.brokenRefs[id]?.length) items.push({ label: "参照を修復", icon: "edit", action: () => this.repairRefs(id) });
     for (const sk of featureSketchRefs(f)) {
       const name = this.store.feature(sk)?.name ?? "";
       items.push({ label: `スケッチを編集 (${name})`, icon: "sketch", action: () => this.enterSketch(sk) });
@@ -1139,11 +1261,15 @@ export class App {
       { label: "インポート (STEP / STL / OBJ / DXF)…", icon: "import", action: () => this.importFile() },
       { label: "エクスポート…", icon: "export", action: () => this.exportMenu(r.left + 240, r.bottom + 2) },
       { label: "オプション…", icon: "settings", action: () => this.openSettings() },
+      { label: "自動保存から復元…", icon: "open", action: () => this.recoveryDialog() },
+      { label: "操作ログを書き出す (不具合報告用)", icon: "export", action: () => this.exportOpLog() },
       { separator: true, label: "" },
       { label: "図面を作成…", icon: "drawing", action: () => this.openDrawingEnv() },
       { label: "標準部品ライブラリ…", icon: "library", action: () => openLibrary(this) },
       { label: "iProperties…", icon: "iprops", action: () => openIProperties(this) },
       { separator: true, label: "" },
+      { label: this.viewer.active ? "編集モードで開く" : "閲覧モードに切り替え", icon: this.viewer.active ? "edit" : "eye", shortcut: "Ctrl+Shift+V", action: () => this.viewer.toggle() },
+      { label: "使い方ヘルプ…", icon: "help", shortcut: "F1", action: () => void openHelp(this) },
       { label: "学習センター (3D 設計を学ぶ)…", icon: "learn", action: () => openLearningCenter(this) },
       { label: "座学テキスト (設計の基礎・構造力学・デザイン)", icon: "open", action: () => openTextbook() },
     ]);
@@ -1329,14 +1455,63 @@ export class App {
     toast("サンプル パーツを開きました。ブラウザのフィーチャをダブルクリックすると編集できます", "ok");
   }
 
+  /** Notices already shown (an import's repair report is shown once). */
+  private shownNotices = new Set<string>();
+
+  /**
+   * Point clouds (PLY without faces, E57) and IFC buildings: display-only
+   * reference data, measurable with the measure command. Heavy readers load on demand.
+   */
+  async openReference(f: File) {
+    const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
+    const bytes = new Uint8Array(await f.arrayBuffer());
+    this.busyEl.classList.add("show");
+    try {
+      const id = uid("ref");
+      if (ext === "ifc") {
+        const { readIfc } = await import("./io/ifc");
+        const m = await readIfc(bytes, f.name);
+        this.vp.addRefMeshes(id, f.name, m.parts);
+        toast(`${f.name} を表示しました (IFC ${m.schema}、要素 ${m.elements} 個、表示専用)`, "ok");
+      } else {
+        const c = ext === "e57" ? (await import("./io/e57")).readE57(bytes, f.name) : readPlyPoints(bytes, f.name);
+        this.vp.addPointCloud(id, f.name, c.positions, c.colors, 2);
+        toast(`${f.name} を表示しました (点群 ${(c.positions.length / 3).toLocaleString()} 点、表示専用)`, "ok");
+      }
+      this.vp.fitAll();
+      openRefModels(this);
+    } finally {
+      this.busyEl.classList.remove("show");
+    }
+  }
+
   async openFile() {
-    const f = await pickFile(".3dcp,.3dca,.json,.step,.stp,.stl,.obj,.3mf,.glb,.ply,.dxf,.ipt,.iam,.idw,.ipn,.sldprt,.sldasm,.slddrw");
+    const f = await pickFile(`.3dcp,.3dca,.json,${IMPORT_EXTS},.ipt,.iam,.idw,.ipn,.sldprt,.sldasm,.slddrw`);
     if (f) this.openOrImport(f);
   }
 
   async importFile() {
-    const f = await pickFile(".step,.stp,.stl,.obj,.3mf,.glb,.ply,.dxf");
+    const f = await pickFile(IMPORT_EXTS);
     if (f) this.openOrImport(f);
+  }
+
+  /**
+   * Viewer mode: shows a file on its own (a STEP / mesh replaces the viewed model instead of
+   * being imported into it) and keeps it unmodified (no save prompt).
+   */
+  async openForViewing(f: File) {
+    const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
+    if (!["3dcp", "3dca", "json"].includes(ext)) {
+      this.leaveAssembly();
+      this.resetForLoad();
+      for (const r of [...this.vp.refModels]) this.vp.removeRefModel(r.id);
+      this.store.load(newDocument());
+      this.store.doc.name = f.name.replace(/\.[^.]+$/, "");
+    }
+    await this.openOrImport(f);
+    this.store.dirty = false;
+    this.asm.store.dirty = false;
+    this.titleEl.textContent = f.name;
   }
 
   async openOrImport(f: File) {
@@ -1357,18 +1532,28 @@ export class App {
         this.vp.setStandardView([1, 1, 1], false);
         toast(`${f.name} を開きました`, "ok");
       } else if (this.env === "assembly" && (ext === "step" || ext === "stp")) {
-        const step = await f.text();
-        const id = uid("pt");
-        this.asm.store.mutate("配置", (d) => d.parts.push({ id, name: f.name.replace(/\.[^.]+$/, ""), kind: "step", step, fileName: f.name }));
-        await this.asm.placeInstance(id);
+        await this.asm.importStep(f.name, await f.text());
+      } else if (ext === "e57" || ext === "ifc" || (ext === "ply" && plyIsPointCloud(new Uint8Array(await f.arrayBuffer())))) {
+        await this.openReference(f);
       } else if (ext === "dxf") {
         this.importDxf(f.name, decodeDxf(new Uint8Array(await f.arrayBuffer())));
-      } else if (["step", "stp", "stl", "obj", "3mf", "glb", "ply"].includes(ext)) {
+      } else if (["step", "stp", "igs", "iges", "stl", "obj", "3mf", "glb", "gltf", "ply"].includes(ext)) {
         let data: string;
-        const mesh = ext !== "step" && ext !== "stp";
+        const cad = ext === "step" || ext === "stp" || ext === "igs" || ext === "iges";
+        const mesh = !cad;
         if (mesh) {
           const raw = new Uint8Array(await f.arrayBuffer());
-          const bytes = ext === "obj" ? objToStl(new TextDecoder().decode(raw)) : ext === "3mf" ? await read3mf(raw) : ext === "glb" ? readGlb(raw) : ext === "ply" ? readPly(raw) : raw;
+          const gltfTris = () => {
+            const ms = readGltf(raw);
+            const P: number[] = [], T: number[] = [];
+            for (const m of ms) {
+              const base = P.length / 3;
+              P.push(...m.positions);
+              for (const i of m.indices) T.push(i + base);
+            }
+            return trisToStl(P, T);
+          };
+          const bytes = ext === "obj" ? objToStl(new TextDecoder().decode(raw)) : ext === "3mf" ? await read3mf(raw) : ext === "glb" || ext === "gltf" ? gltfTris() : ext === "ply" ? readPly(raw) : raw;
           let bin = "";
           for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
           data = btoa(bin);
@@ -1378,7 +1563,7 @@ export class App {
             id: uid("im"),
             type: "import",
             name: f.name.replace(/\.[^.]+$/, ""),
-            format: mesh ? "stl" : "step",
+            format: mesh ? "stl" : ext === "igs" || ext === "iges" ? "iges" : "step",
             fileName: f.name,
             data,
           }),
@@ -1415,6 +1600,8 @@ export class App {
       this.asm.store.fileHandleName = name;
       this.asm.store.dirty = false;
       this.refreshUI();
+      this.opLog.add({ kind: "info", id: "save", params: "assembly" });
+      this.scheduleAutosave(0);
       toast(`${name} を保存しました`, "ok", 2000);
       return;
     }
@@ -1431,28 +1618,32 @@ export class App {
     this.store.fileHandleName = name;
     this.store.dirty = false;
     this.refreshUI();
+    this.opLog.add({ kind: "info", id: "save", params: "part" });
+    this.scheduleAutosave(0);
     toast(`${name} を保存しました`, "ok", 2000);
   }
 
-  async exportFile(format: "step" | "stl" | "brep") {
+  async exportFile(format: "step" | "stl" | "brep" | "iges") {
     if (this.asmDoc) {
       if (format === "step") return this.asm.exportStep();
       if (format === "brep") return void toast("BREP はパーツから書き出します", "info");
       try {
-        download(`${this.asm.doc.name}.stl`, await this.kernel.exportAssembly("stl", this.asm.placements()), "model/stl");
+        await this.asm.ensureBrep();
+        const ext = format === "iges" ? "igs" : "stl";
+        download(`${this.asm.doc.name}.${ext}`, await this.kernel.exportAssembly(format, this.asm.placements()), format === "iges" ? "model/iges" : "model/stl");
       } catch (e) {
         toast((e as Error).message, "error");
       }
       return;
     }
-    if (!this.bodies.length && !(format === "step" && this.surfaces.length)) {
+    if (!this.bodies.length && !((format === "step" || format === "iges") && this.surfaces.length)) {
       toast(this.surfaces.length ? SURFACE_ONLY_MSG : "エクスポートするソリッドがありません", "warn");
       return;
     }
     try {
-      const buf = await this.kernel.exportFile(format, this.store.doc.name);
-      const name = `${this.store.doc.name}.${format === "step" ? "stp" : format}`;
-      download(name, buf, format === "step" ? "application/step" : format === "stl" ? "model/stl" : "application/octet-stream");
+      const buf = await this.kernel.exportFile(format, this.store.doc.name, this.store.doc.material.color);
+      const name = `${this.store.doc.name}.${format === "step" ? "stp" : format === "iges" ? "igs" : format}`;
+      download(name, buf, format === "step" ? "application/step" : format === "stl" ? "model/stl" : format === "iges" ? "model/iges" : "application/octet-stream");
       toast(`${name} をエクスポートしました${format === "step" ? " — Inventor で開けます" : ""}`, "ok");
     } catch (e) {
       toast(`エクスポートに失敗しました: ${(e as Error).message}`, "error");
@@ -1508,7 +1699,7 @@ export class App {
       });
     } else {
       name = this.store.doc.name;
-      bodies = this.bodies.map((b, i) => ({ mesh: b, color: this.store.doc.material.color, name: `${name}_${i + 1}` }));
+      bodies = this.bodies.map((b, i) => ({ mesh: b, color: b.color ?? this.store.doc.material.color, name: b.name && !/^ソリッド\d+$/.test(b.name) ? b.name : `${name}_${i + 1}` }));
     }
     if (!bodies.length) {
       toast("エクスポートするソリッドがありません", "warn");
@@ -1528,9 +1719,11 @@ export class App {
       { label: "STEP (AP214) — Inventor / SOLIDWORKS / Fusion / CATIA / Creo", icon: "export", action: () => this.exportFile("step") },
       { label: "STL — 3D プリンタ", icon: "export", action: () => this.exportFile("stl") },
       { label: "BREP — FreeCAD / OpenCascade (B-rep)", icon: "export", action: () => this.exportFile("brep") },
+      { label: "IGES — 旧来の CAD / CAM (トリム サーフェス)", icon: "export", action: () => this.exportFile("iges") },
       { label: "3MF — 3D プリンタ (Bambu / Prusa / Cura)", icon: "export", action: () => this.exportMesh("3mf") },
       { label: "OBJ — Blender / Rhino / 汎用メッシュ", icon: "export", action: () => this.exportMesh("obj") },
-      { label: "GLB (glTF) — Web / AR / プレゼン", icon: "export", action: () => this.exportMesh("glb") },
+      { label: "GLB (glTF バイナリ) — Web / AR / プレゼン", icon: "export", action: () => this.exportMesh("glb") },
+      { label: "glTF (テキスト) — Web / Blender", icon: "export", action: () => this.exportMesh("gltf") },
       { label: "PLY — 点群 / メッシュ", icon: "export", action: () => this.exportMesh("ply") },
       { separator: true, label: "" },
       { label: "DXF (スケッチ) — AutoCAD / Jw_cad", icon: "drawing", disabled: !this.dxfTarget(), action: () => this.exportSketchDxf(this.dxfTarget()!) },
@@ -1609,68 +1802,264 @@ export class App {
     a.click();
   }
 
+  // ------------------------------------------------- autosave / recovery ---
+
   private autosaveTimer = 0;
   private autosaveWarned = false;
-  private scheduleAutosave() {
+  /** Snapshot history (newest first); written only after the start-up check read it. */
+  private snapHistory: Snapshot[] = [];
+  /** Snapshots the user chose to restore "later" (kept apart so new autosaves do not evict them). */
+  private postponed: Snapshot[] = [];
+  private historyLoaded = false;
+  private readonly sessionId = Math.random().toString(36).slice(2, 10);
+
+  private scheduleAutosave(delay = 800) {
+    // the viewer mode does not modify documents: keep the editing session's autosave history
+    if (this.viewer.active) return;
     clearTimeout(this.autosaveTimer);
-    this.autosaveTimer = window.setTimeout(() => {
-      const asmActive = this.asmDoc || !!this.asm.editingPart;
-      const json = JSON.stringify({ env: asmActive ? "assembly" : "part", part: asmActive ? null : this.store.doc, asm: asmActive ? this.asm.doc : null, t: Date.now() });
-      // IndexedDB holds large models (STEP imports, big assemblies); localStorage stays as a fallback
-      void idbSet(AUTOSAVE_KEY, json)
-        .then(() => (this.autosaveWarned = false))
-        .catch(() => {
-          if (!this.autosaveWarned) toast("自動保存できませんでした。こまめに保存してください (Ctrl+S)", "warn", 8000);
-          this.autosaveWarned = true;
-        });
-      try {
-        if (json.length < 2_000_000) localStorage.setItem(AUTOSAVE_KEY, json);
-        else localStorage.removeItem(AUTOSAVE_KEY);
-      } catch {
-        /* quota / private mode: IndexedDB keeps the copy */
+    this.autosaveTimer = window.setTimeout(() => this.writeAutosave(), delay);
+  }
+
+  private currentSnapshot(): Snapshot {
+    const asmActive = this.asmDoc || !!this.asm.editingPart;
+    // a part edited in place inside the assembly is copied into its assembly document
+    let asm = asmActive ? this.asm.doc : null;
+    if (asm && this.asm.editingPart && this.store.dirty) {
+      asm = structuredClone(asm);
+      const p = asm.parts.find((x) => x.id === this.asm.editingPart);
+      if (p) p.doc = structuredClone(this.store.doc);
+    }
+    return {
+      t: Date.now(),
+      env: asmActive ? "assembly" : "part",
+      part: asmActive ? null : this.store.doc,
+      asm,
+      dirty: asmActive ? this.asm.store.dirty || this.store.dirty : this.store.dirty,
+      fileName: asmActive ? this.asm.store.fileHandleName : this.store.fileHandleName,
+      name: asmActive ? this.asm.doc.name : this.store.doc.name,
+      session: this.sessionId,
+    };
+  }
+
+  private writeAutosave() {
+    if (!this.historyLoaded) return void this.scheduleAutosave();
+    const snap = this.currentSnapshot();
+    if (hasContent(snap)) this.snapHistory = pushSnapshot(this.snapHistory, snap);
+    const record = JSON.stringify({ snaps: this.snapHistory, postponed: this.postponed, log: this.opLog.entries() });
+    // IndexedDB holds large models (STEP imports, big assemblies); localStorage keeps the newest as a fallback
+    void idbSet(HISTORY_KEY, record)
+      .then(() => (this.autosaveWarned = false))
+      .catch(() => {
+        if (!this.autosaveWarned) toast("自動保存できませんでした。こまめに保存してください (Ctrl+S)", "warn", 8000);
+        this.autosaveWarned = true;
+      });
+    try {
+      const json = JSON.stringify(snap);
+      if (json.length < 2_000_000) localStorage.setItem(AUTOSAVE_KEY, json);
+      else localStorage.removeItem(AUTOSAVE_KEY);
+    } catch {
+      /* quota / private mode: IndexedDB keeps the copy */
+    }
+  }
+
+  private setSession(running: boolean) {
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ running, t: Date.now() }));
+    } catch {
+      /* private mode: recovery then relies on the dirty flag of the snapshot */
+    }
+  }
+
+  private installRecoveryHooks() {
+    // a clean exit (window closed / reloaded through the UI) clears the running flag;
+    // a crash, kill or power loss leaves it set and the next start offers recovery
+    window.addEventListener("pagehide", () => {
+      if (this.historyLoaded) {
+        clearTimeout(this.autosaveTimer);
+        this.writeAutosave();
       }
-    }, 800);
+      this.setSession(false);
+    });
+    window.addEventListener("error", (e) => this.opLog.add({ kind: "error", id: "window", result: e.message }));
+    window.addEventListener("unhandledrejection", (e) => this.opLog.add({ kind: "error", id: "promise", result: String((e.reason as Error)?.message ?? e.reason) }));
   }
 
   private async restoreAutosave() {
-    let s: string | null | undefined = null;
+    const prev = parseSession(localStorage.getItem(SESSION_KEY));
+    this.setSession(true);
     // the read is asynchronous: if the user (or a file / lesson) already opened something
     // meanwhile, neither restore over it nor cover it with the welcome card
     const untouched = (gen: number) => this.store.generation === gen && !this.asmDoc && this.env === "part";
     const gen0 = this.store.generation;
+    let snaps: Snapshot[] = [];
     try {
-      // the newer of the two copies (IndexedDB is written first and has no size limit)
-      const fromIdb = await idbGet<string>(AUTOSAVE_KEY).catch(() => undefined);
-      const fromLs = localStorage.getItem(AUTOSAVE_KEY);
-      const t = (x: string | null | undefined) => (x ? ((JSON.parse(x) as { t?: number }).t ?? 0) : -1);
-      s = t(fromIdb) >= t(fromLs) ? fromIdb : fromLs;
-      if (!untouched(gen0)) return;
-      if (!s) {
-        this.showWelcome();
-        return;
+      const rec = await idbGet<string>(HISTORY_KEY).catch(() => undefined);
+      if (rec) {
+        const r = JSON.parse(rec) as { snaps?: unknown; postponed?: unknown; log?: unknown };
+        snaps = parseSnapshots(r.snaps);
+        this.postponed = parseSnapshots(r.postponed);
+        this.opLog.load(r.log);
       }
-      const saved = JSON.parse(s) as { env: string; part: PartDocument | null; asm: AssemblyDocument | null };
-      if (saved.env === "assembly" && saved.asm?.components.length) {
-        this.loadAssembly(saved.asm);
-      } else if (saved.part?.format === "3dcad-part" && saved.part.features.length) {
-        const { doc, warnings } = validatePart(saved.part);
+      // legacy single autosave (and the localStorage fallback when IndexedDB failed)
+      const legacy = parseSnapshots([await idbGet<string>(AUTOSAVE_KEY).catch(() => undefined), localStorage.getItem(AUTOSAVE_KEY)].filter(Boolean).map((x) => JSON.parse(x as string)));
+      if (legacy[0] && (!snaps[0] || legacy[0].t > snaps[0].t)) snaps = pushSnapshot(snaps, legacy[0], MAX_SNAPSHOTS, 0);
+    } catch (e) {
+      console.warn("autosave history unreadable", e);
+    }
+    this.snapHistory = snaps;
+    this.historyLoaded = true;
+    this.opLog.add({ kind: "info", id: "session-start", params: prev?.running ? "previous session ended abnormally" : undefined });
+    if (!untouched(gen0)) return;
+    // viewer mode: neither the recovery dialog nor the welcome card (the user opens a file to view)
+    if (this.viewer.active) return;
+    const decision = recoveryDecision(prev, snaps, this.postponed);
+    if (decision === "none") return this.showWelcome();
+    if (decision === "silent") {
+      if (!this.applySnapshot(snaps.find(hasContent)!, false)) this.showWelcome();
+      else toast("前回の作業内容を復元しました", "info", 2500);
+      return;
+    }
+    this.recoveryDialog(!!prev?.running);
+  }
+
+  /** Offer the autosaved states (newest first): 復元 / 破棄 / あとで. */
+  recoveryDialog(crashed = false) {
+    const list = [...this.postponed, ...this.snapHistory].filter(hasContent).sort((a, b) => b.t - a.t);
+    if (!list.length) return void toast("復元できる自動保存データはありません", "info");
+    let pick = 0;
+    const fmt = (s: Snapshot) => {
+      const d = new Date(s.t);
+      const p2 = (n: number) => String(n).padStart(2, "0");
+      return `${d.getMonth() + 1}/${d.getDate()} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+    };
+    const items = list.map((s, i) =>
+      h(
+        "label",
+        { class: "recovery-item" },
+        h("input", { type: "radio", name: "recovery-pick", checked: i === 0, onChange: () => (pick = i) }),
+        h("span", {}, `${fmt(s)}  ${s.name || "(無題)"}${s.env === "assembly" ? " (アセンブリ)" : ""}${s.dirty ? " — 未保存の変更あり" : ""}${s.fileName ? ` [${s.fileName}]` : ""}`),
+      ),
+    );
+    const msg = crashed
+      ? "前回は正常に終了しませんでした。自動保存された作業内容を復元できます。"
+      : "保存されていない作業内容が自動保存されています。復元しますか?";
+    let choice: "restore" | "discard" | "later" = "later";
+    modal({
+      title: "作業内容の復元",
+      icon: "warning",
+      width: 480,
+      body: h(
+        "div",
+        { class: "recovery-dialog" },
+        h("p", { class: "confirm-msg" }, msg),
+        ...items,
+        h("p", { class: "hint" }, "復元してもファイルは上書きされません。必要なら保存し直してください。"),
+      ),
+      buttons: [
+        { label: "復元", primary: true, onClick: () => void (choice = "restore") },
+        { label: "破棄", onClick: () => void (choice = "discard") },
+        { label: "あとで" },
+      ],
+      onClose: () => {
+        if (choice === "restore") {
+          const s = list[pick];
+          this.postponed = [];
+          if (this.applySnapshot(s, true)) toast(`${fmt(s)} の作業内容を復元しました`, "ok", 3000);
+          else this.showWelcome();
+        } else if (choice === "discard") {
+          this.postponed = [];
+          this.snapHistory = [];
+          this.opLog.add({ kind: "info", id: "recovery", result: "discarded" });
+          try {
+            localStorage.removeItem(AUTOSAVE_KEY);
+          } catch {
+            /* ignore */
+          }
+          void idbSet(AUTOSAVE_KEY, "").catch(() => undefined);
+          this.writeAutosave();
+          this.showWelcome();
+        } else {
+          // keep them apart from the rolling history; offered again at next start or from the file menu
+          this.postponed = list.slice(0, MAX_SNAPSHOTS);
+          this.opLog.add({ kind: "info", id: "recovery", result: "postponed" });
+          this.writeAutosave();
+          this.showWelcome();
+        }
+      },
+    });
+  }
+
+  /** Load an autosaved state into the app. Never writes to the user's file. */
+  private applySnapshot(s: Snapshot, recovered: boolean): boolean {
+    try {
+      if (s.env === "assembly" && hasContent(s)) {
+        this.loadAssembly(s.asm as AssemblyDocument, s.fileName ?? undefined);
+        if (recovered || s.dirty) this.asm.store.dirty = true;
+      } else if ((s.part as PartDocument | null)?.format === "3dcad-part" && hasContent(s)) {
+        const { doc, warnings } = validatePart(s.part as PartDocument);
         this.reportRepairs(warnings);
         this.store.load(doc);
-      } else {
-        this.showWelcome();
-        return;
-      }
-      toast("前回の作業内容を復元しました", "info", 2500);
+        this.store.fileHandleName = s.fileName;
+        if (recovered || s.dirty) this.store.dirty = true;
+      } else return false;
+      this.opLog.add({ kind: "info", id: "recovery", params: new Date(s.t).toISOString(), result: recovered ? "restored" : "continued" });
+      this.refreshUI();
+      return true;
     } catch (e) {
-      // keep the unreadable autosave instead of overwriting it with the next edit
-      try {
-        if (s) void idbSet(`${AUTOSAVE_KEY}.broken`, s);
-      } catch {
-        /* ignore */
-      }
+      // keep the unreadable state instead of overwriting it with the next edit
+      void idbSet(`${AUTOSAVE_KEY}.broken`, JSON.stringify(s)).catch(() => undefined);
       toast(`前回の作業内容を復元できませんでした: ${(e as Error).message}`, "warn", 8000);
-      this.showWelcome();
+      return false;
     }
+  }
+
+  exportOpLog() {
+    const text = this.opLog.format({
+      app: "3DCAD Studio",
+      exported: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      env: this.env,
+      kernelRestarts: String(this.kernel.restarts),
+    });
+    const d = new Date();
+    const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}`;
+    download(`3dcad-oplog-${stamp}.txt`, text, "text/plain");
+  }
+
+  // ------------------------------------------------------ kernel errors ---
+
+  /** A rebuild threw (kernel exception, crash or timeout): go back to the last good model. */
+  private onRebuildFailed(e: Error, seq: number, gen: number, docJson: string) {
+    const crashed = e instanceof KernelCrashError;
+    this.opLog.add({ kind: "error", id: "rebuild", result: e.message });
+    if (seq !== this.regenSeq) return; // superseded by a newer rebuild
+    if (this.lastGood && this.lastGood !== docJson && this.store.generation === gen) {
+      // the command preview (if any) belongs to the failed state
+      if (this.command) this.command.cancel();
+      this.store.restore(this.lastGood, "rollback");
+      this.store.dirty = true;
+      toast(`${crashed ? "ジオメトリ カーネルが停止しました" : "再計算でエラーが発生しました"}。直前の正常な状態に戻しました: ${e.message}`, "error", 9000);
+      return;
+    }
+    toast(`再計算エラー: ${e.message}`, "error");
+  }
+
+  /** The kernel worker was restarted: rebuild whatever is shown from the documents. */
+  private onKernelRestart(reason: string) {
+    const now = Date.now();
+    this.crashRestarts = [...this.crashRestarts.filter((t) => now - t < 60_000), now];
+    this.opLog.add({ kind: "error", id: "kernel-restart", result: reason });
+    if (this.crashRestarts.length > 3) {
+      toast("ジオメトリ カーネルが繰り返し停止しています。直前の操作を元に戻すか、ファイルを保存して再起動してください", "error", 12000);
+      return;
+    }
+    toast("ジオメトリ カーネルを再起動しました", "warn", 4000);
+    if (this.env === "assembly" || this.asmDoc) {
+      this.asm.parts.clear();
+      void this.asm.update();
+    }
+    if (this.env === "part") this.scheduleRegen();
+    if (this.env === "drawing") void this.drawing.refresh();
   }
 
   /** Tell the user what was repaired while opening a file. */
@@ -1722,6 +2111,18 @@ export class App {
       if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement) return;
       if (document.querySelector(".modal-back")) return;
       const k = e.key;
+      // F1 / ?: help on the command under the mouse, the running command, or the index
+      if (k === "F1" || (k === "?" && !e.ctrlKey && !e.metaKey && !this.sketchEditor)) {
+        e.preventDefault();
+        if (document.querySelector(".help-back")) return;
+        return void openHelp(this, hoveredCommand() ?? this.command?.id ?? (this.viewer.active ? "help:viewer" : null));
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && k.toLowerCase() === "v") return void (e.preventDefault(), this.viewer.toggle());
+      if (this.viewer.active && !viewerAllowsKey(e)) return;
+      if (this.viewer.active && (e.ctrlKey || e.metaKey) && k.toLowerCase() === "p") return void (e.preventDefault(), this.viewer.print());
+      if (this.viewer.active && (e.ctrlKey || e.metaKey) && k.toLowerCase() === "o") return void (e.preventDefault(), this.viewer.pickAndOpen());
+      // H / Shift+H / I (display), Esc ends an Alt+click
+      if (!this.sketchEditor && this.viewCtx.key(e)) return void e.preventDefault();
       const ctrl = e.ctrlKey || e.metaKey;
       const kl = k.toLowerCase();
       // Ctrl+Shift combinations first (Inventor defaults)
@@ -1844,6 +2245,7 @@ export class App {
     this.ribbon.refresh();
     this.timeline?.render();
     this.pmi?.refresh();
+    this.measure?.refresh();
   }
 
   private syncMaterial() {

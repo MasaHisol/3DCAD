@@ -4,10 +4,11 @@
 
 import type { SkArc, SkCircle, SkEntity, SkLine, SkPoint, Vec2 } from "../core/types";
 
+/** `src`: id of the sketch entity the segment comes from (persistent topology naming). */
 export type LoopSeg =
-  | { t: "line"; a: Vec2; b: Vec2 }
-  | { t: "arc"; a: Vec2; b: Vec2; m: Vec2 }
-  | { t: "circle"; c: Vec2; r: number };
+  | { t: "line"; a: Vec2; b: Vec2; src?: string }
+  | { t: "arc"; a: Vec2; b: Vec2; m: Vec2; src?: string }
+  | { t: "circle"; c: Vec2; r: number; src?: string };
 
 export interface Region {
   outer: LoopSeg[];
@@ -21,8 +22,8 @@ export interface Region {
 }
 
 type Curve =
-  | { kind: "line"; a: Vec2; b: Vec2 }
-  | { kind: "arc"; c: Vec2; r: number; t0: number; t1: number };
+  | { kind: "line"; a: Vec2; b: Vec2; src?: string }
+  | { kind: "arc"; c: Vec2; r: number; t0: number; t1: number; src?: string };
 
 const TOL = 1e-6;
 const TAU = Math.PI * 2;
@@ -138,10 +139,10 @@ export function sketchCurves(entities: SkEntity[]): Curve[] {
     if (e.type === "line") {
       const l = e as SkLine;
       const a = P(l.p1), b = P(l.p2);
-      if (Math.hypot(b[0] - a[0], b[1] - a[1]) > TOL) out.push({ kind: "line", a, b });
+      if (Math.hypot(b[0] - a[0], b[1] - a[1]) > TOL) out.push({ kind: "line", a, b, src: e.id });
     } else if (e.type === "circle") {
       const c = e as SkCircle;
-      if (c.r > TOL) out.push({ kind: "arc", c: P(c.c), r: c.r, t0: 0, t1: TAU });
+      if (c.r > TOL) out.push({ kind: "arc", c: P(c.c), r: c.r, t0: 0, t1: TAU, src: e.id });
     } else if (e.type === "arc") {
       const a = e as SkArc;
       const c = P(a.c), p1 = P(a.p1), p2 = P(a.p2);
@@ -149,7 +150,7 @@ export function sketchCurves(entities: SkEntity[]): Curve[] {
       const t0 = Math.atan2(p1[1] - c[1], p1[0] - c[0]);
       let t1 = normAngle(Math.atan2(p2[1] - c[1], p2[0] - c[0]), t0);
       if (t1 - t0 < 1e-9) t1 += TAU;
-      if (r > TOL) out.push({ kind: "arc", c, r, t0, t1 });
+      if (r > TOL) out.push({ kind: "arc", c, r, t0, t1, src: e.id });
     }
   }
   return out;
@@ -252,12 +253,13 @@ export function findRegions(entities: SkEntity[]): Region[] {
   const toSegs = (face: HalfEdge[]): LoopSeg[] => {
     if (face.length === 1 && face[0].e.curve.kind === "arc" && face[0].e.v0 === face[0].e.v1) {
       const c = face[0].e.curve;
-      return [{ t: "circle", c: c.c, r: c.r }];
+      return [c.src ? { t: "circle", c: c.c, r: c.r, src: c.src } : { t: "circle", c: c.c, r: c.r }];
     }
-    return face.map((h) => {
+    return face.map((h): LoopSeg => {
       const a = verts[h.from], b = verts[h.to];
-      if (h.e.curve.kind === "line") return { t: "line", a, b };
-      return { t: "arc", a, b, m: curvePoint(h.e.curve, (h.e.u0 + h.e.u1) / 2) };
+      const src = h.e.curve.src ? { src: h.e.curve.src } : {};
+      if (h.e.curve.kind === "line") return { t: "line", a, b, ...src };
+      return { t: "arc", a, b, m: curvePoint(h.e.curve, (h.e.u0 + h.e.u1) / 2), ...src };
     });
   };
   const poly = (face: HalfEdge[]): Vec2[] => {

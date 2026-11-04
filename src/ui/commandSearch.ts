@@ -24,7 +24,9 @@ export function openCommandSearch(app: App) {
     { label: "エクスポート (STEP / STL / 3MF / OBJ / GLB / DXF)", where: "ファイル", icon: "export", run: () => app.exportMenu(window.innerWidth / 2 - 150, 120) },
     { label: "学習センター (チュートリアル・用語集)", where: "ヘルプ", icon: "learn", run: () => openLearningCenter(app) },
     { label: "座学テキスト (設計の基礎・構造力学・設計ノウハウ・デザイン)", where: "ヘルプ", icon: "open", run: () => openTextbook() },
-    { label: "オプション (マウス操作)", where: "設定", icon: "settings", run: () => app.openSettings() },
+    { label: "使い方ヘルプ", where: "ヘルプ", icon: "help", shortcut: "F1", run: () => void import("../help").then((m) => m.openHelp(app)) },
+    { label: app.viewer.active ? "編集モードで開く" : "閲覧モードに切り替え", where: "表示", icon: "eye", shortcut: "Ctrl+Shift+V", run: () => app.viewer.toggle() },
+    { label: "オプション (マウス操作)",where: "設定", icon: "settings", run: () => app.openSettings() },
     { label: "元に戻す", where: "編集", icon: "undo", shortcut: "Ctrl+Z", run: () => app.undo() },
     { label: "やり直し", where: "編集", icon: "redo", shortcut: "Ctrl+Y", run: () => app.redo() },
   ];
@@ -43,7 +45,7 @@ export function openCommandSearch(app: App) {
     pattern: "パターン", mirror: "ミラー", loft: "ロフト", sweep: "スイープ", measure: "測定", "press pull": "プレス/プル", pushpull: "プレス/プル",
     parameter: "パラメータ", section: "断面", constraint: "拘束", mate: "メイト", export: "エクスポート", import: "インポート", line: "線分",
     circle: "円", rectangle: "長方形", dimension: "寸法", trim: "トリム", plane: "平面", drawing: "図面", bom: "部品表",
-    learn: "学習", tutorial: "学習", lesson: "学習", help: "学習", textbook: "テキスト", mechanics: "テキスト", design: "テキスト",
+    learn: "学習", tutorial: "学習", lesson: "学習", help: "ヘルプ", viewer: "閲覧", textbook: "テキスト", mechanics: "テキスト", design: "テキスト",
   };
   const update = () => {
     const q = input.value.trim().toLowerCase();

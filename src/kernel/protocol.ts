@@ -4,6 +4,13 @@
 import type { BoolOp, EdgeRef, FaceRef, PlaneDef, Vec2, Vec3 } from "../core/types";
 import type { LoopSeg } from "../sketch/profiles";
 import type { SurfaceRFeature } from "./surface";
+import type { BrokenRef } from "../core/naming";
+
+/** Sketch placed on a model face: the kernel re-resolves the face and moves the plane with it. */
+export interface PlaneFaceRef {
+  sketch: string;
+  face: FaceRef;
+}
 
 export interface RRegion {
   outer: LoopSeg[];
@@ -101,7 +108,7 @@ export type RFeature =
       transforms: Transform[];
     }
   | { id: string; type: "primitive"; shape: "box" | "cylinder" | "sphere" | "torus"; plane: PlaneDef; center: Vec2; a: number; b: number; c: number; op: BoolOp }
-  | { id: string; type: "import"; format: "step" | "stl"; data: string }
+  | { id: string; type: "import"; format: "step" | "stl" | "iges"; data: string; /** Repair the geometry (default on). */ heal?: boolean }
   | { id: string; type: "move"; transform: Transform; surfaces?: string[]; solids?: boolean }
   | SurfaceRFeature;
 
@@ -184,19 +191,36 @@ export interface BodyMesh {
   edges: EdgeInfo[];
   /** Surface body (open shell): id of the feature that made it. */
   surface?: string;
+  /** Colour read from the file (STEP / IGES). */
+  color?: string;
+  /** STEP assembly path of the instance the body came from (root … instance). */
+  path?: string[];
+  /** Persistent topology names, index-aligned with `faces` / `edges` (core/naming.ts). */
+  faceNames?: string[];
+  edgeNames?: string[];
+  /** Tessellation it was made with (level, chordal / angular deflection, cache version). */
+  tess?: { quality: "coarse" | "normal" | "fine"; tolerance: number; linear: number; angular: number; version: string };
 }
 
 export interface RebuildResult {
+  /** True when the meshes are a coarse first display: ask for `remesh("normal")` in the background. */
+  refine?: boolean;
   bodies: BodyMesh[];
   /** Surface bodies (displayed after the solids, double sided). */
   surfaces?: BodyMesh[];
   /** Bodies just before the feature named in `captureBefore` (for picking while editing it). */
   before?: BodyMesh[];
   errors: Record<string, string>;
+  /** Messages for the user per feature (e.g. what an import repaired). */
+  notices?: Record<string, string>;
   /** References re-resolved during the rebuild (keeps them tracking edits). */
-  updatedRefs: Record<string, { edges?: EdgeRef[]; faces?: FaceRef[] }>;
+  updatedRefs: Record<string, { edges?: EdgeRef[]; faces?: FaceRef[]; plane?: PlaneDef }>;
+  /** References that could not be resolved, per feature, with candidates to repair from. */
+  brokenRefs?: Record<string, BrokenRef[]>;
   timeMs: number;
   threads: ThreadInfo[];
+  /** Incremental rebuild: features reused from the cache / evaluated (engine #3). */
+  stats?: { features: number; reused: number; recomputed: number; first: number; cache: { entries: number; pinned: number; evicted: number; freed: number; liveShapes: number } };
 }
 
 export interface MassProps {
@@ -265,6 +289,9 @@ export interface Placement {
   key: string;
   matrix: number[];
   name: string;
+  /** Part (product) name and colour for structured STEP export. */
+  part?: string;
+  color?: string;
 }
 
 export interface Interference {
@@ -276,16 +303,36 @@ export interface Interference {
 /** `key` selects a geometry engine: "main" for the edited part, otherwise an assembly part id. */
 export type WorkerRequest =
   | { kind: "init" }
-  | { kind: "rebuild"; features: RFeature[]; captureBefore?: string; key?: string }
-  | { kind: "export"; format: "step" | "stl" | "brep"; name: string; key?: string }
+  | { kind: "rebuild"; features: RFeature[]; captureBefore?: string; key?: string; quality?: "coarse" | "normal" | "fine"; progressive?: boolean }
+  /** Display meshes of the current model at another tessellation level (progressive / view-dependent refinement). */
+  | { kind: "remesh"; quality: "coarse" | "normal" | "fine"; key?: string }
+  | { kind: "export"; format: "step" | "stl" | "brep" | "iges"; name: string; key?: string; color?: string }
+  | { kind: "stepAssembly"; text: string }
   | { kind: "massProps"; key?: string }
   | { kind: "measure"; a: PickRef; b?: PickRef; key?: string }
+  /** Exact measurements of stage 2 (src/measure/kernel.ts). */
+  | { kind: "measureX"; op: import("../measure/types").MeasureOp; key?: string }
   | { kind: "projection"; views: { name: string; dir: Vec3; xAxis: Vec3 }[]; key?: string; placements?: Placement[] }
-  | { kind: "exportAssembly"; format: "step" | "stl"; placements: Placement[]; withRoutes?: boolean }
+  | { kind: "exportAssembly"; format: "step" | "stl" | "iges"; placements: Placement[]; withRoutes?: boolean; name?: string }
   | { kind: "interference"; placements: Placement[] }
   | { kind: "dropEngine"; key: string }
   | { kind: "drawViews"; key?: string; placements?: Placement[]; views: ViewSpec[] }
   | { kind: "routeBuild"; routes: import("./route").RouteSolidSpec[] }
-  | { kind: "routeInterference"; placements: Placement[] };
+  | { kind: "routeInterference"; placements: Placement[] }
+  /** Pairwise interference with touch detection and overlap meshes (assembly viewer). */
+  | { kind: "interferenceEx"; placements: Placement[]; opts: import("./interferenceK").InterferenceExOptions }
+  /** Exact hidden-line removal per view (drawing engine input). */
+  | { kind: "hlr"; views: import("./hlr").HlrView[]; key?: string; placements?: Placement[] }
+  /** State of the extended kernel; `load` loads it now. */
+  | { kind: "extKernel"; load?: boolean }
+  /** Exact planar sections of the model (or placed components) with each plane (断面の DXF 出力). */
+  | { kind: "section"; planes: import("../core/types").PlaneDef[]; key?: string; placements?: Placement[]; deflection?: number };
+
+/** Extended OpenCascade kernel state (IGES / XCAF / ShapeFix, src/kernel/ext.ts). */
+export interface ExtKernelInfo {
+  available: boolean;
+  loaded: boolean;
+  error?: string;
+}
 
 export type WorkerResponse = { id: number; ok: true; result: unknown } | { id: number; ok: false; error: string };

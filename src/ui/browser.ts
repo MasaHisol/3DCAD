@@ -51,6 +51,8 @@ export interface BrowserHost {
   doc(): PartDocument;
   errors(): Record<string, string>;
   bodyCount(): number;
+  /** Renders the bodies (with visibility, grouping and the filter). Return true when rendered. */
+  bodyTree?(list: HTMLElement, filter: string): boolean;
   /** Surface bodies (open shells) shown under their own folder. */
   surfaceCount?(): number;
   activeSketch(): string | null;
@@ -213,6 +215,9 @@ export class ModelBrowser {
     }
     // solid bodies
     const nb = this.host.bodyCount();
+    if (this.host.bodyTree?.(this.list, this.filter)) {
+      /* rendered by the view controller (ui/viewContextMenu.ts) */
+    } else {
     const solidsOpen = this.expanded.has("__solids");
     row({
       id: "__solids",
@@ -229,6 +234,7 @@ export class ModelBrowser {
       const open = this.expanded.has("__surfaces");
       row({ id: "__surfaces", icon: "folder", label: `サーフェス本体(${ns})`, depth: 1, expander: true, expanded: open, onToggle: () => this.toggle("__surfaces") });
       if (open) for (let i = 0; i < ns; i++) row({ id: `__surf${i}`, icon: "surfPatch", label: `サーフェス${i + 1}`, depth: 2 });
+    }
     }
 
     // features (consumed sketches are nested under their consumer, like Inventor)
