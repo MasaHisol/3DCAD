@@ -156,6 +156,12 @@ async function session(webgpu) {
     const x1 = await page.evaluate(() => window.cad.sectionView.state.planes[0].value);
     await page.locator("[data-testid=section-panel] .sec-row").first().locator("button").last().click();
     check(`${tag} section sweep animates the plane`, Math.abs(x1 - x0) > 1e-3, `${x0.toFixed(2)} → ${x1.toFixed(2)}`);
+    // the sweep may stop anywhere (even outside the part): put the X plane back before exporting
+    await page.evaluate((v) => {
+      const sv = window.cad.sectionView;
+      sv.state.planes[0].value = v;
+      sv.apply();
+    }, x0);
 
     // DXF output of the exact section outlines
     const dl = page.waitForEvent("download", { timeout: 60000 });
