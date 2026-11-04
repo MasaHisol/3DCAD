@@ -193,7 +193,8 @@ export class Viewport {
   transparency!: TransparencyPass;
   xray = false;
   xrayOpacity = 0.28;
-  private bodyOpacity = new Map<number, number>();
+  /** Per-body opacity (index -> 0..1); absent = opaque. */
+  bodyOpacity = new Map<number, number>();
   private transparentBodies = new Set<number>();
 
   hover: Pick | null = null;

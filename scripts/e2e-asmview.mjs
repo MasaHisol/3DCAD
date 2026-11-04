@@ -135,8 +135,8 @@ try {
   const rec = await state();
   const vpState = await page.evaluate(() => {
     const a = window.cad.asm;
-    const op = window.cad.vp.bodyOpacity;
-    return { ghost: a.bodyMap.map((m, i) => [m.comp, op[i] ?? 1]), visComps: [...new Set(a.bodyMap.map((m) => m.comp))].sort(), legend: !!document.querySelector(".color-legend") };
+    const op = window.cad.vp.bodyOpacity; // Map: body index -> opacity
+    return { ghost: a.bodyMap.map((m, i) => [m.comp, op.get(i) ?? 1]), visComps: [...new Set(a.bodyMap.map((m) => m.comp))].sort(), legend: !!document.querySelector(".color-legend") };
   });
   check("recalled camera", sameCam(rec.camera, saved.camera), JSON.stringify({ rec: rec.camera, saved: saved.camera }));
   check("recalled visibility", JSON.stringify(rec.hidden) === JSON.stringify(saved.hidden) && JSON.stringify(vpState.visComps) === '["c2","c3"]', JSON.stringify(vpState.visComps));

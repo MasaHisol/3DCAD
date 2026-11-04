@@ -3042,6 +3042,7 @@ kbd {
 .viewer-mode .doc-title::before {
   content: "閲覧モード — ";
   opacity: 0.7;
+}
 /* ---------------------------------------------- assembly viewing (stage 2) */
 .float-panel {
   position: absolute;
